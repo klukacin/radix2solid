@@ -1,0 +1,17 @@
+/upstream/
+/node_modules/
+**/node_modules/
+**/dist/
+**/out/
+**/.vite/
+/playwright-report/
+/test-results/
+/coverage/
+/.superpowers/
+/.artifacts/
+/.worktrees/
+/.tooling/
+*.tgz
+.env
+.env.*
+!.env.example

@@ -1,0 +1,22 @@
+# Changelog
+
+## 0.0.0-local
+
+- Native Solid 2 Theme/context, Foundation/Layout/Typography/Visual families, all compound presentational parts, four Themes icons and viewport-ref ScrollArea; no React runtime or type bridge.
+- Live responsive helpers preserve enum/default/negative/arbitrary-value behavior without mutating frozen inputs. Native factory composition, consumer-style precedence and resolved-gray inheritance retained.
+- Single-host loading buttons preserve accessible names/dimensions and explicit disabled overrides; Skeleton releases inert/hidden/tabindex attributes, Avatar recovers image errors and Table preserves semantic header scopes.
+- Native browser/server ESM and declarations, all 50 component prop modules, all 40 original CSS outputs, CSS side effects and cwd-independent ESM/CJS PostCSS plugins.
+- SSR-safe optional Theme context and client-only synchronization avoid server owner allocation/hydration-key drift. Isolated consumers resolve the unpublished native dependency from the exact primitives tarball.
+- Complete native interactive inputs/collections, shared CheckboxGroup/CheckboxCards selection, all themed overlays/compound parts and ThemePanel including root settings, keyboard/focus, inherited appearance and clipboard behavior.
+- Physical themed portals retain live settings and explicit nested light/dark/auto-gray behavior; CSS-driven responsive submenu alignment follows breakpoints and scaling.
+- Shared native Popper coalesces geometry updates into owned animation frames; state change callbacks use untracked notification scope. Kbd retains the upstream reset on composed button hosts.
+- Retain WorkOS MIT attribution and reuse released Radix Colors 3.0.0 without rewriting its neutral package.
+- Restore `Root` on Slot and VisuallyHidden component subpaths by reusing the native primitive exports.
+- Apply Slider accessible labels to its interactive thumbs, retaining index-stable keyboard interaction and primitive fallback names.
+- Use readable step-11 Select placeholder foregrounds rather than muted/translucent reference colors.
+- Preserve forced-color input/selection boundaries, checkbox/radio marks, slider ranges and keyboard focus with system colors, without a global forced-color opt-out.
+- Restore ordered public breakpoint-array semantics and exact upstream compound exports; block private implementation subpaths without compatibility shims.
+- Preserve ThemePanel keyless-event handling, native inert state, original gap and child-first inherited ref precedence.
+- Keep loading labels visually hidden and accessible in forced colors; paint Spinner leaves with CanvasText in light/dark system palettes.
+- Include the complete reused Radix Colors MIT notice in the distributed Themes license.
+- Publish source in the public repository with a Radix2Solid contributors MIT notice; original Radix MIT copyright notices and texts are retained in the distributed `LICENSE`.

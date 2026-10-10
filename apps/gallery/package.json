@@ -1,0 +1,11 @@
+{
+  "name": "@radix-solid/gallery",
+  "private": true,
+  "type": "module",
+  "dependencies": { "@radix-solid/primitives": "workspace:*", "@radix-solid/icons": "workspace:*", "@radix-solid/themes": "workspace:*", "@radix-ui/colors": "3.0.0", "solid-js": "2.0.0-rc.13", "@solidjs/web": "2.0.0-rc.13" },
+  "scripts": {
+    "dev": "node scripts/serve.ts",
+    "build": "vite build && vite build --ssr",
+    "preview": "node scripts/serve.ts --production"
+  }
+}

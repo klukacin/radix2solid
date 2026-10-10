@@ -1,0 +1,46 @@
+{
+  "name": "@radix-solid/themes",
+  "version": "0.0.0-local",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/klukacin/radix2solid.git", "directory": "packages/themes" },
+  "homepage": "https://github.com/klukacin/radix2solid/tree/main/packages/themes#readme",
+  "bugs": { "url": "https://github.com/klukacin/radix2solid/issues" },
+  "style": "./dist/styles/styles.css",
+  "files": ["dist", "src/styles/breakpoints.css", "postcss-breakpoints.js", "postcss-breakpoints.cjs", "postcss-whitespace.js", "postcss-whitespace.cjs", "LICENSE", "README.md", "CHANGELOG.md"],
+  "sideEffects": ["**/*.css"],
+  "exports": {
+    ".": { "types": "./dist/types/index.d.ts", "browser": "./dist/client/index.js", "default": "./dist/server/index.js" },
+    "./components/*": { "types": "./dist/types/components/*.d.ts", "browser": "./dist/client/components/*.js", "default": "./dist/server/components/*.js" },
+    "./components/index": null,
+    "./components/checkbox-group.primitive": null,
+    "./components/_internal/*": null,
+    "./helpers": { "types": "./dist/types/helpers/index.d.ts", "browser": "./dist/client/helpers.js", "default": "./dist/server/helpers.js" },
+    "./props": { "types": "./dist/types/props/index.d.ts", "browser": "./dist/client/props.js", "default": "./dist/server/props.js" },
+    "./postcss-breakpoints": { "import": "./postcss-breakpoints.js", "require": "./postcss-breakpoints.cjs" },
+    "./postcss-whitespace": { "import": "./postcss-whitespace.js", "require": "./postcss-whitespace.cjs" },
+    "./postcss-breakpoints.js": "./postcss-breakpoints.js",
+    "./postcss-breakpoints.cjs": "./postcss-breakpoints.cjs",
+    "./postcss-whitespace.js": "./postcss-whitespace.js",
+    "./postcss-whitespace.cjs": "./postcss-whitespace.cjs",
+    "./*.css": "./dist/styles/*.css",
+    "./tokens/*.css": "./dist/styles/tokens/*.css",
+    "./layout/*.css": "./dist/styles/layout/*.css"
+  },
+  "scripts": {
+    "build": "pnpm build:js && pnpm build:css",
+    "build:js": "vite build && vite build --ssr && tsc -p tsconfig.json",
+    "build:css": "node scripts/build-css.js"
+  },
+  "peerDependencies": { "solid-js": "2.0.0-rc.13", "@solidjs/web": "2.0.0-rc.13" },
+  "dependencies": { "@radix-solid/primitives": "workspace:*", "@radix-ui/colors": "3.0.0", "postcss": "8.5.9" },
+  "devDependencies": {
+    "postcss-import": "16.1.1",
+    "postcss-nesting": "14.0.0",
+    "postcss-custom-media": "12.0.1",
+    "postcss-combine-duplicated-selectors": "10.0.3",
+    "postcss-discard-empty": "7.0.1",
+    "autoprefixer": "10.4.27"
+  }
+}

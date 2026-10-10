@@ -1,0 +1,17 @@
+// Generated from icons/chevron-right.svg; run pnpm generate, do not edit.
+import { omit, type Element } from 'solid-js';
+import type { IconProps } from './types.js';
+
+import { IconTitle } from './title.js';
+
+export function ChevronRightIcon(props: IconProps): Element {
+  return <svg width={props.size ?? 15} height={props.size ?? 15} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"
+    role={props.title || props['aria-label'] || props['aria-labelledby'] ? 'img' : undefined}
+    aria-hidden={props.title || props['aria-label'] || props['aria-labelledby'] ? undefined : 'true'}
+    {...omit(props, 'children', 'title', 'size')}>
+    {props.title ? <IconTitle xmlns="http://www.w3.org/2000/svg">{props.title}</IconTitle> : undefined}
+    <path d="M6.15879 11.8651C6.36026 12.0536 6.67706 12.043 6.86582 11.8416L10.6158 7.84162C10.7957 7.64939 10.7957 7.35026 10.6158 7.15803L6.86582 3.15803L6.78868 3.09162C6.59895 2.95743 6.33504 2.96965 6.15879 3.13459C5.98254 3.29983 5.95206 3.56345 6.07383 3.76155L6.13535 3.84162L9.56407 7.49983L6.13535 11.158C5.94681 11.3595 5.95745 11.6763 6.15879 11.8651Z" fill={props.color ?? 'currentColor'}/>
+  </svg>;
+}
+
+export default ChevronRightIcon;

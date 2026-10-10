@@ -1,0 +1,22 @@
+{
+  "name": "@radix-solid/icons",
+  "version": "0.0.0-local",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/klukacin/radix2solid.git", "directory": "packages/icons" },
+  "homepage": "https://github.com/klukacin/radix2solid/tree/main/packages/icons#readme",
+  "bugs": { "url": "https://github.com/klukacin/radix2solid/issues" },
+  "files": ["dist", "icons", "LICENSE", "README.md", "CHANGELOG.md"],
+  "sideEffects": false,
+  "exports": {
+    ".": { "types": "./dist/types/index.d.ts", "browser": "./dist/client/index.js", "default": "./dist/server/index.js" },
+    "./icons/*.svg": "./icons/*.svg",
+    "./*Icon": { "types": "./dist/types/*Icon.d.ts", "browser": "./dist/client/*Icon.js", "default": "./dist/server/*Icon.js" }
+  },
+  "scripts": {
+    "generate": "node scripts/generate.ts",
+    "build": "pnpm generate && vite build && vite build --ssr && tsc -p tsconfig.json"
+  },
+  "peerDependencies": { "solid-js": "2.0.0-rc.13", "@solidjs/web": "2.0.0-rc.13" }
+}

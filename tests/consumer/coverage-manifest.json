@@ -1,0 +1,1502 @@
+{
+  "scope": "Public part/type availability is checked separately from the mapped family behavior. Isolated real-reader Announce/Toast/layer speech has separate observed evidence; automated availability checks do not certify every reader/platform or release ownership.",
+  "publicCounts": { "modules": 150, "declarations": 1314, "css": 40, "plugins": 6, "icons": 332 },
+  "modules": [
+    {
+      "module": "@radix-solid/primitives/slot",
+      "exports": "createSlot createSlottable Root Slot SlotProps SlotRender Slottable SlottableProps SlotTarget",
+      "checks": [
+        "packed",
+        "types",
+        "composition"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/toggle",
+      "exports": "Root Toggle ToggleProps",
+      "checks": [
+        "packed",
+        "types",
+        "composition"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/direction",
+      "exports": "Direction DirectionProvider DirectionProviderProps Provider useDirection",
+      "checks": [
+        "packed",
+        "types",
+        "composition"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/portal",
+      "exports": "Portal PortalProps Root",
+      "checks": [
+        "packed",
+        "types",
+        "layers"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/visually-hidden",
+      "exports": "Root VISUALLY_HIDDEN_STYLES VisuallyHidden VisuallyHiddenProps",
+      "checks": [
+        "packed",
+        "types",
+        "layers"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/arrow",
+      "exports": "Arrow ArrowProps Root",
+      "checks": [
+        "packed",
+        "types",
+        "layers"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/dialog",
+      "exports": "Close Content createDialogScope Description Dialog DialogClose DialogCloseProps DialogContent DialogContentProps DialogDescription DialogDescriptionProps DialogOverlay DialogOverlayProps DialogPortal DialogPortalProps DialogProps DialogTitle DialogTitleProps DialogTrigger DialogTriggerProps Overlay Portal Root Title Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "layers"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/popover",
+      "exports": "Anchor Arrow Close Content createPopoverScope Description Popover PopoverAnchor PopoverAnchorProps PopoverArrow PopoverArrowProps PopoverClose PopoverCloseProps PopoverContent PopoverContentProps PopoverDescription PopoverDescriptionProps PopoverPortal PopoverPortalProps PopoverProps PopoverTitle PopoverTitleProps PopoverTrigger PopoverTriggerProps Portal Root Title Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "layers"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/accessible-icon",
+      "exports": "AccessibleIcon AccessibleIconProps Root",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/aspect-ratio",
+      "exports": "AspectRatio AspectRatioProps Root",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/label",
+      "exports": "Label LabelProps Root",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/progress",
+      "exports": "createProgressScope Indicator Progress ProgressIndicator ProgressIndicatorProps ProgressProps Root",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/separator",
+      "exports": "Root Separator SeparatorProps",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/avatar",
+      "exports": "Avatar AvatarFallback AvatarFallbackProps AvatarImage AvatarImageProps AvatarProps createAvatarScope Fallback Image Root",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/announce",
+      "exports": "Announce AnnounceProps Root",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/collapsible",
+      "exports": "Collapsible CollapsibleContent CollapsibleContentProps CollapsibleProps CollapsibleTrigger CollapsibleTriggerProps Content createCollapsibleScope Root Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/accordion",
+      "exports": "Accordion AccordionContent AccordionContentProps AccordionHeader AccordionHeaderProps AccordionItem AccordionItemProps AccordionMultipleProps AccordionSingleProps AccordionTrigger AccordionTriggerProps Content createAccordionScope Header Item Root Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/checkbox",
+      "exports": "Checkbox CheckboxIndicator CheckboxIndicatorProps CheckboxProps CheckedState createCheckboxScope Indicator Root unstable_BubbleInput unstable_CheckboxBubbleInput unstable_CheckboxBubbleInputProps unstable_CheckboxProvider unstable_CheckboxProviderProps unstable_CheckboxTrigger unstable_CheckboxTriggerProps unstable_Provider unstable_Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/switch",
+      "exports": "createSwitchScope Root Switch SwitchProps SwitchThumb SwitchThumbProps Thumb unstable_BubbleInput unstable_Provider unstable_SwitchBubbleInput unstable_SwitchBubbleInputProps unstable_SwitchProvider unstable_SwitchProviderProps unstable_SwitchTrigger unstable_SwitchTriggerProps unstable_Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/radio-group",
+      "exports": "createRadioGroupScope Indicator Item RadioGroup RadioGroupIndicator RadioGroupIndicatorProps RadioGroupItem RadioGroupItemProps RadioGroupProps Root unstable_ItemBubbleInput unstable_ItemProvider unstable_ItemTrigger unstable_RadioGroupItemBubbleInput unstable_RadioGroupItemBubbleInputProps unstable_RadioGroupItemProvider unstable_RadioGroupItemProviderProps unstable_RadioGroupItemTrigger unstable_RadioGroupItemTriggerProps",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/tabs",
+      "exports": "Content createTabsScope List Root Tabs TabsContent TabsContentProps TabsList TabsListProps TabsProps TabsTrigger TabsTriggerProps Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/toggle-group",
+      "exports": "createToggleGroupScope Item Root ToggleGroup ToggleGroupItem ToggleGroupItemProps ToggleGroupMultipleProps ToggleGroupSingleProps",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/toolbar",
+      "exports": "Button createToolbarScope Link Root Separator ToggleGroup ToggleItem Toolbar ToolbarButton ToolbarButtonProps ToolbarLink ToolbarLinkProps ToolbarProps ToolbarSeparator ToolbarSeparatorProps ToolbarToggleGroup ToolbarToggleGroupMultipleProps ToolbarToggleGroupSingleProps ToolbarToggleItem ToolbarToggleItemProps",
+      "checks": [
+        "packed",
+        "types",
+        "controls"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/alert-dialog",
+      "exports": "Action AlertDialog AlertDialogAction AlertDialogActionProps AlertDialogCancel AlertDialogCancelProps AlertDialogContent AlertDialogContentProps AlertDialogDescription AlertDialogDescriptionProps AlertDialogOverlay AlertDialogOverlayProps AlertDialogPortal AlertDialogPortalProps AlertDialogProps AlertDialogTitle AlertDialogTitleProps AlertDialogTrigger AlertDialogTriggerProps Cancel Content createAlertDialogScope Description Overlay Portal Root Title Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "layers"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/hover-card",
+      "exports": "Arrow Content createHoverCardScope HoverCard HoverCardArrow HoverCardArrowProps HoverCardContent HoverCardContentProps HoverCardPortal HoverCardPortalProps HoverCardProps HoverCardTrigger HoverCardTriggerProps Portal Root Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "layers"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/tooltip",
+      "exports": "Arrow Content createTooltipScope Portal Provider Root Tooltip TooltipArrow TooltipArrowProps TooltipContent TooltipContentProps TooltipPortal TooltipPortalProps TooltipProps TooltipProvider TooltipProviderProps TooltipTrigger TooltipTriggerProps Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "layers"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/dropdown-menu",
+      "exports": "Arrow CheckboxItem Content createDropdownMenuScope DropdownMenu DropdownMenuArrow DropdownMenuArrowProps DropdownMenuCheckboxItem DropdownMenuCheckboxItemProps DropdownMenuContent DropdownMenuContentProps DropdownMenuGroup DropdownMenuGroupProps DropdownMenuItem DropdownMenuItemIndicator DropdownMenuItemIndicatorProps DropdownMenuItemProps DropdownMenuLabel DropdownMenuLabelProps DropdownMenuPortal DropdownMenuPortalProps DropdownMenuProps DropdownMenuRadioGroup DropdownMenuRadioGroupProps DropdownMenuRadioItem DropdownMenuRadioItemProps DropdownMenuSeparator DropdownMenuSeparatorProps DropdownMenuSub DropdownMenuSubContent DropdownMenuSubContentProps DropdownMenuSubProps DropdownMenuSubTrigger DropdownMenuSubTriggerProps DropdownMenuTrigger DropdownMenuTriggerProps Group Item ItemIndicator Label Portal RadioGroup RadioItem Root Separator Sub SubContent SubTrigger Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "menus"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/context-menu",
+      "exports": "Arrow CheckboxItem Content ContextMenu ContextMenuArrow ContextMenuArrowProps ContextMenuCheckboxItem ContextMenuCheckboxItemProps ContextMenuContent ContextMenuContentProps ContextMenuGroup ContextMenuGroupProps ContextMenuItem ContextMenuItemIndicator ContextMenuItemIndicatorProps ContextMenuItemProps ContextMenuLabel ContextMenuLabelProps ContextMenuPortal ContextMenuPortalProps ContextMenuProps ContextMenuRadioGroup ContextMenuRadioGroupProps ContextMenuRadioItem ContextMenuRadioItemProps ContextMenuSeparator ContextMenuSeparatorProps ContextMenuSub ContextMenuSubContent ContextMenuSubContentProps ContextMenuSubProps ContextMenuSubTrigger ContextMenuSubTriggerProps ContextMenuTrigger ContextMenuTriggerProps createContextMenuScope Group Item ItemIndicator Label Portal RadioGroup RadioItem Root Separator Sub SubContent SubTrigger Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "menus"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/menubar",
+      "exports": "Arrow CheckboxItem Content createMenubarScope Group Item ItemIndicator Label Menu Menubar MenubarArrow MenubarArrowProps MenubarCheckboxItem MenubarCheckboxItemProps MenubarContent MenubarContentProps MenubarGroup MenubarGroupProps MenubarItem MenubarItemIndicator MenubarItemIndicatorProps MenubarItemProps MenubarLabel MenubarLabelProps MenubarMenu MenubarMenuProps MenubarPortal MenubarPortalProps MenubarProps MenubarRadioGroup MenubarRadioGroupProps MenubarRadioItem MenubarRadioItemProps MenubarSeparator MenubarSeparatorProps MenubarSub MenubarSubContent MenubarSubContentProps MenubarSubProps MenubarSubTrigger MenubarSubTriggerProps MenubarTrigger MenubarTriggerProps Portal RadioGroup RadioItem Root Separator Sub SubContent SubTrigger Trigger",
+      "checks": [
+        "packed",
+        "types",
+        "menus"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/navigation-menu",
+      "exports": "Content createNavigationMenuScope Indicator Item Link List NavigationMenu NavigationMenuContent NavigationMenuContentProps NavigationMenuIndicator NavigationMenuIndicatorProps NavigationMenuItem NavigationMenuItemProps NavigationMenuLink NavigationMenuLinkProps NavigationMenuList NavigationMenuListProps NavigationMenuProps NavigationMenuSub NavigationMenuSubProps NavigationMenuTrigger NavigationMenuTriggerProps NavigationMenuViewport NavigationMenuViewportProps Root Sub Trigger Viewport",
+      "checks": [
+        "packed",
+        "types",
+        "menus"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/select",
+      "exports": "Arrow Content createSelectScope Group Icon Item ItemIndicator ItemText Label Portal Root ScrollDownButton ScrollUpButton Select SelectArrow SelectArrowProps SelectContent SelectContentProps SelectGroup SelectGroupProps SelectIcon SelectIconProps SelectItem SelectItemIndicator SelectItemIndicatorProps SelectItemProps SelectItemText SelectItemTextProps SelectLabel SelectLabelProps SelectPortal SelectPortalProps SelectProps SelectScrollDownButton SelectScrollDownButtonProps SelectScrollUpButton SelectScrollUpButtonProps SelectSeparator SelectSeparatorProps SelectSharedProps SelectTrigger SelectTriggerProps SelectValue SelectValueProps SelectViewport SelectViewportProps Separator Trigger unstable_BubbleInput unstable_Provider unstable_SelectBubbleInput unstable_SelectBubbleInputProps unstable_SelectProvider unstable_SelectProviderProps Value Viewport",
+      "checks": [
+        "packed",
+        "types",
+        "select"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/password-toggle-field",
+      "exports": "Icon Input PasswordToggleField PasswordToggleFieldIcon PasswordToggleFieldIconProps PasswordToggleFieldInput PasswordToggleFieldInputProps PasswordToggleFieldProps PasswordToggleFieldSlot PasswordToggleFieldSlotProps PasswordToggleFieldToggle PasswordToggleFieldToggleProps Root Slot Toggle",
+      "checks": [
+        "packed",
+        "types",
+        "advanced"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/one-time-password-field",
+      "exports": "HiddenInput Input InputValidationType OneTimePasswordField OneTimePasswordFieldHiddenInput OneTimePasswordFieldHiddenInputProps OneTimePasswordFieldInput OneTimePasswordFieldInputProps OneTimePasswordFieldProps Root",
+      "checks": [
+        "packed",
+        "types",
+        "advanced"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/slider",
+      "exports": "createSliderScope Range Root Slider SliderProps SliderRange SliderRangeProps SliderThumb SliderThumbProps SliderTrack SliderTrackProps Thumb Track unstable_BubbleInput unstable_SliderBubbleInput unstable_SliderBubbleInputProps unstable_SliderThumbProvider unstable_SliderThumbProviderProps unstable_SliderThumbTrigger unstable_SliderThumbTriggerProps unstable_ThumbProvider unstable_ThumbTrigger",
+      "checks": [
+        "packed",
+        "types",
+        "advanced"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/scroll-area",
+      "exports": "Content Corner createScrollAreaScope Root ScrollArea ScrollAreaContent ScrollAreaContentProps ScrollAreaCorner ScrollAreaCornerProps ScrollAreaProps ScrollAreaScrollbar ScrollAreaScrollbarProps ScrollAreaThumb ScrollAreaThumbProps ScrollAreaViewport ScrollAreaViewportProps Scrollbar Thumb Viewport",
+      "checks": [
+        "packed",
+        "types",
+        "advanced"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/form",
+      "exports": "Control createFormScope Field Form FormControl FormControlProps FormField FormFieldProps FormLabel FormLabelProps FormMessage FormMessageProps FormProps FormSubmit FormSubmitProps FormValidityState FormValidityStateProps Label Message Root Submit ValidityState",
+      "checks": [
+        "packed",
+        "types",
+        "advanced"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/toast",
+      "exports": "Action Close createToastScope Description Provider Root Title Toast ToastAction ToastActionProps ToastClose ToastCloseProps ToastDescription ToastDescriptionProps ToastProps ToastProvider ToastProviderProps ToastTitle ToastTitleProps ToastViewport ToastViewportProps Viewport",
+      "checks": [
+        "packed",
+        "types",
+        "advanced"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives",
+      "exports": "AccessibleIcon Accordion AlertDialog Announce Arrow AspectRatio Avatar Checkbox Collapsible ContextMenu Dialog Direction DropdownMenu Form HoverCard Label Menubar NavigationMenu Popover Portal Progress RadioGroup ScrollArea Select Separator Slider Slot Switch Tabs Toast Toggle ToggleGroup Toolbar Tooltip VisuallyHidden unstable_OneTimePasswordField unstable_PasswordToggleField",
+      "checks": [
+        "packed",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/primitives/internal",
+      "exports": "activeElement Align autofocus composedContains composeEventHandlers composeRefs ControllableStateOptions createCollection createContextScope createControllableState createLayer createPopperContext createPopperScope createPresence createRovingFocusGroupScope CreateScope focus FocusOutsideEvent inLayer LayerCallbacks LayerContext LayerOptions LayerRecord lockScroll loopFocus Menu mergeStyles PointerDownOutsideEvent Popper PopperAnchor PopperAnchorProps PopperArrow PopperArrowProps PopperContent PopperContentProps Presence Primitive PrimitiveProps registerLayerBranch restoreFocus RovingFocusGroup RovingFocusGroupItem RovingFocusGroupProps RovingFocusItemProps RovingFocusItemState Scope Side tabbables usePopper",
+      "checks": [
+        "state",
+        "packed",
+        "composition",
+        "layers",
+        "menus",
+        "advanced",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes",
+      "exports": "AccessibleIcon AccessibleIconProps AlertDialog AspectRatio AspectRatioProps Avatar AvatarProps Badge BadgeProps Blockquote BlockquoteProps Box BoxProps Button ButtonProps Callout Card CardProps Checkbox CheckboxCards CheckboxGroup CheckboxProps ChevronDownIcon Code CodeProps Container ContainerProps ContextMenu DataList Dialog DropdownMenu Em EmProps Flex FlexProps Grid GridProps Heading HeadingProps HoverCard IconButton IconButtonProps IconProps Inset InsetProps Kbd KbdProps Link LinkProps Popover Portal PortalProps Progress ProgressProps Quote QuoteProps Radio RadioCards RadioGroup RadioProps Reset ResetProps ScrollArea ScrollAreaProps Section SectionProps SegmentedControl Select Separator SeparatorProps Skeleton SkeletonProps Slider SliderProps Slot Slottable Spinner SpinnerProps Strong StrongProps Switch SwitchProps Table TabNav Tabs Text TextArea TextAreaProps TextField TextProps Theme ThemeContext ThemePanel ThemePanelProps ThemeProps ThickCheckIcon ThickChevronRightIcon ThickDividerHorizontalIcon Tooltip TooltipProps unstable_ThemePanelContent unstable_ThemePanelContentProps useThemeContext VisuallyHidden VisuallyHiddenProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/accessible-icon",
+      "exports": "AccessibleIcon AccessibleIconProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/alert-dialog",
+      "exports": "Action ActionProps Cancel CancelProps Content ContentProps Description DescriptionProps Root RootProps Title TitleProps Trigger TriggerProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/aspect-ratio",
+      "exports": "AspectRatio AspectRatioProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/avatar",
+      "exports": "Avatar AvatarProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/badge",
+      "exports": "Badge BadgeProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/blockquote",
+      "exports": "Blockquote BlockquoteProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/box",
+      "exports": "Box BoxProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/button",
+      "exports": "Button ButtonProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/callout",
+      "exports": "Icon IconProps Root RootProps Text TextProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/card",
+      "exports": "Card CardProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/checkbox-cards",
+      "exports": "Item ItemProps Root RootProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/checkbox-group",
+      "exports": "Item ItemProps Root RootProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/checkbox",
+      "exports": "Checkbox CheckboxProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/code",
+      "exports": "Code CodeProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/container",
+      "exports": "Container ContainerProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/context-menu",
+      "exports": "CheckboxItem CheckboxItemProps Content ContentProps Group GroupProps Item ItemProps Label LabelProps RadioGroup RadioGroupProps RadioItem RadioItemProps Root RootProps Separator SeparatorProps Sub SubContent SubContentProps SubProps SubTrigger SubTriggerProps Trigger TriggerProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/data-list",
+      "exports": "Item ItemProps Label LabelProps Root RootProps Value ValueProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/dialog",
+      "exports": "Close CloseProps Content ContentProps Description DescriptionProps Root RootProps Title TitleProps Trigger TriggerProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/dropdown-menu",
+      "exports": "CheckboxItem CheckboxItemProps Content ContentProps Group GroupProps Item ItemProps Label LabelProps RadioGroup RadioGroupProps RadioItem RadioItemProps Root RootProps Separator SeparatorProps Sub SubContent SubContentProps SubProps SubTrigger SubTriggerProps Trigger TriggerIcon TriggerIconProps TriggerProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/em",
+      "exports": "Em EmProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/flex",
+      "exports": "Flex FlexProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/grid",
+      "exports": "Grid GridProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/heading",
+      "exports": "Heading HeadingProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/hover-card",
+      "exports": "Content ContentProps Root RootProps Trigger TriggerProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/icon-button",
+      "exports": "IconButton IconButtonProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/icons",
+      "exports": "ChevronDownIcon IconProps ThickCheckIcon ThickChevronRightIcon ThickDividerHorizontalIcon",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/inset",
+      "exports": "Inset InsetProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/kbd",
+      "exports": "Kbd KbdProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/link",
+      "exports": "Link LinkProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/popover",
+      "exports": "Anchor AnchorProps Close CloseProps Content ContentProps Root RootProps Trigger TriggerProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/portal",
+      "exports": "Portal PortalProps Root",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/progress",
+      "exports": "Progress ProgressProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/quote",
+      "exports": "Quote QuoteProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/radio-cards",
+      "exports": "Item ItemProps Root RootProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/radio-group",
+      "exports": "Item ItemProps Root RootProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/radio",
+      "exports": "Radio RadioProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/reset",
+      "exports": "Reset ResetProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/scroll-area",
+      "exports": "ScrollArea ScrollAreaProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/segmented-control",
+      "exports": "Item ItemProps Root RootProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/section",
+      "exports": "Section SectionProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/select",
+      "exports": "Content ContentProps Group GroupProps Item ItemProps Label LabelProps Root RootProps Separator SeparatorProps Trigger TriggerProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/separator",
+      "exports": "Separator SeparatorProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/skeleton",
+      "exports": "Skeleton SkeletonProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/slider",
+      "exports": "Slider SliderProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/slot",
+      "exports": "Root Slot SlotProps SlotRender Slottable SlottableProps SlotTarget",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/spinner",
+      "exports": "Spinner SpinnerProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/strong",
+      "exports": "Strong StrongProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/switch",
+      "exports": "Switch SwitchProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/tab-nav",
+      "exports": "Link LinkProps Root RootProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/table",
+      "exports": "Body BodyProps Cell CellProps ColumnHeaderCell ColumnHeaderCellProps Header HeaderProps Root RootProps Row RowHeaderCell RowHeaderCellProps RowProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/tabs",
+      "exports": "Content ContentProps List ListProps Root RootProps Trigger TriggerProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/text-area",
+      "exports": "TextArea TextAreaProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/text-field",
+      "exports": "Root RootProps Slot SlotProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/text",
+      "exports": "Text TextProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/theme-panel",
+      "exports": "ThemePanel ThemePanelContent ThemePanelContentProps ThemePanelProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/theme",
+      "exports": "Theme ThemeContext ThemeContextValue ThemeProps useThemeContext",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/tooltip",
+      "exports": "Tooltip TooltipProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/visually-hidden",
+      "exports": "Root VisuallyHidden VisuallyHiddenProps",
+      "checks": [
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/helpers",
+      "exports": "ComponentPropsAs ComponentPropsWithout ComposedProps extractMarginProps extractProps getMarginStyles getMatchingGrayColor getResponsiveClassNames getResponsiveCustomProperties getResponsiveStyles hasOwnProperty inert InputAttributes InputRadioAttributes InputTextualAttributes isResponsiveObject mapButtonSizeToSpinnerSize mapCalloutSizeToTextSize mapResponsiveProp mergeStyles NotInputRadioAttributes NotInputTextualAttributes RemovedProps",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/props",
+      "exports": "accentColorPropDef accentColors AlertDialogContentOwnProps alertDialogContentPropDefs appearances asChildPropDef avatarPropDefs badgePropDefs blockquotePropDefs BoxOwnProps boxPropDefs Breakpoint breakpoints breakpointsArray buttonPropDefs calloutRootPropDefs cardPropDefs checkboxCardsRootPropDefs checkboxGroupRootPropDefs checkboxPropDefs codePropDefs colorPropDef ContainerOwnProps containerPropDefs contextMenuCheckboxItemPropDefs contextMenuContentPropDefs contextMenuItemPropDefs contextMenuRadioItemPropDefs dataListItemPropDefs dataListLabelPropDefs dataListRootPropDefs DialogContentOwnProps dialogContentPropDefs dropdownMenuCheckboxItemPropDefs dropdownMenuContentPropDefs dropdownMenuItemPropDefs dropdownMenuRadioItemPropDefs emPropDefs FlexOwnProps flexPropDefs gapPropDefs GetPropDefTypes grayColors GridOwnProps gridPropDefs headingPropDefs heightPropDefs HeightProps highContrastPropDef HoverCardContentOwnProps hoverCardContentPropDefs iconButtonPropDefs insetPropDefs kbdPropDefs layoutPropDefs LayoutProps leadingTrimPropDef linkPropDefs marginPropDefs MarginProps paddingPropDefs PaddingProps panelBackgrounds PopoverContentOwnProps popoverContentPropDefs progressPropDefs PropDef quotePropDefs radii radioCardsRootPropDefs radioGroupRootPropDefs radioPropDefs radiusPropDef Responsive ResponsivePropDef scalings scrollAreaPropDefs SectionOwnProps sectionPropDefs segmentedControlRootPropDefs selectContentPropDefs selectRootPropDefs selectTriggerPropDefs separatorPropDefs skeletonPropDefs sliderPropDefs spinnerPropDefs strongPropDefs switchPropDefs tableCellPropDefs tableRootPropDefs tableRowPropDefs tabNavLinkPropDefs tabNavRootPropDefs tabsContentPropDefs tabsListPropDefs tabsRootPropDefs textAlignPropDef textAreaPropDefs textFieldRootPropDefs textFieldSlotPropDefs textPropDefs textWrapPropDef ThemeOwnProps themePropDefs TooltipOwnProps tooltipPropDefs truncatePropDef Union weightPropDef widthPropDefs WidthProps",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/alert-dialog.props",
+      "exports": "AlertDialogContentOwnProps alertDialogContentPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/avatar.props",
+      "exports": "avatarPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/badge.props",
+      "exports": "badgePropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/blockquote.props",
+      "exports": "blockquotePropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/box.props",
+      "exports": "BoxOwnProps boxPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/button.props",
+      "exports": "buttonPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/callout.props",
+      "exports": "calloutRootPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/card.props",
+      "exports": "cardPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/checkbox-cards.props",
+      "exports": "checkboxCardsRootPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/checkbox-group.props",
+      "exports": "checkboxGroupRootPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/checkbox.props",
+      "exports": "checkboxPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/code.props",
+      "exports": "codePropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/container.props",
+      "exports": "ContainerOwnProps containerPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/context-menu.props",
+      "exports": "contextMenuCheckboxItemPropDefs contextMenuContentPropDefs contextMenuItemPropDefs contextMenuRadioItemPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/data-list.props",
+      "exports": "dataListItemPropDefs dataListLabelPropDefs dataListRootPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/dialog.props",
+      "exports": "DialogContentOwnProps dialogContentPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/dropdown-menu.props",
+      "exports": "dropdownMenuCheckboxItemPropDefs dropdownMenuContentPropDefs dropdownMenuItemPropDefs dropdownMenuRadioItemPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/em.props",
+      "exports": "emPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/flex.props",
+      "exports": "FlexOwnProps flexPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/grid.props",
+      "exports": "GridOwnProps gridPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/heading.props",
+      "exports": "headingPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/hover-card.props",
+      "exports": "HoverCardContentOwnProps hoverCardContentPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/icon-button.props",
+      "exports": "iconButtonPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/inset.props",
+      "exports": "insetPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/kbd.props",
+      "exports": "kbdPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/link.props",
+      "exports": "linkPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/popover.props",
+      "exports": "PopoverContentOwnProps popoverContentPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/progress.props",
+      "exports": "progressPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/quote.props",
+      "exports": "quotePropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/radio-cards.props",
+      "exports": "radioCardsRootPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/radio-group.props",
+      "exports": "radioGroupRootPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/radio.props",
+      "exports": "radioPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/scroll-area.props",
+      "exports": "scrollAreaPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/section.props",
+      "exports": "SectionOwnProps sectionPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/segmented-control.props",
+      "exports": "segmentedControlRootPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/select.props",
+      "exports": "selectContentPropDefs selectRootPropDefs selectTriggerPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/separator.props",
+      "exports": "separatorPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/skeleton.props",
+      "exports": "skeletonPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/slider.props",
+      "exports": "sliderPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/spinner.props",
+      "exports": "spinnerPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/strong.props",
+      "exports": "strongPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/switch.props",
+      "exports": "switchPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/tab-nav.props",
+      "exports": "tabNavLinkPropDefs tabNavRootPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/table.props",
+      "exports": "tableCellPropDefs tableRootPropDefs tableRowPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/tabs.props",
+      "exports": "tabsContentPropDefs tabsListPropDefs tabsRootPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/text-area.props",
+      "exports": "textAreaPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/text-field.props",
+      "exports": "textFieldRootPropDefs textFieldSlotPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/text.props",
+      "exports": "textPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/theme.props",
+      "exports": "ThemeOwnProps appearances panelBackgrounds scalings themePropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    },
+    {
+      "module": "@radix-solid/themes/components/tooltip.props",
+      "exports": "TooltipOwnProps tooltipPropDefs",
+      "checks": [
+        "responsive",
+        "themes",
+        "theme-interactions",
+        "types"
+      ]
+    }
+  ],
+  "checks": {
+    "packed": "tests/consumer/packed.test.ts",
+    "types": "tests/consumer/types.tsx",
+    "state": "tests/consumer/state.test.ts",
+    "responsive": "tests/consumer/themes.test.ts",
+    "composition": "e2e/composition.spec.ts",
+    "layers": "e2e/layers.spec.ts",
+    "controls": "e2e/controls.spec.ts",
+    "menus": "e2e/menus.spec.ts",
+    "select": "e2e/select.spec.ts",
+    "advanced": "e2e/advanced.spec.ts",
+    "assets": "e2e/assets.spec.ts",
+    "themes": "e2e/themes.spec.ts",
+    "theme-interactions": "e2e/theme-interactions.spec.ts"
+  },
+  "icons": {
+    "names": "packages/icons/icons.json",
+    "check": "packages/icons/scripts/generate.ts",
+    "behavior": [
+      "assets",
+      "types"
+    ]
+  },
+  "css": [
+    "@radix-solid/themes/components.css",
+    "@radix-solid/themes/layout.css",
+    "@radix-solid/themes/layout/components.css",
+    "@radix-solid/themes/layout/tokens.css",
+    "@radix-solid/themes/layout/utilities.css",
+    "@radix-solid/themes/styles.css",
+    "@radix-solid/themes/tokens.css",
+    "@radix-solid/themes/tokens/base.css",
+    "@radix-solid/themes/tokens/colors/amber.css",
+    "@radix-solid/themes/tokens/colors/blue.css",
+    "@radix-solid/themes/tokens/colors/bronze.css",
+    "@radix-solid/themes/tokens/colors/brown.css",
+    "@radix-solid/themes/tokens/colors/crimson.css",
+    "@radix-solid/themes/tokens/colors/cyan.css",
+    "@radix-solid/themes/tokens/colors/gold.css",
+    "@radix-solid/themes/tokens/colors/grass.css",
+    "@radix-solid/themes/tokens/colors/gray.css",
+    "@radix-solid/themes/tokens/colors/green.css",
+    "@radix-solid/themes/tokens/colors/indigo.css",
+    "@radix-solid/themes/tokens/colors/iris.css",
+    "@radix-solid/themes/tokens/colors/jade.css",
+    "@radix-solid/themes/tokens/colors/lime.css",
+    "@radix-solid/themes/tokens/colors/mauve.css",
+    "@radix-solid/themes/tokens/colors/mint.css",
+    "@radix-solid/themes/tokens/colors/olive.css",
+    "@radix-solid/themes/tokens/colors/orange.css",
+    "@radix-solid/themes/tokens/colors/pink.css",
+    "@radix-solid/themes/tokens/colors/plum.css",
+    "@radix-solid/themes/tokens/colors/purple.css",
+    "@radix-solid/themes/tokens/colors/red.css",
+    "@radix-solid/themes/tokens/colors/ruby.css",
+    "@radix-solid/themes/tokens/colors/sage.css",
+    "@radix-solid/themes/tokens/colors/sand.css",
+    "@radix-solid/themes/tokens/colors/sky.css",
+    "@radix-solid/themes/tokens/colors/slate.css",
+    "@radix-solid/themes/tokens/colors/teal.css",
+    "@radix-solid/themes/tokens/colors/tomato.css",
+    "@radix-solid/themes/tokens/colors/violet.css",
+    "@radix-solid/themes/tokens/colors/yellow.css",
+    "@radix-solid/themes/utilities.css"
+  ],
+  "plugins": [
+    "@radix-solid/themes/postcss-breakpoints",
+    "@radix-solid/themes/postcss-whitespace",
+    "@radix-solid/themes/postcss-breakpoints.js",
+    "@radix-solid/themes/postcss-breakpoints.cjs",
+    "@radix-solid/themes/postcss-whitespace.js",
+    "@radix-solid/themes/postcss-whitespace.cjs"
+  ],
+  "colors": {
+    "package": "@radix-ui/colors",
+    "version": "3.0.0",
+    "behavior": [
+      "assets"
+    ]
+  },
+  "differences": [
+    "Native factory asChild/Slot replaces React element cloning, not an element-introspection compatibility shim.",
+    "Deprecated children-only Dialog.WarningProvider is deliberately removed.",
+    "Themes getSubtree/requireReactElement are React-introspection helpers and deliberately removed.",
+    "Owned native effects/settlement, refs, size observers and layer callbacks replace React hooks; no hook-name compatibility aliases.",
+    "Slider names target thumbs; ScrollArea defaults to keyboard-focusable; readable Select placeholders, forced-color boundaries and system-foreground loading spinners with transparent named labels are deliberate accessibility corrections."
+  ],
+  "manualGates": [
+    "Package namespace/domain/account ownership and explicit release authorization remain required before any npm publication.",
+    "Solid stable-version decision plus rerunning the same gate before a stable release."
+  ]
+}
