@@ -71,3 +71,5 @@
 - Focus the first asynchronous server-invalid Form control after ARIA updates, keep submit focus while clearing server errors, retain matcher validity and suppress native invalid UI without skipping managed validation.
 - Keep OTP editing focus immediate for rapid repeated typing; defer only owned nearest reveal beyond the native editor's caret scroll and cancel it after consumer focus transfer or disposal.
 - Publish source in the public repository with a Radix2Solid contributors MIT notice; original Radix MIT copyright notices and texts are retained in the distributed `LICENSE`.
+- Check exhaustive server-host reuse before outside dismissal, then retain second-root host/ID identity while verifying default-open navigation content is disposed; run this CSP hydration transition in Chromium, Firefox and WebKit.
+- Wait for Select's real placed-item autofocus before exercising Home/End viewport boundaries; retain focused-option, padding reveal, Escape restoration and modal teardown checks without timing retries or product focus changes.

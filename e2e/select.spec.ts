@@ -158,13 +158,20 @@ test('Select trusted touch and synthetic pen sequences open on click rather than
 
 test('Select keyboard Home and End reveal viewport boundaries including padding', async ({ page }) => {
   await page.getByRole('button', { name: 'Use popper select', exact: true }).click();
-  await page.getByRole('combobox', { name: 'Fruit', exact: true }).press('Enter');
+  const trigger = page.getByRole('combobox', { name: 'Fruit', exact: true });
+  const apple = page.getByRole('option', { name: 'Apple', exact: true });
+  await trigger.press('Enter');
+  await expect(apple).toBeFocused();
   const viewport = page.locator('[data-fruit-content] [data-radix-select-viewport]');
   await viewport.evaluate(node => { node.style.padding = '24px 0'; });
   await page.keyboard.press('End');
   await expect(page.getByRole('option', { name: 'Clear fruit', exact: true })).toBeFocused();
   await expect.poll(() => viewport.evaluate(node => Math.abs(node.scrollHeight - node.clientHeight - node.scrollTop))).toBeLessThan(1);
   await page.keyboard.press('Home');
-  await expect(page.getByRole('option', { name: 'Apple', exact: true })).toBeFocused();
+  await expect(apple).toBeFocused();
   await expect.poll(() => viewport.evaluate(node => node.scrollTop)).toBe(0);
+  await page.keyboard.press('Escape');
+  await expect(trigger).toBeFocused();
+  await expect(page.getByRole('listbox')).toHaveCount(0);
+  await expect(page.locator('body')).toHaveCSS('pointer-events', 'auto');
 });

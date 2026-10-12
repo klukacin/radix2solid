@@ -8,9 +8,9 @@ export default defineConfig({
   projects: [
     { name: 'ssr' },
     { name: 'csr', testMatch: '**/{composition,layers,controls,menus,select,advanced,assets,themes,theme-interactions}.spec.ts' },
-    { name: 'firefox-ssr', testMatch: '**/{layers,menus,select,advanced,assets,themes,theme-interactions}.spec.ts', use: { browserName: 'firefox' } },
+    { name: 'firefox-ssr', testMatch: '**/{hydration,layers,menus,select,advanced,assets,themes,theme-interactions}.spec.ts', use: { browserName: 'firefox' } },
     { name: 'firefox-csr', testMatch: '**/{layers,menus,select,advanced,assets,themes,theme-interactions}.spec.ts', use: { browserName: 'firefox' } },
-    { name: 'webkit-ssr', testMatch: '**/{layers,menus,select,advanced,assets,themes,theme-interactions}.spec.ts', use: { browserName: 'webkit' } },
+    { name: 'webkit-ssr', testMatch: '**/{hydration,layers,menus,select,advanced,assets,themes,theme-interactions}.spec.ts', use: { browserName: 'webkit' } },
     { name: 'webkit-csr', testMatch: '**/{layers,menus,select,advanced,assets,themes,theme-interactions}.spec.ts', use: { browserName: 'webkit' } }
   ],
   webServer: [{

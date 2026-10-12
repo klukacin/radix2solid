@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/klukacin/radix2solid.git", "directory": "packages/primitives" },
-  "homepage": "https://github.com/klukacin/radix2solid/tree/main/packages/primitives#readme",
-  "bugs": { "url": "https://github.com/klukacin/radix2solid/issues" },
+  "repository": { "type": "git", "url": "git+https://github.com/wsagency/radix2solid.git", "directory": "packages/primitives" },
+  "homepage": "https://github.com/wsagency/radix2solid/tree/main/packages/primitives#readme",
+  "bugs": { "url": "https://github.com/wsagency/radix2solid/issues" },
   "files": [
     "dist",
     "LICENSE",

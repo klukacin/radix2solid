@@ -8,7 +8,7 @@ The three workspace packages keep their `@radix-solid/*` names and API:
 - `@radix-solid/icons` — all 332 generated icons, SVG download subpaths and Colors 3.0.0 reuse: [`packages/icons/README.md`](packages/icons/README.md)
 - `@radix-solid/themes` — all native Themes families, themed portals, ThemePanel, responsive styling and all 40 CSS outputs: [`packages/themes/README.md`](packages/themes/README.md)
 
-All three are private workspace packages at version `0.0.0-local`. Nothing is published to npm and no package namespace is claimed; use `pnpm pack` tarballs to consume them. The documentation website lives in the separate repository [`klukacin/radix2solid-web`](https://github.com/klukacin/radix2solid-web), which builds against a pinned commit of this repository.
+All three are private workspace packages at version `0.0.0-local`. Nothing is published to npm and no package namespace is claimed; use `pnpm pack` tarballs to consume them. The documentation website lives in the separate repository [`wsagency/radix2solid-web`](https://github.com/wsagency/radix2solid-web), which builds against a pinned commit of this repository.
 
 ## Created for WS Agency
 
@@ -25,7 +25,7 @@ The WS Agency name and logo are brand artwork excluded from the MIT license; see
 
 ## Contributing
 
-Report problems in [issues](https://github.com/klukacin/radix2solid/issues) and propose changes in [pull requests](https://github.com/klukacin/radix2solid/pulls). Credit follows the actual commit author (GitHub lists authors of commits on the default branch whose email is linked to their account). Add a `Co-authored-by: Name <email>` trailer only for a real person who contributed to that commit, with the email they want used. Collaborator access is a repository permission, not authorship credit.
+Report problems in [issues](https://github.com/wsagency/radix2solid/issues) and propose changes in [pull requests](https://github.com/wsagency/radix2solid/pulls). Credit follows the actual commit author (GitHub lists authors of commits on the default branch whose email is linked to their account). Add a `Co-authored-by: Name <email>` trailer only for a real person who contributed to that commit, with the email they want used. Collaborator access is a repository permission, not authorship credit.
 
 ## Local development
 
