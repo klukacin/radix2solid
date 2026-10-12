@@ -10,6 +10,23 @@ The three workspace packages keep their `@radix-solid/*` names and API:
 
 All three are private workspace packages at version `0.0.0-local`. Nothing is published to npm and no package namespace is claimed; use `pnpm pack` tarballs to consume them. The documentation website lives in the separate repository [`klukacin/radix2solid-web`](https://github.com/klukacin/radix2solid-web), which builds against a pinned commit of this repository.
 
+## Created for WS Agency
+
+<a href="https://ws.agency">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://ws.agency/brand/ws-vertical-white.svg">
+    <img alt="WS Agency" src="https://ws.agency/brand/ws-vertical-color.svg" width="160">
+  </picture>
+</a>
+
+This native Solid 2 port was created by [Kristijan Lukačin](https://github.com/klukacin) (@klukacin) for [WS Agency](https://ws.agency), the firm behind this project. The original Radix software remains the work of its upstream authors (see License). We love open source, enterprise development and AI. Have a project in mind? [Let’s build it together](https://ws.agency/contact).
+
+The WS Agency name and logo are brand artwork excluded from the MIT license; see the [usage and license notes](https://design.ws.agency/docs/usage-and-licenses.md).
+
+## Contributing
+
+Report problems in [issues](https://github.com/klukacin/radix2solid/issues) and propose changes in [pull requests](https://github.com/klukacin/radix2solid/pulls). Credit follows the actual commit author (GitHub lists authors of commits on the default branch whose email is linked to their account). Add a `Co-authored-by: Name <email>` trailer only for a real person who contributed to that commit, with the email they want used. Collaborator access is a repository permission, not authorship credit.
+
 ## Local development
 
 Use Node **24.21.0** and pnpm **11.5.0** (`.node-version`, `packageManager`).
