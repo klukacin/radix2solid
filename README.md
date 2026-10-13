@@ -2,13 +2,19 @@
 
 Native Solid 2 port of Radix Primitives, Radix Icons and Radix Themes, with released Radix Colors 3.0.0 reused unchanged. This is an independent, unofficial project: it is not affiliated with or endorsed by Radix, WorkOS or Modulz. The MIT license covers the code only and grants no rights to their names, logos or trademarks.
 
-The three workspace packages keep their `@radix-solid/*` names and API:
+The three packages keep their native API under the `@wsagency` npm scope:
 
-- `@radix-solid/primitives` — native API and migration notes: [`packages/primitives/README.md`](packages/primitives/README.md)
-- `@radix-solid/icons` — all 332 generated icons, SVG download subpaths and Colors 3.0.0 reuse: [`packages/icons/README.md`](packages/icons/README.md)
-- `@radix-solid/themes` — all native Themes families, themed portals, ThemePanel, responsive styling and all 40 CSS outputs: [`packages/themes/README.md`](packages/themes/README.md)
+- `@wsagency/radix2solid-primitives` — native API and migration notes: [`packages/primitives/README.md`](packages/primitives/README.md)
+- `@wsagency/radix2solid-icons` — all 332 generated icons, SVG download subpaths and Colors 3.0.0 reuse: [`packages/icons/README.md`](packages/icons/README.md)
+- `@wsagency/radix2solid-themes` — all native Themes families, themed portals, ThemePanel, responsive styling and all 40 CSS outputs: [`packages/themes/README.md`](packages/themes/README.md)
 
-All three are private workspace packages at version `0.0.0-local`. Nothing is published to npm and no package namespace is claimed; use `pnpm pack` tarballs to consume them. The documentation website lives in the separate repository [`wsagency/radix2solid-web`](https://github.com/wsagency/radix2solid-web), which builds against a pinned commit of this repository.
+**Prepared candidate `0.1.0-rc.1` — not yet published.** All three packages share the version `0.1.0-rc.1` and will be released together under the npm `next` dist-tag; they are not tagged `latest` because their `solid-js` and `@solidjs/web` peers are still `2.0.0-rc.13`. Until the maintainer publishes them, consume `pnpm pack` tarballs. After publication:
+
+```sh
+pnpm add @wsagency/radix2solid-primitives@0.1.0-rc.1 @wsagency/radix2solid-icons@0.1.0-rc.1 @wsagency/radix2solid-themes@0.1.0-rc.1 solid-js@2.0.0-rc.13 @solidjs/web@2.0.0-rc.13
+```
+
+The documentation website lives in the separate repository [`wsagency/radix2solid-web`](https://github.com/wsagency/radix2solid-web), which builds against a pinned commit of this repository.
 
 ## Created for WS Agency
 
@@ -49,8 +55,8 @@ Exact current pins: `solid-js`, `@solidjs/web`, `@solidjs/signals`, `@solidjs/co
 Use native `class`, `for`, lowercase DOM attributes and `@solidjs/web` JSX types. Controlled props remain parent-authoritative. `asChild` takes a single-target factory, not a React element or a snapshot prop spread; native portals render no RC.13 server content and settle on the client. See the package migration notes for event cancellation, refs, owned effects, portal propagation and removed React-only helpers. Themes CSS is imported explicitly:
 
 ```tsx
-import { Theme, Button } from '@radix-solid/themes';
-import '@radix-solid/themes/styles.css';
+import { Theme, Button } from '@wsagency/radix2solid-themes';
+import '@wsagency/radix2solid-themes/styles.css';
 
 export default function App() {
   return <Theme><Button>Save</Button></Theme>;

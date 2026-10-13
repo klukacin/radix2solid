@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createRoot, createSignal, flush } from 'solid-js';
-import { extractProps } from '@radix-solid/themes/helpers';
-import { buttonPropDefs, marginPropDefs, breakpoints } from '@radix-solid/themes/props';
+import { extractProps } from '@wsagency/radix2solid-themes/helpers';
+import { buttonPropDefs, marginPropDefs, breakpoints } from '@wsagency/radix2solid-themes/props';
 
 test('public breakpoints retain the upstream ordered array consumer contract', () => {
   assert.deepEqual(breakpoints.map(value => value), ['initial', 'xs', 'sm', 'md', 'lg', 'xl']);

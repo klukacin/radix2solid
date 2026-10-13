@@ -1,7 +1,7 @@
 import { merge, omit, untrack, type Element } from 'solid-js';
 import type { ComponentProps } from '@solidjs/web';
-import * as NavigationMenu from '@radix-solid/primitives/navigation-menu';
-import { Slottable, type SlotRender } from '@radix-solid/primitives/slot';
+import * as NavigationMenu from '@wsagency/radix2solid-primitives/navigation-menu';
+import { Slottable, type SlotRender } from '@wsagency/radix2solid-primitives/slot';
 import { tabNavRootPropDefs, tabNavLinkPropDefs } from './tab-nav.props.js';
 import { extractProps } from '../helpers/extract-props.js';
 import { marginPropDefs, type MarginProps } from '../props/margin.props.js';

@@ -1,7 +1,7 @@
 import { omit, type Element } from 'solid-js';
 import type { ComponentProps } from '@solidjs/web';
-import * as ToggleGroup from '@radix-solid/primitives/toggle-group';
-import { createControllableState } from '@radix-solid/primitives/internal';
+import * as ToggleGroup from '@wsagency/radix2solid-primitives/toggle-group';
+import { createControllableState } from '@wsagency/radix2solid-primitives/internal';
 import { segmentedControlRootPropDefs } from './segmented-control.props.js';
 import { extractProps } from '../helpers/extract-props.js';
 import { marginPropDefs, type MarginProps } from '../props/margin.props.js';

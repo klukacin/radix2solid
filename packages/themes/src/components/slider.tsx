@@ -1,5 +1,5 @@
 import { omit, Repeat, type Element } from 'solid-js';
-import * as SliderPrimitive from '@radix-solid/primitives/slider';
+import * as SliderPrimitive from '@wsagency/radix2solid-primitives/slider';
 import { sliderPropDefs } from './slider.props.js';
 import { extractProps } from '../helpers/extract-props.js';
 import { marginPropDefs, type MarginProps } from '../props/margin.props.js';

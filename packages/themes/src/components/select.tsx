@@ -1,6 +1,6 @@
 import { createContext, merge, omit, useContext, type Element } from 'solid-js';
-import * as Native from '@radix-solid/primitives/select';
-import * as ScrollArea from '@radix-solid/primitives/scroll-area';
+import * as Native from '@wsagency/radix2solid-primitives/select';
+import * as ScrollArea from '@wsagency/radix2solid-primitives/scroll-area';
 import { Theme, useThemeContext } from './theme.js';
 import { ChevronDownIcon, ThickCheckIcon } from './icons.js';
 import { extractProps } from '../helpers/extract-props.js';

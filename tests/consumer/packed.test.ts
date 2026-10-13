@@ -6,17 +6,17 @@ import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createComponent } from 'solid-js';
 import { renderToString } from '@solidjs/web';
-import { AccessibleIcon, Accordion, AlertDialog, Announce, AspectRatio, Avatar, Checkbox, Collapsible, ContextMenu, Dialog, DropdownMenu, HoverCard, Label, Menubar, NavigationMenu, Popover, Portal, Progress, RadioGroup, Select, Slot, Switch, Tabs, Toggle, ToggleGroup, Toolbar, Tooltip } from '@radix-solid/primitives';
-import { Form, ScrollArea, Slider, Toast, unstable_PasswordToggleField as Password, unstable_OneTimePasswordField as OTP } from '@radix-solid/primitives';
-import { AccessibilityIcon, PanelLeftIcon, PanelRightIcon } from '@radix-solid/icons';
-import GitHubLogoIcon from '@radix-solid/icons/GitHubLogoIcon';
+import { AccessibleIcon, Accordion, AlertDialog, Announce, AspectRatio, Avatar, Checkbox, Collapsible, ContextMenu, Dialog, DropdownMenu, HoverCard, Label, Menubar, NavigationMenu, Popover, Portal, Progress, RadioGroup, Select, Slot, Switch, Tabs, Toggle, ToggleGroup, Toolbar, Tooltip } from '@wsagency/radix2solid-primitives';
+import { Form, ScrollArea, Slider, Toast, unstable_PasswordToggleField as Password, unstable_OneTimePasswordField as OTP } from '@wsagency/radix2solid-primitives';
+import { AccessibilityIcon, PanelLeftIcon, PanelRightIcon } from '@wsagency/radix2solid-icons';
+import GitHubLogoIcon from '@wsagency/radix2solid-icons/GitHubLogoIcon';
 import ts from 'typescript';
-import * as Themes from '@radix-solid/themes';
+import * as Themes from '@wsagency/radix2solid-themes';
 
 test('packed packages resolve one physical native runtime from every package origin and Themes shares primitives', async () => {
   const names = ['primitives', 'themes', 'icons'];
   const origins = await Promise.all(names.map(async name =>
-    dirname(await realpath(fileURLToPath(import.meta.resolve(`@radix-solid/${name}`))))));
+    dirname(await realpath(fileURLToPath(import.meta.resolve(`@wsagency/radix2solid-${name}`))))));
   const consumerRequire = createRequire(import.meta.url);
   const consumerSolidOrigin = dirname(await realpath(consumerRequire.resolve('solid-js')));
   for (const dependency of ['solid-js', '@solidjs/web', '@solidjs/signals']) {
@@ -26,8 +26,8 @@ test('packed packages resolve one physical native runtime from every package ori
     assert.equal(new Set(resolutions).size, 1, `${dependency}: distinct physical package runtimes: ${resolutions.join(', ')}`);
   }
   const themesRequire = createRequire(resolve(origins[1], 'physical-consumer.cjs'));
-  assert.equal(await realpath(themesRequire.resolve('@radix-solid/primitives')),
-    await realpath(fileURLToPath(import.meta.resolve('@radix-solid/primitives'))));
+  assert.equal(await realpath(themesRequire.resolve('@wsagency/radix2solid-primitives')),
+    await realpath(fileURLToPath(import.meta.resolve('@wsagency/radix2solid-primitives'))));
 });
 
 test('packed server entry imports and renders pressed state without a DOM', () => {
@@ -444,7 +444,7 @@ test('production client graph has one physical runtime per package and uses the 
     const instances = new Set(modules.filter(id => id.includes(marker)).map(id => id.slice(0, id.lastIndexOf(marker) + marker.length)));
     assert.equal(instances.size, 1, `${name} runtime instances: ${[...instances].join(', ')}`);
   }
-  assert.ok(modules.some(id => id.includes('/node_modules/@radix-solid/primitives/dist/client/')));
+  assert.ok(modules.some(id => id.includes('/node_modules/@wsagency/radix2solid-primitives/dist/client/')));
   assert.ok(!modules.some(id => /\/node_modules\/(?:react|react-dom|@types\/react)(?:\/|$)/.test(id)));
   assert.ok(!modules.some(id => id.includes('/packages/primitives/src/') || id.includes('/upstream/')));
 });

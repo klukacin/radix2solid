@@ -26,7 +26,7 @@ function targets(value: ExportTarget): string[] {
 }
 const publicPaths = new Set<string>();
 for (const name of ['primitives', 'themes', 'icons']) {
-  const packageName = `@radix-solid/${name}`;
+  const packageName = `@wsagency/radix2solid-${name}`;
   const packageRoot = resolve(dirname(await realpath(fileURLToPath(import.meta.resolve(packageName)))), '../..');
   const manifest: { exports: Record<string, ExportTarget> } = JSON.parse(await readFile(resolve(packageRoot, 'package.json'), 'utf8'));
   const files = (await readdir(packageRoot, { recursive: true, withFileTypes: true }))
@@ -59,8 +59,8 @@ for (const name of ['primitives', 'themes', 'icons']) {
 }
 const expectedPaths = [
   ...coverage.modules.map(contract => contract.module), ...coverage.css, ...coverage.plugins,
-  '@radix-solid/icons', ...Object.keys(iconNames).map(name => `@radix-solid/icons/${name}`),
-  ...Object.values(iconNames).map(asset => `@radix-solid/icons/icons/${asset}`)
+  '@wsagency/radix2solid-icons', ...Object.keys(iconNames).map(name => `@wsagency/radix2solid-icons/${name}`),
+  ...Object.values(iconNames).map(asset => `@wsagency/radix2solid-icons/icons/${asset}`)
 ];
 assert.deepEqual([...publicPaths].sort(), expectedPaths.sort(), 'Every actual packed export and all conditional targets require a coverage mapping');
 
@@ -70,8 +70,8 @@ const options = { ...ts.parseJsonConfigFileContent(config.config, ts.sys, proces
 const anchor = resolve('distribution-consumer.ts');
 const contracts = [
   ...coverage.modules,
-  { module: '@radix-solid/icons', exports: ['IconProps', ...Object.keys(iconNames)].join(' '), checks: ['assets', 'types'] },
-  ...Object.keys(iconNames).map(name => ({ module: `@radix-solid/icons/${name}`, exports: `${name} default`, checks: ['assets', 'types'] }))
+  { module: '@wsagency/radix2solid-icons', exports: ['IconProps', ...Object.keys(iconNames)].join(' '), checks: ['assets', 'types'] },
+  ...Object.keys(iconNames).map(name => ({ module: `@wsagency/radix2solid-icons/${name}`, exports: `${name} default`, checks: ['assets', 'types'] }))
 ].map(contract => {
   const resolved = ts.resolveModuleName(contract.module, anchor, options, ts.sys).resolvedModule;
   assert(resolved, `Missing declared public subpath ${contract.module}`);
@@ -92,7 +92,7 @@ for (const contract of contracts) {
   assert(module, `Missing declared module ${contract.module}`);
   const symbols = checker.getExportsOfModule(module);
   assert.deepEqual(symbols.map(symbol => symbol.name).sort(), contract.exports.split(' ').sort(), `${contract.module}: public part/type contract`);
-  if (!contract.module.startsWith('@radix-solid/icons')) declarations += symbols.length;
+  if (!contract.module.startsWith('@wsagency/radix2solid-icons')) declarations += symbols.length;
   const runtime: Record<string, unknown> = await import(contract.module);
   for (const exported of symbols) {
     const symbol = exported.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(exported) : exported;

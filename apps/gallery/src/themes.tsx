@@ -4,8 +4,8 @@ import {
   Code, Container, DataList, Em, Flex, Grid, Heading, IconButton, Inset, Kbd, Link, Progress, Quote, Reset,
   ScrollArea, Section, Separator, Skeleton, Spinner, Strong, Table, Text, VisuallyHidden,
   ChevronDownIcon, ThickCheckIcon, ThickChevronRightIcon, ThickDividerHorizontalIcon
-} from '@radix-solid/themes';
-import '@radix-solid/themes/styles.css';
+} from '@wsagency/radix2solid-themes';
+import '@wsagency/radix2solid-themes/styles.css';
 
 const frozenSize = Object.freeze({ md: '3' as const });
 const pixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';

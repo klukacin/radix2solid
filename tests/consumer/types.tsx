@@ -1,32 +1,32 @@
-import { AccessibleIcon, Accordion, AlertDialog, Announce, AspectRatio, Avatar, Arrow, Checkbox, Collapsible, ContextMenu, Dialog, Direction, DropdownMenu, HoverCard, Label, Menubar, Popover, Portal, Progress, RadioGroup, Separator, Slot, Switch, Tabs, Toggle, ToggleGroup, Toolbar, Tooltip, VisuallyHidden } from '@radix-solid/primitives';
+import { AccessibleIcon, Accordion, AlertDialog, Announce, AspectRatio, Avatar, Arrow, Checkbox, Collapsible, ContextMenu, Dialog, Direction, DropdownMenu, HoverCard, Label, Menubar, Popover, Portal, Progress, RadioGroup, Separator, Slot, Switch, Tabs, Toggle, ToggleGroup, Toolbar, Tooltip, VisuallyHidden } from '@wsagency/radix2solid-primitives';
 import type { JSX } from '@solidjs/web';
-import { CheckIcon, type IconProps } from '@radix-solid/icons';
-import GitHubLogoIcon, { GitHubLogoIcon as NamedGitHubLogoIcon } from '@radix-solid/icons/GitHubLogoIcon';
-import { Root as DialogRoot, Content as DialogContent, createDialogScope } from '@radix-solid/primitives/dialog';
-import { createPopoverScope } from '@radix-solid/primitives/popover';
-import { Root as AccessibleIconRoot } from '@radix-solid/primitives/accessible-icon';
-import { Root as AspectRatioRoot } from '@radix-solid/primitives/aspect-ratio';
-import { Root as LabelRoot } from '@radix-solid/primitives/label';
-import { Root as ProgressRoot, createProgressScope } from '@radix-solid/primitives/progress';
-import { Root as SeparatorRoot } from '@radix-solid/primitives/separator';
-import { Root as AvatarRoot, createAvatarScope, type AvatarImageProps } from '@radix-solid/primitives/avatar';
-import { Root as AnnounceRoot, type AnnounceProps } from '@radix-solid/primitives/announce';
-import { Root as CollapsibleRoot, createCollapsibleScope, type CollapsibleProps } from '@radix-solid/primitives/collapsible';
-import { Root as AccordionRoot, createAccordionScope, type AccordionSingleProps, type AccordionMultipleProps } from '@radix-solid/primitives/accordion';
-import { Root as CheckboxRoot, createCheckboxScope, type CheckedState, type unstable_CheckboxProviderProps, type unstable_CheckboxTriggerProps, type unstable_CheckboxBubbleInputProps } from '@radix-solid/primitives/checkbox';
-import { Root as SwitchRoot, createSwitchScope, type SwitchProps, type SwitchThumbProps, type unstable_SwitchProviderProps, type unstable_SwitchTriggerProps, type unstable_SwitchBubbleInputProps } from '@radix-solid/primitives/switch';
-import { Root as RadioGroupRoot, createRadioGroupScope, type RadioGroupProps, type RadioGroupItemProps, type unstable_RadioGroupItemProviderProps, type unstable_RadioGroupItemTriggerProps, type unstable_RadioGroupItemBubbleInputProps } from '@radix-solid/primitives/radio-group';
-import { Root as TabsRoot, createTabsScope, type TabsProps, type TabsListProps, type TabsTriggerProps, type TabsContentProps } from '@radix-solid/primitives/tabs';
-import { Root as ToggleGroupRoot, createToggleGroupScope, type ToggleGroupSingleProps, type ToggleGroupMultipleProps, type ToggleGroupItemProps } from '@radix-solid/primitives/toggle-group';
-import { Root as ToolbarRoot, createToolbarScope, type ToolbarProps, type ToolbarButtonProps, type ToolbarLinkProps, type ToolbarSeparatorProps, type ToolbarToggleGroupSingleProps, type ToolbarToggleGroupMultipleProps, type ToolbarToggleItemProps } from '@radix-solid/primitives/toolbar';
-import { Root as AlertDialogRoot, createAlertDialogScope, type AlertDialogProps, type AlertDialogTriggerProps, type AlertDialogPortalProps, type AlertDialogOverlayProps, type AlertDialogContentProps, type AlertDialogTitleProps, type AlertDialogDescriptionProps, type AlertDialogActionProps, type AlertDialogCancelProps } from '@radix-solid/primitives/alert-dialog';
-import { Root as HoverCardRoot, createHoverCardScope, type HoverCardProps, type HoverCardTriggerProps, type HoverCardPortalProps, type HoverCardContentProps, type HoverCardArrowProps } from '@radix-solid/primitives/hover-card';
-import { Root as TooltipRoot, createTooltipScope, type TooltipProviderProps, type TooltipProps, type TooltipTriggerProps, type TooltipPortalProps, type TooltipContentProps, type TooltipArrowProps } from '@radix-solid/primitives/tooltip';
-import * as DropdownParts from '@radix-solid/primitives/dropdown-menu';
-import * as ContextParts from '@radix-solid/primitives/context-menu';
-import * as MenubarParts from '@radix-solid/primitives/menubar';
-import * as NavigationParts from '@radix-solid/primitives/navigation-menu';
-import * as SelectParts from '@radix-solid/primitives/select';
+import { CheckIcon, type IconProps } from '@wsagency/radix2solid-icons';
+import GitHubLogoIcon, { GitHubLogoIcon as NamedGitHubLogoIcon } from '@wsagency/radix2solid-icons/GitHubLogoIcon';
+import { Root as DialogRoot, Content as DialogContent, createDialogScope } from '@wsagency/radix2solid-primitives/dialog';
+import { createPopoverScope } from '@wsagency/radix2solid-primitives/popover';
+import { Root as AccessibleIconRoot } from '@wsagency/radix2solid-primitives/accessible-icon';
+import { Root as AspectRatioRoot } from '@wsagency/radix2solid-primitives/aspect-ratio';
+import { Root as LabelRoot } from '@wsagency/radix2solid-primitives/label';
+import { Root as ProgressRoot, createProgressScope } from '@wsagency/radix2solid-primitives/progress';
+import { Root as SeparatorRoot } from '@wsagency/radix2solid-primitives/separator';
+import { Root as AvatarRoot, createAvatarScope, type AvatarImageProps } from '@wsagency/radix2solid-primitives/avatar';
+import { Root as AnnounceRoot, type AnnounceProps } from '@wsagency/radix2solid-primitives/announce';
+import { Root as CollapsibleRoot, createCollapsibleScope, type CollapsibleProps } from '@wsagency/radix2solid-primitives/collapsible';
+import { Root as AccordionRoot, createAccordionScope, type AccordionSingleProps, type AccordionMultipleProps } from '@wsagency/radix2solid-primitives/accordion';
+import { Root as CheckboxRoot, createCheckboxScope, type CheckedState, type unstable_CheckboxProviderProps, type unstable_CheckboxTriggerProps, type unstable_CheckboxBubbleInputProps } from '@wsagency/radix2solid-primitives/checkbox';
+import { Root as SwitchRoot, createSwitchScope, type SwitchProps, type SwitchThumbProps, type unstable_SwitchProviderProps, type unstable_SwitchTriggerProps, type unstable_SwitchBubbleInputProps } from '@wsagency/radix2solid-primitives/switch';
+import { Root as RadioGroupRoot, createRadioGroupScope, type RadioGroupProps, type RadioGroupItemProps, type unstable_RadioGroupItemProviderProps, type unstable_RadioGroupItemTriggerProps, type unstable_RadioGroupItemBubbleInputProps } from '@wsagency/radix2solid-primitives/radio-group';
+import { Root as TabsRoot, createTabsScope, type TabsProps, type TabsListProps, type TabsTriggerProps, type TabsContentProps } from '@wsagency/radix2solid-primitives/tabs';
+import { Root as ToggleGroupRoot, createToggleGroupScope, type ToggleGroupSingleProps, type ToggleGroupMultipleProps, type ToggleGroupItemProps } from '@wsagency/radix2solid-primitives/toggle-group';
+import { Root as ToolbarRoot, createToolbarScope, type ToolbarProps, type ToolbarButtonProps, type ToolbarLinkProps, type ToolbarSeparatorProps, type ToolbarToggleGroupSingleProps, type ToolbarToggleGroupMultipleProps, type ToolbarToggleItemProps } from '@wsagency/radix2solid-primitives/toolbar';
+import { Root as AlertDialogRoot, createAlertDialogScope, type AlertDialogProps, type AlertDialogTriggerProps, type AlertDialogPortalProps, type AlertDialogOverlayProps, type AlertDialogContentProps, type AlertDialogTitleProps, type AlertDialogDescriptionProps, type AlertDialogActionProps, type AlertDialogCancelProps } from '@wsagency/radix2solid-primitives/alert-dialog';
+import { Root as HoverCardRoot, createHoverCardScope, type HoverCardProps, type HoverCardTriggerProps, type HoverCardPortalProps, type HoverCardContentProps, type HoverCardArrowProps } from '@wsagency/radix2solid-primitives/hover-card';
+import { Root as TooltipRoot, createTooltipScope, type TooltipProviderProps, type TooltipProps, type TooltipTriggerProps, type TooltipPortalProps, type TooltipContentProps, type TooltipArrowProps } from '@wsagency/radix2solid-primitives/tooltip';
+import * as DropdownParts from '@wsagency/radix2solid-primitives/dropdown-menu';
+import * as ContextParts from '@wsagency/radix2solid-primitives/context-menu';
+import * as MenubarParts from '@wsagency/radix2solid-primitives/menubar';
+import * as NavigationParts from '@wsagency/radix2solid-primitives/navigation-menu';
+import * as SelectParts from '@wsagency/radix2solid-primitives/select';
 
 function CustomTarget(props: JSX.AnchorHTMLAttributes<HTMLAnchorElement> & { token: string }) {
   return <a data-token={props.token} {...props} />;
@@ -435,8 +435,8 @@ export const nativeSelect = <SelectParts.Root {...selectScope} {...selectProps}>
   <SelectParts.Content asChild><section /></SelectParts.Content>
 </SelectParts.Root>;
 
-import { unstable_PasswordToggleField as PasswordParts } from '@radix-solid/primitives';
-import { Root as PasswordRoot, type PasswordToggleFieldProps, type PasswordToggleFieldInputProps, type PasswordToggleFieldToggleProps, type PasswordToggleFieldSlotProps, type PasswordToggleFieldIconProps } from '@radix-solid/primitives/password-toggle-field';
+import { unstable_PasswordToggleField as PasswordParts } from '@wsagency/radix2solid-primitives';
+import { Root as PasswordRoot, type PasswordToggleFieldProps, type PasswordToggleFieldInputProps, type PasswordToggleFieldToggleProps, type PasswordToggleFieldSlotProps, type PasswordToggleFieldIconProps } from '@wsagency/radix2solid-primitives/password-toggle-field';
 const passwordProps: PasswordToggleFieldProps = { defaultVisible: false, onVisibilityChange: visible => { const value: boolean = visible; void value; } };
 const passwordInputProps: PasswordToggleFieldInputProps = { name: 'secret', form: 'external', autoComplete: 'new-password' };
 const passwordToggleProps: PasswordToggleFieldToggleProps = { 'aria-label': 'Reveal', ref: node => { node.disabled; } };
@@ -456,8 +456,8 @@ export const nativePassword = <PasswordRoot {...passwordProps}>
   <PasswordParts.Icon visible={<svg />} hidden={target => target('svg', {})} />
 </PasswordRoot>;
 
-import { unstable_OneTimePasswordField as OTPParts } from '@radix-solid/primitives';
-import { Root as OTPRoot, type OneTimePasswordFieldProps, type OneTimePasswordFieldInputProps, type OneTimePasswordFieldHiddenInputProps, type InputValidationType } from '@radix-solid/primitives/one-time-password-field';
+import { unstable_OneTimePasswordField as OTPParts } from '@wsagency/radix2solid-primitives';
+import { Root as OTPRoot, type OneTimePasswordFieldProps, type OneTimePasswordFieldInputProps, type OneTimePasswordFieldHiddenInputProps, type InputValidationType } from '@wsagency/radix2solid-primitives/one-time-password-field';
 const otpValidation: InputValidationType = 'alphanumeric';
 const otpProps: OneTimePasswordFieldProps = { validationType: otpValidation, form: 'code-form', name: 'code', autoSubmit: true, onAutoSubmit: code => { code.toUpperCase(); } };
 const otpInputProps: OneTimePasswordFieldInputProps = { index: 0, onInvalidChange: character => { character.toLowerCase(); } };
@@ -475,8 +475,8 @@ export const nativeOTP = <OTPRoot {...otpProps} asChild>{target => target('secti
   <OTPParts.Input asChild><input /></OTPParts.Input>
 </> })}</OTPRoot>;
 
-import { Slider as SliderParts } from '@radix-solid/primitives';
-import { Root as SliderRoot, type SliderProps, type SliderTrackProps, type SliderRangeProps, type SliderThumbProps, type unstable_SliderThumbProviderProps, type unstable_SliderThumbTriggerProps, type unstable_SliderBubbleInputProps } from '@radix-solid/primitives/slider';
+import { Slider as SliderParts } from '@wsagency/radix2solid-primitives';
+import { Root as SliderRoot, type SliderProps, type SliderTrackProps, type SliderRangeProps, type SliderThumbProps, type unstable_SliderThumbProviderProps, type unstable_SliderThumbTriggerProps, type unstable_SliderBubbleInputProps } from '@wsagency/radix2solid-primitives/slider';
 const sliderScope = SliderParts.createSliderScope()();
 const sliderProps: SliderProps = { defaultValue: [10, 30], name: 'range', form: 'external', min: 0, max: 100, step: .1, minStepsBetweenThumbs: 2, preserveThumbOrder: true, orientation: 'vertical', dir: 'rtl', inverted: true, onValueCommit: values => { const value: number = values[0]!; void value; } };
 const sliderTrackProps: SliderTrackProps = { ref: node => { node.offsetWidth; } };
@@ -497,8 +497,8 @@ export const nativeSlider = <SliderRoot {...sliderScope} {...sliderProps} asChil
   <SliderParts.Thumb asChild><span /></SliderParts.Thumb>
 </> })}</SliderRoot>;
 
-import { ScrollArea as ScrollParts } from '@radix-solid/primitives';
-import { Root as ScrollRoot, type ScrollAreaProps, type ScrollAreaViewportProps, type ScrollAreaContentProps, type ScrollAreaScrollbarProps, type ScrollAreaThumbProps, type ScrollAreaCornerProps } from '@radix-solid/primitives/scroll-area';
+import { ScrollArea as ScrollParts } from '@wsagency/radix2solid-primitives';
+import { Root as ScrollRoot, type ScrollAreaProps, type ScrollAreaViewportProps, type ScrollAreaContentProps, type ScrollAreaScrollbarProps, type ScrollAreaThumbProps, type ScrollAreaCornerProps } from '@wsagency/radix2solid-primitives/scroll-area';
 const scrollScope = ScrollParts.createScrollAreaScope()();
 const scrollProps: ScrollAreaProps = { type: 'scroll', dir: 'rtl', scrollHideDelay: 100 };
 const scrollViewportProps: ScrollAreaViewportProps = { nonce: 'consumer-nonce', disableImplicitContentElement: true, ref: node => { node.scrollTop; } };
@@ -518,8 +518,8 @@ export const nativeScroll = <ScrollRoot {...scrollScope} {...scrollProps} asChil
   <ScrollParts.Viewport asChild><div /></ScrollParts.Viewport>
 </> })}</ScrollRoot>;
 
-import { Form as FormParts } from '@radix-solid/primitives';
-import { Root as FormRoot, type FormProps, type FormFieldProps, type FormLabelProps, type FormControlProps, type FormMessageProps, type FormValidityStateProps, type FormSubmitProps } from '@radix-solid/primitives/form';
+import { Form as FormParts } from '@wsagency/radix2solid-primitives';
+import { Root as FormRoot, type FormProps, type FormFieldProps, type FormLabelProps, type FormControlProps, type FormMessageProps, type FormValidityStateProps, type FormSubmitProps } from '@wsagency/radix2solid-primitives/form';
 const formScope = FormParts.createFormScope()();
 const formProps: FormProps = { onClearServerErrors: () => {}, onSubmit: event => { event.currentTarget.requestSubmit(); } };
 const formFieldProps: FormFieldProps = { name: 'email', serverInvalid: true };
@@ -544,8 +544,8 @@ export const nativeForm = <FormRoot {...formScope} {...formProps} asChild>{targe
   <FormParts.Control asChild><input /></FormParts.Control>
 </> })}</FormRoot>;
 
-import { Toast as ToastParts } from '@radix-solid/primitives';
-import { Provider as NotificationProvider, type ToastProviderProps, type ToastViewportProps, type ToastProps, type ToastTitleProps, type ToastDescriptionProps, type ToastActionProps, type ToastCloseProps } from '@radix-solid/primitives/toast';
+import { Toast as ToastParts } from '@wsagency/radix2solid-primitives';
+import { Provider as NotificationProvider, type ToastProviderProps, type ToastViewportProps, type ToastProps, type ToastTitleProps, type ToastDescriptionProps, type ToastActionProps, type ToastCloseProps } from '@wsagency/radix2solid-primitives/toast';
 const notificationScope = ToastParts.createToastScope()();
 const notificationProviderProps: ToastProviderProps = { duration: Infinity, swipeDirection: 'left', swipeThreshold: 40, label: 'Notification' };
 const notificationViewportProps: ToastViewportProps = { hotkey: ['altKey', 'KeyN'], label: 'Notifications ({hotkey})', ref: node => { node.start; } };
@@ -584,10 +584,10 @@ export const nativeIcons = <>
   <CheckIcon asChild />
 </>;
 
-import * as Themes from '@radix-solid/themes';
-import { Root as ThemedCalloutRoot, type RootProps as ThemedCalloutRootProps } from '@radix-solid/themes/components/callout';
-import { buttonPropDefs as themedButtonProps, breakpoints as themedBreakpoints } from '@radix-solid/themes/props';
-import { extractProps as extractThemeProps } from '@radix-solid/themes/helpers';
+import * as Themes from '@wsagency/radix2solid-themes';
+import { Root as ThemedCalloutRoot, type RootProps as ThemedCalloutRootProps } from '@wsagency/radix2solid-themes/components/callout';
+import { buttonPropDefs as themedButtonProps, breakpoints as themedBreakpoints } from '@wsagency/radix2solid-themes/props';
+import { extractProps as extractThemeProps } from '@wsagency/radix2solid-themes/helpers';
 const standalonePanelProps: Themes.unstable_ThemePanelContentProps = { as: 'span', gap: '4' };
 const themedCalloutProps: ThemedCalloutRootProps = { size: Object.freeze({ md: '3' }), m: '-2' };
 void extractThemeProps({ size: '2' }, themedButtonProps); void themedBreakpoints.includes('md');

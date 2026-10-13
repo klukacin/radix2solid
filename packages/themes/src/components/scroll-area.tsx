@@ -1,7 +1,7 @@
 import { createMemo, omit, Show, untrack, type Element } from 'solid-js';
 import type { ComponentProps } from '@solidjs/web';
-import * as ScrollAreaPrimitive from '@radix-solid/primitives/scroll-area';
-import { Slottable, type SlotRender } from '@radix-solid/primitives/slot';
+import * as ScrollAreaPrimitive from '@wsagency/radix2solid-primitives/scroll-area';
+import { Slottable, type SlotRender } from '@wsagency/radix2solid-primitives/slot';
 import { scrollAreaPropDefs } from './scroll-area.props.js';
 import { extractProps } from '../helpers/extract-props.js';
 import { extractMarginProps } from '../helpers/extract-margin-props.js';

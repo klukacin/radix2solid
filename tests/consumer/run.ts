@@ -19,11 +19,12 @@ await mkdir(packs, { recursive: true });
 const dependencies: Record<string, string> = {};
 for (const name of ['primitives', 'icons', 'themes']) {
   run('pnpm', ['--dir', `packages/${name}`, 'pack', '--pack-destination', packs]);
-  const tarball = resolve(packs, `radix-solid-${name}-0.0.0-local.tgz`);
+  const metadata = JSON.parse(await readFile(resolve(root, `packages/${name}/package.json`), 'utf8'));
+  const tarball = resolve(packs, `${metadata.name.replace(/^@/, '').replace('/', '-')}-${metadata.version}.tgz`);
   const archive = `${name}-${createHash('sha256').update(await readFile(tarball)).digest('hex')}.tgz`;
   // A changed tarball must have a new dependency identity, not a cached constant file path.
   await rename(tarball, resolve(packs, archive));
-  dependencies[`@radix-solid/${name}`] = `file:../packs/${archive}`;
+  dependencies[metadata.name] = `file:../packs/${archive}`;
 }
 const manifest: unknown = JSON.parse(await readFile(resolve(root, 'package.json'), 'utf8'));
 if (!manifest || typeof manifest !== 'object' || !('devDependencies' in manifest) || !manifest.devDependencies || typeof manifest.devDependencies !== 'object') {
@@ -31,7 +32,7 @@ if (!manifest || typeof manifest !== 'object' || !('devDependencies' in manifest
 }
 const tools: Record<string, string> = {};
 for (const [name, version] of Object.entries(manifest.devDependencies)) {
-  if (name.startsWith('@radix-solid/')) continue;
+  if (Object.hasOwn(dependencies, name)) continue;
   if (typeof version !== 'string' || version.startsWith('workspace:')) throw new Error(`Invalid consumer tool pin ${name}`);
   tools[name] = version;
 }
@@ -41,9 +42,9 @@ await writeFile(resolve(fixture, 'package.json'), JSON.stringify({
   devDependencies: tools
 }, null, 2));
 // Its own workspace boundary retains exact overrides; no source aliases or parent workspace links.
-// The unpublished Themes dependency must resolve the same real primitives tarball, not npm.
+// The prepared, not yet published Themes candidate must resolve the same real primitives tarball, not npm.
 const workspace = (await readFile(resolve(root, 'pnpm-workspace.yaml'), 'utf8')).replace(
-  'overrides:\n', `overrides:\n  '@radix-solid/primitives': ${JSON.stringify(dependencies['@radix-solid/primitives'])}\n`
+  'overrides:\n', `overrides:\n  '@wsagency/radix2solid-primitives': ${JSON.stringify(dependencies['@wsagency/radix2solid-primitives'])}\n`
 );
 await writeFile(resolve(fixture, 'pnpm-workspace.yaml'), workspace);
 const config: unknown = JSON.parse(await readFile(resolve(root, 'tsconfig.json'), 'utf8'));

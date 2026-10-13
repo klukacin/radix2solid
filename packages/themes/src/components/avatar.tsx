@@ -1,7 +1,7 @@
 import { createSignal, merge, omit, Show, untrack, type Element } from 'solid-js';
 import type { ComponentProps } from '@solidjs/web';
-import * as AvatarPrimitive from '@radix-solid/primitives/avatar';
-import { Slottable, type SlotRender } from '@radix-solid/primitives/slot';
+import * as AvatarPrimitive from '@wsagency/radix2solid-primitives/avatar';
+import { Slottable, type SlotRender } from '@wsagency/radix2solid-primitives/slot';
 import { avatarPropDefs } from './avatar.props.js';
 import { extractProps } from '../helpers/extract-props.js';
 import type { ComposedProps, RemovedProps } from '../helpers/component-props.js';

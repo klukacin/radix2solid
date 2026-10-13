@@ -1,4 +1,4 @@
-import { mergeStyles as mergeNativeStyles } from '@radix-solid/primitives/internal';
+import { mergeStyles as mergeNativeStyles } from '@wsagency/radix2solid-primitives/internal';
 import type { JSX } from '@solidjs/web';
 
 export function mergeStyles(...styles: (JSX.HTMLAttributes<HTMLElement>['style'] | null)[]): JSX.CSSProperties | string | undefined {

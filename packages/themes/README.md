@@ -1,6 +1,6 @@
 # Native Solid 2 Themes
 
-Local-only native fork. Not an official Radix product. This private `0.0.0-local` package must not be published without the separate ownership/review/release gates.
+Native fork, not an official Radix product. **Prepared candidate `@wsagency/radix2solid-themes@0.1.0-rc.1` — not yet published.** It will be released under the npm `next` dist-tag because its Solid peers are release candidates. After publication: `pnpm add @wsagency/radix2solid-themes@0.1.0-rc.1`; until then consume `pnpm pack` tarballs.
 
 Solid `2.0.0-rc.13` and `@solidjs/web` `2.0.0-rc.13` are peers. Browser export conditions select native client ESM; the default selects native server ESM. Declarations are shared. No React runtime, React types or element-cloning compatibility layer.
 CSS imports use the application's bundler declarations, e.g. `vite/client` with Vite; TypeScript alone does not define stylesheet modules.
@@ -10,8 +10,8 @@ CSS imports use the application's bundler declarations, e.g. `vite/client` with 
 
 ```tsx
 import { createSignal } from 'solid-js';
-import { Theme, Button, Box, Heading, Text, Skeleton } from '@radix-solid/themes';
-import '@radix-solid/themes/styles.css';
+import { Theme, Button, Box, Heading, Text, Skeleton } from '@wsagency/radix2solid-themes';
+import '@wsagency/radix2solid-themes/styles.css';
 
 function Example() {
   const [loading, setLoading] = createSignal(false);
@@ -33,7 +33,7 @@ function Example() {
 
 Responsive objects are never mutated, including when an enum needs its initial default. Existing class/data contracts, negative spacing classes and arbitrary-value CSS variables are retained. Native `class` can be an array; use `class`, not React `className`. Consumer styles override generated responsive variables. Thresholds remain `xs=520px`, `sm=768px`, `md=1024px`, `lg=1280px`, `xl=1640px`.
 
-`asChild` takes one **target factory**, not an already-created JSX element or a prop-bag spread. Request and return exactly one target. For live factory attributes use getters, e.g. `get href() { return destination(); }`; snapshot spreading/destructuring reactive views loses updates. Custom components must forward native props/ref to their intended host. `Slot`/`Slottable` use the same contract as `@radix-solid/primitives`; see its migration guide.
+`asChild` takes one **target factory**, not an already-created JSX element or a prop-bag spread. Request and return exactly one target. For live factory attributes use getters, e.g. `get href() { return destination(); }`; snapshot spreading/destructuring reactive views loses updates. Custom components must forward native props/ref to their intended host. `Slot`/`Slottable` use the same contract as `@wsagency/radix2solid-primitives`; see its migration guide.
 
 ## Theme settings and rendering
 
@@ -96,7 +96,7 @@ Compound component subpaths expose their upstream short parts and Props, not acc
 
 `postcss-breakpoints` and `postcss-whitespace` support both ESM imports and CommonJS requires, including explicit `.js`/`.cjs` subpaths. Breakpoint assets resolve relative to the installed plugin, not caller cwd. The original import/nesting/breakpoint/custom-media/selector-combination/empty-rule/whitespace/autoprefixer processing order is retained.
 
-For separate private tarball consumers, override `@radix-solid/primitives` to the same packed primitives file used by the direct dependency. The unpublished `0.0.0-local` version cannot be fetched from npm. The repository's independent consumer runner pins content-addressed tarballs, not workspace source aliases.
+Until the candidate is published, tarball consumers must override `@wsagency/radix2solid-primitives` to the same packed primitives file used by the direct dependency, because `0.1.0-rc.1` cannot yet be fetched from npm. The packed Themes manifest depends on exactly `@wsagency/radix2solid-primitives@0.1.0-rc.1`. The repository's independent consumer runner pins content-addressed tarballs, not workspace source aliases.
 
 ## Attribution
 

@@ -1,6 +1,6 @@
 # Native Solid 2 Primitives
 
-Local-only native fork. Not an official Radix product. Publishing scope, ownership and release gates remain unresolved; do not publish this private package.
+Native fork, not an official Radix product. **Prepared candidate `@wsagency/radix2solid-primitives@0.1.0-rc.1` — not yet published.** It will be released under the npm `next` dist-tag because its `solid-js`/`@solidjs/web` peers are `2.0.0-rc.13`. After publication: `pnpm add @wsagency/radix2solid-primitives@0.1.0-rc.1`; until then consume a `pnpm pack` tarball.
 
 Implemented namespaces: all 35 upstream main entries plus standalone `Announce` and `Arrow`: `Slot`, `Toggle`, `Direction`, `Portal`, `VisuallyHidden`, `Arrow`, `Dialog`, `Popover`, `AccessibleIcon`, `AspectRatio`, `Avatar`, `Label`, `Progress`, `Separator`, `Announce`, `Collapsible`, `Accordion`, `Checkbox`, `Switch`, `RadioGroup`, `Tabs`, `ToggleGroup`, `Toolbar`, `AlertDialog`, `HoverCard`, `Tooltip`, `DropdownMenu`, `ContextMenu`, `Menubar`, `NavigationMenu`, `Select`, `unstable_PasswordToggleField`, `unstable_OneTimePasswordField`, `Slider`, `ScrollArea`, `Form` and `Toast`, with corresponding subpaths/parts. Explicit `/internal` exports provide native state/ref/event, scoped context, collection/roving-focus, presence, focus/layer/scroll and Popper helpers; no React hook aliases. Solid/web RC.13 are peers, never bundled copies. ESM export conditions select `dist/client` for browser and `dist/server` by default; declarations are shared.
 The `/internal` entry also exports the existing `Primitive`, `PrimitiveProps` and Slot `mergeStyles` for native Themes reuse; this does not introduce another composition or CSS parser.
@@ -28,7 +28,7 @@ The public `/internal` surface is native and deliberately not a React-hook compa
 
 ```tsx
 import { createSignal } from 'solid-js';
-import { Toggle } from '@radix-solid/primitives';
+import { Toggle } from '@wsagency/radix2solid-primitives';
 
 const [pressed, setPressed] = createSignal(false);
 <Toggle.Root pressed={pressed()} onPressedChange={setPressed}>Bold</Toggle.Root>;
@@ -66,7 +66,7 @@ Native input targets preserve `defaultValue`/`defaultChecked` as actual `value`/
 ## Loading and leading/trailing content
 
 ```tsx
-import { Slot, Toggle } from '@radix-solid/primitives';
+import { Slot, Toggle } from '@wsagency/radix2solid-primitives';
 
 <Toggle.Root asChild children={Slot.Slottable({
   child: target => target('button', { children: 'Save' }),
@@ -83,7 +83,7 @@ Leading/trailing and transformed loading content stay inside the same target. `c
 ## Dialog, Popover and portal ownership
 
 ```tsx
-import { Dialog, Popover } from '@radix-solid/primitives';
+import { Dialog, Popover } from '@wsagency/radix2solid-primitives';
 
 <Dialog.Root>
   <Dialog.Trigger>Details</Dialog.Trigger>
@@ -125,7 +125,7 @@ A nested `render()` needs the parent owner during child creation, not around its
 
 ```tsx
 import { createSignal } from 'solid-js';
-import { AccessibleIcon, AspectRatio, Label, Progress, Separator } from '@radix-solid/primitives';
+import { AccessibleIcon, AspectRatio, Label, Progress, Separator } from '@wsagency/radix2solid-primitives';
 
 const [completed, setCompleted] = createSignal(0);
 <>
@@ -152,7 +152,7 @@ Progress validates positive max and values between zero and max, falling back to
 
 ```tsx
 import { createSignal } from 'solid-js';
-import { Announce, Avatar } from '@radix-solid/primitives';
+import { Announce, Avatar } from '@wsagency/radix2solid-primitives';
 
 const [notice, setNotice] = createSignal('Account ready');
 const avatar = 'data:image/svg+xml,' + encodeURIComponent(
@@ -179,7 +179,7 @@ Manual screen-reader delivery remains an acceptance gate: browser DOM/AX observa
 
 ```tsx
 import { createSignal } from 'solid-js';
-import { Accordion, Collapsible } from '@radix-solid/primitives';
+import { Accordion, Collapsible } from '@wsagency/radix2solid-primitives';
 
 const [open, setOpen] = createSignal(false);
 const [item, setItem] = createSignal('');
@@ -209,7 +209,7 @@ Accordion `type="single"` uses a string and cannot close its current item unless
 
 ```tsx
 import { createSignal } from 'solid-js';
-import { Checkbox, Label, Switch } from '@radix-solid/primitives';
+import { Checkbox, Label, Switch } from '@wsagency/radix2solid-primitives';
 
 const [permission, setPermission] = createSignal<Checkbox.CheckedState>('indeterminate');
 <>
@@ -237,7 +237,7 @@ Inside or explicitly associated with a form, each root owns a real checkbox inpu
 
 ```tsx
 import { createSignal } from 'solid-js';
-import { RadioGroup } from '@radix-solid/primitives';
+import { RadioGroup } from '@wsagency/radix2solid-primitives';
 
 const [choice, setChoice] = createSignal<string | null>('one');
 <>
@@ -267,7 +267,7 @@ All upstream unstable ItemProvider/ItemTrigger/ItemBubbleInput aliases, named pa
 
 ```tsx
 import { createSignal } from 'solid-js';
-import { Tabs } from '@radix-solid/primitives';
+import { Tabs } from '@wsagency/radix2solid-primitives';
 
 const [document, setDocument] = createSignal('draft');
 <Tabs.Root value={document()} onValueChange={setDocument} activationMode="manual">
@@ -287,7 +287,7 @@ List uses current DOM order, skips disabled triggers, honours orientation and ex
 ## ToggleGroup
 
 ```tsx
-import { ToggleGroup } from '@radix-solid/primitives';
+import { ToggleGroup } from '@wsagency/radix2solid-primitives';
 
 <ToggleGroup.Root type="multiple" aria-label="Text formatting" defaultValue={['bold']}>
   <ToggleGroup.Item value="bold">Bold</ToggleGroup.Item>
@@ -302,7 +302,7 @@ Root and Item share scoped roving focus with live DOM ordering, disabled skippin
 ## Toolbar
 
 ```tsx
-import { Toolbar } from '@radix-solid/primitives';
+import { Toolbar } from '@wsagency/radix2solid-primitives';
 
 <Toolbar.Root aria-label="Editor">
   <Toolbar.Button>Save</Toolbar.Button>
@@ -322,7 +322,7 @@ Buttons, links and ToggleItems participate in one outer roving group; Toolbar.To
 ## AlertDialog
 
 ```tsx
-import { AlertDialog } from '@radix-solid/primitives';
+import { AlertDialog } from '@wsagency/radix2solid-primitives';
 
 <AlertDialog.Root>
   <AlertDialog.Trigger>Delete draft</AlertDialog.Trigger>
@@ -343,7 +343,7 @@ AlertDialog reuses Dialog's native modal ownership and links while forcing modal
 ## HoverCard
 
 ```tsx
-import { HoverCard } from '@radix-solid/primitives';
+import { HoverCard } from '@wsagency/radix2solid-primitives';
 
 <HoverCard.Root openDelay={700} closeDelay={300}>
   <HoverCard.Trigger href="/profile">Profile</HoverCard.Trigger>
@@ -361,7 +361,7 @@ HoverCard uses native anchor focus/non-touch hover, cancellable Escape/outside i
 ## Tooltip
 
 ```tsx
-import { Tooltip } from '@radix-solid/primitives';
+import { Tooltip } from '@wsagency/radix2solid-primitives';
 
 <Tooltip.Provider delayDuration={700} skipDelayDuration={300}>
   <Tooltip.Root>
@@ -384,7 +384,7 @@ Normal visible Content supplies the trigger's linked description without duplica
 
 ```tsx
 import { createSignal } from 'solid-js';
-import { DropdownMenu } from '@radix-solid/primitives';
+import { DropdownMenu } from '@wsagency/radix2solid-primitives';
 
 const [checked, setChecked] = createSignal(false);
 <DropdownMenu.Root>
@@ -416,7 +416,7 @@ DropdownMenu and ContextMenu expose all 16 parts; Menubar adds its `Menu` part f
 ## NavigationMenu
 
 ```tsx
-import { NavigationMenu } from '@radix-solid/primitives';
+import { NavigationMenu } from '@wsagency/radix2solid-primitives';
 
 <NavigationMenu.Root aria-label="Site">
   <NavigationMenu.List>
@@ -446,7 +446,7 @@ All nine parts, native Props, long-form aliases and `createNavigationMenuScope()
 ## Select
 
 ```tsx
-import { Select } from '@radix-solid/primitives';
+import { Select } from '@wsagency/radix2solid-primitives';
 
 <Select.Root name="fruit" form="order" required defaultValue="apple">
   <Select.Trigger aria-label="Fruit">
@@ -481,7 +481,7 @@ All 18 public parts, native Props, long-form aliases and `createSelectScope()` a
 ## Unstable PasswordToggleField
 
 ```tsx
-import { unstable_PasswordToggleField as Password } from '@radix-solid/primitives';
+import { unstable_PasswordToggleField as Password } from '@wsagency/radix2solid-primitives';
 
 <Password.Root>
   <Password.Input aria-label="Password" name="password" autoComplete="current-password" />
@@ -502,7 +502,7 @@ All five public parts, long-form aliases and Props are available through the uns
 ## Unstable OneTimePasswordField
 
 ```tsx
-import { unstable_OneTimePasswordField as OTP } from '@radix-solid/primitives';
+import { unstable_OneTimePasswordField as OTP } from '@wsagency/radix2solid-primitives';
 
 <form id="verification" onSubmit={event => {
   event.preventDefault();
@@ -530,7 +530,7 @@ The current roving tab stop receives one-time-code autocomplete and full-code ma
 ## Slider
 
 ```tsx
-import { Slider } from '@radix-solid/primitives';
+import { Slider } from '@wsagency/radix2solid-primitives';
 
 <Slider.Root defaultValue={[20, 80]} name="levels" minStepsBetweenThumbs={1} step={10}>
   <Slider.Track><Slider.Range /></Slider.Track>
@@ -550,7 +550,7 @@ Root, Track, Range, Thumb, their long aliases/Props and `createSliderScope` are 
 ## ScrollArea
 
 ```tsx
-import { ScrollArea } from '@radix-solid/primitives';
+import { ScrollArea } from '@wsagency/radix2solid-primitives';
 
 <ScrollArea.Root type="auto" style={{ position: 'relative', width: '240px', height: '160px' }}>
   <ScrollArea.Viewport style={{ width: '100%', height: '100%' }}>
@@ -573,7 +573,7 @@ Resize geometry commits outside ResizeObserver delivery. Deferred viewport, scro
 ## Form
 
 ```tsx
-import { Form } from '@radix-solid/primitives';
+import { Form } from '@wsagency/radix2solid-primitives';
 
 <Form.Root onSubmit={event => event.preventDefault()}>
   <Form.Field name="email">
@@ -599,7 +599,7 @@ Message without `match` is unconditional: conditionally render server messages w
 ## Toast
 
 ```tsx
-import { Toast } from '@radix-solid/primitives';
+import { Toast } from '@wsagency/radix2solid-primitives';
 
 <Toast.Provider duration={5000} swipeDirection="right">
   <Toast.Root>

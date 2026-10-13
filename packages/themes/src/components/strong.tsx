@@ -1,6 +1,6 @@
 import { merge, type Element } from 'solid-js';
 import type { ComponentProps } from '@solidjs/web';
-import { Primitive, type PrimitiveProps } from '@radix-solid/primitives/internal';
+import { Primitive, type PrimitiveProps } from '@wsagency/radix2solid-primitives/internal';
 import { extractProps } from '../helpers/extract-props.js';
 import type { ComposedProps, RemovedProps } from '../helpers/component-props.js';
 import type { GetPropDefTypes } from '../props/prop-def.js';

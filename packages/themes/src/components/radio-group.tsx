@@ -1,6 +1,6 @@
 import { merge, omit, Show, untrack, type Element } from 'solid-js';
-import * as RadioGroupPrimitive from '@radix-solid/primitives/radio-group';
-import { createContextScope } from '@radix-solid/primitives/internal';
+import * as RadioGroupPrimitive from '@wsagency/radix2solid-primitives/radio-group';
+import { createContextScope } from '@wsagency/radix2solid-primitives/internal';
 import { radioGroupRootPropDefs } from './radio-group.props.js';
 import { Text } from './text.js';
 import { extractProps } from '../helpers/extract-props.js';

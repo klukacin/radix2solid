@@ -1,7 +1,8 @@
 {
-  "name": "@radix-solid/icons",
-  "version": "0.0.0-local",
-  "private": true,
+  "name": "@wsagency/radix2solid-icons",
+  "version": "0.1.0-rc.1",
+  "private": false,
+  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/", "tag": "next" },
   "type": "module",
   "license": "MIT",
   "repository": { "type": "git", "url": "git+https://github.com/wsagency/radix2solid.git", "directory": "packages/icons" },

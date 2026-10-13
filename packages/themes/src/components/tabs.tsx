@@ -1,5 +1,5 @@
 import { omit, type Element } from 'solid-js';
-import * as TabsPrimitive from '@radix-solid/primitives/tabs';
+import * as TabsPrimitive from '@wsagency/radix2solid-primitives/tabs';
 import { tabsListPropDefs, tabsRootPropDefs, tabsContentPropDefs } from './tabs.props.js';
 import { extractProps } from '../helpers/extract-props.js';
 import { marginPropDefs, type MarginProps } from '../props/margin.props.js';

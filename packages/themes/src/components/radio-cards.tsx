@@ -1,5 +1,5 @@
 import { merge, omit, type Element } from 'solid-js';
-import * as RadioGroupPrimitive from '@radix-solid/primitives/radio-group';
+import * as RadioGroupPrimitive from '@wsagency/radix2solid-primitives/radio-group';
 import { radioCardsRootPropDefs } from './radio-cards.props.js';
 import { Grid } from './grid.js';
 import { extractProps } from '../helpers/extract-props.js';

@@ -1,6 +1,6 @@
 import { merge, omit, Show, untrack, type Element } from 'solid-js';
 import type { ComponentProps } from '@solidjs/web';
-import { Slot, type SlotProps } from '@radix-solid/primitives/slot';
+import { Slot, type SlotProps } from '@wsagency/radix2solid-primitives/slot';
 import { extractProps } from '../helpers/extract-props.js';
 import type { ComposedProps, RemovedProps } from '../helpers/component-props.js';
 import { marginPropDefs, type MarginProps } from '../props/margin.props.js';

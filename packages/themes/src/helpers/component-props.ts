@@ -1,6 +1,6 @@
 import type { Element } from 'solid-js';
 import type { ComponentProps, ValidComponent } from '@solidjs/web';
-import type { SlotRender } from '@radix-solid/primitives/slot';
+import type { SlotRender } from '@wsagency/radix2solid-primitives/slot';
 
 export type ComponentPropsWithout<T extends ValidComponent, O extends string> = Omit<ComponentProps<T>, O>;
 export type ComponentPropsAs<C extends ValidComponent, T extends string> = Omit<Extract<ComponentProps<C>, { as?: T; asChild?: false }>, 'as' | 'asChild'>;

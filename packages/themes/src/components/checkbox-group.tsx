@@ -1,5 +1,5 @@
 import { merge, omit, Show, untrack, type Element } from 'solid-js';
-import { createContextScope, type Scope } from '@radix-solid/primitives/internal';
+import { createContextScope, type Scope } from '@wsagency/radix2solid-primitives/internal';
 import * as CheckboxGroupPrimitive from './checkbox-group.primitive.js';
 import { checkboxGroupRootPropDefs } from './checkbox-group.props.js';
 import { ThickCheckIcon } from './icons.js';

@@ -1,6 +1,6 @@
 import { merge, omit, type Element } from 'solid-js';
 import type { ComponentProps } from '@solidjs/web';
-import * as ProgressPrimitive from '@radix-solid/primitives/progress';
+import * as ProgressPrimitive from '@wsagency/radix2solid-primitives/progress';
 import { extractProps } from '../helpers/extract-props.js';
 import { mergeStyles } from '../helpers/merge-styles.js';
 import type { RemovedProps } from '../helpers/component-props.js';

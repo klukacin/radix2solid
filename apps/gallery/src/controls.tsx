@@ -1,5 +1,5 @@
 import { createSignal, For, Show, type Element } from 'solid-js';
-import { AccessibleIcon, Accordion, Announce, AspectRatio, Avatar, Checkbox, Collapsible, Dialog, Direction, Label, Progress, RadioGroup, Separator, Switch, Tabs, ToggleGroup, Toolbar } from '@radix-solid/primitives';
+import { AccessibleIcon, Accordion, Announce, AspectRatio, Avatar, Checkbox, Collapsible, Dialog, Direction, Label, Progress, RadioGroup, Separator, Switch, Tabs, ToggleGroup, Toolbar } from '@wsagency/radix2solid-primitives';
 
 const avatarSource = 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="teal"/></svg>');
 
