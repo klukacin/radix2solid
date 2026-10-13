@@ -212,6 +212,8 @@ test('exit presence survives child events and close-reopen; real animation end a
   const dialog = page.locator('[data-layer="dialog"]');
   await dialog.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
   const original = await dialog.elementHandle();
+  // Hold the real exit animation so close→reopen never races its 200ms duration on slow runners.
+  await dialog.evaluate(node => { node.style.animationPlayState = 'paused'; });
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveAttribute('data-state', 'closed');
   await expect(dialog).toBeAttached();
@@ -220,12 +222,14 @@ test('exit presence survives child events and close-reopen; real animation end a
   await trigger.click();
   await expect(dialog).toHaveAttribute('data-state', 'open');
   expect(await dialog.evaluate((node, previous) => node === previous, original)).toBe(true);
+  await dialog.evaluate(node => { node.style.removeProperty('animation-play-state'); });
   await dialog.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
   await expect(dialog).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveCount(0);
   await trigger.click();
   await dialog.evaluate(node => Promise.all(node.getAnimations().map(animation => animation.finished)));
+  await dialog.evaluate(node => { node.style.animationPlayState = 'paused'; });
   await page.keyboard.press('Escape');
   await expect(dialog).toHaveAttribute('data-state', 'closed');
   await dialog.evaluate(node => node.getAnimations().forEach(animation => animation.cancel()));

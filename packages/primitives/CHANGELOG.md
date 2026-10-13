@@ -4,6 +4,7 @@
 
 - Rename the package from `@radix-solid/primitives` to `@wsagency/radix2solid-primitives`; all namespace subpaths, including `/internal`, are unchanged under the new name.
 - Prepare public npm metadata for release under the `next` dist-tag; the Solid `2.0.0-rc.13` peers are unchanged.
+- Make the Presence close→reopen browser check hold the real exit animation paused instead of racing its 200ms duration; README now states that the node is preserved when reopened before exit completion. Test and documentation only; no runtime or API change.
 
 ## 0.0.0-local — local-only Solid 2 port
 
