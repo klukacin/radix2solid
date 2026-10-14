@@ -1,0 +1,42 @@
+{
+  "servers": {
+    "oxlint": {
+      "command": "oxlint",
+      "args": ["--lsp"],
+      "fileTypes": [
+        ".ts",
+        ".tsx",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs",
+        ".mts",
+        ".cts"
+      ],
+      "rootMarkers": ["oxlint.config.ts"],
+      "isLinter": true
+    },
+    "oxfmt": {
+      "command": "oxfmt",
+      "args": ["--lsp"],
+      "fileTypes": [
+        ".ts",
+        ".tsx",
+        ".js",
+        ".jsx",
+        ".mjs",
+        ".cjs",
+        ".mts",
+        ".cts",
+        ".json",
+        ".jsonc",
+        ".yaml",
+        ".yml",
+        ".css",
+        ".md"
+      ],
+      "rootMarkers": [".oxfmtrc.json"],
+      "isLinter": true
+    }
+  }
+}
