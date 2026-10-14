@@ -12,6 +12,13 @@ overrides:
   '@solidjs/compiler': 2.0.0-rc.15
   '@solidjs/babel-plugin': 2.0.0-rc.15
 
+peerDependencyRules:
+  allowedVersions:
+    '@typescript-eslint/project-service>typescript': '7'
+    '@typescript-eslint/tsconfig-utils>typescript': '7'
+    '@typescript-eslint/typescript-estree>typescript': '7'
+    '@typescript-eslint/utils>typescript': '7'
+
 # The global 24h minimumReleaseAge stays. Exact-version exceptions only: the explicitly requested
 # Solid 2.0.0-rc.15 tuple (published 2026-10-13T19:07-19:08Z) and its matching plugin next.50
 # (19:55Z). Keep them through this candidate; remove once aged and a frozen install proves the
