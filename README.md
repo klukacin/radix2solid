@@ -49,22 +49,27 @@ pnpm dev
 
 Gallery: `http://127.0.0.1:4147/` for SSR/hydration, `/csr` for fresh client rendering. `pnpm --filter @radix-solid/gallery preview` serves the built production fixture, including extracted CSS. `pnpm test:consumer` packs the real native libraries, installs them under ignored `.artifacts/consumer` with independent node_modules and exact overrides, and runs server/type/graph/CSR/hydration checks. No workspace source alias is used there.
 
-`pnpm lint` runs Oxlint with `eslint-plugin-solid` as a JS plugin, configured in `oxlint.config.ts` from the plugin's `v2-strict` preset (Solid 2.0 settings and rules). It is not part of `pnpm check` yet.
+`pnpm lint` runs Oxlint with `eslint-plugin-solid` as a JS plugin, configured in `oxlint.config.ts` from the plugin's `v2-strict` preset (Solid 2.0 settings and rules). Any error or warning fails it. `pnpm format` rewrites files with Oxfmt using `.oxfmtrc.json`, and `pnpm format:check` only reports unformatted files. Generated icon sources are excluded.
 
 ## Native distribution and release gates
 
 Exact current pins: `solid-js`, `@solidjs/web`, `@solidjs/signals`, `@solidjs/compiler` and `@solidjs/babel-plugin` **2.0.0-rc.15**; `@solidjs/vite-plugin` **3.0.0-next.50**; Vite **8.3.3**; TypeScript **7.0.2** for type checks and declaration emit, with `typescript5` (TypeScript **5.9.3**) for the consumer checks that use the compiler API; Playwright **1.64.0**; Radix Colors **3.0.0**. The runtime/compiler/Babel versions are pinned through workspace overrides. The workspace keeps pnpm's 24-hour `minimumReleaseAge` and excepts only these exact rc.15/next.50 releases until they age. This is an RC port, not a Solid-stable compatibility promise.
 
-`pnpm check` builds producers before consumers, compiles workspace types, runs the slider unit test, then independent packed and development browser scenarios in Chromium, Firefox and WebKit. `tests/consumer/coverage-manifest.json` maps public declarations/parts to retained family checks. Packed validation covers public declaration and runtime availability, CSS/plugin/SVG resolution and real selective-import bundle inspection. Family checks are not certification of every exported symbol or of actual assistive-technology speech.
+`pnpm check` first runs `pnpm lint` and `pnpm format:check`, then builds producers before consumers, compiles workspace types, runs the slider unit test, then independent packed and development browser scenarios in Chromium, Firefox and WebKit. `tests/consumer/coverage-manifest.json` maps public declarations/parts to retained family checks. Packed validation covers public declaration and runtime availability, CSS/plugin/SVG resolution and real selective-import bundle inspection. Family checks are not certification of every exported symbol or of actual assistive-technology speech.
 
 Use native `class`, `for`, lowercase DOM attributes and `@solidjs/web` JSX types. Controlled props remain parent-authoritative. `asChild` takes a single-target factory, not a React element or a snapshot prop spread; native portals render no RC.13 server content and settle on the client. See the package migration notes for event cancellation, refs, owned effects, portal propagation and removed React-only helpers. Themes CSS is imported explicitly:
 
 ```tsx
-import { Theme, Button } from '@wsagency/radix2solid-themes';
-import '@wsagency/radix2solid-themes/styles.css';
+import { Theme, Button } from "@wsagency/radix2solid-themes";
+
+import "@wsagency/radix2solid-themes/styles.css";
 
 export default function App() {
-  return <Theme><Button>Save</Button></Theme>;
+  return (
+    <Theme>
+      <Button>Save</Button>
+    </Theme>
+  );
 }
 ```
 
