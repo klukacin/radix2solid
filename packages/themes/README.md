@@ -87,6 +87,8 @@ Dialog, AlertDialog, Popover, HoverCard, Tooltip, Select, DropdownMenu and Conte
 </Dialog.Root>
 ```
 
+Dialog and AlertDialog use the primitives' Root-allocated title/description links. Custom part IDs require matching explicit Content `aria-labelledby`/`aria-describedby`; omit an optional Description with `aria-describedby={undefined}`. A nonblank Content `aria-label` replaces the automatic title link; explicit relationship keys, including undefined opt-outs, take precedence. Themes Popover has no Title/Description parts and defaults both relationships to undefined: provide a meaningful `aria-label` or explicit `aria-labelledby`, and an explicit `aria-describedby` when appropriate. Caller relationships override those wrapper defaults. If composing primitive Title/Description parts inside Themes Popover, give them custom IDs and matching explicit Content relationships. See the primitives README's rc.2 naming migration for conditional parts and ID changes.
+
 Import `Dialog` alongside `Theme` and `Button`; render the example inside Theme. Tooltip is a flat component with required `content` and a target factory child, not a React element.
 
 Themed overlay content recreates Theme on its physical portal root, including custom containers, submenus and live settings. Changing nested accent alone inherits resolved gray; explicitly request `grayColor="auto"` for a new match. Responsive submenu alignment reads actual CSS padding and follows viewport width and scaling; it does not numerically coerce responsive objects.

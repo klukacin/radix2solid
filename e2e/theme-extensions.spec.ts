@@ -47,6 +47,7 @@ test('percentage branches stay absolute and preserve application CSS and legacy 
 
 test('ThemePanel copies the portable identity and exact percentage without changing sibling roots', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.getByRole('button', { name: 'Mount extension ThemePanel', exact: true }).click();
   await page.locator('#extension-button').focus();
   await page.keyboard.press('t');
   await expect(page.locator('#extension-panel input[name="scaling"][value="115%"]')).toBeChecked();

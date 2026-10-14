@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js';
+import { createSignal, Show } from 'solid-js';
 import { Theme, ThemePanel, Button, Text, Flex, Checkbox, Radio, TextField, DropdownMenu, Dialog, Popover } from '@wsagency/radix2solid-themes';
 import './theme-extensions.css';
 
@@ -8,6 +8,7 @@ export function ThemeExtensions() {
   const [accent, setAccent] = createSignal<'custom' | 'jade'>('custom');
   const [loading, setLoading] = createSignal(true);
   const [container, setContainer] = createSignal<HTMLDivElement>();
+  const [showPanel, setShowPanel] = createSignal(false);
   return <section aria-label="Theme extensions" id="theme-extensions">
     <div ref={setContainer} id="extension-portals" />
     <Theme id="extension-main" accentColor={accent()} customAccent={identity()} appearance={appearance()} scaling="115%" style={{ 'min-height': '0' }}>
@@ -36,12 +37,13 @@ export function ThemeExtensions() {
         <Dialog.Content container={container()} id="extension-dialog"><Dialog.Title>Extension dialog title</Dialog.Title><Dialog.Description>Portable palette and scaling.</Dialog.Description>
           <Button id="extension-dialog-button">Dialog custom action</Button>
           <button onClick={() => setIdentity('brand-b')}>Replace open extension palette</button>
-          <Popover.Root><Popover.Trigger>{target => target(Button, { children: 'Extension nested popover' })}</Popover.Trigger><Popover.Content id="extension-popover"><Button>Nested custom action</Button><Text color="custom" id="extension-popover-tone">Portable palette text</Text><button onClick={() => setAppearance('dark')}>Darken open extension palette</button></Popover.Content></Popover.Root>
+          <Popover.Root><Popover.Trigger>{target => target(Button, { children: 'Extension nested popover' })}</Popover.Trigger><Popover.Content id="extension-popover" aria-label="Extension nested popover"><Button>Nested custom action</Button><Text color="custom" id="extension-popover-tone">Portable palette text</Text><button onClick={() => setAppearance('dark')}>Darken open extension palette</button></Popover.Content></Popover.Root>
           <Dialog.Close>{target => target(Button, { children: 'Close extension dialog' })}</Dialog.Close>
         </Dialog.Content>
       </Dialog.Root>
-      <div id="extension-panel"><ThemePanel defaultOpen={false} /></div>
-      <div class="radix-themes light" data-accent-color="jade" data-gray-color="sage" data-scaling="90%"><button class="rt-reset rt-BaseButton rt-Button rt-r-size-2 rt-variant-solid" id="extension-legacy">Legacy preset markup</button></div>
+      <button onClick={() => setShowPanel(true)}>Mount extension ThemePanel</button>
+      <div id="extension-panel"><Show when={showPanel()}><ThemePanel defaultOpen={false} /></Show></div>
+      <div class="radix-themes light" data-accent-color="jade" data-gray-color="sage" data-scaling="90%"><button class="rt-reset rt-BaseButton rt-Button rt-r-size-2 rt-variant-soft rt-high-contrast" id="extension-legacy">Legacy preset markup</button></div>
     </Theme>
     <Theme id="extension-independent" accentColor="custom" customAccent="calm" appearance="light" scaling="90%" style={{ 'min-height': '0' }}><Button>Independent custom action</Button></Theme>
   </section>;

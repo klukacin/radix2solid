@@ -86,9 +86,13 @@ test('modal themed portals preserve inherited and explicit auto gray, custom con
   await expect(dialog).toBeVisible();
   expect(await dialog.evaluate(node => !!node.closest('#themed-portal-container'))).toBe(true);
   await expect(dialog).toHaveAttribute('aria-describedby', /.+/);
+  await expect(dialog).toHaveAccessibleDescription('Themed modal description');
   await page.getByRole('button', { name: 'Open inherited themed popover', exact: true }).click();
   const popover = page.locator('#themed-inherited-popover');
   await expect(popover).toBeVisible();
+  await expect(popover).toHaveAccessibleName('Inherited themed popover');
+  await expect(popover).not.toHaveAttribute('aria-labelledby');
+  await expect(popover).not.toHaveAttribute('aria-describedby');
   await expect(popover).toHaveAttribute('data-accent-color', 'amber');
   await expect(popover).toHaveAttribute('data-gray-color', (await page.locator('#overlay-root-theme').getAttribute('data-gray-color'))!);
   await page.getByRole('textbox', { name: 'Themed nested input', exact: true }).fill('allowed nested focus');
@@ -100,6 +104,8 @@ test('modal themed portals preserve inherited and explicit auto gray, custom con
   await expect(page.getByRole('button', { name: 'Open inherited themed popover', exact: true })).toBeFocused();
   await page.getByRole('button', { name: 'Open explicit auto themed popover', exact: true }).click();
   await expect(page.locator('#themed-auto-popover')).toHaveAttribute('data-gray-color', 'sand');
+  await expect(page.locator('#themed-auto-popover')).toHaveAccessibleName('Explicit auto themed popover');
+  await expect(page.locator('#themed-auto-popover')).toHaveAccessibleDescription('Explicit popup description.');
   await expect(page.locator('#themed-auto-popover')).toHaveClass(/\blight\b/);
   expect(await page.locator('#themed-auto-popover').evaluate(node => getComputedStyle(node).getPropertyValue('--color-background').trim())).toBe('white');
   await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
@@ -112,6 +118,7 @@ test('modal themed portals preserve inherited and explicit auto gray, custom con
 test('themed alert cancellation, hover and tooltip retain native focus and accessible content', async ({ page }) => {
   await page.getByRole('button', { name: 'Open themed alert', exact: true }).click();
   await expect(page.getByRole('alertdialog', { name: 'Themed alert title', exact: true })).toBeVisible();
+  await expect(page.getByRole('alertdialog', { name: 'Themed alert title', exact: true })).toHaveAccessibleDescription('Themed alert description');
   await expect(page.getByRole('button', { name: 'Cancel themed alert', exact: true })).toBeFocused();
   await page.getByRole('button', { name: 'Cancel themed alert', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Open themed alert', exact: true })).toBeFocused();

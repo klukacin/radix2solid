@@ -1,6 +1,7 @@
-import { createContext, createRoot, createSignal, createUniqueId, onSettled, Show, useContext, type Element } from 'solid-js';
+import { createContext, createRoot, createSignal, createUniqueId, merge, onSettled, Show, useContext, type Element } from 'solid-js';
 import type { JSX } from '@solidjs/web';
 import { Dialog, Slot, Toggle } from '@wsagency/radix2solid-primitives';
+import * as RadixThemes from '@wsagency/radix2solid-themes';
 import { Layers, IndependentLayers } from './layers.js';
 import { Controls } from './controls.js';
 import { Menus } from './menus.js';
@@ -18,15 +19,19 @@ function CustomLink(props: JSX.AnchorHTMLAttributes<HTMLAnchorElement>) {
 
 const SlotDialogContext = createContext('outside');
 function SlotDialogTarget(props: JSX.HTMLAttributes<HTMLElement>): Element {
-  return <SlotDialogContext value="inside"><section data-slot-custom-dialog {...props} /></SlotDialogContext>;
+  return <SlotDialogContext value="inside"><SlotDialogHost {...props} /></SlotDialogContext>;
 }
-function SlotDialogChildren(): Element {
+function SlotDialogHost(props: JSX.HTMLAttributes<HTMLElement>): Element {
+  return <section data-slot-custom-dialog {...props}><div data-slot-intermediate>{props.children}</div></section>;
+}
+function SlotDialogChildren(props: { onToggleLabel: () => void }): Element {
   const context = useContext(SlotDialogContext);
   const id = createUniqueId();
   return <>
     <Dialog.Title>Hydrated custom slot title</Dialog.Title>
     <Dialog.Description>Hydrated custom slot description</Dialog.Description>
     <span id={id} data-slot-context>{context}</span>
+    <button onClick={props.onToggleLabel}>Toggle slot dialog label</button>
   </>;
 }
 
@@ -103,6 +108,7 @@ export function Composition(): Element {
   const [invalid, setInvalid] = createSignal<string[]>([]);
   const [refs, setRefs] = createSignal('awaiting');
   const [boundOrder, setBoundOrder] = createSignal<string[]>([]);
+  const [slotLabel, setSlotLabel] = createSignal<string | undefined>();
   let parentHost: HTMLAnchorElement | undefined;
   let childHost: HTMLAnchorElement | undefined;
   const id = createUniqueId();
@@ -203,10 +209,30 @@ export function Composition(): Element {
       })}</Dialog.Content>
     </Dialog.Root>
     <Dialog.Root defaultOpen modal={false}>
-      <Dialog.Content asChild onOpenAutoFocus={event => event.preventDefault()}>{target => target(SlotDialogTarget, {
-        get children() { return <SlotDialogChildren />; }
-      })}</Dialog.Content>
+      <Slot.Root {...merge(
+        () => slotLabel() ? { 'aria-label': slotLabel(), 'aria-describedby': undefined } : {},
+        { children: (content: Slot.SlotTarget) => content(Dialog.Content, {
+          asChild: true,
+          onOpenAutoFocus: event => event.preventDefault(),
+          children: target => target(SlotDialogTarget, {
+            get children() {
+              return <SlotDialogChildren onToggleLabel={() => setSlotLabel(previous => previous ? undefined : 'Explicit slot dialog')} />;
+            }
+          })
+        }) }
+      )} />
     </Dialog.Root>
+    <RadixThemes.Theme>
+      <RadixThemes.DropdownMenu.Root>
+        <RadixThemes.DropdownMenu.Trigger>{target => target(RadixThemes.IconButton, {
+          variant: 'ghost', radius: 'full', size: '2', 'aria-label': 'Slot avatar menu',
+          get children() { return <RadixThemes.Avatar size="2" radius="full" fallback="AH" />; }
+        })}</RadixThemes.DropdownMenu.Trigger>
+        <RadixThemes.DropdownMenu.Content>
+          <RadixThemes.DropdownMenu.Item>Slot avatar action</RadixThemes.DropdownMenu.Item>
+        </RadixThemes.DropdownMenu.Content>
+      </RadixThemes.DropdownMenu.Root>
+    </RadixThemes.Theme>
     <Layers />
     <Controls />
     <Menus />

@@ -17,7 +17,7 @@ function PopoverClose(props: PopoverCloseProps): Element { return <Native.Close 
 function PopoverAnchor(props: PopoverAnchorProps): Element { return <Native.Anchor {...props} />; }
 function PopoverContent(props: PopoverContentProps): Element {
   const parsed = extractProps(props, popoverContentPropDefs);
-  const forwarded = merge({ align: 'start' as const, sideOffset: 8, collisionPadding: 10 }, omit(parsed, 'container', 'forceMount', 'class'), {
+  const forwarded = merge({ align: 'start' as const, sideOffset: 8, collisionPadding: 10, 'aria-labelledby': undefined, 'aria-describedby': undefined }, omit(parsed, 'container', 'forceMount', 'class'), {
     get class() { return ['rt-PopperContent', 'rt-PopoverContent', parsed.class]; }
   }) as Native.PopoverContentProps;
   return <Native.Portal container={props.container} forceMount={props.forceMount}><Theme asChild>{target => target(Native.Content, forwarded)}</Theme></Native.Portal>;

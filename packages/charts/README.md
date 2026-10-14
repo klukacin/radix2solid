@@ -75,7 +75,7 @@ The server renders a chart in one pass, before axes and series have registered w
 1. Declare the axes before the series, the category axis first.
 2. Reserve the axis gutters in the chart's `margin`, and set the axes' own size to zero (`height={0}` on `XAxis`, `width={0}` on `YAxis`).
 3. Give the category axis `scale="band"`.
-4. Give the value axis an explicit `domain` and `allowDataOverflow`. The domain stays fixed: values outside it are clipped to the plot area instead of widening the axis.
+4. Give the value axis an explicit `domain` and `allowDataOverflow`. The domain stays fixed: values outside it are clipped to the plot area instead of widening the axis. Choosing a domain that covers your data, including stacked totals, is up to you.
 5. Set `interval={0}` on both axes. The browser measures label text and drops labels that would overlap; the server cannot, so without `interval={0}` the two disagree. Make sure your labels fit.
 
 ```tsx

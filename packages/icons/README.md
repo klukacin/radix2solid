@@ -12,6 +12,10 @@ import GitHubLogoIcon from '@wsagency/radix2solid-icons/GitHubLogoIcon';
 
 Each public deep icon entry supports both `import GitHubLogoIcon from '@wsagency/radix2solid-icons/GitHubLogoIcon'` and `import { GitHubLogoIcon } from '@wsagency/radix2solid-icons/GitHubLogoIcon'`, matching the original named/default contract. Deep imports are limited to the 332 icon entries and original SVG asset subpaths; title/type/index chunks are implementation details.
 
+**Bundle cost.** Import only the icons you render; root (`import { CheckIcon } from '@wsagency/radix2solid-icons'`) and deep (`@wsagency/radix2solid-icons/CheckIcon`) imports both tree-shake and cost the same. The first `CheckIcon` adds 22,379 B (7,966 B gzip) to an empty Solid app, most of it the Solid web runtime, and 1,310 B (631 B gzip) to an app that already renders a Themes `Button`. Measured with Vite 8.3.3 client builds, minified, zlib gzip level 9, on Node 22.12 with Solid 2.0.0-rc.13 and package release 0.1.0-rc.1; not re-measured for this candidate. Don't add Themes just to use icons.
+
+**Custom icons.** Use your own SVG or Solid component; there is no icon factory or extension package, and folder or brand icons stay in your app rather than in this repository.
+
 Defaults: 15×15, `viewBox="0 0 15 15"`, `currentColor` geometry. `size` sets both dimensions; explicit native `width`, `height`, `viewBox`, class/style and other outer props retain precedence. `color` sets the original currentColor fills; inherited CSS color works when it is omitted. Native SVG stroke props remain available.
 
 Icons without a nonempty `title`, `aria-label` or `aria-labelledby` are decorative (`aria-hidden="true"`). Named icons default to `role="img"`; explicit native role/ARIA props take precedence. `title` creates a real namespaced SVG title, including fresh client rendering and reactive changes. Geometry children are generated, not consumer JSX. Refs receive the native SVG element and the native cleanup notification. Mask IDs are per-instance and SSR/hydration stable.

@@ -109,7 +109,16 @@ import { Dialog, Popover } from '@wsagency/radix2solid-primitives';
 </Dialog.Root>;
 ```
 
-Dialog defaults to modal; Popover defaults to nonmodal. `open`, `defaultOpen` and `onOpenChange` use the same parent-authoritative/latest-callback contract as Toggle. Titles/descriptions register live ARIA links, including custom IDs and inline server rendering; removing a part removes its link. Explicit content labelledby/describedby IDs remain merged. `createDialogScope()`/`createPopoverScope()` isolate compound contexts through nested providers; pass the resulting scope props to every associated part.
+Dialog defaults to modal; Popover defaults to nonmodal. `open`, `defaultOpen` and `onOpenChange` use the same parent-authoritative/latest-callback contract as Toggle. `createDialogScope()`/`createPopoverScope()` isolate compound contexts through nested providers; pass the resulting scope props to every associated part.
+
+**rc.2 naming migration (Dialog, Popover and AlertDialog):** Root allocates the default title and description IDs. Content links those IDs directly, and Title/Description use them by default. Relationships no longer depend on registering or inspecting descendants, so native and custom factory targets render children at their normal owned position on both server and client.
+
+- Explicit Content `aria-labelledby` and `aria-describedby` replace their defaults; key presence matters, so `aria-describedby={undefined}` opts out when no Description is rendered. Explicit `aria-labelledby={undefined}` likewise removes the automatic title relationship.
+- A nonblank `aria-label` names Content without an automatic title link, unless an explicit `aria-labelledby` was supplied. An undefined, null, empty or whitespace-only label does not suppress the default title relationship.
+- Custom Title/Description `id` values remain native overrides. Supply the corresponding explicit Content relationship; IDs are not discovered or concatenated automatically. For example, pair `<Dialog.Content aria-labelledby="account-title" aria-describedby={undefined}>` with `<Dialog.Title id="account-title">Account</Dialog.Title>`.
+- When conditionally removing a part or changing its ID, update the Content relationship in the same state transition. Do not leave references to absent elements. An explicitly undefined part `id` removes that native ID; it does not restore the Root default.
+
+These rules also apply through Themes and `asChild`. Slot combines relationship lists only when the parent or target actually supplies that key; it does not manufacture an undefined opt-out or evaluate children to discover labels.
 
 Escape acts on the top layer; each close restores its own trigger. Modal focus/scroll ownership includes descendant portalled branches, custom containers and ShadowRoots, with a shared stack per ownerDocument across independent native render roots. Final-owner disposal restores previous body pointer/overflow/padding and ARIA state. Native portal propagation is not React logical bubbling: capture/bubble interception must use real DOM listeners. Primary outside interactions dismiss after click, not after a scrolling touch gesture; right/control clicks do not dismiss a modal.
 

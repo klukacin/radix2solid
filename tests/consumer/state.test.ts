@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { createRoot, createSignal, flush } from 'solid-js';
+import { children, createRenderEffect, createRoot, createSignal, flush, merge, untrack } from 'solid-js';
 import { createControllableState } from '@wsagency/radix2solid-primitives/internal';
+import { Slot } from '@wsagency/radix2solid-primitives';
 
 test('controlled requests never outrun the parent and use the latest callback', () => {
   const calls: string[] = [];
@@ -62,5 +63,40 @@ test('null is a controlled value, not an uncontrolled fallback', () => {
     assert.equal(value(), null);
     setValue('requested'); flush();
     assert.equal(value(), null);
+  } finally { dispose(); }
+});
+
+test('Slot preserves live absent, undefined and explicit ARIA relationships for component targets', () => {
+  const { output, setMode, dispose } = createRoot(dispose => {
+    const [mode, setMode] = createSignal<'absent' | 'undefined' | 'value'>('absent');
+    let inspect!: () => string;
+    const Target = (props: { 'aria-labelledby'?: string; 'aria-describedby'?: string }) => {
+      inspect = () => JSON.stringify({
+        hasLabel: 'aria-labelledby' in props,
+        hasDescription: 'aria-describedby' in props,
+        label: props['aria-labelledby'],
+        description: props['aria-describedby']
+      });
+      return 'Slot target';
+    };
+    const source = merge(() => mode() === 'absent' ? {} : {
+      'aria-labelledby': mode() === 'value' ? 'heading' : undefined,
+      'aria-describedby': mode() === 'value' ? 'description' : undefined
+    });
+    const rendered = children(() => Slot.Root(merge(source, {
+      children: (target: Slot.SlotTarget) => target(Target, {})
+    })));
+    assert.equal(rendered(), 'Slot target');
+    createRenderEffect(rendered, value => { assert.equal(value, 'Slot target'); });
+    return { output: () => untrack(inspect), setMode, dispose };
+  });
+  try {
+    assert.deepEqual(JSON.parse(String(output())), { hasLabel: false, hasDescription: false });
+    setMode('undefined'); flush();
+    assert.deepEqual(JSON.parse(String(output())), { hasLabel: true, hasDescription: true });
+    setMode('value'); flush();
+    assert.deepEqual(JSON.parse(String(output())), { hasLabel: true, hasDescription: true, label: 'heading', description: 'description' });
+    setMode('absent'); flush();
+    assert.deepEqual(JSON.parse(String(output())), { hasLabel: false, hasDescription: false });
   } finally { dispose(); }
 });

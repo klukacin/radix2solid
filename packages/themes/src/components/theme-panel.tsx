@@ -212,7 +212,7 @@ export function ThemePanelContent(props: ThemePanelContentProps): Element {
       <ThemePanelSection><Flex align="center" gap="2"><ThemePanelHeading id="panel-background-title">Panel background</ThemePanelHeading>
         <Popover.Root><Popover.Trigger>{target => target(IconButton, { size: '1', variant: 'ghost', color: 'gray', children:
           <AccessibleIcon label="Learn more about panel background options">{target => target(PanelInfoIcon, {})}</AccessibleIcon>
-        })}</Popover.Trigger><Popover.Content size="1" width="220px" maxWidth="90svw" minWidth="0" side="top" align="center">
+        })}</Popover.Trigger><Popover.Content size="1" width="220px" maxWidth="90svw" minWidth="0" side="top" align="center" aria-label="Panel background options">
           <Text as="p" size="1">Whether Card and Table panels are translucent, showing some of the background behind them.</Text>
         </Popover.Content></Popover.Root>
       </Flex><Grid columns={{ initial: '1', sm: '2' }} rows={{ initial: '2', sm: '1' }} gap="2" role="group" aria-labelledby="panel-background-title">

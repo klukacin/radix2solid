@@ -258,7 +258,7 @@ const alertProps: AlertDialogProps = { open: true, onOpenChange: value => { cons
 const alertTriggerProps: AlertDialogTriggerProps = { ref: node => { node.disabled; } };
 const alertPortalProps: AlertDialogPortalProps = { forceMount: true };
 const alertOverlayProps: AlertDialogOverlayProps = { forceMount: true };
-const alertContentProps: AlertDialogContentProps = { onOpenAutoFocus: event => event.preventDefault(), onEscapeKeyDown: event => { event.key; } };
+const alertContentProps: AlertDialogContentProps = { 'aria-labelledby': 'typed-alert-title', 'aria-describedby': 'typed-alert-description', onOpenAutoFocus: event => event.preventDefault(), onEscapeKeyDown: event => { event.key; } };
 const alertTitleProps: AlertDialogTitleProps = { id: 'typed-alert-title' };
 const alertDescriptionProps: AlertDialogDescriptionProps = { id: 'typed-alert-description' };
 const alertActionProps: AlertDialogActionProps = { onClick: event => { event.currentTarget.disabled; } };

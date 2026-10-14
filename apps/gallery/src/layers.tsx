@@ -63,12 +63,12 @@ export function Layers(): Element {
       <Dialog.Trigger>Open layered dialog</Dialog.Trigger>
       <Dialog.Portal>
         <Dialog.Overlay data-layer-overlay style={overlayStyle} onClick={event => event.stopPropagation()} />
-        <Dialog.Content data-layer="dialog" aria-describedby="layer-help" class={animated() ? 'layer-animated' : undefined} style={dialogStyle}
+        <Dialog.Content data-layer="dialog" aria-labelledby={labels() ? 'layer-title' : undefined} aria-label={labels() ? undefined : 'Layered dialog'} aria-describedby={labels() ? 'layer-help layer-description' : 'layer-help'} class={animated() ? 'layer-animated' : undefined} style={dialogStyle}
           onOpenAutoFocus={event => recordFocus('open', event, cancelOpen())}
           onCloseAutoFocus={event => recordFocus('close', event, cancelClose())}
           onEscapeKeyDown={event => { if (cancelEscape()) event.preventDefault(); }}
           onPointerDownOutside={event => { const target = event.target as HTMLElement; setOutsideTarget(target.id || (target.hasAttribute('data-layer-overlay') ? 'overlay' : 'unknown')); if (cancelOutside()) event.preventDefault(); }}>
-          <Show when={labels()}><Dialog.Title>Layered dialog</Dialog.Title><Dialog.Description>Modal ownership includes descendant portals.</Dialog.Description></Show>
+          <Show when={labels()}><Dialog.Title id="layer-title">Layered dialog</Dialog.Title><Dialog.Description id="layer-description">Modal ownership includes descendant portals.</Dialog.Description></Show>
           <Popover.Root>
             <Popover.Trigger>Open nested popover</Popover.Trigger>
             <Popover.Portal container={portalContainer()}>
@@ -140,10 +140,10 @@ function NonmodalLayer(): Element {
     </select></label>
     <Popover.Root>
       <Popover.Trigger>Open standalone popover</Popover.Trigger>
-      <Popover.Portal><Popover.Content style={popoverStyle} data-layer="standalone"><Popover.Title>Standalone popover</Popover.Title><input aria-label="Standalone field" />
+      <Popover.Portal><Popover.Content style={popoverStyle} data-layer="standalone" aria-describedby={undefined}><Popover.Title>Standalone popover</Popover.Title><input aria-label="Standalone field" />
         <Popover.Root>
           <Popover.Trigger>Open second standalone popover</Popover.Trigger>
-          <Popover.Portal><Popover.Content style={{ ...popoverStyle, 'z-index': 13 }}><Popover.Title>Second standalone popover</Popover.Title><input aria-label="Second standalone field" /></Popover.Content></Popover.Portal>
+          <Popover.Portal><Popover.Content style={{ ...popoverStyle, 'z-index': 13 }} aria-describedby={undefined}><Popover.Title>Second standalone popover</Popover.Title><input aria-label="Second standalone field" /></Popover.Content></Popover.Portal>
         </Popover.Root>
         <Popover.Close>Close standalone popover</Popover.Close>
       </Popover.Content></Popover.Portal>
@@ -163,14 +163,14 @@ export function IndependentLayers(): Element {
     return () => document.removeEventListener('gallery.open-independent', open);
   });
   return <Dialog.Root open={open()} onOpenChange={setOpen}><Dialog.Trigger>Open independent dialog</Dialog.Trigger>
-    <Dialog.Portal><Dialog.Overlay style={{ ...overlayStyle, 'z-index': 20 }} /><Dialog.Content data-layer="independent" style={{ ...dialogStyle, 'z-index': 21 }}><Dialog.Title>Independent dialog</Dialog.Title><Dialog.Close>Close independent dialog</Dialog.Close></Dialog.Content></Dialog.Portal>
+    <Dialog.Portal><Dialog.Overlay style={{ ...overlayStyle, 'z-index': 20 }} /><Dialog.Content data-layer="independent" style={{ ...dialogStyle, 'z-index': 21 }} aria-describedby={undefined}><Dialog.Title>Independent dialog</Dialog.Title><Dialog.Close>Close independent dialog</Dialog.Close></Dialog.Content></Dialog.Portal>
   </Dialog.Root>;
 }
 
 function DefaultOpenPortal(): Element {
   const [visible, setVisible] = createSignal(true);
   return <Dialog.Root defaultOpen onOpenChange={setVisible}><Dialog.Portal forceMount>
-    <Dialog.Content data-server-portal style={{ ...dialogStyle, display: visible() ? 'block' : 'none' }}>
+    <Dialog.Content data-server-portal style={{ ...dialogStyle, display: visible() ? 'block' : 'none' }} aria-describedby={undefined}>
       <Dialog.Title>Default-open client portal</Dialog.Title><Dialog.Close>Close default-open portal</Dialog.Close>
     </Dialog.Content>
   </Dialog.Portal></Dialog.Root>;
@@ -181,10 +181,10 @@ function ScopedLayers(): Element {
   return <section aria-label="Scoped layers"><Dialog.Root {...scope} modal={false}><Dialog.Root modal={false}>
     <Dialog.Trigger {...scope}>Open outer scoped dialog</Dialog.Trigger>
     <Dialog.Trigger>Open inner unscoped dialog</Dialog.Trigger>
-    <Dialog.Portal {...scope}><Dialog.Content {...scope} style={dialogStyle}>
+    <Dialog.Portal {...scope}><Dialog.Content {...scope} style={dialogStyle} aria-describedby={undefined}>
       <Dialog.Title {...scope}>Outer scoped dialog</Dialog.Title><Dialog.Close {...scope}>Close outer scoped dialog</Dialog.Close>
     </Dialog.Content></Dialog.Portal>
-    <Dialog.Portal><Dialog.Content style={dialogStyle}>
+    <Dialog.Portal><Dialog.Content style={dialogStyle} aria-describedby={undefined}>
       <Dialog.Title>Inner unscoped dialog</Dialog.Title><Dialog.Close>Close inner unscoped dialog</Dialog.Close>
     </Dialog.Content></Dialog.Portal>
   </Dialog.Root></Dialog.Root></section>;
@@ -201,7 +201,7 @@ function NestedRenderLayer(props: { closeParent: () => void }): Element {
     if (!active) return;
     dispose = render(() => runWithOwner(owner, () => <Popover.Root>
       <Popover.Trigger>Open nested render-root popover</Popover.Trigger>
-      <Popover.Portal><Popover.Content style={popoverStyle} sideOffset={8}>
+      <Popover.Portal><Popover.Content style={popoverStyle} sideOffset={8} aria-describedby={undefined}>
         <Popover.Title>Nested render-root popover</Popover.Title>
         <input aria-label="Nested root field" />
         <div data-nested-root-scroll style={{ height: '90px', overflow: 'auto' }}><div style={{ height: '400px' }}>Nested root scrolling</div></div>
