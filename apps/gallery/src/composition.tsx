@@ -197,7 +197,7 @@ export function Composition(): Element {
     <RefComposition />
     <Toggle.Root id={id} data-id-proof aria-describedby={`${id}-description`}>Identity root A</Toggle.Root>
     <p id={`${id}-description`}>Stable server description</p>
-    <Dialog.Root defaultOpen modal={false}>
+    <Dialog.Root open modal={false}>
       <Dialog.Content asChild onOpenAutoFocus={event => event.preventDefault()}>{target => target('section', {
         ...{ 'data-slot-dialog': '' },
         get children() {
@@ -208,7 +208,7 @@ export function Composition(): Element {
         }
       })}</Dialog.Content>
     </Dialog.Root>
-    <Dialog.Root defaultOpen modal={false}>
+    <Dialog.Root open modal={false}>
       <Slot.Root {...merge(
         () => slotLabel() ? { 'aria-label': slotLabel(), 'aria-describedby': undefined } : {},
         { children: (content: Slot.SlotTarget) => content(Dialog.Content, {

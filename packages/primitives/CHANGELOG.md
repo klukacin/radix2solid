@@ -5,6 +5,7 @@
 - Require exactly `solid-js` and `@solidjs/web` `2.0.0-rc.15` as peers (was `2.0.0-rc.13`). The repository builds with `@solidjs/vite-plugin` `3.0.0-next.50`; Solid rc.15 requires Node `>=22.12.0`.
 - Remove the private server-only workaround that rewrote `defaultValue`/`defaultChecked` on `Slot` and `Primitive` input hosts. `@solidjs/web` rc.15 renders them as `value`/`checked` during SSR itself. No public API changes.
 - Breaking naming migration: Dialog, Popover and AlertDialog Content link Root-allocated title/description IDs without descendant registration. Explicit Content ARIA relationships replace defaults, including explicit-undefined opt-outs; a nonblank `aria-label` suppresses only the automatic title link. Custom part IDs and conditionally absent parts require matching explicit Content relationships. Remove server child pre-reading from Slot and overlays, preserving custom target providers and native child ownership; Slot retains absent versus explicitly undefined relationship keys.
+- Reset Menu's roving entry target before default open autofocus, so keyboard reopening during a retained exit animation focuses the first enabled item rather than the previous selection. Preserve cancellable autofocus, pointer entry and submenu behavior.
 - Declarations are emitted by TypeScript 7.0.2; the packed consumer checks use TypeScript 5.9.3.
 
 ## 0.1.0-rc.1 — prepared candidate, not yet published
