@@ -1,6 +1,6 @@
 # Next suite: written specifications
 
-Status: **Proposed written specifications awaiting user review.** The user approved the presented scope and isolation, not these completed written contracts or an implementation plan. No feature here is claimed implemented, tested, published or deployable. Approval of these documents permits a separate implementation-plan stage; implementation waits for plan review and execution-method approval.
+Status: **Scope and written specifications accepted by explicit user authorization on 2026-10-14.** Prepare and internally review the implementation plan, then implement and deploy without another human workflow-review pause. Technical contracts remain binding; this authorization is not evidence that any feature is implemented, tested, published or deployed. Normal repository push/merge and website deployment are authorized; npm publication remains maintainer/DevOps-controlled through existing CI approvals, with no token creation or publisher bypass.
 
 ## Baseline and isolation
 
@@ -56,4 +56,4 @@ The suite is not a promise of complete Recharts 3.10.1 parity, an automatic PR i
 
 Each document is reviewed for placeholders, contradictory defaults, ambiguous state transitions and accidental scope expansion. The chosen defaults are concrete contracts for user review, not assertions that existing code already fulfills them. Source references are static evidence only. No implementation pseudocode, task schedule or implementation plan is part of this set.
 
-Next gate: user reviews these six written documents. If accepted, prepare a separate bounded implementation plan and obtain its approval before product code, dependencies, build/test execution or consumer changes. The docs-only commit itself is separately controlled by the parent review; it does not advance the implementation gate.
+Next gate: Main internally reviews the separate implementation plan before product edits. The user's explicit plan-then-implement-and-deploy instruction supersedes the earlier human approval pauses, not the technical requirements or release safeguards. Planning remains docs-only; execution and verification begin on Main dispatch in the existing isolated clone.

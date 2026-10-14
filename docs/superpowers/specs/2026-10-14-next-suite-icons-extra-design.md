@@ -1,6 +1,6 @@
 # Native extra icons package
 
-Status: **Proposed written specification awaiting user review.** Scope approval permits this document, not implementation. Nothing described here is implemented, drawn or published.
+Status: **Scope and written specification accepted by explicit user authorization on 2026-10-14.** Plan and internal review precede implementation and deployment, without another human workflow-review pause; the suite index records the maintainer-controlled first-publication boundary. Nothing described here is claimed implemented, drawn or published.
 
 ## Goal
 

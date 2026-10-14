@@ -1,6 +1,6 @@
 # Native Tree
 
-Status: **Proposed written specification awaiting user review.** This is an accessibility and state contract, not implemented behavior, test evidence or an implementation plan.
+Status: **Scope and written specification accepted by explicit user authorization on 2026-10-14.** Plan and internal review precede implementation and deployment, without another human workflow-review pause; the suite index records the publication boundary. This remains an accessibility and state contract, not implementation or test evidence.
 
 ## Purpose and boundary
 

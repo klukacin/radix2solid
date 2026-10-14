@@ -1,6 +1,6 @@
 # Charts upstream update
 
-Status: **Proposed written specification awaiting user review.** Scope approval permits this document, not implementation. Nothing described here is ported, tested or published.
+Status: **Scope and written specification accepted by explicit user authorization on 2026-10-14.** Plan and internal review precede implementation and deployment, without another human workflow-review pause; the suite index records the publication boundary. Nothing described here is claimed ported, tested or published.
 
 Evidence was read from GitHub, the npm registry and repository sources on 2026-10-14:
 - the Recharts `v3.9.2...v3.10.1` comparison: 45 commits, with per-commit file lists for the source-changing commits;

@@ -1,6 +1,6 @@
 # Native Combobox and Command
 
-Status: **Proposed written specification awaiting user review.** Scope approval permits this document, not implementation. No behavior or acceptance check below is claimed implemented or tested.
+Status: **Scope and written specification accepted by explicit user authorization on 2026-10-14.** Plan and internal review precede implementation and deployment, without another human workflow-review pause; the suite index records the publication boundary. No behavior or acceptance check below is claimed implemented or tested.
 
 ## Purpose and boundaries
 

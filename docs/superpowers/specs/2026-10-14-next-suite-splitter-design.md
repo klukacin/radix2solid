@@ -1,6 +1,6 @@
 # Native two-pane Splitter
 
-Status: **Proposed written specification awaiting user review.** No implementation, runtime behavior or passing checks are claimed. This is not an implementation plan.
+Status: **Scope and written specification accepted by explicit user authorization on 2026-10-14.** Plan and internal review precede implementation and deployment, without another human workflow-review pause; the suite index records the publication boundary. No implementation, runtime behavior or passing checks are claimed.
 
 ## Purpose and boundaries
 
