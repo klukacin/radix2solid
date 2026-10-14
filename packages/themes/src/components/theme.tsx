@@ -4,9 +4,12 @@ import { Primitive, type PrimitiveProps } from '@wsagency/radix2solid-primitives
 import { DirectionProvider } from '@wsagency/radix2solid-primitives/direction';
 import { TooltipProvider } from '@wsagency/radix2solid-primitives/tooltip';
 import { getMatchingGrayColor } from '../helpers/get-matching-gray-color.js';
+import { getScalingFactor } from '../helpers/get-scaling-factor.js';
+import { mergeStyles } from '../helpers/merge-styles.js';
 import type { ComposedProps } from '../helpers/component-props.js';
 import { themePropDefs } from './theme.props.js';
 import type { ThemeOwnProps } from './theme.props.js';
+export type { ThemeScaling } from './theme.props.js';
 
 type ThemeSettings = Required<Pick<ThemeOwnProps, 'appearance' | 'accentColor' | 'grayColor' | 'panelBackground' | 'radius' | 'scaling'>>;
 interface ThemeChangeHandlers {
@@ -19,6 +22,7 @@ interface ThemeChangeHandlers {
 }
 export interface ThemeContextValue extends ThemeSettings, ThemeChangeHandlers {
   resolvedGrayColor: ThemeSettings['grayColor'];
+  customAccent?: string;
 }
 export type ThemeProps = ComposedProps<Omit<ComponentProps<'div'>, 'dir' | 'color'> & ThemeOwnProps>;
 export const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -65,6 +69,16 @@ function ThemeImpl(props: ThemeImplProps): Element {
   const parent = useContext(ThemeContext);
   const context: ThemeContextValue = {
     get appearance() { return props.appearance ?? parent?.appearance ?? themePropDefs.appearance.default; },
+    get customAccent() {
+      const identity = props.customAccent ?? parent?.customAccent;
+      if (identity !== undefined && !/^[A-Za-z][A-Za-z0-9_-]*$/.test(identity)) {
+        throw new Error('Invalid Theme customAccent: expected a CSS-safe palette identifier.');
+      }
+      if (context.accentColor === 'custom' && identity === undefined) {
+        throw new Error('Theme accentColor="custom" requires a customAccent palette identifier.');
+      }
+      return identity;
+    },
     get accentColor() { return props.accentColor ?? parent?.accentColor ?? themePropDefs.accentColor.default; },
     get grayColor() { return props.grayColor ?? parent?.resolvedGrayColor ?? themePropDefs.grayColor.default; },
     get resolvedGrayColor() { return context.grayColor === 'auto' ? getMatchingGrayColor(context.accentColor) : context.grayColor; },
@@ -81,12 +95,14 @@ function ThemeImpl(props: ThemeImplProps): Element {
   const forwarded = merge({
     as: 'div' as const,
     get ['data-is-root-theme']() { return props.isRoot ? 'true' : 'false'; },
+    get ['data-custom-accent']() { return context.customAccent; },
     get ['data-accent-color']() { return context.accentColor; }, get ['data-gray-color']() { return context.resolvedGrayColor; },
     get ['data-has-background']() { return (props.hasBackground ?? (props.isRoot || props.appearance === 'light' || props.appearance === 'dark')) ? 'true' : 'false'; },
     get ['data-panel-background']() { return context.panelBackground; }, get ['data-radius']() { return context.radius; },
     get ['data-scaling']() { return context.scaling; }
-  }, omit(props, 'isRoot', 'hasBackground', 'appearance', 'accentColor', 'grayColor', 'panelBackground', 'radius', 'scaling',
+  }, omit(props, 'isRoot', 'hasBackground', 'appearance', 'accentColor', 'customAccent', 'grayColor', 'panelBackground', 'radius', 'scaling',
     'onAppearanceChange', 'onAccentColorChange', 'onGrayColorChange', 'onPanelBackgroundChange', 'onRadiusChange', 'onScalingChange'), {
+    get style() { return mergeStyles({ '--radix-scaling': getScalingFactor(context.scaling) }, props.style); },
     get class() { return ['radix-themes', { light: context.appearance === 'light', dark: context.appearance === 'dark' }, props.class]; }
   });
   return <ThemeContext value={context}><Primitive {...forwarded as PrimitiveProps<'div'>} /></ThemeContext>;

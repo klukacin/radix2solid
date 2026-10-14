@@ -1,0 +1,274 @@
+// Ported from recharts 3.8.1 src/component/Legend.tsx (commit 7a23854).
+//
+// MINIMAL PORT — renders the legend into the wrapper via a Portal, dispatches the
+// legend settings + measured size into the store, and positions the wrapper div.
+// Deferred (documented): custom `content` element cloning (a function content is
+// supported), onBBoxUpdate, React.memo. Solid deviations: createPortal →
+// `<Portal mount>`; useLayoutEffect dispatches → createEffect; hooks return
+// accessors; `className`→`class`, React CSSProperties → JSX.CSSProperties.
+import { createEffect, createMemo, merge, Show } from "solid-js";
+import { JSX, Portal } from "@solidjs/web";
+import {
+  ContentType,
+  DefaultLegendContent,
+  HorizontalAlignmentType,
+  LegendItemSorter,
+  LegendPayload,
+  Props as DefaultLegendContentProps,
+  VerticalAlignmentType,
+} from "./DefaultLegendContent";
+import { LayoutType, Margin } from "../util/types";
+import { getUniqPayload, UniqueOption } from "../util/payload/getUniqPayload";
+import { useLegendPayload } from "../context/legendPayloadContext";
+import { useLegendPortal } from "../context/legendPortalContext";
+import { ElementOffset, useElementOffset } from "../util/useElementOffset";
+import { useChartHeight, useChartWidth, useMargin } from "../context/chartLayoutContext";
+import { useAppStore } from "../state/hooks";
+import { createChartEffect } from "../state/createChartState";
+
+function defaultUniqBy(entry: LegendPayload): string | undefined {
+  return entry.value;
+}
+
+/** number → "<n>px", string → as-is, undefined → "auto". */
+function toCssLength(value: number | string | undefined): string {
+  if (value == null) {
+    return "auto";
+  }
+  return typeof value === "number" ? `${value}px` : value;
+}
+
+export type LegendProps = Omit<DefaultLegendContentProps, "payload"> & {
+  content?: ContentType;
+  wrapperStyle?: JSX.CSSProperties;
+  width?: number | string;
+  height?: number | string;
+  payloadUniqBy?: UniqueOption<LegendPayload>;
+  portal?: HTMLElement | null;
+  itemSorter?: LegendItemSorter | null;
+};
+
+export const legendDefaultProps = {
+  align: "center",
+  iconSize: 14,
+  inactiveColor: "#ccc",
+  itemSorter: "value",
+  labelStyle: {},
+  layout: "horizontal",
+  verticalAlign: "bottom",
+} as const satisfies Partial<LegendProps>;
+
+// Props passed to a function-form `content`. Mirrors recharts' ContentProps: the
+// legend props plus chart-derived margin/dimensions and the final (sorted) payload.
+type LegendContentProps = LegendProps & {
+  margin?: Margin;
+  chartWidth?: number;
+  chartHeight?: number;
+  payload?: ReadonlyArray<LegendPayload>;
+};
+
+// Port of recharts' getWidthOrHeight: a horizontal legend takes an explicit width
+// or falls back to the available chart width; a vertical legend takes an explicit height.
+function getWidthOrHeight(
+  layout: LayoutType | undefined,
+  height: number | string | undefined,
+  width: number | string | undefined,
+  maxWidth: number,
+): { height?: number | string; width?: number | string } | null {
+  if (layout === "vertical" && height != null) {
+    return { height };
+  }
+  if (layout === "horizontal") {
+    return { width: width || maxWidth };
+  }
+  return null;
+}
+
+function getDefaultPosition(
+  style: JSX.CSSProperties | undefined,
+  props: {
+    layout: LayoutType;
+    align: HorizontalAlignmentType;
+    verticalAlign: VerticalAlignmentType;
+  },
+  margin: Margin | undefined,
+  chartWidth: number,
+  chartHeight: number,
+  box: ElementOffset,
+): JSX.CSSProperties {
+  const { layout, align, verticalAlign } = props;
+  let hPos: JSX.CSSProperties = {};
+  let vPos: JSX.CSSProperties = {};
+
+  // When the user's wrapperStyle already pins a horizontal/vertical edge, the
+  // computed position for that axis is skipped (recharts parity).
+  if (style == null || (style.left == null && style.right == null)) {
+    if (align === "center" && layout === "vertical") {
+      hPos = { left: `${((chartWidth || 0) - box.width) / 2}px` };
+    } else {
+      hPos =
+        align === "right"
+          ? { right: `${margin?.right || 0}px` }
+          : { left: `${margin?.left || 0}px` };
+    }
+  }
+
+  if (style == null || (style.top == null && style.bottom == null)) {
+    if (verticalAlign === "middle") {
+      vPos = { top: `${((chartHeight || 0) - box.height) / 2}px` };
+    } else {
+      vPos =
+        verticalAlign === "bottom"
+          ? { bottom: `${margin?.bottom || 0}px` }
+          : { top: `${margin?.top || 0}px` };
+    }
+  }
+
+  return { ...hPos, ...vPos };
+}
+
+export const Legend = (props: LegendProps): JSX.Element => {
+  const merged = merge(legendDefaultProps, props);
+  const store = useAppStore();
+  const contextPayload = useLegendPayload();
+  const legendPortalFromContext = useLegendPortal();
+  const margin = useMargin();
+  const chartWidth = useChartWidth();
+  const chartHeight = useChartHeight();
+  const [lastBoundingBox, updateBoundingBox] = useElementOffset();
+
+  // Push the legend settings into the store (drives the offset's legend space).
+  createChartEffect(
+    () => ({
+      align: merged.align,
+      layout: merged.layout,
+      verticalAlign: merged.verticalAlign,
+      itemSorter: merged.itemSorter,
+    }),
+    (settings) => {
+      store?.actions.legend.setLegendSettings(settings);
+    },
+  );
+
+  // Report the measured size; reset to 0 on cleanup. (When a portal is supplied
+  // from props, nothing needs the size, matching recharts.)
+  createEffect(
+    () => ({ width: lastBoundingBox().width, height: lastBoundingBox().height }),
+    (size) => {
+      if (props.portal == null) {
+        store?.actions.legend.setLegendSize(size);
+      }
+    },
+  );
+
+  const portal = (): HTMLElement | null => props.portal ?? legendPortalFromContext();
+
+  const finalPayload = createMemo<ReadonlyArray<LegendPayload>>(() =>
+    getUniqPayload(contextPayload() ?? [], merged.payloadUniqBy, defaultUniqBy),
+  );
+
+  // Props handed to a function-form `content`. Built as a plain object (spreading
+  // the Solid `merge()` proxy leaks a MERGE_SOURCE symbol and doesn't materialize
+  // keys); reads finalPayload()/chart dims so the enclosing reactive insert re-runs
+  // when the payload populates.
+  const buildContentProps = (): LegendContentProps => {
+    const w = chartWidth() ?? 0;
+    const h = chartHeight() ?? 0;
+    const m = margin();
+    const maxWidth = w - (m?.left ?? 0) - (m?.right ?? 0);
+    const widthOrHeight = getWidthOrHeight(merged.layout, merged.height, merged.width, maxWidth);
+    return {
+      align: merged.align,
+      iconSize: merged.iconSize,
+      iconType: merged.iconType,
+      inactiveColor: merged.inactiveColor,
+      itemSorter: merged.itemSorter,
+      labelStyle: merged.labelStyle,
+      layout: merged.layout,
+      verticalAlign: merged.verticalAlign,
+      formatter: merged.formatter,
+      content: merged.content,
+      onClick: merged.onClick,
+      onMouseEnter: merged.onMouseEnter,
+      onMouseLeave: merged.onMouseLeave,
+      wrapperStyle: merged.wrapperStyle,
+      width: merged.width,
+      height: merged.height,
+      payloadUniqBy: merged.payloadUniqBy,
+      portal: merged.portal,
+      ...widthOrHeight,
+      margin: m,
+      chartWidth: w,
+      chartHeight: h,
+      payload: finalPayload(),
+    };
+  };
+
+  const outerStyle = (): JSX.CSSProperties => {
+    if (props.portal != null) {
+      return merged.wrapperStyle ?? {};
+    }
+    const w = chartWidth();
+    const h = chartHeight();
+    const m = margin();
+    const maxWidth = (w ?? 0) - (m?.left ?? 0) - (m?.right ?? 0);
+    const widthOrHeight = getWidthOrHeight(merged.layout, merged.height, merged.width, maxWidth);
+    return {
+      position: "absolute",
+      // Matches recharts: a horizontal legend without an explicit width fills the
+      // available chart width (maxWidth) via getWidthOrHeight; otherwise "auto".
+      width: toCssLength(widthOrHeight?.width ?? merged.width),
+      height: toCssLength(widthOrHeight?.height ?? merged.height),
+      ...getDefaultPosition(
+        merged.wrapperStyle,
+        { layout: merged.layout, align: merged.align, verticalAlign: merged.verticalAlign },
+        m,
+        w ?? 0,
+        h ?? 0,
+        lastBoundingBox(),
+      ),
+      ...merged.wrapperStyle,
+    };
+  };
+
+  return (
+    <Show
+      when={
+        portal() != null &&
+        contextPayload() != null &&
+        chartWidth() != null &&
+        chartHeight() != null
+          ? portal()
+          : null
+      }
+    >
+      {(mount) => (
+        <Portal mount={mount()}>
+          <div class="recharts-legend-wrapper" style={outerStyle()} ref={updateBoundingBox}>
+            <Show
+              when={typeof merged.content === "function" ? merged.content : null}
+              fallback={
+                <DefaultLegendContent
+                  payload={finalPayload()}
+                  iconSize={merged.iconSize}
+                  iconType={merged.iconType}
+                  layout={merged.layout}
+                  align={merged.align}
+                  verticalAlign={merged.verticalAlign}
+                  inactiveColor={merged.inactiveColor}
+                  formatter={merged.formatter}
+                  labelStyle={merged.labelStyle}
+                  onClick={merged.onClick}
+                  onMouseEnter={merged.onMouseEnter}
+                  onMouseLeave={merged.onMouseLeave}
+                />
+              }
+            >
+              {(contentFn) => <>{contentFn()(buildContentProps())}</>}
+            </Show>
+          </div>
+        </Portal>
+      )}
+    </Show>
+  );
+};

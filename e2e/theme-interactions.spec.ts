@@ -86,9 +86,13 @@ test('modal themed portals preserve inherited and explicit auto gray, custom con
   await expect(dialog).toBeVisible();
   expect(await dialog.evaluate(node => !!node.closest('#themed-portal-container'))).toBe(true);
   await expect(dialog).toHaveAttribute('aria-describedby', /.+/);
+  await expect(dialog).toHaveAccessibleDescription('Themed modal description');
   await page.getByRole('button', { name: 'Open inherited themed popover', exact: true }).click();
   const popover = page.locator('#themed-inherited-popover');
   await expect(popover).toBeVisible();
+  await expect(popover).toHaveAccessibleName('Inherited themed popover');
+  await expect(popover).not.toHaveAttribute('aria-labelledby');
+  await expect(popover).not.toHaveAttribute('aria-describedby');
   await expect(popover).toHaveAttribute('data-accent-color', 'amber');
   await expect(popover).toHaveAttribute('data-gray-color', (await page.locator('#overlay-root-theme').getAttribute('data-gray-color'))!);
   await page.getByRole('textbox', { name: 'Themed nested input', exact: true }).fill('allowed nested focus');
@@ -100,6 +104,8 @@ test('modal themed portals preserve inherited and explicit auto gray, custom con
   await expect(page.getByRole('button', { name: 'Open inherited themed popover', exact: true })).toBeFocused();
   await page.getByRole('button', { name: 'Open explicit auto themed popover', exact: true }).click();
   await expect(page.locator('#themed-auto-popover')).toHaveAttribute('data-gray-color', 'sand');
+  await expect(page.locator('#themed-auto-popover')).toHaveAccessibleName('Explicit auto themed popover');
+  await expect(page.locator('#themed-auto-popover')).toHaveAccessibleDescription('Explicit popup description.');
   await expect(page.locator('#themed-auto-popover')).toHaveClass(/\blight\b/);
   expect(await page.locator('#themed-auto-popover').evaluate(node => getComputedStyle(node).getPropertyValue('--color-background').trim())).toBe('white');
   await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
@@ -112,6 +118,7 @@ test('modal themed portals preserve inherited and explicit auto gray, custom con
 test('themed alert cancellation, hover and tooltip retain native focus and accessible content', async ({ page }) => {
   await page.getByRole('button', { name: 'Open themed alert', exact: true }).click();
   await expect(page.getByRole('alertdialog', { name: 'Themed alert title', exact: true })).toBeVisible();
+  await expect(page.getByRole('alertdialog', { name: 'Themed alert title', exact: true })).toHaveAccessibleDescription('Themed alert description');
   await expect(page.getByRole('button', { name: 'Cancel themed alert', exact: true })).toBeFocused();
   await page.getByRole('button', { name: 'Cancel themed alert', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Open themed alert', exact: true })).toBeFocused();
@@ -119,6 +126,31 @@ test('themed alert cancellation, hover and tooltip retain native focus and acces
   await expect(page.locator('#themed-hover-content')).toBeVisible();
   await page.getByRole('button', { name: 'Themed tooltip target', exact: true }).focus();
   await expect(page.getByRole('tooltip', { name: 'Themed tooltip details', exact: true })).toBeVisible();
+});
+
+test('themed menu keyboard reopen resets entry focus while the exit animation retains its host', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  const trigger = page.getByRole('button', { name: 'Open themed dropdown', exact: true });
+  const menu = page.locator('#themed-menu-content');
+  const first = menu.getByRole('menuitem', { name: 'Themed edit ⌘E', exact: true });
+  await trigger.focus();
+  await page.keyboard.press('Enter');
+  await expect(first).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await expect(menu.getByRole('menuitemcheckbox', { name: 'Themed checked ⌘K', exact: true })).toBeFocused();
+  const original = await menu.elementHandle();
+  // Hold the real exit animation so reopening cannot race its duration on slow runners.
+  await menu.evaluate(node => { node.style.animationPlayState = 'paused'; });
+  await page.keyboard.press('Escape');
+  await expect(menu).toHaveAttribute('data-state', 'closed');
+  await expect(menu).toBeAttached();
+  await expect(menu).not.toHaveCSS('animation-name', 'none');
+  await expect(trigger).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(menu).toHaveAttribute('data-state', 'open');
+  expect(await menu.evaluate((node, previous) => node === previous, original)).toBe(true);
+  await expect(first).toBeFocused();
+  await menu.evaluate(node => { node.style.removeProperty('animation-play-state'); });
 });
 
 test('themed menus propagate content settings into portalled submenus and Select submits the selected native value', async ({ page }) => {

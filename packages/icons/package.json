@@ -1,6 +1,6 @@
 {
   "name": "@wsagency/radix2solid-icons",
-  "version": "0.1.0-rc.1",
+  "version": "0.1.0-rc.2",
   "private": false,
   "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/", "tag": "next" },
   "type": "module",
@@ -19,5 +19,5 @@
     "generate": "node scripts/generate.ts",
     "build": "pnpm generate && vite build && vite build --ssr && tsc -p tsconfig.json"
   },
-  "peerDependencies": { "solid-js": "2.0.0-rc.13", "@solidjs/web": "2.0.0-rc.13" }
+  "peerDependencies": { "solid-js": "2.0.0-rc.15", "@solidjs/web": "2.0.0-rc.15" }
 }

@@ -1,6 +1,7 @@
 import { AccessibleIcon, Accordion, AlertDialog, Announce, AspectRatio, Avatar, Arrow, Checkbox, Collapsible, ContextMenu, Dialog, Direction, DropdownMenu, HoverCard, Label, Menubar, Popover, Portal, Progress, RadioGroup, Separator, Slot, Switch, Tabs, Toggle, ToggleGroup, Toolbar, Tooltip, VisuallyHidden } from '@wsagency/radix2solid-primitives';
 import type { JSX } from '@solidjs/web';
 import { CheckIcon, type IconProps } from '@wsagency/radix2solid-icons';
+import * as Charts from '@wsagency/radix2solid-charts';
 import GitHubLogoIcon, { GitHubLogoIcon as NamedGitHubLogoIcon } from '@wsagency/radix2solid-icons/GitHubLogoIcon';
 import { Root as DialogRoot, Content as DialogContent, createDialogScope } from '@wsagency/radix2solid-primitives/dialog';
 import { createPopoverScope } from '@wsagency/radix2solid-primitives/popover';
@@ -257,7 +258,7 @@ const alertProps: AlertDialogProps = { open: true, onOpenChange: value => { cons
 const alertTriggerProps: AlertDialogTriggerProps = { ref: node => { node.disabled; } };
 const alertPortalProps: AlertDialogPortalProps = { forceMount: true };
 const alertOverlayProps: AlertDialogOverlayProps = { forceMount: true };
-const alertContentProps: AlertDialogContentProps = { onOpenAutoFocus: event => event.preventDefault(), onEscapeKeyDown: event => { event.key; } };
+const alertContentProps: AlertDialogContentProps = { 'aria-labelledby': 'typed-alert-title', 'aria-describedby': 'typed-alert-description', onOpenAutoFocus: event => event.preventDefault(), onEscapeKeyDown: event => { event.key; } };
 const alertTitleProps: AlertDialogTitleProps = { id: 'typed-alert-title' };
 const alertDescriptionProps: AlertDialogDescriptionProps = { id: 'typed-alert-description' };
 const alertActionProps: AlertDialogActionProps = { onClick: event => { event.currentTarget.disabled; } };
@@ -599,8 +600,9 @@ export const nativeThemes = <Themes.Theme accentColor="indigo" appearance="light
   <Themes.Avatar fallback="TS" alt="Account" ref={node => { const image: HTMLImageElement | undefined = node; image?.naturalWidth; }} />
   <Themes.ScrollArea dir="rtl" ref={node => { const viewport: HTMLDivElement | undefined = node; viewport?.scrollTop; }}>Scroll content</Themes.ScrollArea>
   <Themes.Skeleton asChild>{target => target('button', { children: 'Loading target' })}</Themes.Skeleton>
-  {/* @ts-expect-error Theme scaling preserves upstream's five supported values. */}
-  <Themes.Theme scaling="125%" />
+  <Themes.Theme scaling="115%" customAccent="calm" accentColor="custom"><Themes.Button color="custom">Custom</Themes.Button><Themes.Theme scaling="87.5%" /></Themes.Theme>
+  {/* @ts-expect-error Theme scaling requires an explicit percentage unit. */}
+  <Themes.Theme scaling="1.25" />
   {/* @ts-expect-error Required Avatar fallback cannot disappear behind optional metadata. */}
   <Themes.Avatar />
   {/* @ts-expect-error Native Theme composition requires a target factory, not an existing element. */}
@@ -636,3 +638,20 @@ export const nativeInteractiveThemes = <Themes.Theme>
   {/* @ts-expect-error Tooltip targets require native composition factories, not rendered elements. */}
   <Themes.Tooltip content="Invalid target"><button>Target</button></Themes.Tooltip>
 </Themes.Theme>;
+
+export const nativeCharts = <Charts.ResponsiveContainer width="100%" height={300} initialDimension={{ width: 500, height: 300 }}
+  onResize={(width, height) => { const dimensions: number[] = [width, height]; void dimensions; }}>
+  <Charts.ComposedChart data={[{ name: 'A', value: 10 }]} syncId="typed" syncMethod="value" accessibilityLayer title="Typed chart">
+    <Charts.XAxis dataKey="name" scale="band" interval={0} />
+    <Charts.YAxis domain={[0, 50]} allowDataOverflow />
+    <Charts.Bar dataKey="value" stackId="total" isAnimationActive={false}
+      shape={props => <Charts.Rectangle {...props} />}><Charts.Cell fill="#123456" /></Charts.Bar>
+    <Charts.Line dataKey="value" isAnimationActive="auto" onAnimationEnd={() => {}} />
+    <Charts.Tooltip content={props => <span>{props.active ? String(props.label) + ':' + props.payload.map(item => item.value).join(',') : ''}</span>} />
+    <Charts.Legend /><Charts.Brush onChange={range => { const start: number | undefined = range.startIndex; void start; }} />
+  </Charts.ComposedChart>
+</Charts.ResponsiveContainer>;
+// @ts-expect-error Chart dimensions accept numbers or percentages, not arbitrary CSS lengths.
+export const invalidFixedChart = <Charts.LineChart width="wide" height={300} />;
+// @ts-expect-error Treemap does not implement a separate update-animation toggle.
+export const invalidTreemapUpdateAnimation = <Charts.Treemap isUpdateAnimationActive />;

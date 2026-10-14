@@ -10,7 +10,7 @@ import { composeRefs } from './refs.js';
 import { createPresence } from './presence.js';
 import { createLayer, LayerContext, type LayerCallbacks } from './dismissable-layer.js';
 import { Popper, PopperContent, usePopper, createPopperScope, type PopperContentProps } from './popper.js';
-import { concatAriaIds, mergeStyles } from '../slot/slot.js';
+import { mergeStyles } from '../slot/slot.js';
 
 type Scoped = { __scopeDialog?: Scope; __scopePopover?: Scope };
 export type OverlayRootProps = Scoped & { children?: Element; open?: boolean; defaultOpen?: boolean; onOpenChange?: (open: boolean) => void; modal?: boolean };
@@ -23,18 +23,9 @@ interface OverlayValue {
   open: () => boolean; setOpen: (open: boolean | ((previous: boolean) => boolean)) => void; modal: () => boolean;
   trigger: () => HTMLButtonElement | undefined; setTrigger: (node: HTMLButtonElement | undefined) => void;
   contentId: string; titleId: string; descriptionId: string;
-  titleIds: () => string[]; setTitleIds: (update: (ids: string[]) => string[]) => void;
-  descriptionIds: () => string[]; setDescriptionIds: (update: (ids: string[]) => string[]) => void;
   surfaces: Set<HTMLElement>; customAnchor: () => ReferenceElement | undefined; setCustomAnchor: (node: ReferenceElement | undefined) => void;
 }
 const callbacks = ['onEscapeKeyDown', 'onPointerDownOutside', 'onFocusOutside', 'onInteractOutside', 'onOpenAutoFocus', 'onCloseAutoFocus'] as const;
-
-function createIdRegistry(): [OverlayValue['titleIds'], OverlayValue['setTitleIds']] {
-  if (!isServer) return createSignal<string[]>([]);
-  // Server registration is render-local bookkeeping, not a reactive state write.
-  let ids: string[] = [];
-  return [() => ids, update => { ids = update(ids); }];
-}
 
 /** Both compounds share lifecycle and ownership; only positioning and modal defaults differ. */
 export function createOverlay(name: 'Dialog' | 'Popover', defaultModal: boolean) {
@@ -49,10 +40,8 @@ export function createOverlay(name: 'Dialog' | 'Popover', defaultModal: boolean)
     const [open, setOpen] = createControllableState({ value: () => props.open, get defaultValue() { return props.defaultOpen ?? false; }, get onChange() { return props.onOpenChange; } });
     const [trigger, setTrigger] = createSignal<HTMLButtonElement | undefined>();
     const [customAnchor, setCustomAnchor] = createSignal<ReferenceElement | undefined>();
-    const [titleIds, setTitleIds] = createIdRegistry();
-    const [descriptionIds, setDescriptionIds] = createIdRegistry();
     const value: OverlayValue = { open, setOpen, modal: () => props.modal ?? defaultModal, trigger, setTrigger, customAnchor, setCustomAnchor,
-      titleIds, setTitleIds, descriptionIds, setDescriptionIds, contentId: createUniqueId(), titleId: createUniqueId(), descriptionId: createUniqueId(), surfaces: new Set() };
+      contentId: createUniqueId(), titleId: createUniqueId(), descriptionId: createUniqueId(), surfaces: new Set() };
     const children = () => <Provider scope={scope(props)} value={value}>{props.children}</Provider>;
     return positioned ? <Popper __scopePopper={scope(props)}>{children()}</Popper> : children();
   }
@@ -94,20 +83,15 @@ export function createOverlay(name: 'Dialog' | 'Popover', defaultModal: boolean)
       }));
       if (!isServer) onCleanup(() => presence.ref(undefined));
       function renderContent(): Element {
-        // Resolve server children inside the positioned host's scope, before its ARIA attributes.
-        let serverChildren: OverlayContentProps['children'];
-        let resolved = false;
-        function children() {
-          if (!isServer) return props.children;
-          if (!resolved) { serverChildren = props.children; resolved = true; }
-          return serverChildren;
-        }
         const forwarded = merge({ role: 'dialog' as const, tabIndex: -1, id: root.contentId }, omit(props, '__scopeDialog', '__scopePopover', 'forceMount', ...callbacks), {
-          get ['aria-labelledby']() { if (isServer) children(); return concatAriaIds(props['aria-labelledby'], ...root.titleIds()); },
-          get ['aria-describedby']() { if (isServer) children(); return concatAriaIds(props['aria-describedby'], ...root.descriptionIds()); },
+          get ['aria-labelledby']() {
+            if ('aria-labelledby' in props) return props['aria-labelledby'];
+            const label = props['aria-label'];
+            return typeof label === 'string' && label.trim() ? undefined : root.titleId;
+          },
+          get ['aria-describedby']() { return 'aria-describedby' in props ? props['aria-describedby'] : root.descriptionId; },
           get ['data-state']() { return root.open() ? 'open' : 'closed'; },
-          get ref() { return composeRefs(props.ref, ref, presence.ref); },
-          get children() { return children(); }
+          get ref() { return composeRefs(props.ref, ref, presence.ref); }
         }) as PrimitiveProps<'div'>;
         const popperProps = merge(forwarded, { get __scopePopper() { return scope(props); }, get style() {
           return mergeStyles({
@@ -146,26 +130,10 @@ export function createOverlay(name: 'Dialog' | 'Popover', defaultModal: boolean)
   }
   function Title(props: OverlayPartProps<'h2'>): Element {
     const root = context(props, 'Title');
-    if (isServer) {
-      const id = props.id ?? root.titleId;
-      if (typeof id === 'string' && id) root.setTitleIds(ids => [...ids, id]);
-    } else createEffect(() => props.id ?? root.titleId, id => {
-      if (typeof id !== 'string' || !id) return;
-      root.setTitleIds(ids => [...ids, id]);
-      return () => root.setTitleIds(ids => { const next = ids.slice(); next.splice(next.indexOf(id), 1); return next; });
-    }, { transparent: true });
     return <Primitive as="h2" {...merge({ id: root.titleId }, omit(props, '__scopeDialog', '__scopePopover'))} />;
   }
   function Description(props: OverlayPartProps<'p'>): Element {
     const root = context(props, 'Description');
-    if (isServer) {
-      const id = props.id ?? root.descriptionId;
-      if (typeof id === 'string' && id) root.setDescriptionIds(ids => [...ids, id]);
-    } else createEffect(() => props.id ?? root.descriptionId, id => {
-      if (typeof id !== 'string' || !id) return;
-      root.setDescriptionIds(ids => [...ids, id]);
-      return () => root.setDescriptionIds(ids => { const next = ids.slice(); next.splice(next.indexOf(id), 1); return next; });
-    }, { transparent: true });
     return <Primitive as="p" {...merge({ id: root.descriptionId }, omit(props, '__scopeDialog', '__scopePopover'))} />;
   }
   function Close(props: OverlayButtonProps): Element {

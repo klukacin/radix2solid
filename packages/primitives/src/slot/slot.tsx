@@ -1,6 +1,6 @@
 // Native port of Radix Slot merge policy; upstream MIT, Copyright (c) 2022 WorkOS.
 import { createMemo, merge, omit, untrack, type Element } from 'solid-js';
-import { dynamic, isServer, type ComponentProps, type JSX, type ValidComponent } from '@solidjs/web';
+import { dynamic, type ComponentProps, type JSX, type ValidComponent } from '@solidjs/web';
 import { composeRefs, equalRefs } from '../internal/refs.js';
 import { callEventHandler } from '../internal/events.js';
 
@@ -29,10 +29,14 @@ function mergeSlotProps(parent: object, child: object) {
   const overrides: Record<string, unknown> = {
     get class() { return [Reflect.get(parent, 'class'), Reflect.get(child, 'class')]; },
     get style() { return mergeStyles(Reflect.get(parent, 'style'), Reflect.get(child, 'style')); },
-    get ref() { return ref(); },
+    get ref() { return ref(); }
+  };
+  const describedBy = {
     get ['aria-describedby']() {
       return concatAriaIds(Reflect.get(child, 'aria-describedby'), Reflect.get(parent, 'aria-describedby'));
-    },
+    }
+  };
+  const labelledBy = {
     get ['aria-labelledby']() {
       return concatAriaIds(Reflect.get(child, 'aria-labelledby'), Reflect.get(parent, 'aria-labelledby'));
     }
@@ -46,16 +50,9 @@ function mergeSlotProps(parent: object, child: object) {
       });
     }
   }
-  return merge(parent, child, overrides);
-}
-
-// The RC dynamic server renderer otherwise emits defaultValue/defaultChecked as inert HTML attributes.
-export function withServerInputDefaults(component: ValidComponent, props: object): object {
-  if (component !== 'input' || untrack(() => Reflect.get(props, 'defaultValue') === undefined && Reflect.get(props, 'defaultChecked') === undefined)) return props;
-  return merge(omit(props as Record<string, unknown>, 'defaultValue', 'defaultChecked'), {
-    get value() { return Reflect.get(props, 'value') ?? Reflect.get(props, 'defaultValue'); },
-    get checked() { return Reflect.get(props, 'checked') ?? Reflect.get(props, 'defaultChecked'); }
-  });
+  return merge(parent, child, overrides,
+    () => 'aria-describedby' in parent || 'aria-describedby' in child ? describedBy : undefined,
+    () => 'aria-labelledby' in parent || 'aria-labelledby' in child ? labelledBy : undefined);
 }
 
 export function createSlot(ownerName: string) {
@@ -68,8 +65,7 @@ export function createSlot(ownerName: string) {
       if (++count !== 1) throw new TypeError(`${ownerName} requires exactly one target.`);
       const Target = dynamic(() => component, { static: true });
       // The generic renderer props retain the same native keys after Slot's merge policy.
-      const merged = mergeSlotProps(omit(props, 'children'), childProps);
-      const forwarded = (isServer ? withServerInputDefaults(component, merged) : merged) as ComponentProps<typeof component>;
+      const forwarded = mergeSlotProps(omit(props, 'children'), childProps) as ComponentProps<typeof component>;
       return host = <Target {...forwarded} />;
     };
     const result = render(target);

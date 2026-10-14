@@ -32,7 +32,7 @@ export { Spinner, type SpinnerProps } from './spinner.js';
 export { Strong, type StrongProps } from './strong.js';
 export * as Table from './table.js';
 export { Text, type TextProps } from './text.js';
-export { Theme, ThemeContext, type ThemeProps, useThemeContext } from './theme.js';
+export { Theme, ThemeContext, type ThemeProps, type ThemeScaling, useThemeContext } from './theme.js';
 export { VisuallyHidden, type VisuallyHiddenProps } from './visually-hidden.js';
 export * as CheckboxGroup from './checkbox-group.js';
 export * as CheckboxCards from './checkbox-cards.js';

@@ -337,6 +337,23 @@ test('form server errors clear even on prevented submission, cancelled reset ret
   await expect(page.getByLabel('Native default choice', { exact: true })).toBeChecked();
 });
 
+test('form native default props update reset baselines without replacing dirty values', async ({ page }) => {
+  const text = page.getByLabel('Explicit form field', { exact: true });
+  const checkbox = page.getByLabel('Native default choice', { exact: true });
+  await text.fill('user draft');
+  await checkbox.uncheck();
+  for (let index = 0; index < 3; index++) {
+    await page.getByRole('button', { name: 'Change native form defaults', exact: true }).click();
+    await expect(text).toHaveValue('user draft');
+    await expect(checkbox).not.toBeChecked();
+  }
+  await page.getByRole('button', { name: 'Reset validation form', exact: true }).click();
+  await expect(text).toHaveValue('revised');
+  await expect(checkbox).not.toBeChecked();
+  await checkbox.check();
+  expect(await page.locator('#validation-form').evaluate(form => new FormData(form as HTMLFormElement).get('choice'))).toBe('revised');
+});
+
 test('form focuses an invalid externally associated native control outside the form subtree', async ({ page }) => {
   await page.getByLabel('Validation email', { exact: true }).fill('valid@example.test');
   await page.getByLabel('Second required field', { exact: true }).fill('second');
@@ -521,4 +538,24 @@ test('Form root suppresses native invalid UI for an ordinary descendant input', 
     input.remove();
     return prevented;
   })).toBe(true);
+});
+
+test('required delete confirmation blocks unchecked submit and serializes checked primitive and themed values', async ({ page }) => {
+  for (const kind of ['primitive', 'themed']) {
+    const form = page.locator(`#${kind}-confirm-form`);
+    const checkbox = form.getByRole('checkbox');
+    const output = page.locator(`#${kind}-confirmations`);
+    await page.getByRole('button', { name: `Submit ${kind} confirmation`, exact: true }).click();
+    await expect(output).toHaveText('');
+    expect(await form.evaluate(node => (node as HTMLFormElement).checkValidity())).toBe(false);
+    await checkbox.click();
+    await page.getByRole('button', { name: `Submit ${kind} confirmation`, exact: true }).click();
+    await expect(output).toHaveText('delete');
+    expect(await form.evaluate(node => [...new FormData(node as HTMLFormElement).entries()])).toEqual([['confirm', 'delete']]);
+    await page.getByRole('button', { name: `Reset ${kind} confirmation`, exact: true }).click();
+    await expect(checkbox).toHaveAttribute('aria-checked', 'false');
+    await page.getByRole('button', { name: `Submit ${kind} confirmation`, exact: true }).click();
+    await expect(output).toHaveText('delete');
+    expect(await form.evaluate(node => [...new FormData(node as HTMLFormElement).entries()])).toEqual([]);
+  }
 });

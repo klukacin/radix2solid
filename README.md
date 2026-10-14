@@ -1,18 +1,21 @@
 # Radix2Solid
 
-Native Solid 2 port of Radix Primitives, Radix Icons and Radix Themes, with released Radix Colors 3.0.0 reused unchanged. This is an independent, unofficial project: it is not affiliated with or endorsed by Radix, WorkOS or Modulz. The MIT license covers the code only and grants no rights to their names, logos or trademarks.
+Native Solid 2 port of Radix Primitives, Radix Icons and Radix Themes, with released Radix Colors 3.0.0 reused unchanged, plus Charts, a Solid 2 port of the Recharts component model derived from solid-recharts. This is an independent, unofficial project: it is not affiliated with or endorsed by Radix, WorkOS, Modulz, Recharts or solid-recharts. The MIT license covers the code only and grants no rights to their names, logos or trademarks.
 
-The three packages keep their native API under the `@wsagency` npm scope:
+The four packages keep their native API under the `@wsagency` npm scope:
 
 - `@wsagency/radix2solid-primitives` — native API and migration notes: [`packages/primitives/README.md`](packages/primitives/README.md)
 - `@wsagency/radix2solid-icons` — all 332 generated icons, SVG download subpaths and Colors 3.0.0 reuse: [`packages/icons/README.md`](packages/icons/README.md)
-- `@wsagency/radix2solid-themes` — all native Themes families, themed portals, ThemePanel, responsive styling and all 40 CSS outputs: [`packages/themes/README.md`](packages/themes/README.md)
+- `@wsagency/radix2solid-themes` — all native Themes families, themed portals, ThemePanel, responsive styling, custom accents, percentage scaling, per-component and cascade-layer CSS: [`packages/themes/README.md`](packages/themes/README.md)
+- `@wsagency/radix2solid-charts` — SVG charts that read Themes tokens, with `d3-scale` and `d3-shape` as external dependencies: [`packages/charts`](packages/charts)
 
-**Prepared candidate `0.1.0-rc.1` — not yet published.** All three packages share the version `0.1.0-rc.1` and will be released together under the npm `next` dist-tag; they are not tagged `latest` because their `solid-js` and `@solidjs/web` peers are still `2.0.0-rc.13`. Until the maintainer publishes them, consume `pnpm pack` tarballs. After publication:
+**Prepared candidate `0.1.0-rc.2` — not yet published.** All four packages share the version `0.1.0-rc.2` and will be released together under the npm `next` dist-tag; they are not tagged `latest` because their `solid-js` and `@solidjs/web` peers are still `2.0.0-rc.15`. `0.1.0-rc.1` (three packages, Solid `2.0.0-rc.13`) was the previous prepared candidate. Until the maintainer publishes them, consume `pnpm pack` tarballs. After publication:
 
 ```sh
-pnpm add @wsagency/radix2solid-primitives@0.1.0-rc.1 @wsagency/radix2solid-icons@0.1.0-rc.1 @wsagency/radix2solid-themes@0.1.0-rc.1 solid-js@2.0.0-rc.13 @solidjs/web@2.0.0-rc.13
+pnpm add @wsagency/radix2solid-primitives@0.1.0-rc.2 @wsagency/radix2solid-icons@0.1.0-rc.2 @wsagency/radix2solid-themes@0.1.0-rc.2 @wsagency/radix2solid-charts@0.1.0-rc.2 solid-js@2.0.0-rc.15 @solidjs/web@2.0.0-rc.15
 ```
+
+Consumers need Node `>=22.12.0` (required by Solid rc.15). If you use the Themes PostCSS plugins, also install `postcss@^8.5.9`; it is an optional peer.
 
 The documentation website lives in the separate repository [`wsagency/radix2solid-web`](https://github.com/wsagency/radix2solid-web), which builds against a pinned commit of this repository.
 
@@ -48,7 +51,7 @@ Gallery: `http://127.0.0.1:4147/` for SSR/hydration, `/csr` for fresh client ren
 
 ## Native distribution and release gates
 
-Exact current pins: `solid-js`, `@solidjs/web`, `@solidjs/signals`, `@solidjs/compiler` and `@solidjs/babel-plugin` **2.0.0-rc.13**; `@solidjs/vite-plugin` **3.0.0-next.35**; Vite **8.3.3**; TypeScript **6.0.2**; Playwright **1.64.0**; Radix Colors **3.0.0**. The runtime/compiler/Babel versions are pinned through workspace overrides. This is an RC port, not a Solid-stable compatibility promise.
+Exact current pins: `solid-js`, `@solidjs/web`, `@solidjs/signals`, `@solidjs/compiler` and `@solidjs/babel-plugin` **2.0.0-rc.15**; `@solidjs/vite-plugin` **3.0.0-next.50**; Vite **8.3.3**; TypeScript **7.0.2** for type checks and declaration emit, with `typescript5` (TypeScript **5.9.3**) for the consumer checks that use the compiler API; Playwright **1.64.0**; Radix Colors **3.0.0**. The runtime/compiler/Babel versions are pinned through workspace overrides. The workspace keeps pnpm's 24-hour `minimumReleaseAge` and excepts only these exact rc.15/next.50 releases until they age. This is an RC port, not a Solid-stable compatibility promise.
 
 `pnpm check` builds producers before consumers, compiles workspace types, runs the slider unit test, then independent packed and development browser scenarios in Chromium, Firefox and WebKit. `tests/consumer/coverage-manifest.json` maps public declarations/parts to retained family checks. Packed validation covers public declaration and runtime availability, CSS/plugin/SVG resolution and real selective-import bundle inspection. Family checks are not certification of every exported symbol or of actual assistive-technology speech.
 
@@ -67,4 +70,4 @@ Actual Announce and Toast/layer speech was exercised with isolated Orca/AT-SPI/S
 
 ## License
 
-MIT, Copyright (c) 2026 Radix2Solid contributors. Adapted and reused upstream software keeps its original MIT copyright notices and full license texts (Radix Primitives, Icons and Themes: WorkOS; Radix Colors: Modulz, WorkOS and Radix); see [`LICENSE`](LICENSE) and each package's `LICENSE`.
+MIT, Copyright (c) 2026 Radix2Solid contributors. Adapted and reused upstream software keeps its original MIT copyright notices and full license texts (Radix Primitives, Icons and Themes: WorkOS; Radix Colors: Modulz, WorkOS and Radix; Charts: solid-recharts, Thomas Guehenneux, and Recharts); see [`LICENSE`](LICENSE) and each package's `LICENSE`. The Charts package's `NOTICE` reproduces the ISC licenses of its resolved D3 dependencies.

@@ -4,17 +4,17 @@ import { test } from 'node:test';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createComponent } from 'solid-js';
-import { renderToString } from '@solidjs/web';
+import { createComponent, createContext, merge, useContext, type Element } from 'solid-js';
+import { Dynamic, renderToString } from '@solidjs/web';
 import { AccessibleIcon, Accordion, AlertDialog, Announce, AspectRatio, Avatar, Checkbox, Collapsible, ContextMenu, Dialog, DropdownMenu, HoverCard, Label, Menubar, NavigationMenu, Popover, Portal, Progress, RadioGroup, Select, Slot, Switch, Tabs, Toggle, ToggleGroup, Toolbar, Tooltip } from '@wsagency/radix2solid-primitives';
 import { Form, ScrollArea, Slider, Toast, unstable_PasswordToggleField as Password, unstable_OneTimePasswordField as OTP } from '@wsagency/radix2solid-primitives';
 import { AccessibilityIcon, PanelLeftIcon, PanelRightIcon } from '@wsagency/radix2solid-icons';
 import GitHubLogoIcon from '@wsagency/radix2solid-icons/GitHubLogoIcon';
-import ts from 'typescript';
+import ts from 'typescript5';
 import * as Themes from '@wsagency/radix2solid-themes';
 
 test('packed packages resolve one physical native runtime from every package origin and Themes shares primitives', async () => {
-  const names = ['primitives', 'themes', 'icons'];
+  const names = ['primitives', 'themes', 'icons', 'charts'];
   const origins = await Promise.all(names.map(async name =>
     dirname(await realpath(fileURLToPath(import.meta.resolve(`@wsagency/radix2solid-${name}`))))));
   const consumerRequire = createRequire(import.meta.url);
@@ -57,9 +57,11 @@ for (const [name, compound] of [['dialog', Dialog], ['popover', Popover]] as con
       defaultOpen: true,
       get children() {
         return createComponent(compound.Content, {
-          'aria-labelledby': 'external-title',
+          // Custom part IDs are linked explicitly; explicit Content ARIA replaces the Root defaults.
+          'aria-labelledby': `external-title ${titleId}`, 'aria-describedby': descriptionId,
           get children() {
             return [
+              createComponent(Dynamic, { component: 'span' as const, id: 'external-title', children: 'External title' }),
               createComponent(compound.Title, { id: titleId, children: `Server ${name}` }),
               createComponent(compound.Description, { id: descriptionId, children: 'Server description' }),
               createComponent(compound.Close, { children: 'Close' }),
@@ -85,7 +87,7 @@ for (const [name, compound] of [['dialog', Dialog], ['popover', Popover]] as con
         get children() {
           return createComponent(compound.Portal, {
             forceMount: true,
-            get children() { return createComponent(compound.Content, { children: 'Server portal content' }); }
+            get children() { return createComponent(compound.Content, { 'aria-label': 'Server portal content', 'aria-describedby': undefined, children: 'Server portal content' }); }
           });
         }
       }));
@@ -99,12 +101,12 @@ test('packed standalone Portal omits server children without accessing the DOM',
   assert.doesNotMatch(html, /Standalone server portal content/);
 });
 
-test('packed Slot-backed dialog content links titles from lazy target children on the server', () => {
+test('packed Slot-backed dialog content keeps explicit custom title and description links on the server', () => {
   const html = renderToString(() => createComponent(Dialog.Root, {
     defaultOpen: true,
     get children() {
       return createComponent(Dialog.Content, {
-        asChild: true,
+        asChild: true, 'aria-labelledby': 'slot-title', 'aria-describedby': 'slot-description',
         children: target => target('section', {
           get children() {
             return [
@@ -120,6 +122,118 @@ test('packed Slot-backed dialog content links titles from lazy target children o
   assert.match(html, /aria-labelledby="slot-title"/);
   assert.match(html, /aria-describedby="slot-description"/);
 });
+
+test('packed Slot-backed dialog content links generated title and description IDs from lazy target children on the server', () => {
+  const html = renderToString(() => createComponent(Dialog.Root, {
+    defaultOpen: true,
+    get children() {
+      return createComponent(Dialog.Content, {
+        asChild: true,
+        children: target => target('section', {
+          get children() {
+            return [createComponent(Dialog.Title, { children: 'Generated title' }), createComponent(Dialog.Description, { children: 'Generated description' })];
+          }
+        })
+      });
+    }
+  }), { renderId: 'generated-dialog-' });
+  const titleId = html.match(/<h2[^>]*\sid="([^"]+)"[^>]*>Generated title/)?.[1];
+  const descriptionId = html.match(/<p[^>]*\sid="([^"]+)"[^>]*>Generated description/)?.[1];
+  assert.ok(titleId && descriptionId, html);
+  assert.notEqual(titleId, descriptionId);
+  assert.match(html, new RegExp(`<section[^>]*aria-labelledby="${titleId}"`));
+  assert.match(html, new RegExp(`<section[^>]*aria-describedby="${descriptionId}"`));
+  assert.equal(html.match(/Generated title/g)?.length, 1);
+});
+
+test('packed Slot-backed dialog content links lazy titles through a custom component target under its own provider on the server', () => {
+  const Scope = createContext('outside');
+  const Reader = () => `context=${useContext(Scope)}`;
+  // The custom target renders its own provider and forwards every prop, including ARIA and children, to its host.
+  const Card = (props: { children?: Element }) => createComponent(Scope, {
+    value: 'inside',
+    get children() { return createComponent(Dynamic, merge({ component: 'section' as const }, props)); }
+  });
+  for (const explicit of [true, false]) {
+    const html = renderToString(() => createComponent(Dialog.Root, {
+      defaultOpen: true,
+      get children() {
+        return createComponent(Dialog.Content, {
+          asChild: true, ...(explicit ? { 'aria-labelledby': 'custom-title', 'aria-describedby': 'custom-description' } : {}),
+          children: target => target(Card, {
+            get children() {
+              return [
+                createComponent(Dialog.Title, explicit ? { id: 'custom-title', children: 'Custom title' } : { children: 'Custom title' }),
+                createComponent(Dialog.Description, explicit ? { id: 'custom-description', children: 'Custom description' } : { children: 'Custom description' }),
+                createComponent(Reader, {})
+              ];
+            }
+          })
+        });
+      }
+    }), { renderId: `custom-target-${explicit}-` });
+    const titleId = html.match(/<h2[^>]*\sid="([^"]+)"[^>]*>Custom title/)?.[1];
+    const descriptionId = html.match(/<p[^>]*\sid="([^"]+)"[^>]*>Custom description/)?.[1];
+    assert.ok(titleId && descriptionId, html);
+    if (explicit) assert.deepEqual([titleId, descriptionId], ['custom-title', 'custom-description']);
+    assert.match(html, new RegExp(`<section[^>]*role="dialog"[^>]*aria-labelledby="${titleId}"|<section[^>]*aria-labelledby="${titleId}"[^>]*role="dialog"`));
+    assert.match(html, new RegExp(`<section[^>]*aria-describedby="${descriptionId}"`));
+    assert.match(html, /context=inside/);
+    assert.equal(html.match(/Custom title/g)?.length, 1);
+  }
+});
+
+for (const [name, compound, role] of [['dialog', Dialog, 'dialog'], ['popover', Popover, 'dialog'], ['alert dialog', AlertDialog, 'alertdialog']] as const) {
+  test(`packed ${name} Content links Root title/description IDs by default and honors explicit ARIA key presence`, () => {
+    const render = (props: Record<string, unknown>, parts: Array<'title' | 'description'>) => {
+      const html = renderToString(() => createComponent(compound.Root, {
+        defaultOpen: true,
+        get children() {
+          return createComponent(Slot.Root, { children: target => target(compound.Content, merge(props, {
+            get children() {
+              return [
+                createComponent(Dynamic, { component: 'span' as const, id: 'external-heading', children: 'External heading' }),
+                createComponent(Dynamic, { component: 'span' as const, id: 'external-text', children: 'External description' }),
+                ...(parts.includes('title') ? [createComponent(compound.Title, { children: `${name} title` })] : []),
+                ...(parts.includes('description') ? [createComponent(compound.Description, { children: `${name} description` })] : [])
+              ];
+            }
+          })) });
+        }
+      }), { renderId: `naming-${name.replace(' ', '-')}-` });
+      const content = html.match(new RegExp(`<[a-z]+\\b(?=[^>]*role="${role}")[^>]*>`))?.[0];
+      assert.ok(content, html);
+      return { html, content };
+    };
+    // Default: the parts keep the Root IDs and Content links them without reading its children.
+    const linked = render({}, ['title', 'description']);
+    const titleId = linked.html.match(new RegExp(`<h2[^>]*\\sid="([^"]+)"[^>]*>${name} title`))?.[1];
+    const descriptionId = linked.html.match(new RegExp(`<p[^>]*\\sid="([^"]+)"[^>]*>${name} description`))?.[1];
+    assert.ok(titleId && descriptionId && titleId !== descriptionId, linked.html);
+    assert.match(linked.content, new RegExp(`aria-labelledby="${titleId}"`));
+    assert.match(linked.content, new RegExp(`aria-describedby="${descriptionId}"`));
+    for (const label of [undefined, null, '', '   ']) {
+      const fallback = render({ 'aria-label': label }, ['title', 'description']);
+      const fallbackTitle = fallback.html.match(/<h2[^>]*\sid="([^"]+)"/)?.[1];
+      assert.ok(fallbackTitle, fallback.html);
+      assert.match(fallback.content, new RegExp(`aria-labelledby="${fallbackTitle}"`));
+    }
+    const unlinked = render({ 'aria-labelledby': undefined, 'aria-describedby': undefined }, []);
+    assert.doesNotMatch(unlinked.content, /aria-labelledby=|aria-describedby=/);
+    // An optional description is opted out by key presence: explicit undefined, not a fallback to the default.
+    const undescribed = render({ 'aria-describedby': undefined }, ['title']);
+    assert.match(undescribed.content, /aria-labelledby="[^"]+"/);
+    assert.doesNotMatch(undescribed.content, /aria-describedby=/);
+    // An explicit aria-label names Content without a dangling automatic title link.
+    const labelled = render({ 'aria-label': `Labelled ${name}`, 'aria-describedby': undefined }, []);
+    assert.match(labelled.content, new RegExp(`aria-label="Labelled ${name}"`));
+    assert.doesNotMatch(labelled.content, /aria-labelledby=|aria-describedby=/);
+    // Explicit relationships replace the defaults instead of concatenating them.
+    const external = render({ 'aria-label': 'Lower priority label', 'aria-labelledby': 'external-heading', 'aria-describedby': 'external-text' }, ['title', 'description']);
+    assert.match(external.content, /aria-labelledby="external-heading"/);
+    assert.match(external.content, /aria-describedby="external-text"/);
+  });
+}
 
 test('packed simple controls render native accessible semantics without a document', () => {
   assert.equal(typeof document, 'undefined');
@@ -300,7 +414,8 @@ test('packed scoped AlertDialog links its modal alert while an inner default roo
   const html = renderToString(() => createComponent(AlertDialog.Root, {
     ...scope, defaultOpen: true, get children() {
       return createComponent(AlertDialog.Root, { get children() {
-        return createComponent(AlertDialog.Content, { ...scope, 'aria-labelledby': 'external-alert-title', get children() { return [
+        return createComponent(AlertDialog.Content, { ...scope, 'aria-labelledby': 'external-alert-title scoped-alert-title', 'aria-describedby': 'scoped-alert-description', get children() { return [
+          createComponent(Dynamic, { component: 'span' as const, id: 'external-alert-title', children: 'External alert title' }),
           createComponent(AlertDialog.Title, { ...scope, id: 'scoped-alert-title', children: 'Scoped destructive alert' }),
           createComponent(AlertDialog.Description, { ...scope, id: 'scoped-alert-description', children: 'No recovery' }),
           createComponent(AlertDialog.Cancel, { ...scope, children: 'Scoped keep' })

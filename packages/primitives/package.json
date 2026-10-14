@@ -1,6 +1,6 @@
 {
   "name": "@wsagency/radix2solid-primitives",
-  "version": "0.1.0-rc.1",
+  "version": "0.1.0-rc.2",
   "private": false,
   "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/", "tag": "next" },
   "type": "module",
@@ -73,8 +73,8 @@
     }
   },
   "peerDependencies": {
-    "@solidjs/web": "2.0.0-rc.13",
-    "solid-js": "2.0.0-rc.13"
+    "@solidjs/web": "2.0.0-rc.15",
+    "solid-js": "2.0.0-rc.15"
   },
   "scripts": {
     "build": "vite build && vite build --ssr && tsc -p tsconfig.json"

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.0-rc.2 — prepared candidate, not yet published
+
+- Require exactly `solid-js` and `@solidjs/web` `2.0.0-rc.15` as peers (was `2.0.0-rc.13`); Solid rc.15 requires Node `>=22.12.0`. Icons, deep entries and SVG subpaths are unchanged.
+- Declarations are emitted by TypeScript 7.0.2; the packed consumer checks use TypeScript 5.9.3.
+
 ## 0.1.0-rc.1 — prepared candidate, not yet published
 
 - Rename the package from `@radix-solid/icons` to `@wsagency/radix2solid-icons`; deep icon entries and `icons/*.svg` subpaths are unchanged under the new name.

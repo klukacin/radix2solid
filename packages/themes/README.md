@@ -1,8 +1,8 @@
 # Native Solid 2 Themes
 
-Native fork, not an official Radix product. **Prepared candidate `@wsagency/radix2solid-themes@0.1.0-rc.1` — not yet published.** It will be released under the npm `next` dist-tag because its Solid peers are release candidates. After publication: `pnpm add @wsagency/radix2solid-themes@0.1.0-rc.1`; until then consume `pnpm pack` tarballs.
+Native fork, not an official Radix product. **Prepared candidate `@wsagency/radix2solid-themes@0.1.0-rc.2` — not yet published.** It will be released under the npm `next` dist-tag because its Solid peers are release candidates. After publication: `pnpm add @wsagency/radix2solid-themes@0.1.0-rc.2`; until then consume `pnpm pack` tarballs.
 
-Solid `2.0.0-rc.13` and `@solidjs/web` `2.0.0-rc.13` are peers. Browser export conditions select native client ESM; the default selects native server ESM. Declarations are shared. No React runtime, React types or element-cloning compatibility layer.
+Solid `2.0.0-rc.15` and `@solidjs/web` `2.0.0-rc.15` are peers; they require Node `>=22.12.0`. Browser export conditions select native client ESM; the default selects native server ESM. Declarations are shared. No React runtime, React types or element-cloning compatibility layer.
 CSS imports use the application's bundler declarations, e.g. `vite/client` with Vite; TypeScript alone does not define stylesheet modules.
 
 
@@ -41,6 +41,20 @@ Responsive objects are never mutated, including when an enum needs its initial d
 
 Server rendering uses initial Theme metadata without allocating client synchronization effects. Initial SSR and client props must agree; browser-only preferences should settle after hydration. Server memos describe one render, not subsequent client reactivity.
 
+### Custom accents and percentage scaling
+
+`accentColor="custom"` with `customAccent="<id>"` (a letter, then letters, digits, `_` or `-`) uses a palette you supply. Every physical Theme root, including themed portal roots, carries `data-custom-accent="<id>"`. Define the complete light and dark sets of the 28 tokens (`--custom-1`…`--custom-12`, `--custom-a1`…`--custom-a12`, `--custom-contrast`, `--custom-surface`, `--custom-indicator`, `--custom-track`) yourself, generated ahead of time rather than during render:
+
+```css
+.radix-themes[data-custom-accent='calm'] { /* light tokens */ }
+.radix-themes[data-custom-accent='calm']:is(.dark, .dark-theme),
+:is(.dark, .dark-theme) .radix-themes[data-custom-accent='calm']:not(.light, .light-theme) { /* dark tokens */ }
+```
+
+Color props accept `"custom"`. With `grayColor="auto"`, a custom accent resolves to `gray`; an omitted nested gray still inherits the parent's resolved gray.
+
+`scaling` accepts the preset values or any positive finite `` `${number}%` `` (for example `"115%"`). Nested scaling is absolute, not multiplied: `<Theme scaling="90%">` inside `<Theme scaling="120%">` renders at 90%. Unitless numbers are rejected and values are not clamped. A caller `style` may override `--scaling` locally, but that does not propagate as a Theme setting.
+
 The public `Portal` preserves native portal lifecycle: no server children; client mounting after hydration settles. It does **not** copy ancestor Theme CSS attributes onto physically relocated DOM. Wrap relocated presentation in Theme when needed.
 
 ## Presentational components
@@ -73,6 +87,8 @@ Dialog, AlertDialog, Popover, HoverCard, Tooltip, Select, DropdownMenu and Conte
 </Dialog.Root>
 ```
 
+Dialog and AlertDialog use the primitives' Root-allocated title/description links. Custom part IDs require matching explicit Content `aria-labelledby`/`aria-describedby`; omit an optional Description with `aria-describedby={undefined}`. A nonblank Content `aria-label` replaces the automatic title link; explicit relationship keys, including undefined opt-outs, take precedence. Themes Popover has no Title/Description parts and defaults both relationships to undefined: provide a meaningful `aria-label` or explicit `aria-labelledby`, and an explicit `aria-describedby` when appropriate. Caller relationships override those wrapper defaults. If composing primitive Title/Description parts inside Themes Popover, give them custom IDs and matching explicit Content relationships. See the primitives README's rc.2 naming migration for conditional parts and ID changes.
+
 Import `Dialog` alongside `Theme` and `Button`; render the example inside Theme. Tooltip is a flat component with required `content` and a target factory child, not a React element.
 
 Themed overlay content recreates Theme on its physical portal root, including custom containers, submenus and live settings. Changing nested accent alone inherits resolved gray; explicitly request `grayColor="auto"` for a new match. Responsive submenu alignment reads actual CSS padding and follows viewport width and scaling; it does not numerically coerce responsive objects.
@@ -86,6 +102,8 @@ Keyless document events are ignored. Native `inert` reflects whether panel inter
 
 All 40 upstream CSS outputs are emitted: `styles.css`, `components.css`, `utilities.css`, `tokens.css`, `tokens/base.css`, 31 `tokens/colors/*.css` files, and `layout.css`, `layout/tokens.css`, `layout/components.css`, `layout/utilities.css`. CSS is marked as a package side effect. Released `@radix-ui/colors@3.0.0` is reused unchanged.
 
+Per-component CSS replaces `styles.css` with four groups, imported in this order: tokens (`tokens/base.css` plus every palette file you use, or `tokens.css`), then `css/common.css` (reset, animations, layout, Skeleton and Text rules), then `css/<component>.css` for each component you use, then `css/utilities.css` (Theme root and forced-colors rules plus the responsive utility classes). A component file holds only its own rules and those of the components it renders (a loading Button includes Spinner; menus include ScrollArea). `common.css` and `utilities.css` are required. Leaving one out raises no error, but the page loses the reset, layout and typography rules, or the forced-colors and responsive styles. `css/theme.css` is not needed when `css/utilities.css` is imported. For eight components measured with Lightning CSS 1.33.0, using the gray/jade/sage palettes, the per-component imports came to 369,971 B minified (39,862 B gzip, 23,273 B Brotli) against 608,460 B (58,063 B gzip, 34,658 B Brotli) for the same palettes with `components.css` and `utilities.css`. `styles.css` with all tokens is 702,487 B (82,822 B gzip, 50,321 B Brotli). Every CSS file also has a `.layer.css` sibling wrapped in `@layer radix` (`styles.layer.css`, `tokens/base.layer.css`, `css/common.layer.css`, `css/button.layer.css`, …); the layered imports measure within 1% of these sizes. Use one mode consistently and never import both copies of a file. All files are compiled; none needs PostCSS.
+
 Intentional accessibility CSS differences: Select placeholders use step-11 foregrounds without reduced opacity. Forced-color mode uses system-color control boundaries, selected markers and keyboard focus outlines instead of shadows or fixed palette backgrounds; native colors are not disabled globally. Original classes, sizing, layout and palette data remain unchanged outside these corrections.
 
 Loading labels remain accessible but visually transparent even in forced colors; Spinner leaves use native `CanvasText` so both light and dark system palettes remain visible. These corrections do not change ordinary palette geometry or animation.
@@ -94,9 +112,9 @@ Public `components/*`, `helpers` and `props` subpaths select the same native bro
 
 Compound component subpaths expose their upstream short parts and Props, not accidental long-form implementation exports. `components/index`, `components/checkbox-group.primitive`, `components/_internal/*` and private icon implementation paths are not public APIs. The public props `breakpoints` value retains the upstream ordered readonly-array contract; internal extraction continues using its existing Set.
 
-`postcss-breakpoints` and `postcss-whitespace` support both ESM imports and CommonJS requires, including explicit `.js`/`.cjs` subpaths. Breakpoint assets resolve relative to the installed plugin, not caller cwd. The original import/nesting/breakpoint/custom-media/selector-combination/empty-rule/whitespace/autoprefixer processing order is retained.
+`postcss-breakpoints` and `postcss-whitespace` support both ESM imports and CommonJS requires, including explicit `.js`/`.cjs` subpaths. Breakpoint assets resolve relative to the installed plugin, not caller cwd. The original import/nesting/breakpoint/custom-media/selector-combination/empty-rule/whitespace/autoprefixer processing order is retained. `postcss` is an optional peer (`^8.5.9`): install it (`pnpm add -D postcss@^8.5.9`) only if you use these plugins.
 
-Until the candidate is published, tarball consumers must override `@wsagency/radix2solid-primitives` to the same packed primitives file used by the direct dependency, because `0.1.0-rc.1` cannot yet be fetched from npm. The packed Themes manifest depends on exactly `@wsagency/radix2solid-primitives@0.1.0-rc.1`. The repository's independent consumer runner pins content-addressed tarballs, not workspace source aliases.
+Until the candidate is published, tarball consumers must override `@wsagency/radix2solid-primitives` to the same packed primitives file used by the direct dependency, because `0.1.0-rc.2` cannot yet be fetched from npm. The packed Themes manifest depends on exactly `@wsagency/radix2solid-primitives@0.1.0-rc.2`. The repository's independent consumer runner pins content-addressed tarballs, not workspace source aliases.
 
 ## Attribution
 

@@ -1,5 +1,6 @@
 import { createSignal, type Element } from 'solid-js';
 import { Theme, ThemePanel, unstable_ThemePanelContent as ThemePanelContent, CheckboxGroup, CheckboxCards, RadioGroup, RadioCards, SegmentedControl, Radio, TextField, TextArea, Text, Em, Checkbox, Switch, Slider, Tabs, TabNav, Dialog, AlertDialog, Popover, HoverCard, Tooltip, DropdownMenu, ContextMenu, Select, Button } from '@wsagency/radix2solid-themes';
+import { Popover as PrimitivePopover } from '@wsagency/radix2solid-primitives';
 import '@wsagency/radix2solid-themes/styles.css';
 const responsiveMenuSize = Object.freeze({ initial: '1', md: '2' } as const);
 
@@ -97,7 +98,11 @@ function ThemeOverlayInteractions(): Element {
           </Theme>
           <Theme accentColor="amber" grayColor="auto" appearance="light">
             <Popover.Root><Popover.Trigger>{target => target(Button, { children: 'Open explicit auto themed popover' })}</Popover.Trigger>
-              <Popover.Content container={container()} id="themed-auto-popover" aria-label="Explicit auto themed popover">Explicit light auto gray</Popover.Content>
+              <Popover.Content container={container()} id="themed-auto-popover" aria-label="Fallback popup name" aria-labelledby="themed-auto-title" aria-describedby="themed-auto-description">
+                <PrimitivePopover.Title id="themed-auto-title">Explicit auto themed popover</PrimitivePopover.Title>
+                <PrimitivePopover.Description id="themed-auto-description">Explicit popup description.</PrimitivePopover.Description>
+                Explicit light auto gray
+              </Popover.Content>
             </Popover.Root>
           </Theme>
           <Dialog.Close>{target => target(Button, { children: 'Close themed modal' })}</Dialog.Close>

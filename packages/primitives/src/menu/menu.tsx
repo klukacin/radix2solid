@@ -1,5 +1,5 @@
 // Native port of Radix Menu; upstream MIT, Copyright (c) 2022 WorkOS.
-import { createEffect, createSignal, createUniqueId, merge, omit, onCleanup, Show, untrack, type Element } from 'solid-js';
+import { createEffect, createSignal, createUniqueId, flush, merge, omit, onCleanup, Show, untrack, type Element } from 'solid-js';
 import { isServer, Portal as NativePortal } from '@solidjs/web';
 import { createContextScope, type Scope } from '../internal/context.js';
 import { createControllableState } from '../internal/state.js';
@@ -104,6 +104,7 @@ function renderContent(props: MenuContentProps, sub: boolean): Element {
   const presence = createPresence(menu.open, () => props.forceMount ?? portal.forceMount());
   function Mounted(): Element {
     const collection = createCollection<{ disabled: () => boolean; text: () => string }>();
+    const [currentItemId, setCurrentItemId] = createSignal<string | null>(null);
     let searchTimer: ReturnType<typeof setTimeout> | undefined;
     const content: ContentValue = { collection, search: '', grace: undefined, graceTimer: undefined, direction: 'right', lastX: 0,
       enter(event) {
@@ -117,7 +118,11 @@ function renderContent(props: MenuContentProps, sub: boolean): Element {
       active: menu.open, modal: () => !sub && root.modal(), trigger: menu.trigger, kind: 'layer', dismiss: () => menu.change(false),
       onOpenAutoFocus(event) {
         props.onOpenAutoFocus?.(event);
-        if (!event.defaultPrevented) { event.preventDefault(); if (!sub || root.keyboard) focus(menu.content()); }
+        if (!event.defaultPrevented) {
+          event.preventDefault();
+          if (currentItemId() !== null) { setCurrentItemId(null); flush(); }
+          if (!sub || root.keyboard) focus(menu.content());
+        }
       },
       onCloseAutoFocus(event) { props.onCloseAutoFocus?.(event); if (sub) event.preventDefault(); },
       onEscapeKeyDown(event) { props.onEscapeKeyDown?.(event); if (sub && !event.defaultPrevented) { root.close(); event.preventDefault(); } },
@@ -166,7 +171,7 @@ function renderContent(props: MenuContentProps, sub: boolean): Element {
       })
     }) as PopperContentProps;
     return <ContentProvider scope={scope} value={content}><LayerContext value={layer}>
-      <RovingFocusGroup {...useRovingScope(scope)} orientation="vertical" dir={root.dir()} loop={props.loop ?? false} preventScrollOnEntryFocus onEntryFocus={event => {
+      <RovingFocusGroup {...useRovingScope(scope)} orientation="vertical" dir={root.dir()} loop={props.loop ?? false} currentTabStopId={currentItemId()} onCurrentTabStopIdChange={setCurrentItemId} preventScrollOnEntryFocus onEntryFocus={event => {
         props.onEntryFocus?.(event); if (!root.keyboard) event.preventDefault();
       }} asChild>{target => target(PopperContent, forwarded)}</RovingFocusGroup>
     </LayerContext></ContentProvider>;
