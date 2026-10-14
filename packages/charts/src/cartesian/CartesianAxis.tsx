@@ -17,8 +17,8 @@
 // auto-width. Solid deviations:
 // forwardRef dropped; React CSSProperties n/a; `className`→`class`.
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createMemo, For, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
+import { createEffect, createMemo, createSignal, For, merge, Show } from "solid-js";
+import { isServer, type JSX } from "@solidjs/web";
 import { getTicks } from "./getTicks";
 import { Layer } from "../container/Layer";
 import {
@@ -282,6 +282,11 @@ const AxisLine = (props: {
 
 export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
   const merged = merge(cartesianAxisDefaults, props);
+  const [canMeasureTicks, setCanMeasureTicks] = createSignal(false);
+  // Claim the server's tick list before browser measurement changes its length.
+  if (!isServer) {
+    createEffect(() => undefined, () => { setCanMeasureTicks(true); }, { transparent: true });
+  }
 
   // merge() keeps an explicit `stroke={undefined}` (e.g. forwarded from a
   // strokeless <YAxis/>) as undefined; resolve the default at use sites.
@@ -334,7 +339,7 @@ export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
     getTicks(
       {
         angle: merged.angle,
-        interval: merged.interval,
+        interval: canMeasureTicks() || isNumber(merged.interval) ? merged.interval : 0,
         minTickGap: merged.minTickGap,
         orientation: merged.orientation,
         // getTicks early-returns [] when `tick` is falsy; tick-label and tick-line

@@ -120,6 +120,131 @@ test('fixed server chart geometry hydrates in place and clip references stay uni
   expect(errors).toEqual([]);
 });
 
+test('automatic Cartesian ticks hydrate uniquely and stay correct through resize and data replacement', async ({ page }, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') errors.push(message.text()); });
+  const ssr = !info.project.name.endsWith('csr');
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+  const ladder = Array.from({ length: 9 }, (_, index) => String(index * 10));
+  const root = page.locator('#chart-axis-hydration');
+  const surface = root.locator('svg.recharts-surface');
+  const geometry = () => root.evaluate(root => {
+    const axes = ['xAxis', 'yAxis'].map(axis => [...root.querySelectorAll(`.${axis} .recharts-cartesian-axis-tick`)].map(tick => {
+      const label = tick.querySelector<SVGGraphicsElement>('.recharts-cartesian-axis-tick-value')!;
+      const line = tick.querySelector('.recharts-cartesian-axis-tick-line')!;
+      const box = label.getBBox();
+      return {
+        label: label.textContent,
+        text: ['x', 'y'].map(key => Number(label.getAttribute(key) ?? NaN)),
+        box: [box.x, box.y, box.width, box.height],
+        line: ['x1', 'y1', 'x2', 'y2'].map(key => Number(line.getAttribute(key) ?? NaN)),
+      };
+    }));
+    const grids = ['vertical', 'horizontal'].map(direction =>
+      [...root.querySelectorAll(`.recharts-cartesian-grid-${direction} line`)].map(line =>
+        ['x1', 'y1', 'x2', 'y2'].map(key => Number(line.getAttribute(key) ?? NaN))));
+    return { axes, grids, curve: root.querySelector('.recharts-line-curve')?.getAttribute('d') };
+  });
+  if (ssr) {
+    await page.route('**/*', async route => {
+      if (route.request().resourceType() === 'script') {
+        await route.fulfill({ status: 200, contentType: 'text/javascript', body: '' });
+      } else await route.continue();
+    });
+  }
+  await page.goto(ssr ? '/' : '/csr');
+  if (ssr) {
+    await expect(surface).toHaveAttribute('width', '240');
+    const server = await geometry();
+    expect(server.axes[0].map(tick => tick.label)).toEqual(months);
+    expect(server.axes[1].map(tick => tick.label)).toEqual(ladder);
+    await surface.evaluate(node => { Object.assign(window, { serverAxisSurface: node }); });
+    await page.unroute('**/*');
+    await page.evaluate(async () => {
+      const entry = document.querySelector<HTMLScriptElement>('script[type="module"]')!.src;
+      // The built entry is runtime-selected and must load after capturing SSR nodes.
+      await import(/* @vite-ignore */ entry + '?axis-hydrate-proof');
+    });
+  }
+  const checkGeometry = async (width: number, height: number, expectedMonths: string[]) => {
+    await expect(surface).toHaveCount(1);
+    await expect(surface).toHaveAttribute('width', String(width));
+    await expect(surface).toHaveAttribute('height', String(height));
+    const state = await geometry();
+    for (const [axis, expected] of [expectedMonths, ladder].entries()) {
+      const ticks = state.axes[axis];
+      const labels = ticks.map(tick => tick.label);
+      expect(labels.length).toBeGreaterThan(0);
+      expect(labels.length).toBeLessThan(expected.length);
+      expect(labels).toEqual(expected.filter(label => labels.includes(label)));
+      for (const tick of ticks) {
+        expect([...tick.text, ...tick.box, ...tick.line].every(Number.isFinite)).toBe(true);
+        const [x1, y1, x2, y2] = tick.line;
+        if (axis === 0) {
+          expect(x1).toBeCloseTo(60 + expected.indexOf(tick.label!) * (width - 70) / 5);
+          expect(x2).toBeCloseTo(x1);
+          expect(y1).toBeCloseTo(height - 40 + 6);
+          expect(y2).toBeCloseTo(height - 40);
+        } else {
+          expect(y1).toBeCloseTo(height - 40 - Number(tick.label) * (height - 50) / 80);
+          expect(y2).toBeCloseTo(y1);
+          expect(x1).toBeCloseTo(54);
+          expect(x2).toBeCloseTo(60);
+        }
+      }
+    }
+    for (const [direction, lines] of state.grids.entries()) {
+      expect(lines.length).toBeGreaterThan(0);
+      const coordinates = lines.map(line => line[direction]);
+      expect(new Set(coordinates).size).toBe(coordinates.length);
+      for (const [x1, y1, x2, y2] of lines) {
+        expect([x1, y1, x2, y2].every(Number.isFinite)).toBe(true);
+        if (direction === 0) {
+          expect(x1).toBeCloseTo(x2);
+          expect(y1).toBeCloseTo(10);
+          expect(y2).toBeCloseTo(height - 40);
+          const index = (x1 - 60) * 5 / (width - 70);
+          expect(index).toBeCloseTo(Math.round(index));
+          expect(index).toBeGreaterThanOrEqual(0);
+          expect(index).toBeLessThanOrEqual(5);
+        } else {
+          expect(y1).toBeCloseTo(y2);
+          expect(x1).toBeCloseTo(60);
+          expect(x2).toBeCloseTo(width - 10);
+          const index = (height - 40 - y1) * 8 / (height - 50);
+          expect(index).toBeCloseTo(Math.round(index));
+          expect(index).toBeGreaterThanOrEqual(0);
+          expect(index).toBeLessThanOrEqual(8);
+        }
+      }
+    }
+    expect(state.curve).toBeTruthy();
+    expect(state.curve).not.toMatch(/NaN|Infinity|undefined/);
+    return state;
+  };
+  await expect(surface).toHaveAttribute('width', '500');
+  await expect.poll(async () => (await geometry()).axes[0].length).toBeLessThan(6);
+  await expect.poll(async () => (await geometry()).axes[1].length).toBeLessThan(9);
+  const wide = await checkGeometry(500, 120, months);
+  if (ssr) expect(await surface.evaluate(node => 'serverAxisSurface' in window && node === window.serverAxisSurface)).toBe(true);
+  await root.evaluate(node => { node.style.width = '180px'; node.style.height = '90px'; });
+  await expect(surface).toHaveAttribute('width', '180');
+  for (const axis of [0, 1]) {
+    await expect.poll(async () => (await geometry()).axes[axis].length).toBeLessThan(wide.axes[axis].length);
+  }
+  await checkGeometry(180, 90, months);
+  await root.evaluate(node => { node.style.width = '500px'; node.style.height = '120px'; });
+  await expect.poll(geometry).toEqual(wide);
+  await checkGeometry(500, 120, months);
+  if (ssr) expect(await surface.evaluate(node => 'serverAxisSurface' in window && node === window.serverAxisSurface)).toBe(true);
+  await page.getByRole('button', { name: 'Update chart data', exact: true }).click();
+  await expect(root.locator('.recharts-line-curve')).not.toHaveAttribute('d', wide.curve!);
+  const updated = await checkGeometry(500, 120, ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']);
+  expect(updated.axes[0].some(tick => months.includes(tick.label!))).toBe(false);
+  expect(errors).toEqual([]);
+});
+
 test('responsive composition resizes real geometry, exposes tooltip payload and disposes mounted charts', async ({ page }, info) => {
   await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
   const surface = page.locator('#chart-responsive svg.recharts-surface').first();

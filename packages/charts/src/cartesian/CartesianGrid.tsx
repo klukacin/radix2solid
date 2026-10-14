@@ -13,8 +13,8 @@
 // full GridLineTypeFunctionProps payload (matching recharts) including the
 // xAxis/yAxis/offset bundle.
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createMemo, For, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
+import { createEffect, createMemo, createSignal, For, merge, Show } from "solid-js";
+import { isServer, type JSX } from "@solidjs/web";
 import { useAppSelector } from "../state/hooks";
 import { useIsPanorama } from "../context/PanoramaContext";
 import { useChartHeight, useChartWidth, useOffsetInternal } from "../context/chartLayoutContext";
@@ -228,6 +228,11 @@ const defaultHorizontalCoordinatesGenerator: HorizontalCoordinatesGenerator = (
 
 export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
   const merged = merge(cartesianGridDefaults, props);
+  const [canMeasureTicks, setCanMeasureTicks] = createSignal(false);
+  // Default grid generators must claim the same unmeasured ticks as the axes.
+  if (!isServer) {
+    createEffect(() => undefined, () => { setCanMeasureTicks(true); }, { transparent: true });
+  }
   const isPanorama = useIsPanorama();
   const offset = useOffsetInternal();
   const chartWidth = useChartWidth();
@@ -266,6 +271,9 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
               ? undefined
               : {
                   ...ya,
+                  interval: !merged.horizontalCoordinatesGenerator && !canMeasureTicks() && !isNumber(ya.interval)
+                    ? 0
+                    : ya.interval,
                   ticks: isHorizontalValues ? hValues : ya.ticks,
                 },
           width: cw,
@@ -290,6 +298,9 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
               ? undefined
               : {
                   ...xa,
+                  interval: !merged.verticalCoordinatesGenerator && !canMeasureTicks() && !isNumber(xa.interval)
+                    ? 0
+                    : xa.interval,
                   ticks: isVerticalValues ? vValues : xa.ticks,
                 },
           width: cw,

@@ -124,6 +124,13 @@
       "tests": ["tests/consumer/charts.test.ts: fixed size native charts emit actual finite data geometry before JavaScript", "tests/consumer/charts.test.ts: axes-first bounded-domain stacked SSR emits correct values and the complete numeric tick ladder", "e2e/charts.spec.ts: fixed server chart geometry hydrates in place and clip references stay unique across charts"]
     },
     {
+      "id": "cartesian-tick-hydration",
+      "origin": "local",
+      "files": ["src/cartesian/CartesianAxis.tsx", "src/cartesian/CartesianGrid.tsx"],
+      "reason": "Automatic browser tick measurement could shorten the first hydration list and leave unowned server ticks or gridlines. Axes and default grid generators now claim server-compatible tick lists before enabling automatic measurement in Solid's apply phase. Numeric intervals and custom grid generators retain their behavior.",
+      "tests": ["tests/consumer/charts.test.ts: server Cartesian tick selection preserves numeric intervals and ignores the mutable measurement hint", "e2e/charts.spec.ts: automatic Cartesian ticks hydrate uniquely and stay correct through resize and data replacement"]
+    },
+    {
       "id": "zindex-inline-svg",
       "origin": "local",
       "files": ["src/zIndex/ZIndexLayer.tsx"],

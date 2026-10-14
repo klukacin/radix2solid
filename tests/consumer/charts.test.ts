@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createComponent } from 'solid-js';
 import { renderToString } from '@solidjs/web';
-import { ComposedChart, LineChart, Line, BarChart, Bar, PieChart, Pie, ScatterChart, Scatter, FunnelChart, Funnel, RadialBarChart, RadialBar, XAxis, YAxis, Brush, Cell, ErrorBar } from '@wsagency/radix2solid-charts';
+import { ComposedChart, LineChart, Line, BarChart, Bar, PieChart, Pie, ScatterChart, Scatter, FunnelChart, Funnel, RadialBarChart, RadialBar, XAxis, YAxis, CartesianAxis, CartesianGrid, Brush, Cell, ErrorBar } from '@wsagency/radix2solid-charts';
 import { Global } from '@wsagency/radix2solid-charts';
 
 const data = [{ name: 'A', value: 10 }, { name: 'B', value: 30 }, { name: 'C', value: 20 }];
@@ -50,6 +50,46 @@ test('native server chart initialization ignores the mutable measurement hint', 
     assert.deepEqual(identities(html), identities(baseline));
     assert.equal([...html.matchAll(/class="[^"]*recharts-sector[^"]*"/g)].length, data.length);
     assert.doesNotMatch(html, /NaN|Infinity|undefined/);
+  } finally {
+    Global.isSsr = previous;
+  }
+});
+
+test('server Cartesian tick selection preserves numeric intervals and ignores the mutable measurement hint', () => {
+  const previous = Global.isSsr;
+  const labels = (html: string) => [...html.matchAll(/<tspan\b[^>]*>([^<]*)<\/tspan>/g)].map(match => match[1]);
+  try {
+    for (const interval of ['preserveEnd', 1] as const) {
+      const render = () => renderToString(() => createComponent(CartesianAxis, {
+        x: 0, y: 0, width: 3, height: 20, interval, minTickGap: 5,
+        ticks: ['A', 'B', 'C', 'D'].map((value, index) => ({ value, coordinate: index, index })),
+      }));
+      Global.isSsr = true;
+      const baseline = labels(render());
+      assert.deepEqual(baseline, interval === 1 ? ['A', 'C'] : ['A', 'B', 'C', 'D']);
+      Global.isSsr = false;
+      assert.deepEqual(labels(render()), baseline);
+    }
+    const renderGrid = () => renderToString(() => createComponent(LineChart, {
+      width: 120, height: 60, data,
+      margin: { top: 10, right: 10, bottom: 10, left: 10 },
+      get children() { return [
+        createComponent(XAxis, { dataKey: 'name', height: 30 }),
+        createComponent(YAxis, { domain: [0, 80], allowDataOverflow: true, tickCount: 9, width: 50 }),
+        createComponent(CartesianGrid, { syncWithTicks: true }),
+        createComponent(Line, { dataKey: 'value', isAnimationActive: false }),
+      ]; },
+    }));
+    Global.isSsr = true;
+    const baseline = renderGrid();
+    assert.deepEqual(labels(baseline), ['A', 'B', 'C', '0', '10', '20', '30', '40', '50', '60', '70', '80']);
+    Global.isSsr = false;
+    const html = renderGrid();
+    assert.deepEqual(labels(html), labels(baseline));
+    const gridLines = (markup: string) => [...markup.matchAll(/<g\b[^>]*\bclass="recharts-cartesian-grid-(?:horizontal|vertical)"[^>]*>([\s\S]*?)<\/g>/g)]
+      .flatMap(([, group]) => group.match(/<line\b[^>]*>/g) ?? []);
+    assert.equal(gridLines(baseline).length, 12);
+    assert.deepEqual(gridLines(html), gridLines(baseline));
   } finally {
     Global.isSsr = previous;
   }

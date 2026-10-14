@@ -38,6 +38,17 @@ export function Charts() {
     <output id="chart-cell-event">{cellEvent()}</output>
     <div id="chart-tooltip-target" ref={setTarget} />
     <Show when={mounted()}>
+      <div id="chart-axis-hydration" style={{ width: '500px', height: '120px' }}>
+        <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 240, height: 120 }}>
+          <LineChart margin={{ top: 10, right: 10, bottom: 10, left: 10 }}
+            data={(revision() ? ['Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']).map((month, index) => ({ month, value: (revision() ? [65, 25, 45, 15, 55, 35] : [10, 30, 20, 60, 40, 70])[index] }))}>
+            <XAxis dataKey="month" height={30} />
+            <YAxis width={50} domain={[0, 80]} allowDataOverflow tickCount={9} />
+            <CartesianGrid syncWithTicks />
+            <Line dataKey="value" isAnimationActive={false} />
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
       <div id="chart-responsive" style={{ width: width() + 'px', height: '300px', 'max-width': '100%' }}>
         <ResponsiveContainer width="100%" height="100%" initialDimension={{ width: 500, height: 300 }} onResize={(w, h) => setResizes(w + ':' + h)}>
           <ComposedChart data={data()} title="Revenue overview" desc="Five categories of revenue" accessibilityLayer>
