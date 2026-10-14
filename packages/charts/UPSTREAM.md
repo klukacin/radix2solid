@@ -1,0 +1,48 @@
+# Upstream provenance
+
+`upstream.json` is the machine-readable record; this file explains it. Tracking is manual. There is no update bot.
+
+## Sources
+
+| Role | Repository / version | Commit |
+| --- | --- | --- |
+| Imported source | [solid-recharts](https://github.com/yumemi-thomas/solid-recharts) `2.0.0-beta.1` | `b1f9c6729eefb42caf96d2162ad8c71c2c5520e3` |
+| Reference ported by solid-recharts | [Recharts](https://github.com/recharts/recharts) `3.9.2` | `b3451050c027a23957ffa50a2665c9119df21e47` |
+| Tracked, not ported | [Recharts](https://github.com/recharts/recharts) `3.10.1` | `ffb918798051ef040bb7f9922d3850c9c189f39f` |
+
+`packages/solid-recharts/src` at the imported commit was copied to `packages/charts/src`. The source archive is <https://codeload.github.com/yumemi-thomas/solid-recharts/tar.gz/b1f9c6729eefb42caf96d2162ad8c71c2c5520e3>, SHA-256 `380049292e5db2fa4e3321286ca1041cedb89326765fc31b20e0f9571fd27f8a`.
+
+Some copied source headers name older Recharts versions or mark work as `DEFERRED`. They are solid-recharts comments, kept unchanged; they do not say what this package supports.
+
+Not imported:
+
+- `packages/solid-recharts/test`: stays in the pinned archive as a reference. This package is covered by its own focused tests (below).
+- `src/component/Customized.tsx`: an unexported placeholder for a React element-cloning API, with no implementation. No export or no-op replacement is provided.
+- `src/util/useId.ts`: replaced by Solid's `createUniqueId`.
+
+## Licenses
+
+`LICENSE` keeps the solid-recharts MIT notice (Copyright (c) 2026 Thomas Guehenneux) and adds the current Recharts MIT notice (Copyright (c) 2015-present recharts). `d3-scale` and `d3-shape` are external dependencies, not bundled into `dist`. `NOTICE` reproduces, verbatim, the license file of every package in their resolved dependency graph: `d3-array@3.2.4`, `d3-color@3.1.0`, `d3-format@3.1.2`, `d3-interpolate@3.0.1`, `d3-path@3.1.0`, `d3-scale@4.0.2`, `d3-shape@3.2.0`, `d3-time@3.1.0`, `d3-time-format@4.1.0` and `internmap@2.0.3`, all ISC.
+
+## Local changes
+
+Every imported `src/` file not listed here is byte-identical to the imported commit. The package metadata and build files in the `packaging` row, `LICENSE` and `NOTICE`, and this package's `README.md`, `CHANGELOG.md`, `UPSTREAM.md` and `upstream.json` are written for this package. Paths are relative to `packages/charts`; tests are relative to the repository root.
+
+| ID | Files | Change | Focused tests |
+| --- | --- | --- | --- |
+| `packaging` | `package.json`, `vite.config.ts`, `tsconfig.json`, `LICENSE`, `NOTICE` | Client and server ESM builds with shared declarations; exact Solid `2.0.0-rc.15` peers (upstream `^2.0.0-beta.17`); D3 kept external; license files above. | `tests/consumer/run.ts --scope=next-core` |
+| `native-ids` | `src/util/useUniqueId.ts`, `src/container/ClipPathProvider.tsx`, `src/cartesian/AreaRevealShape.tsx` | IDs come from `createUniqueId`, so server and client agree and clip paths stay unique across charts. | `e2e/charts.spec.ts` (hydrates in place, unique clip references); `tests/consumer/charts.test.ts` (independent server renders) |
+| `chart-initialization` | new `src/state/createChartState.ts`; `src/state/{store,hooks,registerInStore}.ts`; the 16 `src/state/*Slice.ts` files; `src/state/Report{Chart,MainChart}Props.tsx`, `src/state/ReportPolarOptions.tsx`; `src/context/{chartDataContext,chartLayoutContext,RegisterGraphicalItemId}.tsx`; `src/component/Legend.tsx`; `src/cartesian/Brush.tsx` | Upstream registered data, layout, axes and series in effects, which do not run on the server. Declarations now seed chart-local state during the first render, identically on the server and during hydration; later changes go through a lazily created store in Solid's apply phase. | `tests/consumer/charts.test.ts` (finite geometry before JavaScript; bounded-domain stacked SSR); `e2e/charts.spec.ts` (hydrates in place) |
+| `zindex-inline-svg` | `src/zIndex/ZIndexLayer.tsx` | Upstream used a DOM-only Portal, which emits nothing on the server. The layer renders one owned SVG subtree during SSR and hydration, then moves those nodes into the ordered layer. | `e2e/charts.spec.ts` (hydrates in place) |
+| `server-guards` | `src/cartesian/Brush.tsx`, `src/util/usePrefersReducedMotion.ts` | No `window` access on the server; Brush clears its leave timer on cleanup. | `tests/consumer/charts.test.ts` (finite geometry before JavaScript); `e2e/charts.spec.ts` (reduced motion) |
+| `treemap-derived-nest` | `src/chart/Treemap.tsx` | The nesting stack derives from the current root, so replacement data resets it. The unused `isUpdateAnimationActive` prop and its default are removed; only entry animation exists. | `e2e/charts.spec.ts` (all families react to replacement data); `tests/consumer/types.tsx` (`Treemap` rejects `isUpdateAnimationActive`) |
+| `sync-flush` | `src/synchronisation/useChartSynchronisation.tsx` | Removed nested `flush()` calls, which Solid rejects; receiving store writes join the current flush. | `e2e/charts.spec.ts` (Brush synchronization) |
+| `cell-ownership` | `src/component/Cell.tsx`, `src/cartesian/{Bar,Scatter,Funnel}.tsx`, `src/polar/{Pie,RadialBar}.tsx` | Cells register with their graphical item through context instead of a module-level registrar, so overrides apply in order on the server and after reorder or replacement. | `tests/consumer/charts.test.ts` (Cell overrides; five Cell consumers); `e2e/charts.spec.ts` (keyed Cells) |
+| `panorama-area` | `src/cartesian/Area.tsx`, `src/cartesian/Brush.tsx` | An `Area` inside a Brush panorama renders in any chart type. | `e2e/charts.spec.ts` (Brush panorama keeps full data) |
+
+## Updating
+
+1. Compare the pinned solid-recharts commit with the candidate commit, limited to `packages/solid-recharts/src`.
+2. Map each change onto `packages/charts/src`, keeping the local changes above.
+3. Review Recharts fixes separately and port their behavior to the Solid equivalent.
+4. Record each change in `upstream.json` with its source commit, local adaptation, focused test and status: contained, not applicable, ported or pending.

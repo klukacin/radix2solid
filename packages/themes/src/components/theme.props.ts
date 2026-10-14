@@ -70,7 +70,11 @@ const themePropDefs = {
   scaling: PropDef<(typeof scalings)[number]>;
 };
 
-type ThemeOwnProps = GetPropDefTypes<typeof themePropDefs & typeof asChildPropDef>;
+type ThemeScaling = `${number}%`;
+type ThemeOwnProps = Omit<GetPropDefTypes<typeof themePropDefs & typeof asChildPropDef>, 'scaling'> & {
+  scaling?: ThemeScaling;
+  customAccent?: string;
+};
 
 export { themePropDefs, appearances, panelBackgrounds, scalings };
-export type { ThemeOwnProps };
+export type { ThemeOwnProps, ThemeScaling };

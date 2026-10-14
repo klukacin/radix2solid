@@ -1,6 +1,6 @@
 import { createMemo, merge, omit, untrack, type Element } from 'solid-js';
-import { dynamic, isServer, type ComponentProps, type ValidComponent } from '@solidjs/web';
-import { Slot, withServerInputDefaults, type SlotProps, type SlotRender } from '../slot/slot.js';
+import { dynamic, type ComponentProps, type ValidComponent } from '@solidjs/web';
+import { Slot, type SlotProps, type SlotRender } from '../slot/slot.js';
 import { equalRefs } from './refs.js';
 
 export type PrimitiveProps<T extends ValidComponent = 'button'> = Omit<ComponentProps<T>, 'children'> & {
@@ -19,6 +19,6 @@ export function Primitive<T extends ValidComponent = 'button'>(props: PrimitiveP
   const native = merge(forwarded, { get ref() { return ref(); } });
   const Target = dynamic(() => props.as ?? 'button');
   // The selected tag/component consumes the same native forwarded prop view.
-  const hostProps = (isServer ? withServerInputDefaults(untrack(() => props.as ?? 'button'), native) : native) as ComponentProps<T | 'button'>;
+  const hostProps = native as ComponentProps<T | 'button'>;
   return <Target {...hostProps} />;
 }

@@ -1,7 +1,8 @@
 import { createRoot, createSignal, Show, type Element } from 'solid-js';
 import { Portal as NativePortal } from '@solidjs/web';
-import { Dialog, Form, ScrollArea, Slider, Toast, unstable_PasswordToggleField as Password, unstable_OneTimePasswordField as OTP } from '@wsagency/radix2solid-primitives';
+import { Checkbox, Dialog, Form, ScrollArea, Slider, Toast, unstable_PasswordToggleField as Password, unstable_OneTimePasswordField as OTP } from '@wsagency/radix2solid-primitives';
 import { createLayer, registerLayerBranch } from '@wsagency/radix2solid-primitives/internal';
+import { Checkbox as ThemedCheckbox, Theme } from '@wsagency/radix2solid-themes';
 
 export function Advanced(): Element {
   const [secret, setSecret] = createSignal('selection-secret');
@@ -35,6 +36,9 @@ export function Advanced(): Element {
   const [formEvents, setFormEvents] = createSignal<string[]>([]), [formMatches, setFormMatches] = createSignal<string[]>([]);
   const [formFieldMounted, setFormFieldMounted] = createSignal(true);
   const [requireExternalFormField, setRequireExternalFormField] = createSignal(false);
+  const [changedFormDefaults, setChangedFormDefaults] = createSignal(false);
+  const [primitiveConfirmations, setPrimitiveConfirmations] = createSignal<string[]>([]);
+  const [themedConfirmations, setThemedConfirmations] = createSignal<string[]>([]);
   const [asyncServerError, setAsyncServerError] = createSignal(false);
   const [extraMatcher, setExtraMatcher] = createSignal(false);
   const remoteChecks: { value: string; resolve: (invalid: boolean) => void }[] = [];
@@ -153,14 +157,29 @@ export function Advanced(): Element {
         </Form.Field></Show>
         <Form.Field name="other"><Form.Label>Second required field</Form.Label><Form.Control required /><Form.Message match="valueMissing">Second field required</Form.Message></Form.Field>
         <Form.Label name="outside" for="outside-form-input">Explicit form field</Form.Label>
-        <Form.Control name="outside" id="outside-form-input" defaultValue="outside" />
+        <Form.Control name="outside" id="outside-form-input" defaultValue={changedFormDefaults() ? 'revised' : 'outside'} />
         <Form.Message name="outside">Outside field instructions</Form.Message>
-        <Form.Control name="choice" type="checkbox" defaultChecked defaultValue="initial" aria-label="Native default choice" asChild>{target => target('input', {})}</Form.Control>
+        <Form.Control name="choice" type="checkbox" defaultChecked={!changedFormDefaults()} defaultValue={changedFormDefaults() ? 'revised' : 'initial'} aria-label="Native default choice" asChild>{target => target('input', {})}</Form.Control>
+        <button type="button" onClick={() => setChangedFormDefaults(value => !value)}>Change native form defaults</button>
         <NativePortal><section aria-label="External form controls"><Form.Control name="external" form="validation-form" aria-label="External validation field" required={requireExternalFormField()} /></section></NativePortal>
         <Form.Submit asChild>{target => target('button', { children: 'Submit validation form' })}</Form.Submit>
         <button type="reset">Reset validation form</button>
       </Form.Root>
       <output id="form-events">{formEvents().join(',')}</output><output id="form-matches">{formMatches().join(',')}</output>
+    </section>
+    <section aria-label="Required delete confirmation">
+      <form id="primitive-confirm-form" onSubmit={event => { event.preventDefault(); setPrimitiveConfirmations(previous => [...previous, String(new FormData(event.currentTarget).get('confirm'))]); }}>
+        <Checkbox.Root aria-label="Primitive delete confirmation" name="confirm" value="delete" required />
+        <button type="submit">Submit primitive confirmation</button><button type="reset">Reset primitive confirmation</button>
+      </form>
+      <output id="primitive-confirmations">{primitiveConfirmations().join(',')}</output>
+      <Theme>
+        <form id="themed-confirm-form" onSubmit={event => { event.preventDefault(); setThemedConfirmations(previous => [...previous, String(new FormData(event.currentTarget).get('confirm'))]); }}>
+          <ThemedCheckbox aria-label="Themed delete confirmation" name="confirm" value="delete" required />
+          <button type="submit">Submit themed confirmation</button><button type="reset">Reset themed confirmation</button>
+        </form>
+      </Theme>
+      <output id="themed-confirmations">{themedConfirmations().join(',')}</output>
     </section>
     <NotificationScenarios />
   </section>;

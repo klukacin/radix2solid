@@ -1,6 +1,6 @@
 # Native Radix icons for Solid 2
 
-`@wsagency/radix2solid-icons` provides all 332 original icon names with native Solid 2 SVG props, events and refs. It requires `solid-js` and `@solidjs/web` **2.0.0-rc.13** as peers; no React runtime or cloning API. **Prepared candidate `0.1.0-rc.1` — not yet published**; it will be released under the npm `next` dist-tag. After publication: `pnpm add @wsagency/radix2solid-icons@0.1.0-rc.1`; until then consume a `pnpm pack` tarball.
+`@wsagency/radix2solid-icons` provides all 332 original icon names with native Solid 2 SVG props, events and refs. It requires `solid-js` and `@solidjs/web` **2.0.0-rc.15** as peers (Node `>=22.12.0`); no React runtime or cloning API. **Prepared candidate `0.1.0-rc.2` — not yet published**; it will be released under the npm `next` dist-tag. After publication: `pnpm add @wsagency/radix2solid-icons@0.1.0-rc.2`; until then consume a `pnpm pack` tarball.
 
 ```tsx
 import { CheckIcon } from '@wsagency/radix2solid-icons';

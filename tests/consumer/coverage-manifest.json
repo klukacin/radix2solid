@@ -1,6 +1,6 @@
 {
   "scope": "Public part/type availability is checked separately from the mapped family behavior. Isolated real-reader Announce/Toast/layer speech has separate observed evidence; automated availability checks do not certify every reader/platform or release ownership.",
-  "publicCounts": { "modules": 150, "declarations": 1314, "css": 40, "plugins": 6, "icons": 332 },
+  "publicCounts": { "modules": 151, "declarations": 1602, "css": 94, "plugins": 6, "icons": 332 },
   "modules": [
     {
       "module": "@wsagency/radix2solid-primitives/slot",
@@ -358,7 +358,7 @@
     },
     {
       "module": "@wsagency/radix2solid-themes",
-      "exports": "AccessibleIcon AccessibleIconProps AlertDialog AspectRatio AspectRatioProps Avatar AvatarProps Badge BadgeProps Blockquote BlockquoteProps Box BoxProps Button ButtonProps Callout Card CardProps Checkbox CheckboxCards CheckboxGroup CheckboxProps ChevronDownIcon Code CodeProps Container ContainerProps ContextMenu DataList Dialog DropdownMenu Em EmProps Flex FlexProps Grid GridProps Heading HeadingProps HoverCard IconButton IconButtonProps IconProps Inset InsetProps Kbd KbdProps Link LinkProps Popover Portal PortalProps Progress ProgressProps Quote QuoteProps Radio RadioCards RadioGroup RadioProps Reset ResetProps ScrollArea ScrollAreaProps Section SectionProps SegmentedControl Select Separator SeparatorProps Skeleton SkeletonProps Slider SliderProps Slot Slottable Spinner SpinnerProps Strong StrongProps Switch SwitchProps Table TabNav Tabs Text TextArea TextAreaProps TextField TextProps Theme ThemeContext ThemePanel ThemePanelProps ThemeProps ThickCheckIcon ThickChevronRightIcon ThickDividerHorizontalIcon Tooltip TooltipProps unstable_ThemePanelContent unstable_ThemePanelContentProps useThemeContext VisuallyHidden VisuallyHiddenProps",
+      "exports": "AccessibleIcon AccessibleIconProps AlertDialog AspectRatio AspectRatioProps Avatar AvatarProps Badge BadgeProps Blockquote BlockquoteProps Box BoxProps Button ButtonProps Callout Card CardProps Checkbox CheckboxCards CheckboxGroup CheckboxProps ChevronDownIcon Code CodeProps Container ContainerProps ContextMenu DataList Dialog DropdownMenu Em EmProps Flex FlexProps Grid GridProps Heading HeadingProps HoverCard IconButton IconButtonProps IconProps Inset InsetProps Kbd KbdProps Link LinkProps Popover Portal PortalProps Progress ProgressProps Quote QuoteProps Radio RadioCards RadioGroup RadioProps Reset ResetProps ScrollArea ScrollAreaProps Section SectionProps SegmentedControl Select Separator SeparatorProps Skeleton SkeletonProps Slider SliderProps Slot Slottable Spinner SpinnerProps Strong StrongProps Switch SwitchProps Table TabNav Tabs Text TextArea TextAreaProps TextField TextProps Theme ThemeContext ThemePanel ThemePanelProps ThemeProps ThemeScaling ThickCheckIcon ThickChevronRightIcon ThickDividerHorizontalIcon Tooltip TooltipProps unstable_ThemePanelContent unstable_ThemePanelContentProps useThemeContext VisuallyHidden VisuallyHiddenProps",
       "checks": [
         "themes",
         "theme-interactions",
@@ -862,7 +862,7 @@
     },
     {
       "module": "@wsagency/radix2solid-themes/components/theme",
-      "exports": "Theme ThemeContext ThemeContextValue ThemeProps useThemeContext",
+      "exports": "Theme ThemeContext ThemeContextValue ThemeProps ThemeScaling useThemeContext",
       "checks": [
         "themes",
         "theme-interactions",
@@ -899,7 +899,7 @@
     },
     {
       "module": "@wsagency/radix2solid-themes/props",
-      "exports": "accentColorPropDef accentColors AlertDialogContentOwnProps alertDialogContentPropDefs appearances asChildPropDef avatarPropDefs badgePropDefs blockquotePropDefs BoxOwnProps boxPropDefs Breakpoint breakpoints breakpointsArray buttonPropDefs calloutRootPropDefs cardPropDefs checkboxCardsRootPropDefs checkboxGroupRootPropDefs checkboxPropDefs codePropDefs colorPropDef ContainerOwnProps containerPropDefs contextMenuCheckboxItemPropDefs contextMenuContentPropDefs contextMenuItemPropDefs contextMenuRadioItemPropDefs dataListItemPropDefs dataListLabelPropDefs dataListRootPropDefs DialogContentOwnProps dialogContentPropDefs dropdownMenuCheckboxItemPropDefs dropdownMenuContentPropDefs dropdownMenuItemPropDefs dropdownMenuRadioItemPropDefs emPropDefs FlexOwnProps flexPropDefs gapPropDefs GetPropDefTypes grayColors GridOwnProps gridPropDefs headingPropDefs heightPropDefs HeightProps highContrastPropDef HoverCardContentOwnProps hoverCardContentPropDefs iconButtonPropDefs insetPropDefs kbdPropDefs layoutPropDefs LayoutProps leadingTrimPropDef linkPropDefs marginPropDefs MarginProps paddingPropDefs PaddingProps panelBackgrounds PopoverContentOwnProps popoverContentPropDefs progressPropDefs PropDef quotePropDefs radii radioCardsRootPropDefs radioGroupRootPropDefs radioPropDefs radiusPropDef Responsive ResponsivePropDef scalings scrollAreaPropDefs SectionOwnProps sectionPropDefs segmentedControlRootPropDefs selectContentPropDefs selectRootPropDefs selectTriggerPropDefs separatorPropDefs skeletonPropDefs sliderPropDefs spinnerPropDefs strongPropDefs switchPropDefs tableCellPropDefs tableRootPropDefs tableRowPropDefs tabNavLinkPropDefs tabNavRootPropDefs tabsContentPropDefs tabsListPropDefs tabsRootPropDefs textAlignPropDef textAreaPropDefs textFieldRootPropDefs textFieldSlotPropDefs textPropDefs textWrapPropDef ThemeOwnProps themePropDefs TooltipOwnProps tooltipPropDefs truncatePropDef Union weightPropDef widthPropDefs WidthProps",
+      "exports": "accentColorPropDef accentColors AlertDialogContentOwnProps alertDialogContentPropDefs appearances asChildPropDef avatarPropDefs badgePropDefs blockquotePropDefs BoxOwnProps boxPropDefs Breakpoint breakpoints breakpointsArray buttonPropDefs calloutRootPropDefs cardPropDefs checkboxCardsRootPropDefs checkboxGroupRootPropDefs checkboxPropDefs codePropDefs colorPropDef ContainerOwnProps containerPropDefs contextMenuCheckboxItemPropDefs contextMenuContentPropDefs contextMenuItemPropDefs contextMenuRadioItemPropDefs dataListItemPropDefs dataListLabelPropDefs dataListRootPropDefs DialogContentOwnProps dialogContentPropDefs dropdownMenuCheckboxItemPropDefs dropdownMenuContentPropDefs dropdownMenuItemPropDefs dropdownMenuRadioItemPropDefs emPropDefs FlexOwnProps flexPropDefs gapPropDefs GetPropDefTypes grayColors GridOwnProps gridPropDefs headingPropDefs heightPropDefs HeightProps highContrastPropDef HoverCardContentOwnProps hoverCardContentPropDefs iconButtonPropDefs insetPropDefs kbdPropDefs layoutPropDefs LayoutProps leadingTrimPropDef linkPropDefs marginPropDefs MarginProps paddingPropDefs PaddingProps panelBackgrounds PopoverContentOwnProps popoverContentPropDefs progressPropDefs PropDef quotePropDefs radii radioCardsRootPropDefs radioGroupRootPropDefs radioPropDefs radiusPropDef Responsive ResponsivePropDef scalings scrollAreaPropDefs SectionOwnProps sectionPropDefs segmentedControlRootPropDefs selectContentPropDefs selectRootPropDefs selectTriggerPropDefs separatorPropDefs skeletonPropDefs sliderPropDefs spinnerPropDefs strongPropDefs switchPropDefs tableCellPropDefs tableRootPropDefs tableRowPropDefs tabNavLinkPropDefs tabNavRootPropDefs tabsContentPropDefs tabsListPropDefs tabsRootPropDefs textAlignPropDef textAreaPropDefs textFieldRootPropDefs textFieldSlotPropDefs textPropDefs textWrapPropDef ThemeOwnProps themePropDefs ThemeScaling TooltipOwnProps tooltipPropDefs truncatePropDef Union weightPropDef widthPropDefs WidthProps",
       "checks": [
         "responsive",
         "themes",
@@ -1389,7 +1389,7 @@
     },
     {
       "module": "@wsagency/radix2solid-themes/components/theme.props",
-      "exports": "ThemeOwnProps appearances panelBackgrounds scalings themePropDefs",
+      "exports": "ThemeOwnProps ThemeScaling appearances panelBackgrounds scalings themePropDefs",
       "checks": [
         "responsive",
         "themes",
@@ -1404,6 +1404,15 @@
         "responsive",
         "themes",
         "theme-interactions",
+        "types"
+      ]
+    }
+,
+    {
+      "module": "@wsagency/radix2solid-charts",
+      "exports": "ActiveDotProps ActiveLabel AnimationController AnimationControllerProvider AnimationHandle AnimationInterpolateFn AnimationItem AnimationMatchBy AnimationMatchByProp Area AreaChart AreaChartProps AreaPointItem AreaProps AreaRevealShape AreaRevealShapeProps AxisDomainItem AxisId AxisInterval AxisRange BandPosition Bar BarChart BarChartProps BarProps BarRectangleItem BarShapeProps BarStack BarStackProps BaseLineType BaseTickContentProps Brush BrushProps CSSTransitionAnimation CancelableTimeout CartesianAxis CartesianAxisProps CartesianDataPoint CartesianGrid CartesianGridProps CartesianLabelContextProvider CartesianLabelFromLabelProp CartesianLabelListEntry CartesianLayout CartesianTickContentProps CartesianTickItem CartesianViewBox Cell CellProps ChartOffset ComposedChart ComposedChartProps Coordinate Cross CrossProps Cursor CursorDefinition CursorProps Curve CurveProps CurveType CustomScaleDefinition DataKey DefaultLegendContent DefaultLegendContentProps DefaultTooltipContent DefaultTooltipContentProps DefaultZIndexes Dot DotItemDotProps DotProps EasingInput ErrorBar ErrorBarDirection ErrorBarProps Funnel FunnelChart FunnelChartProps FunnelProps FunnelTrapezoid FunnelTrapezoidItem FunnelTrapezoidProps Global HTMLMousePointer HTMLTouchPointer IfOverflow ImplicitLabelListType ImplicitLabelType InverseScaleFunction JavascriptAnimation Label LabelList LabelListEntry LabelListFromLabelProp LabelListProps LabelListPropsWithPosition LabelPosition LabelProps Layer LayerProps LayoutType Legend LegendPayload LegendProps LegendType Line LineChart LineChartProps LineDrawShape LineDrawShapeProps LinePointItem LineProps Margin MouseHandlerDataParam MousePointer NiceTicksAlgorithm NoCentric NoFunnel NoRadial NumberDomain OnAnimationStateUpdate Padding Pie PieChart PieChartProps PieLabel PieLabelRenderProps PieProps PieSectorDataItem PieSectorShapeProps PieShape PlotArea PolarAngleAxis PolarAngleAxisProps PolarAngleTickContentProps PolarCoordinate PolarGrid PolarGridProps PolarLabelContextProvider PolarLabelFromLabelProp PolarLayout PolarRadiusAxis PolarRadiusAxisProps PolarRadiusTickContentProps Polygon PolygonProps Radar RadarChart RadarChartProps RadarPoint RadarProps RadialBar RadialBarChart RadialBarChartProps RadialBarDataItem RadialBarProps RadialBarSectorProps RectRadius Rectangle RectangleProps ReferenceArea ReferenceAreaProps ReferenceDot ReferenceDotEventHandler ReferenceDotProps ReferenceDotTouchEventHandler ReferenceLine ReferenceLineProps ReferenceLineSegment RelativePointer RenderableText ResponsiveContainer ResponsiveContainerCalculations ResponsiveContainerProps SVGMousePointer SVGTouchPointer Sankey SankeyData SankeyElementType SankeyLink SankeyLinkProps SankeyNode SankeyNodeOptions SankeyNodeProps SankeyProps ScaleFunction Scatter ScatterChart ScatterChartProps ScatterPointItem ScatterPointNode ScatterProps ScatterShapeProps Sector SectorProps ShapeAnimationProps SunburstChart SunburstChartProps SunburstData Surface SurfaceProps SymbolType Symbols SymbolsProps Text TextAnchor TextProps TextVerticalAnchor TickItem TimeoutController Tooltip TooltipContentProps TooltipIndex TooltipItemSorter TooltipPayload TooltipPayloadEntry TooltipProps TooltipValueType TouchPointer Trapezoid TrapezoidProps Treemap TreemapContentType TreemapDataType TreemapNode TreemapProps TypedCentricChartContext TypedHorizontalChartContext TypedRadialChartContext TypedVerticalChartContext XAxis XAxisOrientation XAxisPadding XAxisProps XAxisTickContentProps YAxis YAxisOrientation YAxisPadding YAxisProps YAxisTickContentProps ZAxis ZAxisProps ZIndexLayer createCentricChart createHorizontalChart createRadialChart createVerticalChart defaultCurveProps defaultFunnelShape getNiceTickValues getPath getRelativeCoordinate interpolate matchAppend matchByDataKey matchByIndex useActiveTooltipCoordinate useActiveTooltipDataPoints useActiveTooltipLabel useCartesianChartLayout useCartesianScale useChartHeight useChartLayout useChartWidth useIsTooltipActive useMargin useOffset usePlotArea usePolarChartLayout useResponsiveContainerContext useXAxis useXAxisDomain useXAxisInverseDataSnapScale useXAxisInverseScale useXAxisInverseTickSnapScale useXAxisScale useXAxisTicks useYAxis useYAxisDomain useYAxisInverseDataSnapScale useYAxisInverseScale useYAxisInverseTickSnapScale useYAxisScale useYAxisTicks",
+      "checks": [
+        "packed",
         "types"
       ]
     }
@@ -1433,6 +1442,60 @@
   },
   "css": [
     "@wsagency/radix2solid-themes/components.css",
+    "@wsagency/radix2solid-themes/css/alert-dialog.css",
+    "@wsagency/radix2solid-themes/css/avatar.css",
+    "@wsagency/radix2solid-themes/css/badge.css",
+    "@wsagency/radix2solid-themes/css/blockquote.css",
+    "@wsagency/radix2solid-themes/css/box.css",
+    "@wsagency/radix2solid-themes/css/button.css",
+    "@wsagency/radix2solid-themes/css/callout.css",
+    "@wsagency/radix2solid-themes/css/card.css",
+    "@wsagency/radix2solid-themes/css/checkbox-cards.css",
+    "@wsagency/radix2solid-themes/css/checkbox-group.css",
+    "@wsagency/radix2solid-themes/css/checkbox.css",
+    "@wsagency/radix2solid-themes/css/code.css",
+    "@wsagency/radix2solid-themes/css/common.css",
+    "@wsagency/radix2solid-themes/css/container.css",
+    "@wsagency/radix2solid-themes/css/context-menu.css",
+    "@wsagency/radix2solid-themes/css/data-list.css",
+    "@wsagency/radix2solid-themes/css/dialog.css",
+    "@wsagency/radix2solid-themes/css/dropdown-menu.css",
+    "@wsagency/radix2solid-themes/css/em.css",
+    "@wsagency/radix2solid-themes/css/flex.css",
+    "@wsagency/radix2solid-themes/css/grid.css",
+    "@wsagency/radix2solid-themes/css/heading.css",
+    "@wsagency/radix2solid-themes/css/hover-card.css",
+    "@wsagency/radix2solid-themes/css/icon-button.css",
+    "@wsagency/radix2solid-themes/css/inset.css",
+    "@wsagency/radix2solid-themes/css/kbd.css",
+    "@wsagency/radix2solid-themes/css/link.css",
+    "@wsagency/radix2solid-themes/css/popover.css",
+    "@wsagency/radix2solid-themes/css/progress.css",
+    "@wsagency/radix2solid-themes/css/quote.css",
+    "@wsagency/radix2solid-themes/css/radio-cards.css",
+    "@wsagency/radix2solid-themes/css/radio-group.css",
+    "@wsagency/radix2solid-themes/css/radio.css",
+    "@wsagency/radix2solid-themes/css/reset.css",
+    "@wsagency/radix2solid-themes/css/scroll-area.css",
+    "@wsagency/radix2solid-themes/css/section.css",
+    "@wsagency/radix2solid-themes/css/segmented-control.css",
+    "@wsagency/radix2solid-themes/css/select.css",
+    "@wsagency/radix2solid-themes/css/separator.css",
+    "@wsagency/radix2solid-themes/css/skeleton.css",
+    "@wsagency/radix2solid-themes/css/slider.css",
+    "@wsagency/radix2solid-themes/css/spinner.css",
+    "@wsagency/radix2solid-themes/css/strong.css",
+    "@wsagency/radix2solid-themes/css/switch.css",
+    "@wsagency/radix2solid-themes/css/tab-nav.css",
+    "@wsagency/radix2solid-themes/css/table.css",
+    "@wsagency/radix2solid-themes/css/tabs.css",
+    "@wsagency/radix2solid-themes/css/text-area.css",
+    "@wsagency/radix2solid-themes/css/text-field.css",
+    "@wsagency/radix2solid-themes/css/text.css",
+    "@wsagency/radix2solid-themes/css/theme-panel.css",
+    "@wsagency/radix2solid-themes/css/theme.css",
+    "@wsagency/radix2solid-themes/css/tooltip.css",
+    "@wsagency/radix2solid-themes/css/utilities.css",
     "@wsagency/radix2solid-themes/layout.css",
     "@wsagency/radix2solid-themes/layout/components.css",
     "@wsagency/radix2solid-themes/layout/tokens.css",

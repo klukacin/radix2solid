@@ -1,5 +1,5 @@
 // Native port of Radix Slot merge policy; upstream MIT, Copyright (c) 2022 WorkOS.
-import { createMemo, merge, omit, untrack, type Element } from 'solid-js';
+import { createMemo, flatten, merge, omit, untrack, type Element } from 'solid-js';
 import { dynamic, isServer, type ComponentProps, type JSX, type ValidComponent } from '@solidjs/web';
 import { composeRefs, equalRefs } from '../internal/refs.js';
 import { callEventHandler } from '../internal/events.js';
@@ -25,18 +25,32 @@ export function concatAriaIds(...values: unknown[]): string | undefined {
 }
 
 function mergeSlotProps(parent: object, child: object) {
+  let resolved = false;
+  let serverChildren: Element;
+  function resolveServerChildren() {
+    // Read at the host, inside any target-owned provider. Native flatten adds
+    // no memo owners or hydration IDs, unlike a server-only children() helper.
+    if (!resolved) {
+      serverChildren = flatten(Reflect.get(child, 'children'));
+      resolved = true;
+    }
+    return serverChildren;
+  }
   const ref = createMemo(() => composeRefs(Reflect.get(parent, 'ref'), Reflect.get(child, 'ref')), { equals: equalRefs });
   const overrides: Record<string, unknown> = {
     get class() { return [Reflect.get(parent, 'class'), Reflect.get(child, 'class')]; },
     get style() { return mergeStyles(Reflect.get(parent, 'style'), Reflect.get(child, 'style')); },
     get ref() { return ref(); },
     get ['aria-describedby']() {
+      if (isServer) resolveServerChildren();
       return concatAriaIds(Reflect.get(child, 'aria-describedby'), Reflect.get(parent, 'aria-describedby'));
     },
     get ['aria-labelledby']() {
+      if (isServer) resolveServerChildren();
       return concatAriaIds(Reflect.get(child, 'aria-labelledby'), Reflect.get(parent, 'aria-labelledby'));
     }
   };
+  if (isServer) Object.defineProperty(overrides, 'children', { enumerable: true, get: resolveServerChildren });
   for (const key of untrack(() => Object.keys(merge(parent, child)))) {
     if (/^on[A-Z]/.test(key)) {
       overrides[key] = (...args: unknown[]) => untrack(() => {
@@ -49,15 +63,6 @@ function mergeSlotProps(parent: object, child: object) {
   return merge(parent, child, overrides);
 }
 
-// The RC dynamic server renderer otherwise emits defaultValue/defaultChecked as inert HTML attributes.
-export function withServerInputDefaults(component: ValidComponent, props: object): object {
-  if (component !== 'input' || untrack(() => Reflect.get(props, 'defaultValue') === undefined && Reflect.get(props, 'defaultChecked') === undefined)) return props;
-  return merge(omit(props as Record<string, unknown>, 'defaultValue', 'defaultChecked'), {
-    get value() { return Reflect.get(props, 'value') ?? Reflect.get(props, 'defaultValue'); },
-    get checked() { return Reflect.get(props, 'checked') ?? Reflect.get(props, 'defaultChecked'); }
-  });
-}
-
 export function createSlot(ownerName: string) {
   return function Slot(props: SlotProps): Element {
     const render = untrack(() => props.children);
@@ -68,8 +73,7 @@ export function createSlot(ownerName: string) {
       if (++count !== 1) throw new TypeError(`${ownerName} requires exactly one target.`);
       const Target = dynamic(() => component, { static: true });
       // The generic renderer props retain the same native keys after Slot's merge policy.
-      const merged = mergeSlotProps(omit(props, 'children'), childProps);
-      const forwarded = (isServer ? withServerInputDefaults(component, merged) : merged) as ComponentProps<typeof component>;
+      const forwarded = mergeSlotProps(omit(props, 'children'), childProps) as ComponentProps<typeof component>;
       return host = <Target {...forwarded} />;
     };
     const result = render(target);

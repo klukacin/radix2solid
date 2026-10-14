@@ -1,4 +1,4 @@
-import { createRoot, createSignal, createUniqueId, onSettled, Show, type Element } from 'solid-js';
+import { createContext, createRoot, createSignal, createUniqueId, onSettled, Show, useContext, type Element } from 'solid-js';
 import type { JSX } from '@solidjs/web';
 import { Dialog, Slot, Toggle } from '@wsagency/radix2solid-primitives';
 import { Layers, IndependentLayers } from './layers.js';
@@ -9,9 +9,25 @@ import { Advanced } from './advanced.js';
 import { Assets } from './assets.js';
 import { Themes } from './themes.js';
 import { ThemeInteractions } from './theme-interactions.js';
+import { ThemeExtensions } from './theme-extensions.js';
+import { Charts } from './charts.js';
 
 function CustomLink(props: JSX.AnchorHTMLAttributes<HTMLAnchorElement>) {
   return <a data-custom-target="true" {...props} />;
+}
+
+const SlotDialogContext = createContext('outside');
+function SlotDialogTarget(props: JSX.HTMLAttributes<HTMLElement>): Element {
+  return <SlotDialogContext value="inside"><section data-slot-custom-dialog {...props} /></SlotDialogContext>;
+}
+function SlotDialogChildren(): Element {
+  const context = useContext(SlotDialogContext);
+  const id = createUniqueId();
+  return <>
+    <Dialog.Title>Hydrated custom slot title</Dialog.Title>
+    <Dialog.Description>Hydrated custom slot description</Dialog.Description>
+    <span id={id} data-slot-context>{context}</span>
+  </>;
 }
 
 type RefConsumer = 'plain' | 'parent' | 'child' | 'dialog';
@@ -175,6 +191,22 @@ export function Composition(): Element {
     <RefComposition />
     <Toggle.Root id={id} data-id-proof aria-describedby={`${id}-description`}>Identity root A</Toggle.Root>
     <p id={`${id}-description`}>Stable server description</p>
+    <Dialog.Root defaultOpen modal={false}>
+      <Dialog.Content asChild onOpenAutoFocus={event => event.preventDefault()}>{target => target('section', {
+        ...{ 'data-slot-dialog': '' },
+        get children() {
+          return [
+            <Dialog.Title>Hydrated slot title</Dialog.Title>,
+            <Dialog.Description>Hydrated slot description</Dialog.Description>
+          ];
+        }
+      })}</Dialog.Content>
+    </Dialog.Root>
+    <Dialog.Root defaultOpen modal={false}>
+      <Dialog.Content asChild onOpenAutoFocus={event => event.preventDefault()}>{target => target(SlotDialogTarget, {
+        get children() { return <SlotDialogChildren />; }
+      })}</Dialog.Content>
+    </Dialog.Root>
     <Layers />
     <Controls />
     <Menus />
@@ -183,6 +215,8 @@ export function Composition(): Element {
     <Assets />
     <Themes />
     <ThemeInteractions />
+    <ThemeExtensions />
+    <Charts />
   </main>;
 }
 

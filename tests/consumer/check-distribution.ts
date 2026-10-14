@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { access, readFile, readdir, realpath } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import ts from 'typescript';
+// TypeScript 7 ships no JS compiler API; the public-declaration checker uses the 5.9 consumer-floor API.
+import ts from 'typescript5';
 
 type Coverage = {
   modules: { module: string; exports: string; checks: string[] }[];
@@ -25,7 +26,7 @@ function targets(value: ExportTarget): string[] {
   return value === null ? [] : typeof value === 'string' ? [value] : Object.values(value).flatMap(targets);
 }
 const publicPaths = new Set<string>();
-for (const name of ['primitives', 'themes', 'icons']) {
+for (const name of ['primitives', 'themes', 'icons', 'charts']) {
   const packageName = `@wsagency/radix2solid-${name}`;
   const packageRoot = resolve(dirname(await realpath(fileURLToPath(import.meta.resolve(packageName)))), '../..');
   const manifest: { exports: Record<string, ExportTarget> } = JSON.parse(await readFile(resolve(packageRoot, 'package.json'), 'utf8'));
@@ -57,8 +58,9 @@ for (const name of ['primitives', 'themes', 'icons']) {
     }
   }
 }
+// Every Themes CSS output, including css/<component>.css, has a `.layer.css` sibling.
 const expectedPaths = [
-  ...coverage.modules.map(contract => contract.module), ...coverage.css, ...coverage.plugins,
+  ...coverage.modules.map(contract => contract.module), ...coverage.css, ...coverage.css.map(css => css.replace(/\.css$/, '.layer.css')), ...coverage.plugins,
   '@wsagency/radix2solid-icons', ...Object.keys(iconNames).map(name => `@wsagency/radix2solid-icons/${name}`),
   ...Object.values(iconNames).map(asset => `@wsagency/radix2solid-icons/icons/${asset}`)
 ];

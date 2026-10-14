@@ -103,8 +103,11 @@ export function ThemePanelContent(props: ThemePanelContentProps): Element {
   }
   async function copyTheme(event: MouseEvent & { currentTarget: HTMLButtonElement }) {
     const theme = context();
-    const text = (['appearance', 'accentColor', 'grayColor', 'panelBackground', 'radius', 'scaling'] as const)
-      .filter(key => theme[key] !== themePropDefs[key].default).map(key => key + '="' + theme[key] + '"').join(' ');
+    const text = [
+      ...(['appearance', 'accentColor', 'grayColor', 'panelBackground', 'radius', 'scaling'] as const)
+        .filter(key => theme[key] !== themePropDefs[key].default).map(key => key + '="' + theme[key] + '"'),
+      ...(theme.customAccent ? ['customAccent="' + theme.customAccent + '"'] : [])
+    ].join(' ');
     setCopyError(''); setCopyState('copying'); clearTimeout(copyTimer);
     try {
       await event.currentTarget.ownerDocument.defaultView!.navigator.clipboard.writeText(text ? '<Theme ' + text + '>' : '<Theme>');
@@ -124,10 +127,10 @@ export function ThemePanelContent(props: ThemePanelContentProps): Element {
     <Heading size={{ initial: '3', sm: '5' }} trim="both" as="h2">Theme</Heading>
     <Flex direction="column" gap="5">
       <ThemePanelSection><ThemePanelHeading id="accent-color-title">Accent color</ThemePanelHeading>
-        <Flex wrap="wrap" gap="2" role="group" aria-labelledby="accent-color-title">{themePropDefs.accentColor.values.map(color =>
+        <Flex wrap="wrap" gap="2" role="group" aria-labelledby="accent-color-title">{themePropDefs.accentColor.values.filter(color => color !== 'custom' || context().customAccent).map(color =>
           <Box asChild>{target => target('label', { class: 'rt-ThemePanelSwatch', style: { 'background-color': 'var(--' + color + '-9)' }, children:
-            <Tooltip content={upperFirst(color) + (context().accentColor === 'gray' && resolvedGray() !== 'gray' ? ' (' + upperFirst(resolvedGray()) + ')' : '')}>
-              {target => target('input', { class: 'rt-ThemePanelSwatchInput', type: 'radio', name: 'accentColor', value: color, 'aria-label': upperFirst(color),
+            <Tooltip content={color === 'custom' ? 'Custom (' + context().customAccent + ')' : upperFirst(color) + (context().accentColor === 'gray' && resolvedGray() !== 'gray' ? ' (' + upperFirst(resolvedGray()) + ')' : '')}>
+              {target => target('input', { class: 'rt-ThemePanelSwatchInput', type: 'radio', name: 'accentColor', value: color, get ['aria-label']() { return color === 'custom' ? 'Custom (' + context().customAccent + ')' : upperFirst(color); },
                 get checked() { return context().accentColor === color; }, onChange: () => context().onAccentColorChange(color) })}
             </Tooltip>
           })}</Box>
@@ -200,7 +203,7 @@ export function ThemePanelContent(props: ThemePanelContentProps): Element {
         )}</Flex>
       </ThemePanelSection>
       <ThemePanelSection><ThemePanelHeading id="scaling-title">Scaling</ThemePanelHeading>
-        <Grid columns={{ initial: 'repeat(3, 1fr)', sm: '5' }} gap="2" role="group" aria-labelledby="scaling-title">{themePropDefs.scaling.values.map(value =>
+        <Grid columns={{ initial: 'repeat(3, 1fr)', sm: '5' }} gap="2" role="group" aria-labelledby="scaling-title">{[...new Set([...themePropDefs.scaling.values, context().scaling])].map(value =>
           <label class="rt-ThemePanelRadioCard"><input class="rt-ThemePanelRadioCardInput" type="radio" name="scaling" value={value} checked={context().scaling === value} onChange={() => context().onScalingChange(value)} />
             <Flex align="center" justify="center" height="32px"><Theme asChild scaling={value}>{target => target(Flex, { align: 'center', justify: 'center', children: <Text size="1" weight="medium">{upperFirst(value)}</Text> })}</Theme></Flex>
           </label>

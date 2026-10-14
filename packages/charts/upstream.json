@@ -1,0 +1,175 @@
+{
+  "package": "@wsagency/radix2solid-charts",
+  "importMethod": "source-copy",
+  "tracking": "manual",
+  "upstreams": [
+    {
+      "role": "imported-source",
+      "name": "solid-recharts",
+      "repository": "https://github.com/yumemi-thomas/solid-recharts",
+      "version": "2.0.0-beta.1",
+      "commit": "b1f9c6729eefb42caf96d2162ad8c71c2c5520e3",
+      "sourceSubtree": "packages/solid-recharts/src",
+      "targetSubtree": "packages/charts/src",
+      "archive": {
+        "url": "https://codeload.github.com/yumemi-thomas/solid-recharts/tar.gz/b1f9c6729eefb42caf96d2162ad8c71c2c5520e3",
+        "sha256": "380049292e5db2fa4e3321286ca1041cedb89326765fc31b20e0f9571fd27f8a"
+      },
+      "license": { "spdx": "MIT", "upstreamPath": "LICENSE", "localPath": "LICENSE" }
+    },
+    {
+      "role": "ported-reference",
+      "name": "recharts",
+      "repository": "https://github.com/recharts/recharts",
+      "version": "3.9.2",
+      "commit": "b3451050c027a23957ffa50a2665c9119df21e47",
+      "note": "The Recharts commit pinned by solid-recharts at the imported commit. Some imported source headers name older Recharts versions; they are historical comments.",
+      "license": { "spdx": "MIT", "upstreamPath": "LICENSE", "localPath": "LICENSE" }
+    },
+    {
+      "role": "tracked-not-ported",
+      "name": "recharts",
+      "repository": "https://github.com/recharts/recharts",
+      "version": "3.10.1",
+      "commit": "ffb918798051ef040bb7f9922d3850c9c189f39f",
+      "note": "Tracked for future review. No change from this version is claimed as ported."
+    }
+  ],
+  "dependencyNotices": {
+    "localPath": "NOTICE",
+    "note": "d3-scale and d3-shape are external runtime dependencies, not bundled into dist. NOTICE reproduces the LICENSE file of each package in their resolved dependency graph.",
+    "packages": [
+      "d3-array@3.2.4",
+      "d3-color@3.1.0",
+      "d3-format@3.1.2",
+      "d3-interpolate@3.0.1",
+      "d3-path@3.1.0",
+      "d3-scale@4.0.2",
+      "d3-shape@3.2.0",
+      "d3-time@3.1.0",
+      "d3-time-format@4.1.0",
+      "internmap@2.0.3"
+    ]
+  },
+  "notImported": [
+    {
+      "path": "packages/solid-recharts/test",
+      "reason": "Upstream tests stay in the pinned archive as a reference. Native behavior is covered by the focused tests named in the patch ledger."
+    },
+    {
+      "path": "packages/solid-recharts/src/component/Customized.tsx",
+      "reason": "Unexported placeholder for a React element-cloning API. It holds no implementation; no public export or no-op replacement is provided."
+    },
+    {
+      "path": "packages/solid-recharts/src/util/useId.ts",
+      "reason": "Replaced by Solid's createUniqueId (see patch native-ids)."
+    }
+  ],
+  "patches": [
+    {
+      "id": "import",
+      "origin": "solid-recharts@b1f9c6729eefb42caf96d2162ad8c71c2c5520e3",
+      "files": ["src/**"],
+      "reason": "Initial copy of packages/solid-recharts/src. Every file not named by a later patch or in notImported is byte-identical to the pinned commit, including src/index.ts and its full export surface.",
+      "tests": ["tests/consumer/charts.test.ts", "e2e/charts.spec.ts: all inherited chart families render finite data geometry and react to replacement data"]
+    },
+    {
+      "id": "packaging",
+      "origin": "local",
+      "files": ["package.json", "vite.config.ts", "tsconfig.json", "LICENSE", "NOTICE"],
+      "reason": "Compiled package: separate client and server ESM builds and shared declarations, exports types/browser/default, exact solid-js and @solidjs/web 2.0.0-rc.15 peers (upstream: ^2.0.0-beta.17), d3-scale 4.0.2 and d3-shape 3.2.0 kept external with their type packages as dependencies. LICENSE keeps the solid-recharts MIT notice and adds the Recharts MIT notice; NOTICE carries the D3 licenses.",
+      "tests": ["tests/consumer/run.ts --scope=next-core (packed exports, declarations and distribution checks)"]
+    },
+    {
+      "id": "native-ids",
+      "origin": "local",
+      "files": ["src/util/useUniqueId.ts", "src/container/ClipPathProvider.tsx", "src/cartesian/AreaRevealShape.tsx", "src/util/useId.ts (deleted)"],
+      "reason": "Generated IDs come from Solid's createUniqueId, so server and client produce the same IDs and clip paths stay unique across charts.",
+      "tests": ["e2e/charts.spec.ts: fixed server chart geometry hydrates in place and clip references stay unique across charts", "tests/consumer/charts.test.ts: independent server renders retain their own chart data and registrations"]
+    },
+    {
+      "id": "chart-initialization",
+      "origin": "local",
+      "files": [
+        "src/state/createChartState.ts (new)",
+        "src/state/store.ts",
+        "src/state/hooks.ts",
+        "src/state/registerInStore.ts",
+        "src/state/brushSlice.ts",
+        "src/state/cartesianAxisSlice.ts",
+        "src/state/chartDataSlice.ts",
+        "src/state/errorBarSlice.ts",
+        "src/state/eventSettingsSlice.ts",
+        "src/state/graphicalItemsSlice.ts",
+        "src/state/layoutSlice.ts",
+        "src/state/legendSlice.ts",
+        "src/state/optionsSlice.ts",
+        "src/state/polarAxisSlice.ts",
+        "src/state/polarOptionsSlice.ts",
+        "src/state/referenceElementsSlice.ts",
+        "src/state/renderedTicksSlice.ts",
+        "src/state/rootPropsSlice.ts",
+        "src/state/tooltipSlice.ts",
+        "src/state/zIndexSlice.ts",
+        "src/state/ReportChartProps.tsx",
+        "src/state/ReportMainChartProps.tsx",
+        "src/state/ReportPolarOptions.tsx",
+        "src/context/chartDataContext.tsx",
+        "src/context/chartLayoutContext.tsx",
+        "src/context/RegisterGraphicalItemId.tsx",
+        "src/component/Legend.tsx",
+        "src/cartesian/Brush.tsx"
+      ],
+      "reason": "Upstream registered chart data, layout, axes and series in effects, which do not run on the server, so server HTML had no data geometry. Declarations now seed chart-local state during the first render, identically on the server and during hydration; later changes go through a lazily created native store in Solid's apply phase.",
+      "tests": ["tests/consumer/charts.test.ts: fixed size native charts emit actual finite data geometry before JavaScript", "tests/consumer/charts.test.ts: axes-first bounded-domain stacked SSR emits correct values and the complete numeric tick ladder", "e2e/charts.spec.ts: fixed server chart geometry hydrates in place and clip references stay unique across charts"]
+    },
+    {
+      "id": "zindex-inline-svg",
+      "origin": "local",
+      "files": ["src/zIndex/ZIndexLayer.tsx"],
+      "reason": "Upstream rendered layers through a DOM-only Portal, which emits nothing on the server. The layer now renders one owned SVG subtree during SSR and hydration, then moves those nodes into the ordered layer.",
+      "tests": ["e2e/charts.spec.ts: fixed server chart geometry hydrates in place and clip references stay unique across charts"]
+    },
+    {
+      "id": "server-guards",
+      "origin": "local",
+      "files": ["src/cartesian/Brush.tsx", "src/util/usePrefersReducedMotion.ts"],
+      "reason": "Brush cleanup detaches window listeners only in the browser and clears its leave timer; reduced-motion detection does not touch window on the server.",
+      "tests": ["tests/consumer/charts.test.ts: fixed size native charts emit actual finite data geometry before JavaScript", "e2e/charts.spec.ts: automatic animation respects reduced motion and immediately uses final updated geometry"]
+    },
+    {
+      "id": "treemap-derived-nest",
+      "origin": "local",
+      "files": ["src/chart/Treemap.tsx"],
+      "reason": "The nesting stack is derived from the current root, so replacement data resets it. The unused isUpdateAnimationActive prop and its default are removed; only entry animation exists.",
+      "tests": ["e2e/charts.spec.ts: all inherited chart families render finite data geometry and react to replacement data", "tests/consumer/types.tsx: invalidTreemapUpdateAnimation rejects isUpdateAnimationActive on Treemap"]
+    },
+    {
+      "id": "sync-flush",
+      "origin": "local",
+      "files": ["src/synchronisation/useChartSynchronisation.tsx"],
+      "reason": "Removed the nested flush() calls from synchronisation emitters. Solid rc.15 rejects them; receiving store writes join the current flush.",
+      "tests": ["e2e/charts.spec.ts: Brush keyboard range synchronizes peer data while panorama and isolated chart keep full data"]
+    },
+    {
+      "id": "cell-ownership",
+      "origin": "local",
+      "files": ["src/component/Cell.tsx", "src/cartesian/Bar.tsx", "src/cartesian/Scatter.tsx", "src/cartesian/Funnel.tsx", "src/polar/Pie.tsx", "src/polar/RadialBar.tsx", "src/context/RegisterGraphicalItemId.tsx"],
+      "reason": "Upstream collected Cell props through a module-level registrar while resolving children. Cells now register with their graphical item through context under the item's owner, so overrides apply in order on the server and after reorder or replacement.",
+      "tests": ["tests/consumer/charts.test.ts: Cell overrides and sibling ErrorBar render real server geometry in their graphical context", "tests/consumer/charts.test.ts: all five Cell consumers apply ordered overrides to their actual server marks", "e2e/charts.spec.ts: keyed Cells keep current data order, paint, custom-shape payload and one event after reorder and replacement"]
+    },
+    {
+      "id": "panorama-area",
+      "origin": "local",
+      "files": ["src/cartesian/Area.tsx", "src/cartesian/Brush.tsx"],
+      "reason": "A Brush panorama shares its parent's store; an Area inside the panorama now renders even when the parent chart is not an AreaChart or ComposedChart.",
+      "tests": ["e2e/charts.spec.ts: Brush keyboard range synchronizes peer data while panorama and isolated chart keep full data"]
+    }
+  ],
+  "updateWorkflow": [
+    "Compare the pinned solid-recharts commit with the candidate commit, limited to packages/solid-recharts/src.",
+    "Map each upstream change onto packages/charts/src, keeping the local patches listed above.",
+    "Review tracked Recharts fixes separately and port their behavior to the Solid equivalent.",
+    "Record each change here with its source commit, local adaptation and focused test, and status contained, not-applicable, ported or pending."
+  ]
+}

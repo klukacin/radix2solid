@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.1.0-rc.2 — prepared candidate, not yet published
+
+- Require exactly `solid-js` and `@solidjs/web` `2.0.0-rc.15` as peers (was `2.0.0-rc.13`); Solid rc.15 requires Node `>=22.12.0`. Depend on `@wsagency/radix2solid-primitives` packed as exactly `0.1.0-rc.2`.
+- Custom accents: `accentColor="custom"` with `customAccent="<id>"` (letters, digits, `_` and `-`, starting with a letter). Every physical Theme root, including portals, emits `data-custom-accent`; you supply the complete light and dark `--custom-*` palette under `.radix-themes[data-custom-accent='<id>']`. Color props accept `"custom"`. With `grayColor="auto"` a custom accent resolves to `gray`.
+- Percentage scaling: `scaling` also accepts any positive finite `` `${number}%` ``. Each nested Theme's scaling is absolute, not multiplied by its parent's. Preset values are unchanged.
+- Per-component CSS: import the tokens (`tokens/base.css` plus the palette files you use, or `tokens.css`), then `css/common.css` (reset, animations, layout, Skeleton and Text), then `css/<component>.css` for each component you use, then `css/utilities.css` (Theme root and forced-colors rules plus responsive utilities). Component files hold only their own and composed components' rules. `common.css` and `utilities.css` are required; leaving one out raises no error but drops those styles.
+- Cascade layers: every CSS file has a `.layer.css` sibling that wraps it in `@layer radix` (`styles.layer.css`, `tokens/base.layer.css`, `css/common.layer.css`, `css/button.layer.css`, …). Use one mode consistently and never import both copies of a file. The existing unlayered paths are unchanged.
+- **Migration:** `postcss` is now an optional peer (`^8.5.9`) instead of a dependency. If you use the `postcss-breakpoints` or `postcss-whitespace` plugins, run `pnpm add -D postcss@^8.5.9`. JS and compiled CSS consumers need nothing.
+- Declarations are emitted by TypeScript 7.0.2; the packed consumer checks use TypeScript 5.9.3.
+
 ## 0.1.0-rc.1 — prepared candidate, not yet published
 
 - Rename the package from `@radix-solid/themes` to `@wsagency/radix2solid-themes`; component, helpers, props, CSS and PostCSS plugin subpaths are unchanged under the new name.

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.0-rc.2 — prepared candidate, not yet published
+
+- Require exactly `solid-js` and `@solidjs/web` `2.0.0-rc.15` as peers (was `2.0.0-rc.13`). The repository builds with `@solidjs/vite-plugin` `3.0.0-next.50`; Solid rc.15 requires Node `>=22.12.0`.
+- Remove the private server-only workaround that rewrote `defaultValue`/`defaultChecked` on `Slot` and `Primitive` input hosts. `@solidjs/web` rc.15 renders them as `value`/`checked` during SSR itself. No public API changes.
+- Fix server rendering of `asChild` content whose title or description is rendered lazily inside the target, for example `Dialog.Content asChild` with a `Dialog.Title` among the target's children. On the server, `aria-labelledby` and `aria-describedby` now link the title and description IDs, explicit or generated, for native element targets and for custom component targets that render their own providers. Hydration keeps the same nodes and IDs; client behavior is unchanged.
+- Declarations are emitted by TypeScript 7.0.2; the packed consumer checks use TypeScript 5.9.3.
+
 ## 0.1.0-rc.1 — prepared candidate, not yet published
 
 - Rename the package from `@radix-solid/primitives` to `@wsagency/radix2solid-primitives`; all namespace subpaths, including `/internal`, are unchanged under the new name.

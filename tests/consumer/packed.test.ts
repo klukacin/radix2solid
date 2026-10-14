@@ -4,17 +4,17 @@ import { test } from 'node:test';
 import { createRequire } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createComponent } from 'solid-js';
-import { renderToString } from '@solidjs/web';
+import { createComponent, createContext, merge, useContext, type Element } from 'solid-js';
+import { Dynamic, renderToString } from '@solidjs/web';
 import { AccessibleIcon, Accordion, AlertDialog, Announce, AspectRatio, Avatar, Checkbox, Collapsible, ContextMenu, Dialog, DropdownMenu, HoverCard, Label, Menubar, NavigationMenu, Popover, Portal, Progress, RadioGroup, Select, Slot, Switch, Tabs, Toggle, ToggleGroup, Toolbar, Tooltip } from '@wsagency/radix2solid-primitives';
 import { Form, ScrollArea, Slider, Toast, unstable_PasswordToggleField as Password, unstable_OneTimePasswordField as OTP } from '@wsagency/radix2solid-primitives';
 import { AccessibilityIcon, PanelLeftIcon, PanelRightIcon } from '@wsagency/radix2solid-icons';
 import GitHubLogoIcon from '@wsagency/radix2solid-icons/GitHubLogoIcon';
-import ts from 'typescript';
+import ts from 'typescript5';
 import * as Themes from '@wsagency/radix2solid-themes';
 
 test('packed packages resolve one physical native runtime from every package origin and Themes shares primitives', async () => {
-  const names = ['primitives', 'themes', 'icons'];
+  const names = ['primitives', 'themes', 'icons', 'charts'];
   const origins = await Promise.all(names.map(async name =>
     dirname(await realpath(fileURLToPath(import.meta.resolve(`@wsagency/radix2solid-${name}`))))));
   const consumerRequire = createRequire(import.meta.url);
@@ -119,6 +119,66 @@ test('packed Slot-backed dialog content links titles from lazy target children o
   assert.match(html, /<section[^>]*role="dialog"/);
   assert.match(html, /aria-labelledby="slot-title"/);
   assert.match(html, /aria-describedby="slot-description"/);
+});
+
+test('packed Slot-backed dialog content links generated title and description IDs from lazy target children on the server', () => {
+  const html = renderToString(() => createComponent(Dialog.Root, {
+    defaultOpen: true,
+    get children() {
+      return createComponent(Dialog.Content, {
+        asChild: true,
+        children: target => target('section', {
+          get children() {
+            return [createComponent(Dialog.Title, { children: 'Generated title' }), createComponent(Dialog.Description, { children: 'Generated description' })];
+          }
+        })
+      });
+    }
+  }), { renderId: 'generated-dialog-' });
+  const titleId = html.match(/<h2[^>]*\sid="([^"]+)"[^>]*>Generated title/)?.[1];
+  const descriptionId = html.match(/<p[^>]*\sid="([^"]+)"[^>]*>Generated description/)?.[1];
+  assert.ok(titleId && descriptionId, html);
+  assert.notEqual(titleId, descriptionId);
+  assert.match(html, new RegExp(`<section[^>]*aria-labelledby="${titleId}"`));
+  assert.match(html, new RegExp(`<section[^>]*aria-describedby="${descriptionId}"`));
+  assert.equal(html.match(/Generated title/g)?.length, 1);
+});
+
+test('packed Slot-backed dialog content links lazy titles through a custom component target under its own provider on the server', () => {
+  const Scope = createContext('outside');
+  const Reader = () => `context=${useContext(Scope)}`;
+  // The custom target renders its own provider and forwards every prop, including ARIA and children, to its host.
+  const Card = (props: { children?: Element }) => createComponent(Scope, {
+    value: 'inside',
+    get children() { return createComponent(Dynamic, merge({ component: 'section' as const }, props)); }
+  });
+  for (const explicit of [true, false]) {
+    const html = renderToString(() => createComponent(Dialog.Root, {
+      defaultOpen: true,
+      get children() {
+        return createComponent(Dialog.Content, {
+          asChild: true,
+          children: target => target(Card, {
+            get children() {
+              return [
+                createComponent(Dialog.Title, explicit ? { id: 'custom-title', children: 'Custom title' } : { children: 'Custom title' }),
+                createComponent(Dialog.Description, explicit ? { id: 'custom-description', children: 'Custom description' } : { children: 'Custom description' }),
+                createComponent(Reader, {})
+              ];
+            }
+          })
+        });
+      }
+    }), { renderId: `custom-target-${explicit}-` });
+    const titleId = html.match(/<h2[^>]*\sid="([^"]+)"[^>]*>Custom title/)?.[1];
+    const descriptionId = html.match(/<p[^>]*\sid="([^"]+)"[^>]*>Custom description/)?.[1];
+    assert.ok(titleId && descriptionId, html);
+    if (explicit) assert.deepEqual([titleId, descriptionId], ['custom-title', 'custom-description']);
+    assert.match(html, new RegExp(`<section[^>]*role="dialog"[^>]*aria-labelledby="${titleId}"|<section[^>]*aria-labelledby="${titleId}"[^>]*role="dialog"`));
+    assert.match(html, new RegExp(`<section[^>]*aria-describedby="${descriptionId}"`));
+    assert.match(html, /context=inside/);
+    assert.equal(html.match(/Custom title/g)?.length, 1);
+  }
 });
 
 test('packed simple controls render native accessible semantics without a document', () => {
