@@ -8,7 +8,8 @@ import type { GetPropDefTypes } from '../props/prop-def.js';
 export type SliderProps = Omit<SliderPrimitive.SliderProps, 'asChild' | 'color' | 'children' | 'defaultChecked'> & MarginProps & GetPropDefTypes<typeof sliderPropDefs>;
 export function Slider(props: SliderProps): Element {
   const parsed = extractProps(props, sliderPropDefs, marginPropDefs);
-  return <SliderPrimitive.Root {...omit(parsed, 'class', 'color', 'radius', 'tabindex', 'aria-label', 'aria-labelledby')} asChild={false}
+  const rootProps = omit(parsed, 'class', 'color', 'radius', 'tabindex', 'aria-label', 'aria-labelledby');
+  return <SliderPrimitive.Root {...rootProps} asChild={false}
     data-accent-color={parsed.color} data-radius={parsed.radius} class={['rt-SliderRoot', parsed.class]}>
     <SliderPrimitive.Track __scopeSlider={props.__scopeSlider} class="rt-SliderTrack">
       <SliderPrimitive.Range __scopeSlider={props.__scopeSlider} class={['rt-SliderRange', { 'rt-high-contrast': props.highContrast }]} data-inverted={props.inverted ? '' : undefined} />

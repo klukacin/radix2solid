@@ -131,14 +131,19 @@ export function SelectValue(props: SelectValueProps): Element {
   if (!isServer) { createEffect(() => [root.valueNode(), props.asChild ? customChildren() !== undefined : children() !== undefined] as const, ([, custom]) => { root.setCustomValue(custom); }, { transparent: true }); onCleanup(() => { root.setValueNode(undefined); root.setCustomValue(false); }); }
   const render: SlotRender = target => (untrack(children) as SlotRender)((component, childProps) => {
     customChildren = () => childProps.children;
-    return target(component, merge(childProps, { get children() { return empty(root.value()) ? props.placeholder : childProps.children; } }) as ComponentProps<typeof component>);
+    const slotted = merge(childProps, { get children() { return empty(root.value()) ? props.placeholder : childProps.children; } }) as ComponentProps<typeof component>;
+    return target(component, slotted);
   });
-  return <Primitive as="span" {...(merge(omit(props, '__scopeSelect', 'placeholder', 'class', 'style', 'children'), {
+  const forwarded = merge(omit(props, '__scopeSelect', 'placeholder', 'class', 'style', 'children'), {
     get ref() { return composeRefs(props.ref, root.setValueNode); }, style: { 'pointer-events': 'none' as const },
     get children() { return props.asChild ? render : empty(root.value()) ? props.placeholder : children(); }
-  }) as PrimitiveProps<'span'>)} />;
+  }) as PrimitiveProps<'span'>;
+  return <Primitive as="span" {...forwarded} />;
 }
-export function SelectIcon(props: SelectIconProps): Element { return <Primitive as="span" {...(merge(omit(props, '__scopeSelect'), { 'aria-hidden': 'true' as const, get children() { return props.children ?? '▼'; } }) as PrimitiveProps<'span'>)} />; }
+export function SelectIcon(props: SelectIconProps): Element {
+  const forwarded = merge(omit(props, '__scopeSelect'), { 'aria-hidden': 'true' as const, get children() { return props.children ?? '▼'; } }) as PrimitiveProps<'span'>;
+  return <Primitive as="span" {...forwarded} />;
+}
 export function SelectPortal(props: SelectPortalProps): Element {
   const scope = untrack(() => props.__scopeSelect);
   return <PortalProvider scope={scope} value={{ forceMount: () => props.forceMount ?? false }}><NativePortal {...({ get mount() { return props.container ?? undefined; }, get children() { return props.children; } } as Parameters<typeof NativePortal>[0])} /></PortalProvider>;
@@ -152,7 +157,7 @@ export function SelectContent(props: SelectContentProps): Element {
   </Show>;
 }
 function ContentBody(input: { props: SelectContentProps; closed: boolean; presence: ReturnType<typeof createPresence> }): Element {
-  const props = input.props, scope = untrack(() => props.__scopeSelect), root = rootContext(props, 'Content');
+  const props = untrack(() => input.props), scope = untrack(() => props.__scopeSelect), root = rootContext(props, 'Content');
   const [node, ref] = createSignal<HTMLElement | undefined>();
   const [viewport, setViewport] = createSignal<HTMLElement | undefined>();
   const [wrapper, wrapperRef] = createSignal<HTMLDivElement | undefined>();
@@ -225,8 +230,9 @@ function ContentBody(input: { props: SelectContentProps; closed: boolean; presen
       }
     })
   }) as PopperContentProps;
+  const popperProps = merge(omit(props, '__scopeSelect', 'forceMount', 'position', 'onCloseAutoFocus', 'onEscapeKeyDown', 'onPointerDownOutside'), forwarded, { __scopePopper: scope, get align() { return props.align ?? 'start' as const; }, get collisionPadding() { return props.collisionPadding ?? 10; }, onPlaced() { setPositioned(true); props.onPlaced?.(); } }) as PopperContentProps;
   const render = () => content.position() === 'popper' && !input.closed
-    ? <PopperContent {...(merge(omit(props, '__scopeSelect', 'forceMount', 'position', 'onCloseAutoFocus', 'onEscapeKeyDown', 'onPointerDownOutside'), forwarded, { __scopePopper: scope, get align() { return props.align ?? 'start' as const; }, get collisionPadding() { return props.collisionPadding ?? 10; }, onPlaced() { setPositioned(true); props.onPlaced?.(); } }) as PopperContentProps)} />
+    ? <PopperContent {...popperProps} />
     : <Primitive as="div" {...forwarded} />;
   return <ContentProvider scope={scope} value={content}><LayerContext value={layer}>{input.closed || content.position() === 'popper' ? render() : <div data-radix-select-content-wrapper="" ref={wrapperRef} style={{ display: 'flex', 'flex-direction': 'column', position: 'fixed' }}>{render()}</div>}</LayerContext></ContentProvider>;
 }
@@ -276,8 +282,7 @@ function placeAligned(root: RootValue, content: ContentValue, placed: () => void
 export function SelectViewport(props: SelectViewportProps): Element {
   const content = contentContext(props, 'Viewport'); let previousScrollTop = 0;
   const style = createMemo(() => mergeStyles({ position: 'relative', flex: '1', overflow: 'hidden auto' }, props.style));
-  return <><style nonce={props.nonce}>{'[data-radix-select-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}[data-radix-select-viewport]::-webkit-scrollbar{display:none}'}</style>
-    <Primitive as="div" data-radix-select-viewport="" {...merge(omit(props, '__scopeSelect', 'nonce'), { role: 'presentation' as const, get style() { return style(); }, get ref() { return composeRefs(props.ref, content.setViewport); },
+  const forwarded = merge(omit(props, '__scopeSelect', 'nonce'), { role: 'presentation' as const, get style() { return style(); }, get ref() { return composeRefs(props.ref, content.setViewport); },
       onScroll: composeEventHandlers<Event>(() => props.onScroll, event => {
         const viewport = event.currentTarget as HTMLElement, wrapper = content.wrapper();
         if (content.expand && wrapper) {
@@ -288,11 +293,21 @@ export function SelectViewport(props: SelectViewportProps): Element {
         }
         previousScrollTop = viewport.scrollTop; content.scrollChanged();
       })
-    })} />
+  });
+  return <><style nonce={props.nonce}>{'[data-radix-select-viewport]{scrollbar-width:none;-ms-overflow-style:none;-webkit-overflow-scrolling:touch}[data-radix-select-viewport]::-webkit-scrollbar{display:none}'}</style>
+    <Primitive as="div" data-radix-select-viewport="" {...forwarded} />
   </>;
 }
-export function SelectGroup(props: SelectGroupProps): Element { const id = createUniqueId(); return <GroupProvider scope={props.__scopeSelect} value={id}><Primitive as="div" {...merge({ role: 'group' as const, 'aria-labelledby': id }, omit(props, '__scopeSelect'))} /></GroupProvider>; }
-export function SelectLabel(props: SelectLabelProps): Element { const id = useGroup('SelectLabel', untrack(() => props.__scopeSelect)); return <Primitive as="div" {...merge({ id }, omit(props, '__scopeSelect'))} />; }
+export function SelectGroup(props: SelectGroupProps): Element {
+  const id = createUniqueId();
+  const forwarded = merge({ role: 'group' as const, 'aria-labelledby': id }, omit(props, '__scopeSelect'));
+  return <GroupProvider scope={props.__scopeSelect} value={id}><Primitive as="div" {...forwarded} /></GroupProvider>;
+}
+export function SelectLabel(props: SelectLabelProps): Element {
+  const id = useGroup('SelectLabel', untrack(() => props.__scopeSelect));
+  const forwarded = merge({ id }, omit(props, '__scopeSelect'));
+  return <Primitive as="div" {...forwarded} />;
+}
 export function SelectItem(props: SelectItemProps): Element {
   const root = rootContext(props, 'Item'), content = contentContext(props, 'Item');
   const [node, ref] = createSignal<HTMLElement | undefined>(), [textNode, setTextNode] = createSignal<HTMLElement | undefined>(), [text, setText] = createSignal(''), [highlighted, setHighlighted] = createSignal(false);
@@ -303,7 +318,7 @@ export function SelectItem(props: SelectItemProps): Element {
     createEffect(textNode, element => { if (!element) return; const update = () => setText(element.textContent?.trim() ?? ''); update(); const observer = new element.ownerDocument.defaultView!.MutationObserver(update); observer.observe(element, { subtree: true, childList: true, characterData: true }); return () => observer.disconnect(); }, { transparent: true });
   }
   const select = (event: Event) => { if (item.disabled()) return; root.markInteraction(event); root.changeValue(props.value); root.changeOpen(false); };
-  return <ItemProvider scope={props.__scopeSelect} value={item}><Primitive as="div" {...merge(omit(props, '__scopeSelect', 'value', 'disabled', 'textValue'), {
+  const forwarded = merge(omit(props, '__scopeSelect', 'value', 'disabled', 'textValue'), {
     role: 'option' as const, 'aria-labelledby': item.textId, get tabindex() { return props.disabled ? undefined : -1; },
     get ['aria-selected']() { return root.value() === props.value && highlighted() ? 'true' as const : 'false' as const; }, get ['aria-disabled']() { return props.disabled ? 'true' as const : undefined; },
     get ['data-state']() { return root.value() === props.value ? 'checked' : 'unchecked'; }, get ['data-disabled']() { return props.disabled ? '' : undefined; }, get ['data-highlighted']() { return highlighted() ? '' : undefined; },
@@ -315,13 +330,15 @@ export function SelectItem(props: SelectItemProps): Element {
     onClick: composeEventHandlers<MouseEvent>(() => props.onClick, event => { if (pointerType !== 'mouse') select(event); }),
     onPointerUp: composeEventHandlers<PointerEvent>(() => props.onPointerUp, event => { if (pointerType === 'mouse') select(event); }),
     onKeyDown: composeEventHandlers<KeyboardEvent>(() => props.onKeyDown, event => { if (event.target !== event.currentTarget) return; if (event.key === 'Enter' || (event.key === ' ' && content.search === '')) { select(event); event.preventDefault(); } else if (event.key === ' ') event.preventDefault(); })
-  })} /></ItemProvider>;
+  });
+  return <ItemProvider scope={props.__scopeSelect} value={item}><Primitive as="div" {...forwarded} /></ItemProvider>;
 }
 export function SelectItemText(props: SelectItemTextProps): Element {
   const scope = untrack(() => props.__scopeSelect), root = rootContext(props, 'ItemText'), item = useItem('SelectItemText', scope);
-  let rich: () => Element = () => props.asChild ? undefined : props.children;
+  let slotChildren: (() => Element) | undefined;
+  const rich = () => slotChildren ? slotChildren() : props.asChild ? undefined : props.children;
   const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => {
-    rich = () => childProps.children;
+    slotChildren = () => childProps.children;
     return target(component, childProps);
   });
   if (!isServer) {
@@ -331,11 +348,16 @@ export function SelectItemText(props: SelectItemTextProps): Element {
     // Observe text itself, since native text mutations do not create reactive dependencies.
     createEffect(item.textNode, node => { if (!node) return; const update = () => { const option = root.options.get(item); if (option && option.text !== node.textContent) { option.text = node.textContent ?? ''; root.optionsChanged(); } }; update(); const observer = new node.ownerDocument.defaultView!.MutationObserver(update); observer.observe(node, { childList: true, subtree: true, characterData: true }); return () => observer.disconnect(); }, { transparent: true });
   }
-  return <><Primitive as="span" {...(merge(omit(props, '__scopeSelect', 'class', 'style'), { id: item.textId, get ref() { return composeRefs(props.ref, item.setTextNode); }, get children() { return props.asChild ? render : props.children; } }) as PrimitiveProps<'span'>)} />
+  const forwarded = merge(omit(props, '__scopeSelect', 'class', 'style'), { id: item.textId, get ref() { return composeRefs(props.ref, item.setTextNode); }, get children() { return props.asChild ? render : props.children; } }) as PrimitiveProps<'span'>;
+  return <><Primitive as="span" {...forwarded} />
     <Show when={!!(root.value() === item.value() && !empty(root.value()) && !root.customValue() && root.valueNode())}><NativePortal {...({ get mount() { return root.valueNode(); }, get children() { item.textNode(); return rich(); } } as Parameters<typeof NativePortal>[0])} /></Show>
   </>;
 }
-export function SelectItemIndicator(props: SelectItemIndicatorProps): Element { const root = rootContext(props, 'ItemIndicator'), item = useItem('SelectItemIndicator', untrack(() => props.__scopeSelect)); return <Show when={root.value() === item.value()}><Primitive as="span" {...merge(omit(props, '__scopeSelect'), { 'aria-hidden': 'true' as const })} /></Show>; }
+export function SelectItemIndicator(props: SelectItemIndicatorProps): Element {
+  const root = rootContext(props, 'ItemIndicator'), item = useItem('SelectItemIndicator', untrack(() => props.__scopeSelect));
+  const forwarded = merge(omit(props, '__scopeSelect'), { 'aria-hidden': 'true' as const });
+  return <Show when={root.value() === item.value()}><Primitive as="span" {...forwarded} /></Show>;
+}
 export function SelectScrollUpButton(props: SelectScrollUpButtonProps): Element { return ScrollButton(props, -1); }
 export function SelectScrollDownButton(props: SelectScrollDownButtonProps): Element { return ScrollButton(props, 1); }
 function ScrollButton(props: SelectScrollUpButtonProps, direction: -1 | 1): Element {
@@ -349,16 +371,24 @@ function ScrollButton(props: SelectScrollUpButtonProps, direction: -1 | 1): Elem
     const [node, ref] = createSignal<HTMLElement | undefined>();
     if (!isServer) createEffect(node, element => { if (element) untrack(content.scrollButton); }, { transparent: true });
     onCleanup(stop);
-    return <Primitive as="div" {...merge(omit(props, '__scopeSelect'), { 'aria-hidden': 'true' as const, get ref() { return composeRefs(props.ref, ref); }, get style() { return mergeStyles(props.style, { 'flex-shrink': 0 }); },
+    const forwarded = merge(omit(props, '__scopeSelect'), { 'aria-hidden': 'true' as const, get ref() { return composeRefs(props.ref, ref); }, get style() { return mergeStyles(props.style, { 'flex-shrink': 0 }); },
       onPointerDown: composeEventHandlers<PointerEvent>(() => props.onPointerDown, start),
       onPointerMove: composeEventHandlers<PointerEvent>(() => props.onPointerMove, () => { focus(content.node()); start(); }),
       onPointerLeave: composeEventHandlers<PointerEvent>(() => props.onPointerLeave, stop)
-    })} />;
+    });
+    return <Primitive as="div" {...forwarded} />;
   }
   return <Show when={visible()}><Button /></Show>;
 }
-export function SelectSeparator(props: SelectSeparatorProps): Element { return <Primitive as="div" {...merge(omit(props, '__scopeSelect'), { 'aria-hidden': 'true' as const })} />; }
-export function SelectArrow(props: SelectArrowProps): Element { const content = contentContext(props, 'Arrow'); return <Show when={content.position() === 'popper'}><PopperArrow {...merge(omit(props, '__scopeSelect'), { get __scopePopper() { return props.__scopeSelect; } })} /></Show>; }
+export function SelectSeparator(props: SelectSeparatorProps): Element {
+  const forwarded = merge(omit(props, '__scopeSelect'), { 'aria-hidden': 'true' as const });
+  return <Primitive as="div" {...forwarded} />;
+}
+export function SelectArrow(props: SelectArrowProps): Element {
+  const content = contentContext(props, 'Arrow');
+  const forwarded = merge(omit(props, '__scopeSelect'), { get __scopePopper() { return props.__scopeSelect; } });
+  return <Show when={content.position() === 'popper'}><PopperArrow {...forwarded} /></Show>;
+}
 export function SelectBubbleInput(props: SelectBubbleInputProps): Element {
   const root = rootContext(props, 'BubbleInput'), [node, ref] = createSignal<HTMLSelectElement | undefined>();
   const options = createMemo(() => { root.optionVersion(); return [...root.options.values()]; });
@@ -380,9 +410,13 @@ export function SelectBubbleInput(props: SelectBubbleInputProps): Element {
   }
   const style = createMemo(() => mergeStyles(VISUALLY_HIDDEN_STYLES, props.style));
   const defaultOptions = () => <><Show when={empty(root.value()) && !options().some(option => option.value === '')}><option value="" /></Show><For each={options()}>{option => <option value={option.value} disabled={option.disabled}>{option.text}</option>}</For></>;
-  const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => target(component, merge(childProps, { get children() { return childProps.children ?? defaultOptions(); } }) as ComponentProps<typeof component>));
-  return <Primitive as="select" {...(merge(omit(props, '__scopeSelect', 'children'), { tabindex: -1, 'aria-hidden': 'true' as const, get ref() { return composeRefs(props.ref, ref); }, get style() { return style(); },
+  const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => {
+    const slotted = merge(childProps, { get children() { return childProps.children ?? defaultOptions(); } }) as ComponentProps<typeof component>;
+    return target(component, slotted);
+  });
+  const forwarded = merge(omit(props, '__scopeSelect', 'children'), { tabindex: -1, 'aria-hidden': 'true' as const, get ref() { return composeRefs(props.ref, ref); }, get style() { return style(); },
     onChange: composeEventHandlers<Event>(() => props.onChange, event => { const element = event.currentTarget as HTMLSelectElement; if (element.value === (root.value() ?? '')) return; root.changeValue(element.value); queueMicrotask(() => synchronize(element)); }),
     get children() { return props.asChild ? render : props.children ?? defaultOptions(); }
-  }) as PrimitiveProps<'select'>)} />;
+  }) as PrimitiveProps<'select'>;
+  return <Primitive as="select" {...forwarded} />;
 }

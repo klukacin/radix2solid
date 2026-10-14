@@ -33,12 +33,12 @@ export function Avatar(props: AvatarProps): Element {
     }
     return () => { if (DEV) images--; };
   };
-  const forwarded = merge(omit(props, '__scopeAvatar', 'ref'), { ref: composeRefs(props.ref, setNode) });
+  const forwarded = merge(omit(props, '__scopeAvatar', 'ref'), { ref: composeRefs(untrack(() => props.ref), setNode) });
   return <AvatarProvider scope={props.__scopeAvatar} value={{ status, setStatus, node, registerImage }}><Primitive as="span" {...forwarded} /></AvatarProvider>;
 }
 
 export function AvatarImage(props: AvatarImageProps): Element {
-  const context = useAvatarContext('AvatarImage', props.__scopeAvatar);
+  const context = useAvatarContext('AvatarImage', untrack(() => props.__scopeAvatar));
   if (!isServer) {
     createEffect(() => null, () => context.registerImage(), { transparent: true });
     createEffect(() => [context.node(), props.src, props.crossorigin, props.referrerpolicy] as const, ([node, src, crossOrigin, referrerPolicy]) => {
@@ -72,7 +72,7 @@ export function AvatarImage(props: AvatarImageProps): Element {
 }
 
 export function AvatarFallback(props: AvatarFallbackProps): Element {
-  const context = useAvatarContext('AvatarFallback', props.__scopeAvatar);
+  const context = useAvatarContext('AvatarFallback', untrack(() => props.__scopeAvatar));
   const [ready, setReady] = createSignal(untrack(() => props.delayMs === undefined));
   if (!isServer) createEffect(() => [context.node(), props.delayMs] as const, ([node, delay]) => {
     if (!node) return;

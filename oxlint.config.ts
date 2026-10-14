@@ -4,7 +4,13 @@ import { defineConfig } from "oxlint";
 export default defineConfig({
   jsPlugins: ["eslint-plugin-solid"],
   settings: solidV2Strict.settings,
-  rules: solidV2Strict.rules,
+  rules: {
+    ...solidV2Strict.rules,
+    "solid/reactivity": [
+      "warn",
+      { customReactiveFunctions: ["composeEventHandlers"] },
+    ],
+  },
   options: {
     denyWarnings: true,
     reportUnusedDisableDirectives: "error",

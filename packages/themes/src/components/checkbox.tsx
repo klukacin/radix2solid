@@ -13,7 +13,8 @@ export function Checkbox(props: CheckboxProps): Element {
   const parsed = extractProps(props, checkboxPropDefs, marginPropDefs);
   const [checked, setChecked] = createControllableState<CheckboxPrimitive.CheckedState>({ value: () => props.checked, get defaultValue() { return props.defaultChecked ?? false; }, get onChange() { return props.onCheckedChange; } });
   const Icon = dynamic(() => checked() === 'indeterminate' ? ThickDividerHorizontalIcon : ThickCheckIcon);
-  return <CheckboxPrimitive.Root {...omit(parsed, 'color', 'class', 'checked', 'onCheckedChange')} asChild={false}
+  const rootProps = omit(parsed, 'color', 'class', 'checked', 'onCheckedChange');
+  return <CheckboxPrimitive.Root {...rootProps} asChild={false}
     checked={checked()} onCheckedChange={setChecked} data-accent-color={parsed.color} class={['rt-reset', 'rt-BaseCheckboxRoot', 'rt-CheckboxRoot', parsed.class]}>
     <CheckboxPrimitive.Indicator __scopeCheckbox={props.__scopeCheckbox} asChild class="rt-BaseCheckboxIndicator rt-CheckboxIndicator">{target => target(Icon, {})}</CheckboxPrimitive.Indicator>
   </CheckboxPrimitive.Root>;

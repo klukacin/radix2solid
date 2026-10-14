@@ -30,7 +30,7 @@ export function Collapsible(props: CollapsibleProps): Element {
 }
 
 export function CollapsibleTrigger(props: CollapsibleTriggerProps): Element {
-  const context = useCollapsible('CollapsibleTrigger', props.__scopeCollapsible);
+  const context = useCollapsible('CollapsibleTrigger', untrack(() => props.__scopeCollapsible));
   const forwarded = merge({ type: 'button' as const,
     get ['aria-controls']() { return context.open() ? context.contentId : undefined; },
     get ['aria-expanded']() { return context.open() ? 'true' : 'false'; },
@@ -43,7 +43,7 @@ export function CollapsibleTrigger(props: CollapsibleTriggerProps): Element {
 }
 
 export function CollapsibleContent(props: CollapsibleContentProps): Element {
-  const context = useCollapsible('CollapsibleContent', props.__scopeCollapsible);
+  const context = useCollapsible('CollapsibleContent', untrack(() => props.__scopeCollapsible));
   const [node, ref] = createSignal<HTMLElement | undefined>();
   const [height, setHeight] = createSignal(0);
   const [width, setWidth] = createSignal(0);
@@ -74,14 +74,12 @@ export function CollapsibleContent(props: CollapsibleContentProps): Element {
   }, omit(props, '__scopeCollapsible', 'forceMount'), {
     get ref() { return composeRefs(props.ref, ref, presence.ref); }, get style() { return style(); }
   });
-  if (untrack(() => props.asChild)) {
-    function Mounted(): Element {
-      if (!isServer) onCleanup(() => { ref(undefined); presence.ref(undefined); });
-      return <Primitive as="div" {...forwarded} />;
-    }
-    return <Show when={presence.mounted()}><Mounted /></Show>;
+  function Mounted(): Element {
+    if (!isServer) onCleanup(() => { ref(undefined); presence.ref(undefined); });
+    return <Primitive as="div" {...forwarded} />;
   }
   // Native children are DOM, not cloneable descriptors; only ordinary content keeps an empty hidden shell.
   const native = merge(omit(forwarded, 'children'), { get children() { return <Show when={presence.mounted()}>{props.children as Element}</Show>; } }) as PrimitiveProps<'div'>;
-  return <Primitive as="div" {...native} />;
+  const rendered = untrack(() => props.asChild) ? <Show when={presence.mounted()}><Mounted /></Show> : <Primitive as="div" {...native} />;
+  return rendered;
 }

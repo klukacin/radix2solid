@@ -52,7 +52,7 @@ export function TooltipProvider(props: TooltipProviderProps): Element {
 }
 
 export function Tooltip(props: TooltipProps): Element {
-  const provider = useProvider('Tooltip', props.__scopeTooltip);
+  const provider = useProvider('Tooltip', untrack(() => props.__scopeTooltip));
   const [trigger, setTrigger] = createSignal<HTMLElement | undefined>();
   const [customId, setContentId] = createSignal<string | undefined>();
   const generatedId = createUniqueId();
@@ -84,9 +84,10 @@ export function Tooltip(props: TooltipProps): Element {
 }
 
 export function TooltipTrigger(props: TooltipTriggerProps): Element {
-  const root = useTooltip('TooltipTrigger', props.__scopeTooltip);
-  const provider = useProvider('TooltipTrigger', props.__scopeTooltip);
-  const popper = usePopper(props.__scopeTooltip);
+  const scope = untrack(() => props.__scopeTooltip);
+  const root = useTooltip('TooltipTrigger', scope);
+  const provider = useProvider('TooltipTrigger', scope);
+  const popper = usePopper(scope);
   let pointerDown = false;
   let moved = false;
   let focusWindow: Window | undefined;
@@ -105,7 +106,7 @@ export function TooltipTrigger(props: TooltipTriggerProps): Element {
       if (untrack(popper.anchor) === trigger) popper.setAnchor(undefined);
     };
   }, { transparent: true });
-  return <Primitive as="button" {...merge(omit(props, '__scopeTooltip'), {
+  const forwarded = merge(omit(props, '__scopeTooltip'), {
     get ref() { return composeRefs(props.ref, root.setTrigger); },
     get ['data-state']() { return root.state(); },
     get ['aria-describedby']() { return concatAriaIds(props['aria-describedby'], root.open() ? root.contentId() : undefined); },
@@ -134,11 +135,12 @@ export function TooltipTrigger(props: TooltipTriggerProps): Element {
       if (event.key === 'Escape') cancelFocus();
     },
     onClick: composeEventHandlers<MouseEvent>(() => props.onClick, () => { cancelFocus(); root.onClose(); })
-  })} />;
+  });
+  return <Primitive as="button" {...forwarded} />;
 }
 
 export function TooltipPortal(props: TooltipPortalProps): Element {
-  useTooltip('TooltipPortal', props.__scopeTooltip);
+  useTooltip('TooltipPortal', untrack(() => props.__scopeTooltip));
   const forwarded = {
     get mount() { return props.container ?? undefined; },
     get children() { return <PortalContext scope={props.__scopeTooltip} value={{ forceMount: () => props.forceMount ?? false }}>{props.children}</PortalContext>; }
@@ -147,9 +149,10 @@ export function TooltipPortal(props: TooltipPortalProps): Element {
 }
 
 export function TooltipContent(props: TooltipContentProps): Element {
-  const root = useTooltip('TooltipContent', props.__scopeTooltip);
-  const provider = useProvider('TooltipContent', props.__scopeTooltip);
-  const portal = usePortal('TooltipContent', props.__scopeTooltip);
+  const scope = untrack(() => props.__scopeTooltip);
+  const root = useTooltip('TooltipContent', scope);
+  const provider = useProvider('TooltipContent', scope);
+  const portal = usePortal('TooltipContent', scope);
   const presence = createPresence(root.open, () => props.forceMount ?? portal.forceMount());
   function Mounted(): Element {
     const [node, ref] = createSignal<HTMLElement | undefined>();
@@ -209,6 +212,7 @@ export function TooltipContent(props: TooltipContentProps): Element {
     }
     const label = () => props['aria-label'] ? <VisuallyHidden id={root.contentId()} role="tooltip">{props['aria-label']}</VisuallyHidden> : undefined;
     const factory = untrack(() => props.asChild) ? Slottable({ child: untrack(() => props.children) as SlotRender, get trailing() { return label(); } }) : undefined;
+    const fallbackChildren = () => <>{props.children}{label()}</>;
     const forwarded = merge({
       side: 'top' as const,
       get role() { return props['aria-label'] ? undefined : 'tooltip' as const; }
@@ -217,7 +221,7 @@ export function TooltipContent(props: TooltipContentProps): Element {
       get id() { return props['aria-label'] ? undefined : root.contentId(); },
       get ['data-state']() { return root.state(); },
       get ref() { return composeRefs(props.ref, ref, presence.ref); },
-      get children() { return factory ?? <>{props.children}{label()}</>; },
+      get children() { return factory ?? fallbackChildren(); },
       get style() { return mergeStyles(props.style, {
         '--radix-tooltip-content-transform-origin': 'var(--radix-popper-transform-origin)',
         '--radix-tooltip-content-available-width': 'var(--radix-popper-available-width)',
@@ -232,7 +236,8 @@ export function TooltipContent(props: TooltipContentProps): Element {
 }
 
 export function TooltipArrow(props: TooltipArrowProps): Element {
-  return <PopperArrow {...merge(omit(props, '__scopeTooltip'), { get __scopePopper() { return props.__scopeTooltip; } })} />;
+  const forwarded = merge(omit(props, '__scopeTooltip'), { get __scopePopper() { return props.__scopeTooltip; } });
+  return <PopperArrow {...forwarded} />;
 }
 
 

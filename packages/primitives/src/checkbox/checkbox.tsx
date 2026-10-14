@@ -38,7 +38,8 @@ export function Checkbox(props: CheckboxProps): Element {
     const context = useCheckbox('Checkbox', untrack(() => props.__scopeCheckbox));
     return <Show when={context.hasForm()}><CheckboxBubbleInput __scopeCheckbox={props.__scopeCheckbox} /></Show>;
   }
-  return <CheckboxProvider {...omit(props, 'children')}><CheckboxTrigger {...triggerProps} /><Input /></CheckboxProvider>;
+  const providerProps = omit(props, 'children');
+  return <CheckboxProvider {...providerProps}><CheckboxTrigger {...triggerProps} /><Input /></CheckboxProvider>;
 }
 
 export function CheckboxTrigger(props: CheckboxTriggerProps): Element {

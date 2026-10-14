@@ -85,7 +85,7 @@ export interface SlottableProps {
 
 export function createSlottable(ownerName: string) {
   return function Slottable(props: SlottableProps): SlotRender {
-    if (typeof props.child !== 'function') throw new TypeError(`${ownerName} requires a target factory.`);
+    if (typeof untrack(() => props.child) !== 'function') throw new TypeError(`${ownerName} requires a target factory.`);
     return target => props.child((component, childProps) => {
       const wrapped = merge(childProps, {
         get children() {

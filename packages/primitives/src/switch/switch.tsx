@@ -34,7 +34,8 @@ export function Switch(props: SwitchProps): Element {
     const context = useSwitch('Switch', untrack(() => props.__scopeSwitch));
     return <Show when={context.hasForm()}><SwitchBubbleInput __scopeSwitch={props.__scopeSwitch} /></Show>;
   }
-  return <SwitchProvider {...omit(props, 'children')}><SwitchTrigger {...triggerProps} /><Input /></SwitchProvider>;
+  const providerProps = omit(props, 'children');
+  return <SwitchProvider {...providerProps}><SwitchTrigger {...triggerProps} /><Input /></SwitchProvider>;
 }
 
 export function SwitchTrigger(props: SwitchTriggerProps): Element {

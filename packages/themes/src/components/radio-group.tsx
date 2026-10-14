@@ -19,19 +19,22 @@ function RadioGroupRoot(props: RadioGroupRootProps): Element {
   const context = { get color() { return props.color ?? radioGroupRootPropDefs.color.default; }, get size() { return props.size ?? radioGroupRootPropDefs.size.default; },
     get highContrast() { return props.highContrast ?? radioGroupRootPropDefs.highContrast.default; }, get variant() { return props.variant ?? radioGroupRootPropDefs.variant.default; } };
   const parsed = extractProps(omit(props, 'color', 'size', 'highContrast', 'variant'), marginPropDefs);
-  return <Provider scope={scope} value={context}><RadioGroupPrimitive.Root {...omit(parsed, '__scopeRadioGroup', 'class') as RadioGroupPrimitive.RadioGroupProps}
+  const rootProps = omit(parsed, '__scopeRadioGroup', 'class') as RadioGroupPrimitive.RadioGroupProps;
+  return <Provider scope={scope} value={context}><RadioGroupPrimitive.Root {...rootProps}
     {...primitiveScope} class={['rt-RadioGroupRoot', parsed.class]} /></Provider>;
 }
 function ItemRadio(props: RadioGroupItemProps): Element {
   const scope = untrack(() => props.__scopeRadioGroup), context = useGroup('RadioGroupItem', scope), primitiveScope = useScope(scope);
   const parsed = extractProps(merge(props, context), radioGroupRootPropDefs, marginPropDefs);
-  return <RadioGroupPrimitive.Item {...omit(parsed, '__scopeRadioGroup', 'children', 'class', 'color')} {...primitiveScope} asChild={false}
+  const radioProps = omit(parsed, '__scopeRadioGroup', 'children', 'class', 'color');
+  return <RadioGroupPrimitive.Item {...radioProps} {...primitiveScope} asChild={false}
     data-accent-color={parsed.color} class={['rt-reset', 'rt-BaseRadioRoot', parsed.class]} />;
 }
 function RadioGroupItem(props: RadioGroupItemProps): Element {
   const context = useGroup('RadioGroupItem', untrack(() => props.__scopeRadioGroup));
+  const itemProps = omit(props, 'class', 'style', 'children');
   return <Show when={!!props.children} fallback={<ItemRadio {...props} />}><Text as="label" size={context.size} class={['rt-RadioGroupItem', props.class]} style={props.style}>
-    <ItemRadio {...omit(props, 'class', 'style', 'children')} /><span class="rt-RadioGroupItemInner">{props.children}</span>
+    <ItemRadio {...itemProps} /><span class="rt-RadioGroupItemInner">{props.children}</span>
   </Text></Show>;
 }
 export { RadioGroupRoot as Root, RadioGroupItem as Item };

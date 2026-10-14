@@ -10,10 +10,12 @@ type HoverCardRootProps = Native.HoverCardProps;
 type HoverCardTriggerProps = Omit<Native.HoverCardTriggerProps, RemovedProps | 'children'> & { children: SlotRender };
 type HoverCardContentProps = ComposedProps<Omit<Native.HoverCardContentProps, RemovedProps> & HoverCardContentOwnProps & { container?: Native.HoverCardPortalProps['container'] }>;
 function HoverCardRoot(props: HoverCardRootProps): Element {
-  return <Native.Root {...merge({ openDelay: 200, closeDelay: 150 }, props)} />;
+  const rootProps = merge({ openDelay: 200, closeDelay: 150 }, props);
+  return <Native.Root {...rootProps} />;
 }
 function HoverCardTrigger(props: HoverCardTriggerProps): Element {
-  return <Native.Trigger {...merge(omit(props, 'class'), { get class() { return ['rt-HoverCardTrigger', props.class]; } })} asChild />;
+  const triggerProps = merge(omit(props, 'class'), { get class() { return ['rt-HoverCardTrigger', props.class]; } });
+  return <Native.Trigger {...triggerProps} asChild />;
 }
 function HoverCardContent(props: HoverCardContentProps): Element {
   const parsed = extractProps(props, hoverCardContentPropDefs);

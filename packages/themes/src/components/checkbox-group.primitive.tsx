@@ -34,6 +34,7 @@ export function CheckboxGroupItem(props: CheckboxGroupItemProps): Element {
 }
 export function CheckboxGroupIndicator(props: CheckboxGroupIndicatorProps): Element {
   const scope = useCheckboxScope(untrack(() => props.__scopeCheckboxGroup));
-  return <Checkbox.Indicator {...omit(props, '__scopeCheckboxGroup')} {...scope} />;
+  const indicatorProps = omit(props, '__scopeCheckboxGroup');
+  return <Checkbox.Indicator {...indicatorProps} {...scope} />;
 }
 export { CheckboxGroup as Root, CheckboxGroupItem as Item, CheckboxGroupIndicator as Indicator };

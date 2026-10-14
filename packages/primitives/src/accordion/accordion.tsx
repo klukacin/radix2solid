@@ -74,7 +74,7 @@ export function Accordion(props: AccordionSingleProps | AccordionMultipleProps):
 }
 
 export function AccordionItem(props: AccordionItemProps): Element {
-  const root = useAccordion('AccordionItem', props.__scopeAccordion);
+  const root = useAccordion('AccordionItem', untrack(() => props.__scopeAccordion));
   const item = { open: () => !!props.value && root.value().includes(props.value), disabled: () => root.disabled() || !!props.disabled, triggerId: createUniqueId() };
   const forwarded = merge(omit(props, '__scopeAccordion', 'value'), {
     get __scopeCollapsible() { return useCollapsibleScope(props.__scopeAccordion).__scopeCollapsible; },
@@ -85,16 +85,16 @@ export function AccordionItem(props: AccordionItemProps): Element {
 }
 
 export function AccordionHeader(props: AccordionHeaderProps): Element {
-  const root = useAccordion('AccordionHeader', props.__scopeAccordion);
-  const item = useItem('AccordionHeader', props.__scopeAccordion);
+  const root = useAccordion('AccordionHeader', untrack(() => props.__scopeAccordion));
+  const item = useItem('AccordionHeader', untrack(() => props.__scopeAccordion));
   const forwarded = merge({ get ['data-orientation']() { return root.orientation(); }, get ['data-state']() { return item.open() ? 'open' : 'closed'; },
     get ['data-disabled']() { return item.disabled() ? '' : undefined; } }, omit(props, '__scopeAccordion'));
   return <Primitive as="h3" {...forwarded} />;
 }
 
 export function AccordionTrigger(props: AccordionTriggerProps): Element {
-  const root = useAccordion('AccordionTrigger', props.__scopeAccordion);
-  const item = useItem('AccordionTrigger', props.__scopeAccordion);
+  const root = useAccordion('AccordionTrigger', untrack(() => props.__scopeAccordion));
+  const item = useItem('AccordionTrigger', untrack(() => props.__scopeAccordion));
   const [node, ref] = createSignal<HTMLElement | undefined>();
   if (!isServer) createEffect(node, element => element ? root.collection.register(element, { disabled: item.disabled }) : undefined, { transparent: true });
   const forwarded = merge({ id: item.triggerId, get ['aria-disabled']() { return item.open() && !root.collapsible() ? 'true' : undefined; },
@@ -105,8 +105,8 @@ export function AccordionTrigger(props: AccordionTriggerProps): Element {
 }
 
 export function AccordionContent(props: AccordionContentProps): Element {
-  const root = useAccordion('AccordionContent', props.__scopeAccordion);
-  const item = useItem('AccordionContent', props.__scopeAccordion);
+  const root = useAccordion('AccordionContent', untrack(() => props.__scopeAccordion));
+  const item = useItem('AccordionContent', untrack(() => props.__scopeAccordion));
   const style = createMemo(() => {
     const values = { '--radix-accordion-content-height': 'var(--radix-collapsible-content-height)', '--radix-accordion-content-width': 'var(--radix-collapsible-content-width)' };
     const consumer = props.style;

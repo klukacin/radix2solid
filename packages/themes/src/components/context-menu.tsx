@@ -57,31 +57,47 @@ function ContextMenuSubContent(props: ContextMenuSubContentProps): Element {
 function ContextMenuItem(props: ContextMenuItemProps): Element {
   const shortcut = <Show when={props.shortcut}><div class="rt-BaseMenuShortcut rt-ContextMenuShortcut">{props.shortcut}</div></Show>;
   const child = untrack(() => props.asChild) ? Slottable({ child: untrack(() => props.children) as SlotRender, trailing: shortcut }) : undefined;
+  const content = (): Element => <>{props.children as Element}{shortcut}</>;
   const forwarded = merge(omit(props, 'class', 'children', 'color', 'shortcut'), {
     get ['data-accent-color']() { return props.color; }, get class() { return ['rt-reset', 'rt-BaseMenuItem', 'rt-ContextMenuItem', props.class]; },
-    get children() { return child ?? <>{props.children as Element}{shortcut}</>; }
+    get children() { return child ?? content(); }
   }) as Native.ContextMenuItemProps;
   return <Native.Item {...forwarded} />;
 }
 function ContextMenuCheckboxItem(props: ContextMenuCheckboxItemProps): Element {
-  return <Native.CheckboxItem {...merge(omit(props, 'class', 'children', 'color', 'shortcut'), { get ['data-accent-color']() { return props.color; }, get class() { return ['rt-BaseMenuItem', 'rt-BaseMenuCheckboxItem', 'rt-ContextMenuItem', 'rt-ContextMenuCheckboxItem', props.class]; } })} asChild={false}>
+  const forwarded = merge(omit(props, 'class', 'children', 'color', 'shortcut'), { get ['data-accent-color']() { return props.color; }, get class() { return ['rt-BaseMenuItem', 'rt-BaseMenuCheckboxItem', 'rt-ContextMenuItem', 'rt-ContextMenuCheckboxItem', props.class]; } });
+  return <Native.CheckboxItem {...forwarded} asChild={false}>
     {props.children}<Native.ItemIndicator class="rt-BaseMenuItemIndicator rt-ContextMenuItemIndicator"><ThickCheckIcon class="rt-BaseMenuItemIndicatorIcon rt-ContextMenuItemIndicatorIcon" /></Native.ItemIndicator>
     <Show when={props.shortcut}><div class="rt-BaseMenuShortcut rt-ContextMenuShortcut">{props.shortcut}</div></Show>
   </Native.CheckboxItem>;
 }
 function ContextMenuRadioItem(props: ContextMenuRadioItemProps): Element {
-  return <Native.RadioItem {...merge(omit(props, 'class', 'children', 'color'), { get ['data-accent-color']() { return props.color; }, get class() { return ['rt-BaseMenuItem', 'rt-BaseMenuRadioItem', 'rt-ContextMenuItem', 'rt-ContextMenuRadioItem', props.class]; } })} asChild={false}>
+  const forwarded = merge(omit(props, 'class', 'children', 'color'), { get ['data-accent-color']() { return props.color; }, get class() { return ['rt-BaseMenuItem', 'rt-BaseMenuRadioItem', 'rt-ContextMenuItem', 'rt-ContextMenuRadioItem', props.class]; } });
+  return <Native.RadioItem {...forwarded} asChild={false}>
     {props.children}<Native.ItemIndicator class="rt-BaseMenuItemIndicator rt-ContextMenuItemIndicator"><ThickCheckIcon class="rt-BaseMenuItemIndicatorIcon rt-ContextMenuItemIndicatorIcon" /></Native.ItemIndicator>
   </Native.RadioItem>;
 }
 function ContextMenuSubTrigger(props: ContextMenuSubTriggerProps): Element {
-  return <Native.SubTrigger {...merge(omit(props, 'class', 'children'), { get class() { return ['rt-BaseMenuItem', 'rt-BaseMenuSubTrigger', 'rt-ContextMenuItem', 'rt-ContextMenuSubTrigger', props.class]; } })} asChild={false}>
+  const forwarded = merge(omit(props, 'class', 'children'), { get class() { return ['rt-BaseMenuItem', 'rt-BaseMenuSubTrigger', 'rt-ContextMenuItem', 'rt-ContextMenuSubTrigger', props.class]; } });
+  return <Native.SubTrigger {...forwarded} asChild={false}>
     {props.children}<div class="rt-BaseMenuShortcut rt-ContextMenuShortcut"><ThickChevronRightIcon class="rt-BaseMenuSubTriggerIcon rt-ContextMenuSubtriggerIcon" /></div>
   </Native.SubTrigger>;
 }
-function ContextMenuLabel(props: ContextMenuLabelProps): Element { return <Native.Label {...merge(props, { get class() { return ['rt-BaseMenuLabel', 'rt-ContextMenuLabel', props.class]; } })} asChild={false} />; }
-function ContextMenuGroup(props: ContextMenuGroupProps): Element { return <Native.Group {...merge(props, { get class() { return ['rt-BaseMenuGroup', 'rt-ContextMenuGroup', props.class]; } })} asChild={false} />; }
-function ContextMenuRadioGroup(props: ContextMenuRadioGroupProps): Element { return <Native.RadioGroup {...merge(props, { get class() { return ['rt-BaseMenuRadioGroup', 'rt-ContextMenuRadioGroup', props.class]; } })} asChild={false} />; }
-function ContextMenuSeparator(props: ContextMenuSeparatorProps): Element { return <Native.Separator {...merge(props, { get class() { return ['rt-BaseMenuSeparator', 'rt-ContextMenuSeparator', props.class]; } })} asChild={false} />; }
+function ContextMenuLabel(props: ContextMenuLabelProps): Element {
+  const forwarded = merge(props, { get class() { return ['rt-BaseMenuLabel', 'rt-ContextMenuLabel', props.class]; } });
+  return <Native.Label {...forwarded} asChild={false} />;
+}
+function ContextMenuGroup(props: ContextMenuGroupProps): Element {
+  const forwarded = merge(props, { get class() { return ['rt-BaseMenuGroup', 'rt-ContextMenuGroup', props.class]; } });
+  return <Native.Group {...forwarded} asChild={false} />;
+}
+function ContextMenuRadioGroup(props: ContextMenuRadioGroupProps): Element {
+  const forwarded = merge(props, { get class() { return ['rt-BaseMenuRadioGroup', 'rt-ContextMenuRadioGroup', props.class]; } });
+  return <Native.RadioGroup {...forwarded} asChild={false} />;
+}
+function ContextMenuSeparator(props: ContextMenuSeparatorProps): Element {
+  const forwarded = merge(props, { get class() { return ['rt-BaseMenuSeparator', 'rt-ContextMenuSeparator', props.class]; } });
+  return <Native.Separator {...forwarded} asChild={false} />;
+}
 export { ContextMenuRoot as Root, ContextMenuTrigger as Trigger, ContextMenuContent as Content, ContextMenuItem as Item, ContextMenuLabel as Label, ContextMenuGroup as Group, ContextMenuRadioGroup as RadioGroup, ContextMenuRadioItem as RadioItem, ContextMenuCheckboxItem as CheckboxItem, ContextMenuSub as Sub, ContextMenuSubTrigger as SubTrigger, ContextMenuSubContent as SubContent, ContextMenuSeparator as Separator };
 export type { ContextMenuRootProps as RootProps, ContextMenuTriggerProps as TriggerProps, ContextMenuContentProps as ContentProps, ContextMenuItemProps as ItemProps, ContextMenuLabelProps as LabelProps, ContextMenuGroupProps as GroupProps, ContextMenuRadioGroupProps as RadioGroupProps, ContextMenuRadioItemProps as RadioItemProps, ContextMenuCheckboxItemProps as CheckboxItemProps, ContextMenuSubProps as SubProps, ContextMenuSubTriggerProps as SubTriggerProps, ContextMenuSubContentProps as SubContentProps, ContextMenuSeparatorProps as SeparatorProps };

@@ -142,7 +142,8 @@ export function Slider(props: SliderProps): Element {
 
 export function SliderTrack(props: SliderTrackProps): Element {
   const root = useSlider('SliderTrack', untrack(() => props.__scopeSlider));
-  return <Primitive as="span" {...merge({ get ['data-orientation']() { return root.orientation(); }, get ['data-disabled']() { return root.disabled() ? '' : undefined; } }, omit(props, '__scopeSlider'))} />;
+  const forwarded = merge({ get ['data-orientation']() { return root.orientation(); }, get ['data-disabled']() { return root.disabled() ? '' : undefined; } }, omit(props, '__scopeSlider'));
+  return <Primitive as="span" {...forwarded} />;
 }
 
 export function SliderRange(props: SliderRangeProps): Element {
@@ -152,7 +153,8 @@ export function SliderRange(props: SliderRangeProps): Element {
     const start = percentages.length > 1 ? Math.min(...percentages) : 0, end = percentages.length ? Math.max(...percentages) : 0;
     return mergeStyles({ [root.startEdge()]: `${start}%`, [root.endEdge()]: `${100 - end}%` }, props.style);
   });
-  return <Primitive as="span" {...merge({ get ['data-orientation']() { return root.orientation(); }, get ['data-disabled']() { return root.disabled() ? '' : undefined; } }, omit(props, '__scopeSlider'), { get style() { return style(); } })} />;
+  const forwarded = merge({ get ['data-orientation']() { return root.orientation(); }, get ['data-disabled']() { return root.disabled() ? '' : undefined; } }, omit(props, '__scopeSlider'), { get style() { return style(); } });
+  return <Primitive as="span" {...forwarded} />;
 }
 
 export function SliderThumbProvider(props: SliderThumbProviderProps): Element {
@@ -190,7 +192,8 @@ export function SliderThumbTrigger(props: SliderThumbTriggerProps): Element {
 
 export function SliderThumb(props: SliderThumbProps): Element {
   function Input(): Element { const thumb = useThumb('SliderThumb', untrack(() => props.__scopeSlider)); return <Show when={thumb.hasForm()}><SliderBubbleInput __scopeSlider={props.__scopeSlider} /></Show>; }
-  return <SliderThumbProvider __scopeSlider={props.__scopeSlider} name={props.name}><SliderThumbTrigger {...omit(props, 'name')} /><Input /></SliderThumbProvider>;
+  const triggerProps = omit(props, 'name');
+  return <SliderThumbProvider __scopeSlider={props.__scopeSlider} name={props.name}><SliderThumbTrigger {...triggerProps} /><Input /></SliderThumbProvider>;
 }
 
 export function SliderBubbleInput(props: SliderBubbleInputProps): Element {
@@ -203,5 +206,6 @@ export function SliderBubbleInput(props: SliderBubbleInputProps): Element {
     input.value = text;
     if (!first && previous?.[1] !== value) { const view = input.ownerDocument.defaultView!; input.dispatchEvent(new view.Event('input', { bubbles: true })); input.dispatchEvent(new view.Event('change', { bubbles: true })); }
   }, { transparent: true });
-  return <Primitive as="input" {...merge({ type: 'hidden' as const, get name() { return thumb.name(); }, get form() { return root.form(); }, get disabled() { return root.disabled(); }, get value() { return thumb.value() ?? ''; } }, omit(props, '__scopeSlider'), { get ref() { return composeRefs(props.ref, ref); } })} />;
+  const forwarded = merge({ type: 'hidden' as const, get name() { return thumb.name(); }, get form() { return root.form(); }, get disabled() { return root.disabled(); }, get value() { return thumb.value() ?? ''; } }, omit(props, '__scopeSlider'), { get ref() { return composeRefs(props.ref, ref); } });
+  return <Primitive as="input" {...forwarded} />;
 }

@@ -20,16 +20,17 @@ function CheckboxCardsRoot(props: CheckboxCardsRootProps): Element {
   const scope = untrack(() => props.__scopeCheckboxCards), primitiveScope = useScope(scope);
   const parsed = extractProps(props, checkboxCardsRootPropDefs, marginPropDefs);
   const context = { get size() { return props.size; }, get highContrast() { return props.highContrast; } };
-  return <Provider scope={scope} value={context}><Grid asChild>{target => target(CheckboxGroupPrimitive.Root,
-    merge(omit(parsed, '__scopeCheckboxCards', 'class', 'color'), primitiveScope, {
-      get ['data-accent-color']() { return parsed.color; }, get class() { return ['rt-CheckboxCardsRoot', parsed.class]; } }) as CheckboxGroupPrimitive.CheckboxGroupProps)}
+  const rootProps = merge(omit(parsed, '__scopeCheckboxCards', 'class', 'color'), primitiveScope, {
+    get ['data-accent-color']() { return parsed.color; }, get class() { return ['rt-CheckboxCardsRoot', parsed.class]; } }) as CheckboxGroupPrimitive.CheckboxGroupProps;
+  return <Provider scope={scope} value={context}><Grid asChild>{target => target(CheckboxGroupPrimitive.Root, rootProps)}
   </Grid></Provider>;
 }
 function CheckboxCardsItem(props: CheckboxCardsItemProps): Element {
   const scope = untrack(() => props.__scopeCheckboxCards), context = useCards('CheckboxCardsItem', scope), primitiveScope = useScope(scope);
   const parsed = extractProps({ get size() { return context.size; }, variant: 'surface', get highContrast() { return context.highContrast; } }, baseCheckboxPropDefs);
+  const itemProps = omit(props, '__scopeCheckboxCards', 'children', 'class', 'style');
   return <label class={['rt-BaseCard', 'rt-CheckboxCardsItem', props.class]} style={props.style}>{props.children}
-    <CheckboxGroupPrimitive.Item {...omit(props, '__scopeCheckboxCards', 'children', 'class', 'style')} {...primitiveScope} asChild={false}
+    <CheckboxGroupPrimitive.Item {...itemProps} {...primitiveScope} asChild={false}
       class={['rt-reset', 'rt-BaseCheckboxRoot', 'rt-CheckboxCardCheckbox', parsed.class]}>
       <CheckboxGroupPrimitive.Indicator {...primitiveScope} asChild class="rt-BaseCheckboxIndicator">{target => target(ThickCheckIcon, {})}</CheckboxGroupPrimitive.Indicator>
     </CheckboxGroupPrimitive.Item>

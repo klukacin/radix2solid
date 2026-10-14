@@ -12,21 +12,25 @@ type TabsTriggerProps = Omit<TabsPrimitive.TabsTriggerProps, RemovedProps | 'chi
 type TabsContentProps = ComposedProps<Omit<TabsPrimitive.TabsContentProps, 'color' | 'defaultValue' | 'defaultChecked'> & MarginProps & GetPropDefTypes<typeof tabsContentPropDefs>>;
 function TabsRoot(props: TabsRootProps): Element {
   const parsed = extractProps(props, marginPropDefs);
-  return <TabsPrimitive.Root {...omit(parsed, 'class') as TabsPrimitive.TabsProps} class={['rt-TabsRoot', parsed.class]} />;
+  const rootProps = omit(parsed, 'class') as TabsPrimitive.TabsProps;
+  return <TabsPrimitive.Root {...rootProps} class={['rt-TabsRoot', parsed.class]} />;
 }
 function TabsList(props: TabsListProps): Element {
   const parsed = extractProps(props, tabsListPropDefs, marginPropDefs);
-  return <TabsPrimitive.List {...omit(parsed, 'class', 'color')} asChild={false} data-accent-color={parsed.color} class={['rt-BaseTabList', 'rt-TabsList', parsed.class]} />;
+  const listProps = omit(parsed, 'class', 'color');
+  return <TabsPrimitive.List {...listProps} asChild={false} data-accent-color={parsed.color} class={['rt-BaseTabList', 'rt-TabsList', parsed.class]} />;
 }
 function TabsTrigger(props: TabsTriggerProps): Element {
-  return <TabsPrimitive.Trigger {...omit(props, 'class', 'children')} asChild={false} class={['rt-reset', 'rt-BaseTabListTrigger', 'rt-TabsTrigger', props.class]}>
+  const triggerProps = omit(props, 'class', 'children');
+  return <TabsPrimitive.Trigger {...triggerProps} asChild={false} class={['rt-reset', 'rt-BaseTabListTrigger', 'rt-TabsTrigger', props.class]}>
     <span class="rt-BaseTabListTriggerInner rt-TabsTriggerInner">{props.children}</span>
     <span class="rt-BaseTabListTriggerInnerHidden rt-TabsTriggerInnerHidden">{props.children}</span>
   </TabsPrimitive.Trigger>;
 }
 function TabsContent(props: TabsContentProps): Element {
   const parsed = extractProps(props, marginPropDefs);
-  return <TabsPrimitive.Content {...omit(parsed, 'class') as TabsPrimitive.TabsContentProps} class={['rt-TabsContent', parsed.class]} />;
+  const contentProps = omit(parsed, 'class') as TabsPrimitive.TabsContentProps;
+  return <TabsPrimitive.Content {...contentProps} class={['rt-TabsContent', parsed.class]} />;
 }
 export { TabsRoot as Root, TabsList as List, TabsTrigger as Trigger, TabsContent as Content };
 export type { TabsRootProps as RootProps, TabsListProps as ListProps, TabsTriggerProps as TriggerProps, TabsContentProps as ContentProps };

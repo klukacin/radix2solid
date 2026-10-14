@@ -5,10 +5,11 @@ import type { IconProps } from './types.js';
 import { IconTitle } from './title.js';
 
 export function CaretRightIcon(props: IconProps): Element {
+  const svgProps = omit(props, 'children', 'title', 'size');
   return <svg width={props.size ?? 15} height={props.size ?? 15} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"
     role={props.title || props['aria-label'] || props['aria-labelledby'] ? 'img' : undefined}
     aria-hidden={props.title || props['aria-label'] || props['aria-labelledby'] ? undefined : 'true'}
-    {...omit(props, 'children', 'title', 'size')}>
+    {...svgProps}>
     {props.title ? <IconTitle xmlns="http://www.w3.org/2000/svg">{props.title}</IconTitle> : undefined}
     <path d="M9.95012 7.50023C9.95007 7.61951 9.90263 7.73425 9.81828 7.81859L6.81828 10.8186C6.64253 10.9941 6.35724 10.9943 6.18156 10.8186C6.00589 10.6429 6.00602 10.3576 6.18156 10.1819L8.8632 7.50023L6.18156 4.81859L6.12395 4.74828C6.00848 4.57366 6.0279 4.33572 6.18156 4.18188C6.33539 4.02805 6.57328 4.00878 6.74797 4.12426L6.81828 4.18188L9.81828 7.18188C9.90267 7.26627 9.95012 7.38089 9.95012 7.50023Z" fill={props.color ?? 'currentColor'}/>
   </svg>;

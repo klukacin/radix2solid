@@ -33,6 +33,8 @@ function CustomTarget(props: JSX.AnchorHTMLAttributes<HTMLAnchorElement> & { tok
   return <a data-token={props.token} {...props} />;
 }
 
+const stringStyle = 'color: red';
+
 export const consumer = <>
   <Toggle.Root onClick={event => {
     event.currentTarget.disabled = false;
@@ -140,7 +142,7 @@ const multipleProps: AccordionMultipleProps = { type: 'multiple', defaultValue: 
 export const disclosures = <>
   <CollapsibleRoot {...collapsibleScope} {...disclosureProps}>
     <Collapsible.Trigger {...collapsibleScope} onClick={event => { event.currentTarget.disabled; }} ref={button => { button.disabled; }}>Disclosure</Collapsible.Trigger>
-    <Collapsible.Content {...collapsibleScope} forceMount style="color: red" asChild>{target => target('article', { children: 'Native disclosure' })}</Collapsible.Content>
+    <Collapsible.Content {...collapsibleScope} forceMount style={stringStyle} asChild>{target => target('article', { children: 'Native disclosure' })}</Collapsible.Content>
     {/* @ts-expect-error Disclosure content requires the single-target factory when asChild is true. */}
     <Collapsible.Content asChild><article /></Collapsible.Content>
   </CollapsibleRoot>
@@ -172,7 +174,7 @@ const switchTriggerProps: unstable_SwitchTriggerProps = { onClick: event => { ev
 const switchInputProps: unstable_SwitchBubbleInputProps = { ref: input => { input.checked; input.form; } };
 const thumbProps: SwitchThumbProps = { ref: span => { const element: HTMLSpanElement = span; void element; }, style: 'opacity: .5' };
 export const checkedControls = <>
-  <CheckboxRoot {...checkboxScope} defaultChecked="indeterminate"><Checkbox.Indicator {...checkboxScope} forceMount style="color: red" /></CheckboxRoot>
+  <CheckboxRoot {...checkboxScope} defaultChecked="indeterminate"><Checkbox.Indicator {...checkboxScope} forceMount style={stringStyle} /></CheckboxRoot>
   <Checkbox.unstable_Provider {...checkboxScope} {...checkboxProviderProps}>
     <Checkbox.unstable_CheckboxTrigger {...checkboxScope} {...checkboxTriggerProps} />
     <Checkbox.unstable_BubbleInput {...checkboxScope} {...checkboxInputProps} />
@@ -201,7 +203,7 @@ const radioProviderProps: unstable_RadioGroupItemProviderProps = { value: 'two',
 const radioTriggerProps: unstable_RadioGroupItemTriggerProps = { onClick: event => { event.currentTarget.disabled; } };
 const radioInputProps: unstable_RadioGroupItemBubbleInputProps = { ref: input => { input.form; input.checked; } };
 export const radioControls = <RadioGroupRoot {...radioScope} {...radioProps}>
-  <RadioGroup.Item {...radioScope} {...radioItemProps}><RadioGroup.Indicator {...radioScope} forceMount style="color: red" /></RadioGroup.Item>
+  <RadioGroup.Item {...radioScope} {...radioItemProps}><RadioGroup.Indicator {...radioScope} forceMount style={stringStyle} /></RadioGroup.Item>
   <RadioGroup.unstable_ItemProvider {...radioScope} {...radioProviderProps}>
     <RadioGroup.unstable_RadioGroupItemTrigger {...radioScope} {...radioTriggerProps} />
     <RadioGroup.unstable_ItemBubbleInput {...radioScope} {...radioInputProps} />
@@ -441,7 +443,7 @@ import { Root as PasswordRoot, type PasswordToggleFieldProps, type PasswordToggl
 const passwordProps: PasswordToggleFieldProps = { defaultVisible: false, onVisibilityChange: visible => { const value: boolean = visible; void value; } };
 const passwordInputProps: PasswordToggleFieldInputProps = { name: 'secret', form: 'external', autoComplete: 'new-password' };
 const passwordToggleProps: PasswordToggleFieldToggleProps = { 'aria-label': 'Reveal', ref: node => { node.disabled; } };
-const passwordSlotProps: PasswordToggleFieldSlotProps = { render: ({ visible }) => <span>{visible ? 'Hide' : 'Show'}</span> };
+const passwordSlotProps: PasswordToggleFieldSlotProps = { render: state => <span>{state.visible ? 'Hide' : 'Show'}</span> };
 const passwordIconProps: PasswordToggleFieldIconProps = { visible: target => target('svg', {}), hidden: target => target('svg', {}) };
 export const nativePassword = <PasswordRoot {...passwordProps}>
   <PasswordParts.Input {...passwordInputProps} ref={node => { node.setSelectionRange(0, 1); }} asChild>{target => target('input', {})}</PasswordParts.Input>

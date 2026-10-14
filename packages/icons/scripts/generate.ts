@@ -33,10 +33,11 @@ for (const [name, asset] of entries) {
     `import { IconTitle } from './title.js';\n\n` +
     `export function ${name}(props: IconProps): Element {\n` +
     (ids.length ? `  const maskId = createUniqueId();\n` : '') +
+    `  const svgProps = omit(props, 'children', 'title', 'size');\n` +
     `  return <svg width={props.size ?? 15} height={props.size ?? 15} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"\n` +
     `    role={props.title || props['aria-label'] || props['aria-labelledby'] ? 'img' : undefined}\n` +
     `    aria-hidden={props.title || props['aria-label'] || props['aria-labelledby'] ? undefined : 'true'}\n` +
-    `    {...omit(props, 'children', 'title', 'size')}>\n` +
+    `    {...svgProps}>\n` +
     `    {props.title ? <IconTitle xmlns="http://www.w3.org/2000/svg">{props.title}</IconTitle> : undefined}\n` +
     `    ${body}\n` +
     `  </svg>;\n}\n\nexport default ${name};\n`;

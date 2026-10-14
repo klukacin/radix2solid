@@ -3,5 +3,6 @@ import { BaseButton, type BaseButtonProps } from './_internal/base-button.js';
 
 export type IconButtonProps = BaseButtonProps;
 export function IconButton(props: IconButtonProps): Element {
-  return <BaseButton {...merge(props, { get class() { return ['rt-IconButton', props.class]; } })} />;
+  const forwarded = merge(props, { get class() { return ['rt-IconButton', props.class]; } });
+  return <BaseButton {...forwarded} />;
 }

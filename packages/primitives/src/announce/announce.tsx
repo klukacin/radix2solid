@@ -137,6 +137,6 @@ export function Announce(props: AnnounceProps): Element {
     const dispose = mirrorChildren(node, mirror, includeSource);
     return () => { dispose(); mirror.remove(); region.release(); };
   }, { transparent: true });
-  const forwarded = merge(omit(props, 'type', 'role', 'regionIdentifier', 'aria-relevant', 'ref'), { ref: composeRefs(props.ref, setNode) });
+  const forwarded = merge(omit(props, 'type', 'role', 'regionIdentifier', 'aria-relevant', 'ref'), { ref: composeRefs(untrack(() => props.ref), setNode) });
   return <Primitive as="div" {...forwarded} />;
 }

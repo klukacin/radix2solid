@@ -56,31 +56,47 @@ function DropdownMenuSubContent(props: DropdownMenuSubContentProps): Element {
 function DropdownMenuItem(props: DropdownMenuItemProps): Element {
   const shortcut = <Show when={props.shortcut}><div class="rt-BaseMenuShortcut rt-DropdownMenuShortcut">{props.shortcut}</div></Show>;
   const child = untrack(() => props.asChild) ? Slottable({ child: untrack(() => props.children) as SlotRender, trailing: shortcut }) : undefined;
+  const content = (): Element => <>{props.children as Element}{shortcut}</>;
   const forwarded = merge(omit(props, 'class', 'children', 'color', 'shortcut'), {
     get ['data-accent-color']() { return props.color; }, get class() { return ['rt-reset', 'rt-BaseMenuItem', 'rt-DropdownMenuItem', props.class]; },
-    get children() { return child ?? <>{props.children as Element}{shortcut}</>; }
+    get children() { return child ?? content(); }
   }) as Native.DropdownMenuItemProps;
   return <Native.Item {...forwarded} />;
 }
 function DropdownMenuCheckboxItem(props: DropdownMenuCheckboxItemProps): Element {
-  return <Native.CheckboxItem {...merge(omit(props, 'class', 'children', 'color', 'shortcut'), { get ['data-accent-color']() { return props.color; }, get class() { return ['rt-BaseMenuItem', 'rt-BaseMenuCheckboxItem', 'rt-DropdownMenuItem', 'rt-DropdownMenuCheckboxItem', props.class]; } })} asChild={false}>
+  const forwarded = merge(omit(props, 'class', 'children', 'color', 'shortcut'), { get ['data-accent-color']() { return props.color; }, get class() { return ['rt-BaseMenuItem', 'rt-BaseMenuCheckboxItem', 'rt-DropdownMenuItem', 'rt-DropdownMenuCheckboxItem', props.class]; } });
+  return <Native.CheckboxItem {...forwarded} asChild={false}>
     {props.children}<Native.ItemIndicator class="rt-BaseMenuItemIndicator rt-DropdownMenuItemIndicator"><ThickCheckIcon class="rt-BaseMenuItemIndicatorIcon rt-ContextMenuItemIndicatorIcon" /></Native.ItemIndicator>
     <Show when={props.shortcut}><div class="rt-BaseMenuShortcut rt-DropdownMenuShortcut">{props.shortcut}</div></Show>
   </Native.CheckboxItem>;
 }
 function DropdownMenuRadioItem(props: DropdownMenuRadioItemProps): Element {
-  return <Native.RadioItem {...merge(omit(props, 'class', 'children', 'color'), { get ['data-accent-color']() { return props.color; }, get class() { return ['rt-BaseMenuItem', 'rt-BaseMenuRadioItem', 'rt-DropdownMenuItem', 'rt-DropdownMenuRadioItem', props.class]; } })} asChild={false}>
+  const forwarded = merge(omit(props, 'class', 'children', 'color'), { get ['data-accent-color']() { return props.color; }, get class() { return ['rt-BaseMenuItem', 'rt-BaseMenuRadioItem', 'rt-DropdownMenuItem', 'rt-DropdownMenuRadioItem', props.class]; } });
+  return <Native.RadioItem {...forwarded} asChild={false}>
     {props.children}<Native.ItemIndicator class="rt-BaseMenuItemIndicator rt-DropdownMenuItemIndicator"><ThickCheckIcon class="rt-BaseMenuItemIndicatorIcon rt-DropdownMenuItemIndicatorIcon" /></Native.ItemIndicator>
   </Native.RadioItem>;
 }
 function DropdownMenuSubTrigger(props: DropdownMenuSubTriggerProps): Element {
-  return <Native.SubTrigger {...merge(omit(props, 'class', 'children'), { get class() { return ['rt-BaseMenuItem', 'rt-BaseMenuSubTrigger', 'rt-DropdownMenuItem', 'rt-DropdownMenuSubTrigger', props.class]; } })} asChild={false}>
+  const forwarded = merge(omit(props, 'class', 'children'), { get class() { return ['rt-BaseMenuItem', 'rt-BaseMenuSubTrigger', 'rt-DropdownMenuItem', 'rt-DropdownMenuSubTrigger', props.class]; } });
+  return <Native.SubTrigger {...forwarded} asChild={false}>
     {props.children}<div class="rt-BaseMenuShortcut rt-DropdownMenuShortcut"><ThickChevronRightIcon class="rt-BaseMenuSubTriggerIcon rt-DropdownMenuSubtriggerIcon" /></div>
   </Native.SubTrigger>;
 }
-function DropdownMenuLabel(props: DropdownMenuLabelProps): Element { return <Native.Label {...merge(props, { get class() { return ['rt-BaseMenuLabel', 'rt-DropdownMenuLabel', props.class]; } })} asChild={false} />; }
-function DropdownMenuGroup(props: DropdownMenuGroupProps): Element { return <Native.Group {...merge(props, { get class() { return ['rt-BaseMenuGroup', 'rt-DropdownMenuGroup', props.class]; } })} asChild={false} />; }
-function DropdownMenuRadioGroup(props: DropdownMenuRadioGroupProps): Element { return <Native.RadioGroup {...merge(props, { get class() { return ['rt-BaseMenuRadioGroup', 'rt-DropdownMenuRadioGroup', props.class]; } })} asChild={false} />; }
-function DropdownMenuSeparator(props: DropdownMenuSeparatorProps): Element { return <Native.Separator {...merge(props, { get class() { return ['rt-BaseMenuSeparator', 'rt-DropdownMenuSeparator', props.class]; } })} asChild={false} />; }
+function DropdownMenuLabel(props: DropdownMenuLabelProps): Element {
+  const forwarded = merge(props, { get class() { return ['rt-BaseMenuLabel', 'rt-DropdownMenuLabel', props.class]; } });
+  return <Native.Label {...forwarded} asChild={false} />;
+}
+function DropdownMenuGroup(props: DropdownMenuGroupProps): Element {
+  const forwarded = merge(props, { get class() { return ['rt-BaseMenuGroup', 'rt-DropdownMenuGroup', props.class]; } });
+  return <Native.Group {...forwarded} asChild={false} />;
+}
+function DropdownMenuRadioGroup(props: DropdownMenuRadioGroupProps): Element {
+  const forwarded = merge(props, { get class() { return ['rt-BaseMenuRadioGroup', 'rt-DropdownMenuRadioGroup', props.class]; } });
+  return <Native.RadioGroup {...forwarded} asChild={false} />;
+}
+function DropdownMenuSeparator(props: DropdownMenuSeparatorProps): Element {
+  const forwarded = merge(props, { get class() { return ['rt-BaseMenuSeparator', 'rt-DropdownMenuSeparator', props.class]; } });
+  return <Native.Separator {...forwarded} asChild={false} />;
+}
 export { DropdownMenuRoot as Root, DropdownMenuTrigger as Trigger, ChevronDownIcon as TriggerIcon, DropdownMenuContent as Content, DropdownMenuItem as Item, DropdownMenuLabel as Label, DropdownMenuGroup as Group, DropdownMenuRadioGroup as RadioGroup, DropdownMenuRadioItem as RadioItem, DropdownMenuCheckboxItem as CheckboxItem, DropdownMenuSub as Sub, DropdownMenuSubTrigger as SubTrigger, DropdownMenuSubContent as SubContent, DropdownMenuSeparator as Separator };
 export type { DropdownMenuRootProps as RootProps, DropdownMenuTriggerProps as TriggerProps, IconProps as TriggerIconProps, DropdownMenuContentProps as ContentProps, DropdownMenuItemProps as ItemProps, DropdownMenuLabelProps as LabelProps, DropdownMenuGroupProps as GroupProps, DropdownMenuRadioGroupProps as RadioGroupProps, DropdownMenuRadioItemProps as RadioItemProps, DropdownMenuCheckboxItemProps as CheckboxItemProps, DropdownMenuSubProps as SubProps, DropdownMenuSubTriggerProps as SubTriggerProps, DropdownMenuSubContentProps as SubContentProps, DropdownMenuSeparatorProps as SeparatorProps };

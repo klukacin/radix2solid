@@ -12,7 +12,8 @@ type TabNavRootProps = Omit<ComponentProps<'nav'>, RemovedProps | 'defaultValue'
 type TabNavLinkProps = ComposedProps<Omit<NavigationMenu.NavigationMenuLinkProps, RemovedProps | 'onSelect'> & GetPropDefTypes<typeof tabNavLinkPropDefs>>;
 function TabNavRoot(props: TabNavRootProps): Element {
   const parsed = extractProps(props, tabNavRootPropDefs, marginPropDefs);
-  return <NavigationMenu.Root {...omit(parsed, 'class', 'color', 'children')} asChild={false} class="rt-TabNavRoot" data-accent-color={parsed.color}>
+  const rootProps = omit(parsed, 'class', 'color', 'children');
+  return <NavigationMenu.Root {...rootProps} asChild={false} class="rt-TabNavRoot" data-accent-color={parsed.color}>
     <NavigationMenu.List class={['rt-reset', 'rt-BaseTabList', 'rt-TabNavList', parsed.class]}>{props.children}</NavigationMenu.List>
   </NavigationMenu.Root>;
 }

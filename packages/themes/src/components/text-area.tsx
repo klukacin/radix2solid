@@ -9,7 +9,8 @@ import type { GetPropDefTypes } from '../props/prop-def.js';
 export type TextAreaProps = Omit<ComponentProps<'textarea'>, 'color' | 'size' | 'value' | 'defaultValue'> & MarginProps & GetPropDefTypes<typeof textAreaPropDefs> & { defaultValue?: string; value?: string };
 export function TextArea(props: TextAreaProps): Element {
   const parsed = extractProps(props, textAreaPropDefs, marginPropDefs);
+  const inputProps = omit(parsed, 'color', 'radius', 'class', 'style');
   return <div data-accent-color={parsed.color} data-radius={parsed.radius} class={['rt-TextAreaRoot', parsed.class]} style={parsed.style}>
-    <Primitive as="textarea" {...omit(parsed, 'color', 'radius', 'class', 'style')} class="rt-reset rt-TextAreaInput" />
+    <Primitive as="textarea" {...inputProps} class="rt-reset rt-TextAreaInput" />
   </div>;
 }

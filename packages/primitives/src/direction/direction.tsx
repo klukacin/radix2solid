@@ -5,7 +5,8 @@ export interface DirectionProviderProps { dir: Direction; children?: Element }
 const DirectionContext = createContext<Accessor<Direction>>(() => 'ltr');
 
 export function DirectionProvider(props: DirectionProviderProps): Element {
-  return <DirectionContext value={() => props.dir}>{props.children}</DirectionContext>;
+  const direction = () => props.dir;
+  return <DirectionContext value={direction}>{props.children}</DirectionContext>;
 }
 export function useDirection(local: Accessor<Direction | undefined> = () => undefined): Accessor<Direction> {
   const inherited = useContext(DirectionContext);

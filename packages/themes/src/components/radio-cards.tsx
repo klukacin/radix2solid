@@ -15,7 +15,8 @@ function RadioCardsRoot(props: RadioCardsRootProps): Element {
   return <Grid asChild>{target => target(RadioGroupPrimitive.Root, forwarded as RadioGroupPrimitive.RadioGroupProps)}</Grid>;
 }
 function RadioCardsItem(props: RadioCardsItemProps): Element {
-  return <RadioGroupPrimitive.Item {...omit(props, 'class')} asChild={false} class={['rt-reset', 'rt-BaseCard', 'rt-RadioCardsItem', props.class]} />;
+  const itemProps = omit(props, 'class');
+  return <RadioGroupPrimitive.Item {...itemProps} asChild={false} class={['rt-reset', 'rt-BaseCard', 'rt-RadioCardsItem', props.class]} />;
 }
 export { RadioCardsRoot as Root, RadioCardsItem as Item };
 export type { RadioCardsRootProps as RootProps, RadioCardsItemProps as ItemProps };

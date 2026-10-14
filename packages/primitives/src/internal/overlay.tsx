@@ -43,7 +43,8 @@ export function createOverlay(name: 'Dialog' | 'Popover', defaultModal: boolean)
     const value: OverlayValue = { open, setOpen, modal: () => props.modal ?? defaultModal, trigger, setTrigger, customAnchor, setCustomAnchor,
       contentId: createUniqueId(), titleId: createUniqueId(), descriptionId: createUniqueId(), surfaces: new Set() };
     const children = () => <Provider scope={scope(props)} value={value}>{props.children}</Provider>;
-    return positioned ? <Popper __scopePopper={scope(props)}>{children()}</Popper> : children();
+    const renderTree = () => positioned ? <Popper __scopePopper={scope(props)}>{children()}</Popper> : children();
+    return renderTree();
   }
   function Trigger(props: OverlayButtonProps): Element {
     const root = context(props, 'Trigger');
@@ -120,11 +121,12 @@ export function createOverlay(name: 'Dialog' | 'Popover', defaultModal: boolean)
         return () => { root.surfaces.delete(element); };
       }, { transparent: true });
       if (!isServer) onCleanup(() => presence.ref(undefined));
-      return <Primitive as="div" {...merge(omit(props, '__scopeDialog', '__scopePopover', 'forceMount'), {
+      const forwarded = merge(omit(props, '__scopeDialog', '__scopePopover', 'forceMount'), {
         get ['data-state']() { return root.open() ? 'open' : 'closed'; },
         get ref() { return composeRefs(props.ref, ref, presence.ref); },
         get style() { return mergeStyles({ 'pointer-events': 'auto' }, props.style); }
-      })} />;
+      });
+      return <Primitive as="div" {...forwarded} />;
     }
     return <Show when={presence.mounted()}><Mounted /></Show>;
   }
@@ -138,9 +140,10 @@ export function createOverlay(name: 'Dialog' | 'Popover', defaultModal: boolean)
   }
   function Close(props: OverlayButtonProps): Element {
     const root = context(props, 'Close');
-    return <Primitive as="button" {...merge(omit(props, '__scopeDialog', '__scopePopover'), {
+    const forwarded = merge(omit(props, '__scopeDialog', '__scopePopover'), {
       get type() { return props.type ?? 'button'; }, onClick: composeEventHandlers<MouseEvent>(() => props.onClick, () => root.setOpen(false))
-    })} />;
+    });
+    return <Primitive as="button" {...forwarded} />;
   }
   return { Root, Trigger, Portal, Content, Overlay, Title, Description, Close, createScope, context, scope };
 }

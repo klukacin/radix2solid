@@ -15,8 +15,6 @@ const colorPropDef = {
   color: PropDef<(typeof accentColors)[number]>;
 };
 
-// 1. When used on components that compose Text, sets the color of the text to the current accent.
-// 2. Defines accent color for descendant text components with `highContrast={true}`.
 const accentColorPropDef = {
   color: {
     type: 'enum',

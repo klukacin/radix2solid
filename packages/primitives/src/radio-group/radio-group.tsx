@@ -91,7 +91,8 @@ export function RadioGroupItem(props: RadioGroupItemProps): Element {
     const context = useItem('RadioGroupItem', untrack(() => props.__scopeRadioGroup));
     return <Show when={context.hasForm()}><RadioGroupItemBubbleInput __scopeRadioGroup={props.__scopeRadioGroup} /></Show>;
   }
-  return <RadioGroupItemProvider {...omit(props, 'children')}><RadioGroupItemTrigger {...triggerProps} /><Input /></RadioGroupItemProvider>;
+  const providerProps = omit(props, 'children');
+  return <RadioGroupItemProvider {...providerProps}><RadioGroupItemTrigger {...triggerProps} /><Input /></RadioGroupItemProvider>;
 }
 
 export function RadioGroupItemTrigger(props: RadioGroupItemTriggerProps): Element {

@@ -21,7 +21,8 @@ type SelectSeparatorProps = Omit<Extract<Native.SelectSeparatorProps, { asChild?
 
 function SelectRoot(props: SelectRootProps): Element {
   const context: RootOwnProps = { get size() { return props.size ?? selectRootPropDefs.size.default; } };
-  return <Native.Root {...omit(props, 'size', 'children')}><SelectContext value={context}>{props.children}</SelectContext></Native.Root>;
+  const rootProps = omit(props, 'size', 'children');
+  return <Native.Root {...rootProps}><SelectContext value={context}>{props.children}</SelectContext></Native.Root>;
 }
 function SelectTrigger(props: SelectTriggerProps): Element {
   const context = useContext(SelectContext);
@@ -49,13 +50,23 @@ function SelectContent(props: SelectContentProps): Element {
   return <Native.Portal container={props.container}><Theme asChild>{target => target(Native.Content, forwarded)}</Theme></Native.Portal>;
 }
 function SelectItem(props: SelectItemProps): Element {
-  return <Native.Item {...merge(omit(props, 'class', 'children'), { get class() { return ['rt-SelectItem', props.class]; } })} asChild={false}>
+  const itemProps = merge(omit(props, 'class', 'children'), { get class() { return ['rt-SelectItem', props.class]; } });
+  return <Native.Item {...itemProps} asChild={false}>
     <Native.ItemIndicator class="rt-SelectItemIndicator"><ThickCheckIcon class="rt-SelectItemIndicatorIcon" /></Native.ItemIndicator>
     <Native.ItemText>{props.children}</Native.ItemText>
   </Native.Item>;
 }
-function SelectGroup(props: SelectGroupProps): Element { return <Native.Group {...merge(props, { get class() { return ['rt-SelectGroup', props.class]; } })} asChild={false} />; }
-function SelectLabel(props: SelectLabelProps): Element { return <Native.Label {...merge(props, { get class() { return ['rt-SelectLabel', props.class]; } })} asChild={false} />; }
-function SelectSeparator(props: SelectSeparatorProps): Element { return <Native.Separator {...merge(props, { get class() { return ['rt-SelectSeparator', props.class]; } })} asChild={false} />; }
+function SelectGroup(props: SelectGroupProps): Element {
+  const groupProps = merge(props, { get class() { return ['rt-SelectGroup', props.class]; } });
+  return <Native.Group {...groupProps} asChild={false} />;
+}
+function SelectLabel(props: SelectLabelProps): Element {
+  const labelProps = merge(props, { get class() { return ['rt-SelectLabel', props.class]; } });
+  return <Native.Label {...labelProps} asChild={false} />;
+}
+function SelectSeparator(props: SelectSeparatorProps): Element {
+  const separatorProps = merge(props, { get class() { return ['rt-SelectSeparator', props.class]; } });
+  return <Native.Separator {...separatorProps} asChild={false} />;
+}
 export { SelectRoot as Root, SelectTrigger as Trigger, SelectContent as Content, SelectItem as Item, SelectGroup as Group, SelectLabel as Label, SelectSeparator as Separator };
 export type { SelectRootProps as RootProps, SelectTriggerProps as TriggerProps, SelectContentProps as ContentProps, SelectItemProps as ItemProps, SelectGroupProps as GroupProps, SelectLabelProps as LabelProps, SelectSeparatorProps as SeparatorProps };

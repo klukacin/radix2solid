@@ -57,14 +57,15 @@ export function HoverCardTrigger(props: HoverCardTriggerProps): Element {
     popper.setAnchor(anchor);
     return () => { if (untrack(popper.anchor) === anchor) popper.setAnchor(undefined); };
   }, { transparent: true });
-  return <Primitive as="a" {...merge({ get ['data-state']() { return root.open() ? 'open' : 'closed'; } }, omit(props, '__scopeHoverCard'), {
+  const forwarded = merge({ get ['data-state']() { return root.open() ? 'open' : 'closed'; } }, omit(props, '__scopeHoverCard'), {
     get ref() { return composeRefs(props.ref, root.setTrigger); },
     onPointerEnter: composeEventHandlers<PointerEvent>(() => props.onPointerEnter, event => { if (event.pointerType !== 'touch') root.onOpen(); }),
     onPointerLeave: composeEventHandlers<PointerEvent>(() => props.onPointerLeave, event => { if (event.pointerType !== 'touch') root.onClose(); }),
     onFocus: composeEventHandlers<FocusEvent>(() => props.onFocus, root.onOpen),
     onBlur: composeEventHandlers<FocusEvent>(() => props.onBlur, root.onClose),
     onTouchStart: composeEventHandlers<TouchEvent>(() => props.onTouchStart, event => event.preventDefault())
-  })} />;
+  });
+  return <Primitive as="a" {...forwarded} />;
 }
 
 export function HoverCardPortal(props: HoverCardPortalProps): Element {
@@ -119,7 +120,7 @@ export function HoverCardContent(props: HoverCardContentProps): Element {
         };
       }, { transparent: true });
     }
-    return <LayerContext value={layer}><PopperContent {...merge(omit(props, '__scopeHoverCard', 'forceMount', 'onEscapeKeyDown', 'onPointerDownOutside', 'onFocusOutside', 'onInteractOutside'), {
+    const forwarded = merge(omit(props, '__scopeHoverCard', 'forceMount', 'onEscapeKeyDown', 'onPointerDownOutside', 'onFocusOutside', 'onInteractOutside'), {
       get __scopePopper() { return props.__scopeHoverCard; },
       get ['data-state']() { return root.open() ? 'open' : 'closed'; },
       get ref() { return composeRefs(props.ref, ref, presence.ref); },
@@ -137,12 +138,14 @@ export function HoverCardContent(props: HoverCardContentProps): Element {
         '--radix-hover-card-trigger-width': 'var(--radix-popper-anchor-width)',
         '--radix-hover-card-trigger-height': 'var(--radix-popper-anchor-height)'
       }); }
-    })} /></LayerContext>;
+    });
+    return <LayerContext value={layer}><PopperContent {...forwarded} /></LayerContext>;
   }
   return <Show when={presence.mounted()}><Mounted /></Show>;
 }
 
 export function HoverCardArrow(props: HoverCardArrowProps): Element {
-  return <PopperArrow {...merge(omit(props, '__scopeHoverCard'), { get __scopePopper() { return props.__scopeHoverCard; } })} />;
+  const forwarded = merge(omit(props, '__scopeHoverCard'), { get __scopePopper() { return props.__scopeHoverCard; } });
+  return <PopperArrow {...forwarded} />;
 }
 export { createHoverCardScope, HoverCard as Root, HoverCardTrigger as Trigger, HoverCardPortal as Portal, HoverCardContent as Content, HoverCardArrow as Arrow };

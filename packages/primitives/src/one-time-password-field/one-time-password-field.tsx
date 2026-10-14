@@ -101,7 +101,7 @@ export function OneTimePasswordField(props: OneTimePasswordFieldProps): Element 
       const doc = node.ownerDocument, view = doc.defaultView!; let alive = true; const timers = new Set<number>();
       const reset = (event: Event) => {
         if (event.target !== locateForm()) return;
-        const timer = view.setTimeout(() => { timers.delete(timer); if (alive && !event.defaultPrevented && event.target === locateForm()) setValue(''); }, 0); timers.add(timer);
+        const timer = view.setTimeout(() => untrack(() => { timers.delete(timer); if (alive && !event.defaultPrevented && event.target === locateForm()) setValue(''); }), 0); timers.add(timer);
       };
       doc.addEventListener('reset', reset, true);
       return () => { alive = false; doc.removeEventListener('reset', reset, true); for (const timer of timers) view.clearTimeout(timer); };
@@ -110,10 +110,10 @@ export function OneTimePasswordField(props: OneTimePasswordFieldProps): Element 
       const changed = current !== previousValue; previousValue = current;
       if (!changed || !auto || !node || !count || current.length !== count || disabled || readOnly) return;
       const view = node.ownerDocument.defaultView!;
-      const timer = view.setTimeout(() => {
+      const timer = view.setTimeout(() => untrack(() => {
         if (root() !== node || value() !== current || !mutable()) return;
         props.onAutoSubmit?.(current); state.submit();
-      }, 0);
+      }), 0);
       return () => view.clearTimeout(timer);
     }, { transparent: true });
   }
@@ -191,7 +191,7 @@ export function OneTimePasswordFieldInput(props: OneTimePasswordFieldInputProps)
       composing = false;
       // Compositionend can precede native constraint updates; validate after commit.
       const node = event.currentTarget as HTMLInputElement, view = node.ownerDocument.defaultView!;
-      view.clearTimeout(timer); timer = view.setTimeout(() => process(node), 0);
+      view.clearTimeout(timer); timer = view.setTimeout(() => untrack(() => process(node)), 0);
     }),
     onCut: composeEventHandlers<ClipboardEvent>(() => props.onCut, () => { if (allowed()) rememberAction('Cut'); }),
     onKeyDown: composeEventHandlers<KeyboardEvent>(() => props.onKeyDown, event => {
@@ -219,7 +219,8 @@ export function OneTimePasswordFieldInput(props: OneTimePasswordFieldInputProps)
 }
 
 export function OneTimePasswordFieldHiddenInput(props: OneTimePasswordFieldHiddenInputProps): Element {
-  const context = useOTP('OneTimePasswordField.HiddenInput', props.__scopeOneTimePasswordField);
+  const context = useOTP('OneTimePasswordField.HiddenInput', untrack(() => props.__scopeOneTimePasswordField));
   if (!isServer) onCleanup(() => context.inputRef(undefined));
-  return <input {...omit(props, '__scopeOneTimePasswordField')} ref={composeRefs(props.ref, context.inputRef)} type="hidden" value={context.value()} name={props.name ?? context.props.name} form={props.form ?? context.props.form} disabled={context.props.disabled} readonly autocomplete="off" autocapitalize="off" spellcheck={false} />;
+  const inputProps = omit(props, '__scopeOneTimePasswordField');
+  return <input {...inputProps} ref={composeRefs(props.ref, context.inputRef)} type="hidden" value={context.value()} name={props.name ?? context.props.name} form={props.form ?? context.props.form} disabled={context.props.disabled} readonly autocomplete="off" autocapitalize="off" spellcheck="false" />;
 }

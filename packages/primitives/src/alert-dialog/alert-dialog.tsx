@@ -29,7 +29,8 @@ function dialogScope(props: Scoped): { __scopeDialog?: Scope } {
 }
 
 export function AlertDialog(props: AlertDialogProps): Element {
-  return <Dialog {...merge(omit(props, '__scopeAlertDialog'), dialogScope(props), { modal: true })} />;
+  const forwarded = merge(omit(props, '__scopeAlertDialog'), dialogScope(props), { modal: true });
+  return <Dialog {...forwarded} />;
 }
 export function AlertDialogTrigger(props: AlertDialogTriggerProps): Element {
   const forwarded = merge(omit(props, '__scopeAlertDialog'), dialogScope(props)) as DialogTriggerProps;

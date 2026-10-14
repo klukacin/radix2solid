@@ -1,5 +1,5 @@
 // Native port of Radix DropdownMenu; upstream MIT, Copyright (c) 2022 WorkOS.
-import { createSignal, createUniqueId, merge, omit, type Element } from 'solid-js';
+import { createSignal, createUniqueId, merge, omit, untrack, type Element } from 'solid-js';
 import { createContextScope, type Scope } from '../internal/context.js';
 import { createControllableState } from '../internal/state.js';
 import { Primitive, type PrimitiveProps } from '../internal/primitive.js';
@@ -34,7 +34,7 @@ const [Provider, useDropdown] = createDropdownContext<{
   trigger: () => HTMLElement | undefined; setTrigger: (node: HTMLElement | undefined) => void; triggerId: string; contentId: string;
 }>('DropdownMenu');
 function menuProps<P extends Scoped>(props: P): P & { __scopeMenu?: Scope } {
-  return merge(omit(props, '__scopeDropdownMenu'), { __scopeMenu: useMenuScope(props.__scopeDropdownMenu).__scopeMenu }) as P & { __scopeMenu?: Scope };
+  return merge(omit(props, '__scopeDropdownMenu'), { __scopeMenu: useMenuScope(untrack(() => props.__scopeDropdownMenu)).__scopeMenu }) as P & { __scopeMenu?: Scope };
 }
 export function DropdownMenu(props: DropdownMenuProps): Element {
   const [open, change] = createControllableState({ value: () => props.open, get defaultValue() { return props.defaultOpen ?? false; }, get onChange() { return props.onOpenChange; } });
@@ -44,8 +44,8 @@ export function DropdownMenu(props: DropdownMenuProps): Element {
   </Provider>;
 }
 export function DropdownMenuTrigger(props: DropdownMenuTriggerProps): Element {
-  const dropdown = useDropdown('DropdownMenuTrigger', props.__scopeDropdownMenu);
-  const root = Menu.useMenuRoot('DropdownMenuTrigger', useMenuScope(props.__scopeDropdownMenu).__scopeMenu);
+  const scope = untrack(() => props.__scopeDropdownMenu), dropdown = useDropdown('DropdownMenuTrigger', scope);
+  const root = Menu.useMenuRoot('DropdownMenuTrigger', useMenuScope(scope).__scopeMenu);
   const forwarded = merge({ type: 'button' as const, id: dropdown.triggerId, 'aria-haspopup': 'menu' as const }, omit(props, '__scopeDropdownMenu'), {
     get ref() { return composeRefs(props.ref, dropdown.setTrigger); }, get ['aria-expanded']() { return dropdown.open() ? 'true' as const : 'false' as const; },
     get ['aria-controls']() { return dropdown.open() ? dropdown.contentId : undefined; },
@@ -65,9 +65,9 @@ export function DropdownMenuTrigger(props: DropdownMenuTriggerProps): Element {
   return <Menu.Anchor {...useMenuScope(props.__scopeDropdownMenu)} asChild>{target => target(Primitive, forwarded)}</Menu.Anchor>;
 }
 export function DropdownMenuContent(props: DropdownMenuContentProps): Element {
-  const dropdown = useDropdown('DropdownMenuContent', props.__scopeDropdownMenu);
+  const dropdown = useDropdown('DropdownMenuContent', untrack(() => props.__scopeDropdownMenu));
   let interacted = false;
-  return <Menu.Content {...merge({ id: dropdown.contentId, 'aria-labelledby': dropdown.triggerId }, menuProps(props), {
+  const forwarded = merge({ id: dropdown.contentId, 'aria-labelledby': dropdown.triggerId }, menuProps(props), {
     onCloseAutoFocus(event: Event) {
       props.onCloseAutoFocus?.(event); if (!event.defaultPrevented) { if (!interacted) focus(dropdown.trigger()); event.preventDefault(); }
       interacted = false;
@@ -83,7 +83,8 @@ export function DropdownMenuContent(props: DropdownMenuContentProps): Element {
       '--radix-dropdown-menu-content-available-height': 'var(--radix-popper-available-height)',
       '--radix-dropdown-menu-trigger-width': 'var(--radix-popper-anchor-width)', '--radix-dropdown-menu-trigger-height': 'var(--radix-popper-anchor-height)'
     }, props.style); }
-  })} />;
+  });
+  return <Menu.Content {...forwarded} />;
 }
 export function DropdownMenuPortal(props: DropdownMenuPortalProps): Element { return <Menu.Portal {...menuProps(props)} />; }
 export function DropdownMenuGroup(props: DropdownMenuGroupProps): Element { return <Menu.Group {...menuProps(props)} />; }
@@ -97,8 +98,11 @@ export function DropdownMenuSeparator(props: DropdownMenuSeparatorProps): Elemen
 export function DropdownMenuArrow(props: DropdownMenuArrowProps): Element { return <Menu.Arrow {...menuProps(props)} />; }
 export function DropdownMenuSub(props: DropdownMenuSubProps): Element { return <Menu.Sub {...menuProps(props)} />; }
 export function DropdownMenuSubTrigger(props: DropdownMenuSubTriggerProps): Element { return <Menu.SubTrigger {...menuProps(props)} />; }
-export function DropdownMenuSubContent(props: DropdownMenuSubContentProps): Element { return <Menu.SubContent {...merge(menuProps(props), { get style() { return mergeStyles({
-  '--radix-dropdown-menu-content-transform-origin': 'var(--radix-popper-transform-origin)', '--radix-dropdown-menu-content-available-width': 'var(--radix-popper-available-width)',
-  '--radix-dropdown-menu-content-available-height': 'var(--radix-popper-available-height)', '--radix-dropdown-menu-trigger-width': 'var(--radix-popper-anchor-width)', '--radix-dropdown-menu-trigger-height': 'var(--radix-popper-anchor-height)'
-}, props.style); } })} />; }
+export function DropdownMenuSubContent(props: DropdownMenuSubContentProps): Element {
+  const forwarded = merge(menuProps(props), { get style() { return mergeStyles({
+    '--radix-dropdown-menu-content-transform-origin': 'var(--radix-popper-transform-origin)', '--radix-dropdown-menu-content-available-width': 'var(--radix-popper-available-width)',
+    '--radix-dropdown-menu-content-available-height': 'var(--radix-popper-available-height)', '--radix-dropdown-menu-trigger-width': 'var(--radix-popper-anchor-width)', '--radix-dropdown-menu-trigger-height': 'var(--radix-popper-anchor-height)'
+  }, props.style); } });
+  return <Menu.SubContent {...forwarded} />;
+}
 export { createDropdownMenuScope, DropdownMenu as Root, DropdownMenuTrigger as Trigger, DropdownMenuPortal as Portal, DropdownMenuContent as Content, DropdownMenuGroup as Group, DropdownMenuLabel as Label, DropdownMenuItem as Item, DropdownMenuCheckboxItem as CheckboxItem, DropdownMenuRadioGroup as RadioGroup, DropdownMenuRadioItem as RadioItem, DropdownMenuItemIndicator as ItemIndicator, DropdownMenuSeparator as Separator, DropdownMenuArrow as Arrow, DropdownMenuSub as Sub, DropdownMenuSubTrigger as SubTrigger, DropdownMenuSubContent as SubContent };

@@ -3,5 +3,6 @@ import { Slot, type SlotProps } from '@wsagency/radix2solid-primitives/slot';
 
 export type ResetProps = SlotProps;
 export function Reset(props: ResetProps): Element {
-  return <Slot {...merge(props, { get class() { return ['rt-reset', props.class]; } })} />;
+  const forwarded = merge(props, { get class() { return ['rt-reset', props.class]; } });
+  return <Slot {...forwarded} />;
 }

@@ -33,8 +33,11 @@ export function useThemeContext(): ThemeContextValue {
 }
 
 export function Theme(props: ThemeProps): Element {
-  return useContext(ThemeContext) ? <ThemeImpl {...props} /> :
-    <TooltipProvider delayDuration={200}><DirectionProvider dir="ltr"><ThemeRoot {...props} /></DirectionProvider></TooltipProvider>;
+  const parent = useContext(ThemeContext);
+  const rendered = parent
+    ? <ThemeImpl {...props} />
+    : <TooltipProvider delayDuration={200}><DirectionProvider dir="ltr"><ThemeRoot {...props} /></DirectionProvider></TooltipProvider>;
+  return rendered;
 }
 
 function ThemeRoot(props: ThemeProps): Element {

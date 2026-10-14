@@ -4,7 +4,6 @@ import { heightPropDefs } from '../props/height.props.js';
 
 import type { PropDef, GetPropDefTypes } from '../props/prop-def.js';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const alignValues = ['start', 'center'] as const;
 const contentSizes = ['1', '2', '3', '4'] as const;
 

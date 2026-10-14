@@ -107,7 +107,7 @@ function switchMenu(bar: BarValue, menu: MenuValue, event: KeyboardEvent, sub: b
 export function MenubarContent(props: MenubarContentProps): Element {
   const scope = untrack(() => props.__scopeMenubar), bar = useBar('MenubarContent', scope), menu = useMenu('MenubarContent', scope);
   let interacted = false;
-  return <MenuPrimitive.Content {...merge({ id: menu.contentId, 'aria-labelledby': menu.triggerId, 'data-radix-menubar-content': '', align: 'start' as const }, menuProps(props), {
+  const contentProps = merge({ id: menu.contentId, 'aria-labelledby': menu.triggerId, 'data-radix-menubar-content': '', align: 'start' as const }, menuProps(props), {
     onCloseAutoFocus(event: Event) { props.onCloseAutoFocus?.(event); if (!event.defaultPrevented) { if (!bar.value() && !interacted) focus(menu.trigger()); event.preventDefault(); } interacted = false; },
     onFocusOutside(event: Parameters<NonNullable<MenuPrimitive.MenuContentProps['onFocusOutside']>>[0]) {
       props.onFocusOutside?.(event); if (!event.defaultPrevented && bar.collection.items().some(item => composedContains(item.node, event.target as Node))) event.preventDefault();
@@ -116,7 +116,8 @@ export function MenubarContent(props: MenubarContentProps): Element {
     onEntryFocus(event: Event) { props.onEntryFocus?.(event); if (!menu.keyboard) event.preventDefault(); },
     onKeyDown(event: KeyboardEvent) { callEventHandler(props.onKeyDown, event); switchMenu(bar, menu, event, false); },
     get style() { return contentStyle(props.style); }
-  })} />;
+  });
+  return <MenuPrimitive.Content {...contentProps} />;
 }
 export function MenubarPortal(props: MenubarPortalProps): Element { return <MenuPrimitive.Portal {...menuProps(props)} />; }
 export function MenubarGroup(props: MenubarGroupProps): Element { return <MenuPrimitive.Group {...menuProps(props)} />; }
@@ -129,12 +130,16 @@ export function MenubarItemIndicator(props: MenubarItemIndicatorProps): Element 
 export function MenubarSeparator(props: MenubarSeparatorProps): Element { return <MenuPrimitive.Separator {...menuProps(props)} />; }
 export function MenubarArrow(props: MenubarArrowProps): Element { return <MenuPrimitive.Arrow {...menuProps(props)} />; }
 export function MenubarSub(props: MenubarSubProps): Element { return <MenuPrimitive.Sub {...menuProps(props)} />; }
-export function MenubarSubTrigger(props: MenubarSubTriggerProps): Element { return <MenuPrimitive.SubTrigger {...merge({ 'data-radix-menubar-subtrigger': '' }, menuProps(props))} />; }
+export function MenubarSubTrigger(props: MenubarSubTriggerProps): Element {
+  const subTriggerProps = merge({ 'data-radix-menubar-subtrigger': '' }, menuProps(props));
+  return <MenuPrimitive.SubTrigger {...subTriggerProps} />;
+}
 export function MenubarSubContent(props: MenubarSubContentProps): Element {
   const scope = untrack(() => props.__scopeMenubar), bar = useBar('MenubarSubContent', scope), menu = useMenu('MenubarSubContent', scope);
-  return <MenuPrimitive.SubContent {...merge({ 'data-radix-menubar-content': '' }, menuProps(props), {
+  const subContentProps = merge({ 'data-radix-menubar-content': '' }, menuProps(props), {
     onKeyDown(event: KeyboardEvent) { callEventHandler(props.onKeyDown, event); switchMenu(bar, menu, event, true); },
     get style() { return contentStyle(props.style); }
-  })} />;
+  });
+  return <MenuPrimitive.SubContent {...subContentProps} />;
 }
 export { createMenubarScope, Menubar as Root, MenubarMenu as Menu, MenubarTrigger as Trigger, MenubarPortal as Portal, MenubarContent as Content, MenubarGroup as Group, MenubarLabel as Label, MenubarItem as Item, MenubarCheckboxItem as CheckboxItem, MenubarRadioGroup as RadioGroup, MenubarRadioItem as RadioItem, MenubarItemIndicator as ItemIndicator, MenubarSeparator as Separator, MenubarArrow as Arrow, MenubarSub as Sub, MenubarSubTrigger as SubTrigger, MenubarSubContent as SubContent };

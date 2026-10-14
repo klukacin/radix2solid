@@ -95,13 +95,11 @@ export function TabsContent(props: TabsContentProps): Element {
   }, omit(props, '__scopeTabs', 'value', 'forceMount'), {
     get ref() { return composeRefs(props.ref, ref, presence.ref); }, get style() { return style(); }
   });
-  if (untrack(() => props.asChild)) {
-    function Mounted(): Element {
-      if (!isServer) onCleanup(() => { ref(undefined); presence.ref(undefined); });
-      return <Primitive as="div" {...forwarded} />;
-    }
-    return <Show when={presence.mounted()}><Mounted /></Show>;
+  function Mounted(): Element {
+    if (!isServer) onCleanup(() => { ref(undefined); presence.ref(undefined); });
+    return <Primitive as="div" {...forwarded} />;
   }
   const native = merge(omit(forwarded, 'children'), { get children() { return <Show when={presence.mounted()}>{props.children as Element}</Show>; } }) as PrimitiveProps<'div'>;
-  return <Primitive as="div" {...native} />;
+  const rendered = untrack(() => props.asChild) ? <Show when={presence.mounted()}><Mounted /></Show> : <Primitive as="div" {...native} />;
+  return rendered;
 }

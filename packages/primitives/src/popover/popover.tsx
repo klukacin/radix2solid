@@ -1,4 +1,4 @@
-import { createEffect, createSignal, merge, omit, type Element } from 'solid-js';
+import { createEffect, createSignal, merge, omit, untrack, type Element } from 'solid-js';
 import { isServer } from '@solidjs/web';
 import { createOverlay, type OverlayRootProps, type OverlayButtonProps, type OverlayPortalProps, type OverlayContentProps, type OverlayPartProps } from '../internal/overlay.js';
 import { Primitive } from '../internal/primitive.js';
@@ -27,12 +27,15 @@ export function PopoverAnchor(props: PopoverAnchorProps): Element {
     position.setAnchor(anchor);
     return () => { if (root.customAnchor() === anchor) root.setCustomAnchor(undefined); };
   }, { transparent: true });
-  return props.virtualRef ? null : <Primitive as="div" {...merge(omit(props, '__scopePopover', '__scopePopper', 'virtualRef'), {
+  const anchorProps = merge(omit(props, '__scopePopover', '__scopePopper', 'virtualRef'), {
     get ref() { return composeRefs(props.ref, ref); },
     get ['data-radix-popper-side']() { return position.placement()?.split('-')[0]; },
     get ['data-radix-popper-align']() { return position.placement()?.split('-')[1] ?? (position.placement() ? 'center' : undefined); }
-  })} />;
+  });
+  const anchor = untrack(() => props.virtualRef) ? null : <Primitive as="div" {...anchorProps} />;
+  return anchor;
 }
 export function PopoverArrow(props: PopoverArrowProps): Element {
-  return <PopperArrow {...omit(props, '__scopePopover')} __scopePopper={popover.scope(props)} />;
+  const arrowProps = omit(props, '__scopePopover');
+  return <PopperArrow {...arrowProps} __scopePopper={popover.scope(props)} />;
 }

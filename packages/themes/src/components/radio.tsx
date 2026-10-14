@@ -10,7 +10,8 @@ import type { GetPropDefTypes } from '../props/prop-def.js';
 export type RadioProps = Omit<ComponentProps<'input'>, NotInputRadioAttributes | 'color' | 'defaultValue' | 'value'> & MarginProps & GetPropDefTypes<typeof radioPropDefs> & { value: string; onValueChange?: (value: string) => void };
 export function Radio(props: RadioProps): Element {
   const parsed = extractProps(props, radioPropDefs, marginPropDefs);
-  return <Primitive as="input" {...omit(parsed, 'color', 'class', 'onValueChange', 'onChange')} type="radio" data-accent-color={parsed.color}
+  const inputProps = omit(parsed, 'color', 'class', 'onValueChange', 'onChange');
+  return <Primitive as="input" {...inputProps} type="radio" data-accent-color={parsed.color}
     class={['rt-reset', 'rt-BaseRadioRoot', 'rt-RadioRoot', parsed.class]}
     onChange={composeEventHandlers<Event>(() => props.onChange, event => props.onValueChange?.((event.currentTarget as HTMLInputElement).value))} />;
 }

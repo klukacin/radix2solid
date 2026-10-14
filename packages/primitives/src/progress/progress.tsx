@@ -1,5 +1,5 @@
 // Native port of Radix Progress; upstream MIT, Copyright (c) 2022 WorkOS.
-import { createMemo, merge, omit, type Accessor, type Element } from 'solid-js';
+import { createMemo, merge, omit, untrack, type Accessor, type Element } from 'solid-js';
 import { createContextScope, type Scope } from '../internal/context.js';
 import { Primitive, type PrimitiveProps } from '../internal/primitive.js';
 
@@ -43,7 +43,7 @@ export function Progress(props: ProgressProps): Element {
 }
 
 export function ProgressIndicator(props: ProgressIndicatorProps): Element {
-  const context = useProgressContext('ProgressIndicator', props.__scopeProgress);
+  const context = useProgressContext('ProgressIndicator', untrack(() => props.__scopeProgress));
   const forwarded = merge({
     get ['data-state']() { return state(context.value(), context.max()); },
     get ['data-value']() { return context.value() ?? undefined; },

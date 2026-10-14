@@ -47,7 +47,7 @@ export function PasswordToggleField(props: PasswordToggleFieldProps): Element {
 }
 
 export function PasswordToggleFieldInput(props: PasswordToggleFieldInputProps): Element {
-  const context = usePassword('PasswordToggleField.Input', props.__scopePasswordToggleField);
+  const context = usePassword('PasswordToggleField.Input', untrack(() => props.__scopePasswordToggleField));
   if (!isServer) createEffect(() => [context.input(), props.id] as const, ([input]) => {
     if (!input) return;
     const sync = () => { if (input.id) context.inputIdRef(input.id); };
@@ -69,7 +69,7 @@ export function PasswordToggleFieldInput(props: PasswordToggleFieldInputProps): 
 }
 
 export function PasswordToggleFieldToggle(props: PasswordToggleFieldToggleProps): Element {
-  const context = usePassword('PasswordToggleField.Toggle', props.__scopePasswordToggleField);
+  const context = usePassword('PasswordToggleField.Toggle', untrack(() => props.__scopePasswordToggleField));
   const [button, buttonRef] = createSignal<HTMLButtonElement | undefined>();
   const [settled, setSettled] = createSignal(false);
   const [text, setText] = createSignal('');
@@ -115,12 +115,12 @@ export function PasswordToggleFieldToggle(props: PasswordToggleFieldToggleProps)
 }
 
 export function PasswordToggleFieldSlot(props: PasswordToggleFieldSlotProps): Element {
-  const context = usePassword('PasswordToggleField.Slot', props.__scopePasswordToggleField);
+  const context = usePassword('PasswordToggleField.Slot', untrack(() => props.__scopePasswordToggleField));
   return <>{'render' in props ? props.render({ visible: context.visible() }) : context.visible() ? props.visible : props.hidden}</>;
 }
 
 export function PasswordToggleFieldIcon(props: PasswordToggleFieldIconProps): Element {
-  const context = usePassword('PasswordToggleField.Icon', props.__scopePasswordToggleField);
+  const context = usePassword('PasswordToggleField.Icon', untrack(() => props.__scopePasswordToggleField));
   const forwarded = omit(props, '__scopePasswordToggleField', 'visible', 'hidden');
   return <Show when={context.visible()} fallback={<Primitive {...forwarded} as="svg" asChild aria-hidden="true">{props.hidden}</Primitive>}><Primitive {...forwarded} as="svg" asChild aria-hidden="true">{props.visible}</Primitive></Show>;
 }

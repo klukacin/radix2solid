@@ -50,8 +50,8 @@ export function ContextMenuTrigger(props: ContextMenuTriggerProps): Element {
   const [point, setPoint] = createSignal({ x: 0, y: 0 });
   const [positioned, setPositioned] = createSignal(false);
   const virtual = createMemo(() => {
-    const { x, y } = point();
-    return { getBoundingClientRect: () => ({ x, y, left: x, right: x, top: y, bottom: y, width: 0, height: 0, toJSON: () => ({ x, y, width: 0, height: 0 }) }) };
+    const { x: initialX, y: initialY } = point();
+    return { getBoundingClientRect: () => ({ x: initialX, y: initialY, left: initialX, right: initialX, top: initialY, bottom: initialY, width: 0, height: 0, toJSON: () => ({ x: initialX, y: initialY, width: 0, height: 0 }) }) };
   });
   let timer: ReturnType<typeof setTimeout> | undefined;
   const clear = () => { clearTimeout(timer); timer = undefined; };
@@ -66,7 +66,7 @@ export function ContextMenuTrigger(props: ContextMenuTriggerProps): Element {
     clear(); setPoint({ x: event.clientX, y: event.clientY }); setPositioned(true); root.keyboard = false; context.change(true);
     if (context.open()) focus(menu.content());
   };
-  return <><Menu.Anchor {...menuScope} virtualRef={{ get current() { return virtual(); } }} /><Primitive as="span" {...merge(omit(props, '__scopeContextMenu', 'disabled'), {
+  const forwarded = merge(omit(props, '__scopeContextMenu', 'disabled'), {
     get ['data-state']() { return context.open() ? 'open' : 'closed'; }, get ['data-disabled']() { return props.disabled ? '' : undefined; },
     get style() { return mergeStyles({ '-webkit-touch-callout': 'none' }, props.style); },
     onContextMenu: composeEventHandlers<MouseEvent>(() => props.onContextMenu, event => { if (!props.disabled) { open(event); event.preventDefault(); } }),
@@ -76,18 +76,20 @@ export function ContextMenuTrigger(props: ContextMenuTriggerProps): Element {
     onPointerMove: composeEventHandlers<PointerEvent>(() => props.onPointerMove, clear),
     onPointerCancel: composeEventHandlers<PointerEvent>(() => props.onPointerCancel, clear),
     onPointerUp: composeEventHandlers<PointerEvent>(() => props.onPointerUp, clear)
-  })} /></>;
+  });
+  return <><Menu.Anchor {...menuScope} virtualRef={{ get current() { return virtual(); } }} /><Primitive as="span" {...forwarded} /></>;
 }
 export function ContextMenuContent(props: ContextMenuContentProps): Element {
   const context = useContextMenu('ContextMenuContent', untrack(() => props.__scopeContextMenu));
   let interacted = false;
-  return <Menu.Content {...merge({ side: 'right' as const, sideOffset: 2, align: 'start' as const }, menuProps(props), {
+  const forwarded = merge({ side: 'right' as const, sideOffset: 2, align: 'start' as const }, menuProps(props), {
     onCloseAutoFocus(event: Event) { props.onCloseAutoFocus?.(event); if (!event.defaultPrevented && interacted) event.preventDefault(); interacted = false; },
     onInteractOutside(event: Parameters<NonNullable<Menu.MenuContentProps['onInteractOutside']>>[0]) {
       props.onInteractOutside?.(event); if (!event.defaultPrevented && !context.modal()) interacted = true;
     },
     get style() { return contentStyle(props.style); }
-  })} />;
+  });
+  return <Menu.Content {...forwarded} />;
 }
 export function ContextMenuPortal(props: ContextMenuPortalProps): Element { return <Menu.Portal {...menuProps(props)} />; }
 export function ContextMenuGroup(props: ContextMenuGroupProps): Element { return <Menu.Group {...menuProps(props)} />; }
@@ -101,5 +103,8 @@ export function ContextMenuSeparator(props: ContextMenuSeparatorProps): Element 
 export function ContextMenuArrow(props: ContextMenuArrowProps): Element { return <Menu.Arrow {...menuProps(props)} />; }
 export function ContextMenuSub(props: ContextMenuSubProps): Element { return <Menu.Sub {...menuProps(props)} />; }
 export function ContextMenuSubTrigger(props: ContextMenuSubTriggerProps): Element { return <Menu.SubTrigger {...menuProps(props)} />; }
-export function ContextMenuSubContent(props: ContextMenuSubContentProps): Element { return <Menu.SubContent {...merge(menuProps(props), { get style() { return contentStyle(props.style); } })} />; }
+export function ContextMenuSubContent(props: ContextMenuSubContentProps): Element {
+  const forwarded = merge(menuProps(props), { get style() { return contentStyle(props.style); } });
+  return <Menu.SubContent {...forwarded} />;
+}
 export { createContextMenuScope, ContextMenu as Root, ContextMenuTrigger as Trigger, ContextMenuPortal as Portal, ContextMenuContent as Content, ContextMenuGroup as Group, ContextMenuLabel as Label, ContextMenuItem as Item, ContextMenuCheckboxItem as CheckboxItem, ContextMenuRadioGroup as RadioGroup, ContextMenuRadioItem as RadioItem, ContextMenuItemIndicator as ItemIndicator, ContextMenuSeparator as Separator, ContextMenuArrow as Arrow, ContextMenuSub as Sub, ContextMenuSubTrigger as SubTrigger, ContextMenuSubContent as SubContent };

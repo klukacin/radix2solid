@@ -98,20 +98,23 @@ function createMenu(props: ValueProps & { disableToggle?: boolean }, parent?: Me
 }
 export function NavigationMenu(props: NavigationMenuProps): Element {
   const nav = createMenu(props, undefined, props);
-  return <Provider scope={props.__scopeNavigationMenu} value={nav}><Primitive as="nav" {...merge({ 'aria-label': 'Main' }, omit(props, '__scopeNavigationMenu', 'value', 'defaultValue', 'onValueChange', 'orientation', 'dir', 'delayDuration', 'skipDelayDuration', 'activationMode'), {
+  const navProps = merge({ 'aria-label': 'Main' }, omit(props, '__scopeNavigationMenu', 'value', 'defaultValue', 'onValueChange', 'orientation', 'dir', 'delayDuration', 'skipDelayDuration', 'activationMode'), {
     get dir() { return nav.dir(); }, get ['data-orientation']() { return nav.orientation(); }, get ref() { return composeRefs(props.ref, nav.setNav); }
-  })} /></Provider>;
+  });
+  return <Provider scope={props.__scopeNavigationMenu} value={nav}><Primitive as="nav" {...navProps} /></Provider>;
 }
 export function NavigationMenuSub(props: NavigationMenuSubProps): Element {
   const nav = createMenu(props, menu(props, 'Sub'));
-  return <Provider scope={props.__scopeNavigationMenu} value={nav}><Primitive as="div" {...merge(omit(props, '__scopeNavigationMenu', 'value', 'defaultValue', 'onValueChange', 'orientation', 'activationMode', 'disableToggle'), {
+  const subProps = merge(omit(props, '__scopeNavigationMenu', 'value', 'defaultValue', 'onValueChange', 'orientation', 'activationMode', 'disableToggle'), {
     get ['data-orientation']() { return nav.orientation(); }
-  })} /></Provider>;
+  });
+  return <Provider scope={props.__scopeNavigationMenu} value={nav}><Primitive as="div" {...subProps} /></Provider>;
 }
 export function NavigationMenuList(props: NavigationMenuListProps): Element {
   const nav = menu(props, 'List');
   const group = createCollection<null>();
-  const list = () => <Primitive as="ul" {...merge(omit(props, '__scopeNavigationMenu'), { get ['data-orientation']() { return nav.orientation(); } })} />;
+  const listProps = merge(omit(props, '__scopeNavigationMenu'), { get ['data-orientation']() { return nav.orientation(); } });
+  const list = () => <Primitive as="ul" {...listProps} />;
   return <div style={{ position: 'relative' }} ref={nav.setTrack}>{nav.root ? <FocusProvider scope={props.__scopeNavigationMenu} value={group}>{list()}</FocusProvider> : list()}</div>;
 }
 export function NavigationMenuItem(props: NavigationMenuItemProps): Element {
@@ -126,7 +129,8 @@ export function NavigationMenuItem(props: NavigationMenuItemProps): Element {
     enter(end = false) { item.restoreTabs(); const element = content(); if (!element) return; focusFirst(end ? tabbables(element).reverse() : tabbables(element)); }
   };
   if (!isServer) onCleanup(item.restoreTabs);
-  return <ItemProvider scope={props.__scopeNavigationMenu} value={item}><Primitive as="li" {...omit(props, '__scopeNavigationMenu', 'value')} /></ItemProvider>;
+  const itemProps = omit(props, '__scopeNavigationMenu', 'value');
+  return <ItemProvider scope={props.__scopeNavigationMenu} value={item}><Primitive as="li" {...itemProps} /></ItemProvider>;
 }
 function focusFirst(nodes: HTMLElement[]) {
   for (const node of nodes) { const previous = activeElement(node.ownerDocument); focus(node, false, false); if (activeElement(node.ownerDocument) !== previous || previous === node) return; }
@@ -140,16 +144,16 @@ function focusKeys(group: ReturnType<typeof createCollection<null>> | null, nav:
   nav.scheduleFocus(nodes);
   event.preventDefault();
 }
-function registerFocus(props: Scoped, node: Accessor<HTMLElement | undefined>) {
+function useFocusRegistration(props: Scoped, node: Accessor<HTMLElement | undefined>) {
   const group = useFocusGroup('NavigationMenuFocusGroup', props.__scopeNavigationMenu);
   if (!isServer && group) createEffect(node, element => element ? untrack(() => group.register(element, null)) : undefined, { transparent: true });
   return group;
 }
 export function NavigationMenuTrigger(props: NavigationMenuTriggerProps): Element {
-  const nav = menu(props, 'Trigger'), item = itemContext(props, 'Trigger'), group = registerFocus(props, item.trigger);
+  const nav = menu(props, 'Trigger'), item = itemContext(props, 'Trigger'), group = useFocusRegistration(props, item.trigger);
   let entered = false, clickedClosed = false;
   if (!isServer) createEffect(item.trigger, element => element ? untrack(() => nav.triggers.register(element, item)) : undefined, { transparent: true });
-  return <><Primitive as="button" {...merge(omit(props, '__scopeNavigationMenu'), {
+  const triggerProps = merge(omit(props, '__scopeNavigationMenu'), {
     get id() { return triggerId(nav, item.value()); }, get ['aria-expanded']() { return item.open() ? 'true' : 'false'; },
     get ['aria-controls']() { return item.open() ? contentId(nav, item.value()) : undefined; },
     get ['data-state']() { return item.open() ? 'open' : 'closed'; }, get ['data-disabled']() { return props.disabled ? '' : undefined; },
@@ -169,7 +173,8 @@ export function NavigationMenuTrigger(props: NavigationMenuTriggerProps): Elemen
       const entry = nav.orientation() === 'horizontal' ? 'ArrowDown' : nav.dir() === 'rtl' ? 'ArrowLeft' : 'ArrowRight';
       if (item.open() && event.key === entry) { item.enter(); event.preventDefault(); } else focusKeys(group, nav, event);
     })
-  })} />
+  });
+  return <><Primitive as="button" {...triggerProps} />
     <Show when={item.open()}><VisuallyHidden tabindex={0} ref={item.setProxy} onFocus={event => {
       const from = event.relatedTarget as Node | null;
       if (from === item.trigger()) item.enter();
@@ -178,8 +183,8 @@ export function NavigationMenuTrigger(props: NavigationMenuTriggerProps): Elemen
   </>;
 }
 export function NavigationMenuLink(props: NavigationMenuLinkProps): Element {
-  const nav = menu(props, 'Link'), [node, ref] = createSignal<HTMLElement | undefined>(), group = registerFocus(props, node);
-  return <Primitive as="a" {...merge(omit(props, '__scopeNavigationMenu', 'active', 'onSelect'), {
+  const nav = menu(props, 'Link'), [node, ref] = createSignal<HTMLElement | undefined>(), group = useFocusRegistration(props, node);
+  const linkProps = merge(omit(props, '__scopeNavigationMenu', 'active', 'onSelect'), {
     get ['data-active']() { return props.active ? '' : undefined; }, get ['aria-current']() { return props.active ? 'page' : props['aria-current']; }, get ref() { return composeRefs(props.ref, ref); },
     onKeyDown: composeEventHandlers<KeyboardEvent>(() => props.onKeyDown, event => focusKeys(group, nav, event)),
     onClick(event: MouseEvent) {
@@ -188,7 +193,8 @@ export function NavigationMenuLink(props: NavigationMenuLinkProps): Element {
       const selected = dispatchCancelableEvent(target, new target.ownerDocument.defaultView!.CustomEvent('navigationMenu.linkSelect', { bubbles: true, cancelable: true }), props.onSelect);
       if (!selected.defaultPrevented && !event.metaKey) dispatchDismiss(target);
     }
-  })} />;
+  });
+  return <Primitive as="a" {...linkProps} />;
 }
 function dispatchDismiss(target: HTMLElement) {
   target.dispatchEvent(new target.ownerDocument.defaultView!.CustomEvent('navigationMenu.rootContentDismiss', { bubbles: true, cancelable: true }));
@@ -235,7 +241,7 @@ export function NavigationMenuContent(props: NavigationMenuContentProps): Elemen
       },
       get onInteractOutside() { return props.onInteractOutside; }
     });
-    const render = () => <LayerContext value={layer}><Primitive as="div" data-radix-navigation-menu-content {...merge(omit(props, '__scopeNavigationMenu', 'forceMount', 'onEscapeKeyDown', 'onPointerDownOutside', 'onFocusOutside', 'onInteractOutside'), {
+    const contentProps = merge(omit(props, '__scopeNavigationMenu', 'forceMount', 'onEscapeKeyDown', 'onPointerDownOutside', 'onFocusOutside', 'onInteractOutside'), {
       get id() { return contentId(nav, item.value()); }, get ['aria-labelledby']() { return triggerId(nav, item.value()); },
       get ['data-state']() { return item.open() ? 'open' : 'closed'; }, get ['data-orientation']() { return nav.orientation(); }, get ['data-motion']() { return motion(); },
       get ref() { return composeRefs(props.ref, item.setContent, presence.ref); },
@@ -250,7 +256,8 @@ export function NavigationMenuContent(props: NavigationMenuContentProps): Elemen
         if (next.length) { focusFirst(next); event.preventDefault(); }
         else focus(item.proxy(), false, false);
       })
-    })} /></LayerContext>;
+    });
+    const render = () => <LayerContext value={layer}><Primitive as="div" data-radix-navigation-menu-content {...contentProps} /></LayerContext>;
     return <Show when={!isServer && nav.viewport()} fallback={render()}>{mount => <Portal mount={mount()}>{render()}</Portal>}</Show>;
   }
   return <Show when={presence.mounted()}><Mounted /></Show>;
@@ -275,10 +282,11 @@ export function NavigationMenuIndicator(props: NavigationMenuIndicatorProps): El
   }
   function Mounted(input: { track: HTMLElement }): Element {
     if (!isServer) onCleanup(() => presence.ref(undefined));
-    return <Portal mount={input.track}><Primitive as="div" aria-hidden="true" {...merge(omit(props, '__scopeNavigationMenu', 'forceMount'), {
+    const indicatorProps = merge(omit(props, '__scopeNavigationMenu', 'forceMount'), {
     get ['data-state']() { return nav.value() ? 'visible' : 'hidden'; }, get ['data-orientation']() { return nav.orientation(); },
     get ref() { return composeRefs(props.ref, presence.ref); }, get style() { return mergeStyles(styles(), props.style); }
-    })} /></Portal>;
+    });
+    return <Portal mount={input.track}><Primitive as="div" aria-hidden="true" {...indicatorProps} /></Portal>;
   }
   return <Show when={!isServer && nav.track()}>{track => <Show when={presence.mounted()}><Mounted track={track()} /></Show>}</Show>;
 }
@@ -301,12 +309,13 @@ export function NavigationMenuViewport(props: NavigationMenuViewportProps): Elem
   }
   function Mounted(): Element {
     if (!isServer) onCleanup(() => { nav.setViewport(undefined); presence.ref(undefined); });
-    return <Primitive as="div" {...merge(omit(props, '__scopeNavigationMenu', 'forceMount'), {
+    const viewportProps = merge(omit(props, '__scopeNavigationMenu', 'forceMount'), {
     get ['data-state']() { return nav.value() ? 'open' : 'closed'; }, get ['data-orientation']() { return nav.orientation(); },
     get ref() { return composeRefs(props.ref, nav.setViewport, presence.ref); }, get style() { return styles(); },
     onPointerEnter: composeEventHandlers<PointerEvent>(() => props.onPointerEnter, event => { if (event.pointerType === 'mouse') nav.contentEnter(); }),
     onPointerLeave: composeEventHandlers<PointerEvent>(() => props.onPointerLeave, event => { if (event.pointerType === 'mouse') nav.contentLeave(); })
-    })} />;
+    });
+    return <Primitive as="div" {...viewportProps} />;
   }
   return <Show when={presence.mounted()}><Mounted /></Show>;
 }

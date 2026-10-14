@@ -76,20 +76,25 @@ export function ScrollArea(props: ScrollAreaProps): Element {
     return () => { stopResize(); element.removeEventListener('scroll', scroll); view.cancelAnimationFrame(frame); view.clearTimeout(idle); };
   }, { transparent: true });
   const style = () => mergeStyles({ position: 'relative', '--radix-scroll-area-corner-width': `${corner().width}px`, '--radix-scroll-area-corner-height': `${corner().height}px` }, props.style);
-  return <Provider scope={scope} value={context}><Primitive as="div" {...merge({ get dir() { return direction(); } }, omit(props, '__scopeScrollArea', 'type', 'dir', 'scrollHideDelay'), { get ref() { return composeRefs(props.ref, ref); }, get style() { return style(); } })} /></Provider>;
+  const forwarded = merge({ get dir() { return direction(); } }, omit(props, '__scopeScrollArea', 'type', 'dir', 'scrollHideDelay'), { get ref() { return composeRefs(props.ref, ref); }, get style() { return style(); } });
+  return <Provider scope={scope} value={context}><Primitive as="div" {...forwarded} /></Provider>;
 }
 
 export function ScrollAreaViewport(props: ScrollAreaViewportProps): Element {
   const scope = untrack(() => props.__scopeScrollArea), root = useScrollArea('ScrollAreaViewport', scope);
   if (!isServer) onCleanup(() => root.viewportRef(undefined));
   const style = () => mergeStyles({ 'overflow-x': root.enabled().horizontal ? 'scroll' : 'hidden', 'overflow-y': root.enabled().vertical ? 'scroll' : 'hidden' }, props.style);
+  const implicitContent = (child: Element) => <ScrollAreaContent __scopeScrollArea={scope}>{child}</ScrollAreaContent>;
   const children = () => {
     if (props.asChild) {
       const render = props.children as SlotRender;
-      return ((target) => render((component, nativeProps) => target(component, merge(nativeProps, { get children() {
-        const child = (nativeProps as { children?: Element }).children;
-        return props.disableImplicitContentElement ? child : <ScrollAreaContent __scopeScrollArea={scope}>{child}</ScrollAreaContent>;
-      } }) as typeof nativeProps))) satisfies SlotRender;
+      return ((target) => render((component, nativeProps) => {
+        const content = merge(nativeProps, { get children() {
+          const child = (nativeProps as { children?: Element }).children;
+          return props.disableImplicitContentElement ? child : implicitContent(child);
+        } }) as typeof nativeProps;
+        return target(component, content);
+      })) satisfies SlotRender;
     }
     return props.disableImplicitContentElement ? props.children : <ScrollAreaContent __scopeScrollArea={scope}>{props.children}</ScrollAreaContent>;
   };
@@ -102,9 +107,10 @@ export function ScrollAreaViewport(props: ScrollAreaViewportProps): Element {
 export function ScrollAreaContent(props: ScrollAreaContentProps): Element {
   const root = useScrollArea('ScrollAreaContent', untrack(() => props.__scopeScrollArea));
   if (!isServer) onCleanup(() => root.contentRef(undefined));
-  return <Primitive as="div" {...merge({ 'data-radix-scroll-area-content': '' }, omit(props, '__scopeScrollArea'), {
+  const forwarded = merge({ 'data-radix-scroll-area-content': '' }, omit(props, '__scopeScrollArea'), {
     get ref() { return composeRefs(props.ref, root.contentRef); }, get style() { return mergeStyles({ 'min-width': '100%', display: 'table' }, props.style); }
-  })} />;
+  });
+  return <Primitive as="div" {...forwarded} />;
 }
 
 export function ScrollAreaScrollbar(props: ScrollAreaScrollbarProps): Element {
@@ -237,5 +243,6 @@ export function ScrollAreaCorner(props: ScrollAreaCornerProps): Element {
   }, { transparent: true });
   const present = () => !!root.bars().horizontal && !!root.bars().vertical && root.type() !== 'scroll' && root.corner().width > 0 && root.corner().height > 0;
   const style = () => mergeStyles({ position: 'absolute', width: `${root.corner().width}px`, height: `${root.corner().height}px`, bottom: 0, [root.direction() === 'rtl' ? 'left' : 'right']: 0 }, props.style);
-  return <Show when={present()}><Primitive as="div" {...merge(omit(props, '__scopeScrollArea'), { get style() { return style(); } })} /></Show>;
+  const forwarded = merge(omit(props, '__scopeScrollArea'), { get style() { return style(); } });
+  return <Show when={present()}><Primitive as="div" {...forwarded} /></Show>;
 }

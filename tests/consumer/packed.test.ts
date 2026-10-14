@@ -303,9 +303,9 @@ test('packed disclosures serialize linked open content and omit closed children 
       ]; }
     })); }
   }), { renderId: 'accordion-' });
-  const triggerId = accordion.match(/<button[^>]*id=\"([^\"]+)\"/)?.[1];
+  const triggerId = accordion.match(/<button[^>]*id="([^"]+)"/)?.[1];
   assert.ok(triggerId, accordion);
-  assert.match(accordion, new RegExp(`aria-labelledby=\"${triggerId}\"`));
+  assert.match(accordion, new RegExp(`aria-labelledby="${triggerId}"`));
   assert.match(accordion, /SSR one body/);
   assert.doesNotMatch(accordion, /SSR two body/);
 });
@@ -649,13 +649,13 @@ test('packed slider preserves separate thumb indices and named external native v
       ]; } })
     ]; }
   }), { renderId: 'slider-packed-' });
-  const thumbs = [...html.matchAll(/<span\b(?=[^>]*role=\"slider\")[^>]*>/g)].map(match => match[0]);
-  assert.deepEqual(thumbs.map(thumb => thumb.match(/aria-valuenow=\"([^\"]*)\"/)?.[1]), ['20', '80']);
-  assert.equal(thumbs.every(thumb => /aria-orientation=\"vertical\"/.test(thumb) && /aria-disabled=\"true\"/.test(thumb)), true);
+  const thumbs = [...html.matchAll(/<span\b(?=[^>]*role="slider")[^>]*>/g)].map(match => match[0]);
+  assert.deepEqual(thumbs.map(thumb => thumb.match(/aria-valuenow="([^"]*)"/)?.[1]), ['20', '80']);
+  assert.equal(thumbs.every(thumb => /aria-orientation="vertical"/.test(thumb) && /aria-disabled="true"/.test(thumb)), true);
   const inputs = [...html.matchAll(/<input\b[^>]*>/g)].map(match => match[0]);
-  assert.deepEqual(inputs.map(input => input.match(/name=\"([^\"]*)\"/)?.[1]), ['levels[]', 'upper']);
-  assert.deepEqual(inputs.map(input => input.match(/value=\"([^\"]*)\"/)?.[1]), ['20', '80']);
-  assert.equal(inputs.every(input => /form=\"levels-form\"/.test(input) && /disabled/.test(input)), true);
+  assert.deepEqual(inputs.map(input => input.match(/name="([^"]*)"/)?.[1]), ['levels[]', 'upper']);
+  assert.deepEqual(inputs.map(input => input.match(/value="([^"]*)"/)?.[1]), ['20', '80']);
+  assert.equal(inputs.every(input => /form="levels-form"/.test(input) && /disabled/.test(input)), true);
 });
 
 test('packed scroll area preserves the native viewport factory and nonce while wrapping only measured content without a document', () => {
@@ -668,11 +668,11 @@ test('packed scroll area preserves the native viewport factory and nonce while w
     ]; }
   }), { renderId: 'scroll-packed-' });
   const viewport = html.match(/<article\b[^>]*>/)?.[0];
-  assert.ok(viewport, html); assert.match(viewport, /id=\"packed-scroll-viewport\"/); assert.match(viewport, /data-radix-scroll-area-viewport/);
+  assert.ok(viewport, html); assert.match(viewport, /id="packed-scroll-viewport"/); assert.match(viewport, /data-radix-scroll-area-viewport/);
   assert.match(html, /<article\b[^>]*><div\b[^>]*data-radix-scroll-area-content[^>]*>Measured content<\/div><\/article>/);
-  assert.match(html, /<style\b[^>]*nonce=\"scroll-nonce\"/);
-  assert.match(html, /<div\b[^>]*dir=\"rtl\"/);
-  assert.deepEqual([...html.matchAll(/data-orientation=\"([^\"]+)\"/g)].map(match => match[1]), ['horizontal', 'vertical']);
+  assert.match(html, /<style\b[^>]*nonce="scroll-nonce"/);
+  assert.match(html, /<div\b[^>]*dir="rtl"/);
+  assert.deepEqual([...html.matchAll(/data-orientation="([^"]+)"/g)].map(match => match[1]), ['horizontal', 'vertical']);
 });
 
 test('packed form associates native labels and controls, exposes server invalidity and renders only forced server messages without a document', () => {
@@ -688,20 +688,20 @@ test('packed form associates native labels and controls, exposes server invalidi
       ]; }
     }); }
   }), { renderId: 'form-packed-' });
-  const input = html.match(/<input\b[^>]*>/)?.[0], labelFor = html.match(/<label\b[^>]*for=\"([^\"]+)\"/)?.[1];
+  const input = html.match(/<input\b[^>]*>/)?.[0], labelFor = html.match(/<label\b[^>]*for="([^"]+)"/)?.[1];
   assert.ok(input, html); assert.ok(labelFor, html);
-  assert.match(input, new RegExp(`id=\"${labelFor}\"`)); assert.match(input, /name=\"email\"/);
-  assert.match(input, /aria-invalid=\"true\"/); assert.match(input, /required/);
-  assert.match(input, /value=\"server@example.test\"/);
+  assert.match(input, new RegExp(`id="${labelFor}"`)); assert.match(input, /name="email"/);
+  assert.match(input, /aria-invalid="true"/); assert.match(input, /required/);
+  assert.match(input, /value="server@example.test"/);
   assert.match(html, /Server error/); assert.doesNotMatch(html, /Client error/);
-  assert.match(html, /<button\b[^>]*type=\"submit\"/);
+  assert.match(html, /<button\b[^>]*type="submit"/);
 });
 
 test('packed native Slot preserves input default value and checkbox reset baseline without a document', () => {
   const html = renderToString(() => createComponent(Slot.Root, {
     children: target => target('input', { type: 'checkbox', name: 'choice', defaultValue: 'initial', defaultChecked: true })
   }));
-  assert.match(html, /value=\"initial\"/); assert.match(html, /\bchecked(?:=\"\"|\s|\/?>)/);
+  assert.match(html, /value="initial"/); assert.match(html, /\bchecked(?:=""|\s|\/?>)/);
 });
 
 test('packed Toast keeps default-open notifications client-only while serializing a native viewport without a document', () => {

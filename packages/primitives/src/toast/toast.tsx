@@ -217,8 +217,14 @@ export function Toast(props: ToastProps): Element {
   return <InteractiveProvider scope={scope} value={{ close }}><Show when={context.viewport()}><Portal mount={context.viewport()}><Show when={presence.mounted()}><Mounted /></Show></Portal></Show></InteractiveProvider>;
 }
 
-export function ToastTitle(props: ToastTitleProps): Element { return <Primitive as="div" {...omit(props, '__scopeToast')} />; }
-export function ToastDescription(props: ToastDescriptionProps): Element { return <Primitive as="div" {...omit(props, '__scopeToast')} />; }
+export function ToastTitle(props: ToastTitleProps): Element {
+  const forwarded = omit(props, '__scopeToast');
+  return <Primitive as="div" {...forwarded} />;
+}
+export function ToastDescription(props: ToastDescriptionProps): Element {
+  const forwarded = omit(props, '__scopeToast');
+  return <Primitive as="div" {...forwarded} />;
+}
 export function ToastClose(props: ToastCloseProps): Element {
   const scope = untrack(() => props.__scopeToast), context = useInteractive('ToastClose', scope)!;
   const forwarded = merge(omit(props, '__scopeToast'), { type: 'button' as const, 'data-radix-toast-announce-exclude': '', onClick: composeEventHandlers<MouseEvent>(() => props.onClick, () => context.close()) });
@@ -227,5 +233,6 @@ export function ToastClose(props: ToastCloseProps): Element {
 export function ToastAction(props: ToastActionProps): Element {
   const valid = () => props.altText.trim().length > 0;
   if (!isServer) createEffect(() => props.altText, text => { if (!text.trim()) console.error('ToastAction altText must be non-empty.'); }, { transparent: true });
-  return <Show when={valid()}><ToastClose {...merge(omit(props, 'altText'), { get 'data-radix-toast-announce-alt'() { return props.altText; } })} /></Show>;
+  const forwarded = merge(omit(props, 'altText'), { get 'data-radix-toast-announce-alt'() { return props.altText; } });
+  return <Show when={valid()}><ToastClose {...forwarded} /></Show>;
 }

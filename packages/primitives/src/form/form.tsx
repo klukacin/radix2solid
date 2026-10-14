@@ -102,7 +102,7 @@ export function Form(props: FormProps): Element {
     onReset(event: Event) {
       callEventHandler(props.onReset, event);
       const form = event.currentTarget as HTMLFormElement, view = form.ownerDocument.defaultView!;
-      const timer = view.setTimeout(() => { timers.delete(timer); if (!alive || event.defaultPrevented) return; for (const clear of controls.values()) clear(); props.onClearServerErrors?.(); }, 0);
+      const timer = view.setTimeout(() => { timers.delete(timer); if (!alive || event.defaultPrevented) return; for (const clear of controls.values()) clear(); untrack(() => props.onClearServerErrors?.()); }, 0);
       timers.set(timer, view);
     }
   });
@@ -110,9 +110,9 @@ export function Form(props: FormProps): Element {
 }
 
 export function FormField(props: FormFieldProps): Element {
-  const root = useForm('Form.Field', props.__scopeForm), id = createUniqueId();
+  const scope = untrack(() => props.__scopeForm), root = useForm('Form.Field', scope), id = createUniqueId();
   const field: FieldState = { name: () => props.name, id };
-  if (isServer) untrack(() => { root.data(props.name).serverInvalid = () => props.serverInvalid ?? false; });
+  if (isServer) untrack(() => { const serverInvalid = () => props.serverInvalid ?? false; root.data(props.name).serverInvalid = serverInvalid; });
   else createEffect(() => [props.name, props.serverInvalid] as const, ([name]) => {
     const data = root.data(name), serverInvalid = () => props.serverInvalid ?? false;
     data.serverInvalid = serverInvalid; root.notify();
@@ -126,7 +126,7 @@ export function FormField(props: FormFieldProps): Element {
 }
 
 export function FormLabel(props: FormLabelProps): Element {
-  const root = useForm('Form.Label', props.__scopeForm), field = useField('Form.Label', props.__scopeForm, true);
+  const scope = untrack(() => props.__scopeForm), root = useForm('Form.Label', scope), field = useField('Form.Label', scope, true);
   const name = resolveName(props, field, 'Form.Label');
   const forwarded = merge(omit(props, '__scopeForm', 'name'), {
     get for() { return props.for ?? root.read(name()).control?.id ?? field?.id; },
@@ -137,7 +137,7 @@ export function FormLabel(props: FormLabelProps): Element {
 }
 
 export function FormControl(props: FormControlProps): Element {
-  const root = useForm('Form.Control', props.__scopeForm), field = useField('Form.Control', props.__scopeForm, true);
+  const scope = untrack(() => props.__scopeForm), root = useForm('Form.Control', scope), field = useField('Form.Control', scope, true);
   const name = resolveName(props, field, 'Form.Control'), generatedId = createUniqueId();
   const [node, ref] = createSignal<HTMLInputElement | undefined>();
   const serverInvalid = createMemo(() => root.read(name()).serverInvalid());
@@ -148,7 +148,7 @@ export function FormControl(props: FormControlProps): Element {
     const data = root.data(name()); data.validity = undefined; data.errors.clear(); root.notify();
   };
   const validate = () => {
-    const control = node(); if (!control) return;
+    const control = untrack(node); if (!control) return;
     const fieldName = name(), data = root.data(fieldName), value = control.value, version = data.version, request = ++generation;
     control.setCustomValidity('');
     const native = validitySnapshot(control.validity);
@@ -202,7 +202,7 @@ export function FormControl(props: FormControlProps): Element {
 }
 
 export function FormMessage(props: FormMessageProps): Element {
-  const root = useForm('Form.Message', props.__scopeForm), field = useField('Form.Message', props.__scopeForm, true);
+  const scope = untrack(() => props.__scopeForm), root = useForm('Form.Message', scope), field = useField('Form.Message', scope, true);
   const name = resolveName(props, field, 'Form.Message'), generatedId = createUniqueId(), key = Symbol();
   if (!isServer) createEffect(() => [name(), props.match] as const, ([fieldName, match]) => {
     if (typeof match !== 'function') return;
@@ -233,10 +233,11 @@ export function FormMessage(props: FormMessageProps): Element {
 }
 
 export function FormValidityState(props: FormValidityStateProps): Element {
-  const root = useForm('Form.ValidityState', props.__scopeForm), field = useField('Form.ValidityState', props.__scopeForm, true);
+  const scope = untrack(() => props.__scopeForm), root = useForm('Form.ValidityState', scope), field = useField('Form.ValidityState', scope, true);
   const name = resolveName(props, field, 'Form.ValidityState');
   return <>{props.children(root.read(name()).validity)}</>;
 }
 export function FormSubmit(props: FormSubmitProps): Element {
-  return <Primitive as="button" {...merge({ type: 'submit' as const }, omit(props, '__scopeForm')) as PrimitiveProps<'button'>} />;
+  const forwarded = merge({ type: 'submit' as const }, omit(props, '__scopeForm')) as PrimitiveProps<'button'>;
+  return <Primitive as="button" {...forwarded} />;
 }

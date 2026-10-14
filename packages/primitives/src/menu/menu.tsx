@@ -55,13 +55,13 @@ const [SubProvider, useSub] = createMenuContext<{ parent: MenuValue; content: Co
 const [RadioProvider, useRadio] = createMenuContext<{ value: () => string | undefined; change: (value: string) => void }>('MenuRadioGroup');
 const [IndicatorProvider, useIndicator] = createMenuContext<{ checked: () => boolean | 'indeterminate' }>('MenuItemIndicator', { checked: () => false });
 const layerKeys = ['onEscapeKeyDown', 'onPointerDownOutside', 'onFocusOutside', 'onInteractOutside', 'onOpenAutoFocus', 'onCloseAutoFocus'] as const;
-function menuValue(open: () => boolean, change: (open: boolean) => void): MenuValue {
+function menuValue(state: Pick<MenuValue, 'open' | 'change'>): MenuValue {
   const [trigger, setTrigger] = createSignal<HTMLElement | undefined>();
   const [content, setContent] = createSignal<HTMLElement | undefined>();
-  return { open, change, trigger, setTrigger, content, setContent, triggerId: createUniqueId(), contentId: createUniqueId() };
+  return { open: state.open, change: state.change, trigger, setTrigger, content, setContent, triggerId: createUniqueId(), contentId: createUniqueId() };
 }
 export function Menu(props: MenuProps): Element {
-  const value = menuValue(() => props.open ?? false, next => props.onOpenChange?.(next));
+  const value = menuValue({ open: () => props.open ?? false, change: next => props.onOpenChange?.(next) });
   const dir = useDirection(() => props.dir);
   const root: RootValue = { dir, modal: () => props.modal ?? true, keyboard: false, pointerDown: undefined, close: () => value.change(false) };
   if (!isServer) createEffect(value.content, node => {
@@ -85,7 +85,8 @@ export function Menu(props: MenuProps): Element {
 }
 export function MenuAnchor(props: MenuAnchorProps): Element {
   const menu = useMenu('MenuAnchor', untrack(() => props.__scopeMenu));
-  return <PopperAnchor {...merge(omit(props, '__scopeMenu'), { get __scopePopper() { return props.__scopeMenu; }, get ref() { return composeRefs(props.ref, menu.setTrigger); } })} />;
+  const anchorProps = merge(omit(props, '__scopeMenu'), { get __scopePopper() { return props.__scopeMenu; }, get ref() { return composeRefs(props.ref, menu.setTrigger); } });
+  return <PopperAnchor {...anchorProps} />;
 }
 export function MenuPortal(props: MenuPortalProps): Element {
   useMenu('MenuPortal', untrack(() => props.__scopeMenu));
@@ -99,7 +100,7 @@ export function MenuSubContent(props: MenuSubContentProps): Element { return ren
 function renderContent(props: MenuContentProps, sub: boolean): Element {
   const scope = untrack(() => props.__scopeMenu);
   const menu = useMenu('MenuContent', scope), root = useRoot('MenuContent', scope);
-  const parent = sub ? useSub('MenuSubContent', scope) : undefined;
+  if (sub) useSub('MenuSubContent', scope);
   const portal = usePortal('MenuContent', scope);
   const presence = createPresence(menu.open, () => props.forceMount ?? portal.forceMount());
   function Mounted(): Element {
@@ -178,8 +179,14 @@ function renderContent(props: MenuContentProps, sub: boolean): Element {
   }
   return <Show when={presence.mounted()}><Mounted /></Show>;
 }
-export function MenuGroup(props: MenuGroupProps): Element { return <Primitive as="div" {...merge({ role: 'group' as const }, omit(props, '__scopeMenu'))} />; }
-export function MenuLabel(props: MenuLabelProps): Element { return <Primitive as="div" {...omit(props, '__scopeMenu')} />; }
+export function MenuGroup(props: MenuGroupProps): Element {
+  const groupProps = merge({ role: 'group' as const }, omit(props, '__scopeMenu'));
+  return <Primitive as="div" {...groupProps} />;
+}
+export function MenuLabel(props: MenuLabelProps): Element {
+  const labelProps = omit(props, '__scopeMenu');
+  return <Primitive as="div" {...labelProps} />;
+}
 function ItemImpl(props: MenuItemProps, sub = false): Element {
   const scope = untrack(() => props.__scopeMenu), content = useContent('MenuItem', scope), root = useRoot('MenuItem', scope);
   const [node, ref] = createSignal<HTMLElement | undefined>();
@@ -218,40 +225,50 @@ function ItemImpl(props: MenuItemProps, sub = false): Element {
 export function MenuItem(props: MenuItemProps): Element { return ItemImpl(props); }
 const checkedState = (checked: boolean | 'indeterminate' | undefined) => checked === 'indeterminate' ? 'indeterminate' : checked ? 'checked' : 'unchecked';
 export function MenuCheckboxItem(props: MenuCheckboxItemProps): Element {
-  return <IndicatorProvider scope={props.__scopeMenu} value={{ checked: () => props.checked ?? false }}><MenuItem {...merge(omit(props, 'checked', 'onCheckedChange'), {
+  const itemProps = merge(omit(props, 'checked', 'onCheckedChange'), {
     role: 'menuitemcheckbox' as const, get ['aria-checked']() { return props.checked === 'indeterminate' ? 'mixed' as const : props.checked ? 'true' as const : 'false' as const; },
     get ['data-state']() { return checkedState(props.checked); },
     onSelect(event: Event) { props.onSelect?.(event); props.onCheckedChange?.(props.checked === 'indeterminate' || !props.checked); }
-  })} /></IndicatorProvider>;
+  });
+  return <IndicatorProvider scope={props.__scopeMenu} value={{ checked: () => props.checked ?? false }}><MenuItem {...itemProps} /></IndicatorProvider>;
 }
 export function MenuRadioGroup(props: MenuRadioGroupProps): Element {
-  return <RadioProvider scope={props.__scopeMenu} value={{ value: () => props.value, change: value => props.onValueChange?.(value) }}><MenuGroup {...omit(props, 'value', 'onValueChange')} /></RadioProvider>;
+  const groupProps = omit(props, 'value', 'onValueChange');
+  return <RadioProvider scope={props.__scopeMenu} value={{ value: () => props.value, change: value => props.onValueChange?.(value) }}><MenuGroup {...groupProps} /></RadioProvider>;
 }
 export function MenuRadioItem(props: MenuRadioItemProps): Element {
   const radio = useRadio('MenuRadioItem', untrack(() => props.__scopeMenu));
   const checked = () => radio.value() === props.value;
-  return <IndicatorProvider scope={props.__scopeMenu} value={{ checked }}><MenuItem {...merge(omit(props, 'value'), {
+  const itemProps = merge(omit(props, 'value'), {
     role: 'menuitemradio' as const, get ['aria-checked']() { return checked() ? 'true' as const : 'false' as const; }, get ['data-state']() { return checkedState(checked()); },
     onSelect(event: Event) { props.onSelect?.(event); radio.change(props.value); }
-  })} /></IndicatorProvider>;
+  });
+  return <IndicatorProvider scope={props.__scopeMenu} value={{ checked }}><MenuItem {...itemProps} /></IndicatorProvider>;
 }
 export function MenuItemIndicator(props: MenuItemIndicatorProps): Element {
   const indicator = useIndicator('MenuItemIndicator', untrack(() => props.__scopeMenu));
   const presence = createPresence(() => indicator.checked() !== false, () => props.forceMount ?? false);
   function Mounted(): Element {
     if (!isServer) onCleanup(() => presence.ref(undefined));
-    return <Primitive as="span" {...merge({ 'aria-hidden': 'true' as const }, omit(props, '__scopeMenu', 'forceMount'), {
+    const indicatorProps = merge({ 'aria-hidden': 'true' as const }, omit(props, '__scopeMenu', 'forceMount'), {
     get ref() { return composeRefs(props.ref, presence.ref); }, get ['data-state']() { return checkedState(indicator.checked()); }
-    })} />;
+    });
+    return <Primitive as="span" {...indicatorProps} />;
   }
   return <Show when={presence.mounted()}><Mounted /></Show>;
 }
-export function MenuSeparator(props: MenuSeparatorProps): Element { return <Primitive as="div" {...merge({ role: 'separator' as const, 'aria-orientation': 'horizontal' as const }, omit(props, '__scopeMenu'))} />; }
-export function MenuArrow(props: MenuArrowProps): Element { return <PopperArrow {...merge(omit(props, '__scopeMenu'), { get __scopePopper() { return props.__scopeMenu; } })} />; }
+export function MenuSeparator(props: MenuSeparatorProps): Element {
+  const separatorProps = merge({ role: 'separator' as const, 'aria-orientation': 'horizontal' as const }, omit(props, '__scopeMenu'));
+  return <Primitive as="div" {...separatorProps} />;
+}
+export function MenuArrow(props: MenuArrowProps): Element {
+  const arrowProps = merge(omit(props, '__scopeMenu'), { get __scopePopper() { return props.__scopeMenu; } });
+  return <PopperArrow {...arrowProps} />;
+}
 export function MenuSub(props: MenuSubProps): Element {
   const scope = untrack(() => props.__scopeMenu), parent = useMenu('MenuSub', scope), content = useContent('MenuSub', scope);
   const [open, change] = createControllableState({ value: () => props.open, get defaultValue() { return props.defaultOpen ?? false; }, get onChange() { return props.onOpenChange; } });
-  const value = menuValue(open, change);
+  const value = menuValue({ open, change });
   if (!isServer) createEffect(parent.open, active => { if (!active) change(false); }, { transparent: true });
   if (!isServer) onCleanup(() => change(false));
   return <Popper __scopePopper={props.__scopeMenu}><SubProvider scope={props.__scopeMenu} value={{ parent, content }}><MenuProvider scope={props.__scopeMenu} value={value}>{props.children}</MenuProvider></SubProvider></Popper>;

@@ -14,6 +14,7 @@ type TextFieldSlotProps = Omit<ComponentProps<'div'>, 'color'> & GetPropDefTypes
 function TextFieldRoot(props: TextFieldRootProps): Element {
   let input: HTMLInputElement | undefined;
   const parsed = extractProps(props, textFieldRootPropDefs, marginPropDefs);
+  const inputProps = omit(parsed, 'children', 'class', 'color', 'radius', 'style', 'ref');
   return <div data-accent-color={parsed.color} data-radius={parsed.radius} style={parsed.style} class={['rt-TextFieldRoot', parsed.class]}
     onPointerDown={event => {
       const target = event.target as globalThis.Element;
@@ -25,14 +26,15 @@ function TextFieldRoot(props: TextFieldRootProps): Element {
         field.focus();
       });
     }}>
-    <Primitive as="input" spellcheck="false" {...omit(parsed, 'children', 'class', 'color', 'radius', 'style', 'ref')}
+    <Primitive as="input" spellcheck="false" {...inputProps}
       ref={composeRefs(props.ref, node => { input = node; })} class="rt-reset rt-TextFieldInput" />
     {props.children}
   </div>;
 }
 function TextFieldSlot(props: TextFieldSlotProps): Element {
   const parsed = extractProps(props, textFieldSlotPropDefs);
-  return <div data-accent-color={parsed.color} data-side={parsed.side} {...omit(parsed, 'color', 'side', 'class')} class={['rt-TextFieldSlot', parsed.class]} />;
+  const slotProps = omit(parsed, 'color', 'side', 'class');
+  return <div data-accent-color={parsed.color} data-side={parsed.side} {...slotProps} class={['rt-TextFieldSlot', parsed.class]} />;
 }
 export { TextFieldRoot as Root, TextFieldSlot as Slot };
 export type { TextFieldRootProps as RootProps, TextFieldSlotProps as SlotProps };

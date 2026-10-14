@@ -22,8 +22,10 @@ export function Skeleton(props: SkeletonProps): Element {
     get tabindex() { return loading() ? -1 : undefined; },
     get inert() { return loading() ? true : undefined; }
   });
-  if (untrack(() => props.asChild)) return <Slot {...forwarded as Omit<SlotProps, 'children'>}>{props.children as SlotProps['children']}</Slot>;
-  return <Show when={loading()} fallback={props.children as Element}>
-    <span {...forwarded} data-inline-skeleton>{props.children as Element}</span>
-  </Show>;
+  const rendered = untrack(() => props.asChild)
+    ? <Slot {...forwarded as Omit<SlotProps, 'children'>}>{props.children as SlotProps['children']}</Slot>
+    : <Show when={loading()} fallback={props.children as Element}>
+      <span {...forwarded} data-inline-skeleton>{props.children as Element}</span>
+    </Show>;
+  return rendered;
 }

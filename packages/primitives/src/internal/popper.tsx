@@ -32,11 +32,12 @@ export function PopperAnchor(props: PopperAnchorProps): Element {
     context.setAnchor(anchor);
     return () => { if (untrack(context.anchor) === anchor) context.setAnchor(undefined); };
   }, { transparent: true });
-  return <Show when={!props.virtualRef}><Primitive as="div" {...merge(omit(props, '__scopePopper', 'virtualRef'), {
+  const anchorProps = merge(omit(props, '__scopePopper', 'virtualRef'), {
     get ref() { return composeRefs(props.ref, ref); },
     get ['data-radix-popper-side']() { return context.placement()?.split('-')[0]; },
     get ['data-radix-popper-align']() { return context.placement()?.split('-')[1] ?? (context.placement() ? 'center' : undefined); }
-  })} /></Show>;
+  });
+  return <Show when={!props.virtualRef}><Primitive as="div" {...anchorProps} /></Show>;
 }
 export type PopperContentProps = PrimitiveProps<'div'> & {
   __scopePopper?: Scope;
@@ -153,7 +154,8 @@ export function PopperArrow(props: PopperArrowProps): Element {
     };
   });
   onCleanup(() => context.setArrow(undefined));
+  const arrowProps = merge(omit(props, '__scopePopper'), { get style() { return mergeStyles(props.style, { display: 'block' }); } });
   return <span ref={context.setArrow} style={style()}>
-    <Arrow {...merge(omit(props, '__scopePopper'), { get style() { return mergeStyles(props.style, { display: 'block' }); } })} />
+    <Arrow {...arrowProps} />
   </span>;
 }
