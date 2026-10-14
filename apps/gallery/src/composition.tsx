@@ -1,6 +1,6 @@
 import { createRoot, createSignal, createUniqueId, onSettled, Show, type Element } from 'solid-js';
 import type { JSX } from '@solidjs/web';
-import { Dialog, Slot, Toggle } from '@radix-solid/primitives';
+import { Dialog, Slot, Toggle } from '@wsagency/radix2solid-primitives';
 import { Layers, IndependentLayers } from './layers.js';
 import { Controls } from './controls.js';
 import { Menus } from './menus.js';

@@ -1,5 +1,5 @@
 import { omit, type Element } from 'solid-js';
-import * as SwitchPrimitive from '@radix-solid/primitives/switch';
+import * as SwitchPrimitive from '@wsagency/radix2solid-primitives/switch';
 import { switchPropDefs } from './switch.props.js';
 import { extractProps } from '../helpers/extract-props.js';
 import { marginPropDefs, type MarginProps } from '../props/margin.props.js';

@@ -1,7 +1,7 @@
 import { createRoot, createSignal, Show, type Element } from 'solid-js';
 import { Portal as NativePortal } from '@solidjs/web';
-import { Dialog, Form, ScrollArea, Slider, Toast, unstable_PasswordToggleField as Password, unstable_OneTimePasswordField as OTP } from '@radix-solid/primitives';
-import { createLayer, registerLayerBranch } from '@radix-solid/primitives/internal';
+import { Dialog, Form, ScrollArea, Slider, Toast, unstable_PasswordToggleField as Password, unstable_OneTimePasswordField as OTP } from '@wsagency/radix2solid-primitives';
+import { createLayer, registerLayerBranch } from '@wsagency/radix2solid-primitives/internal';
 
 export function Advanced(): Element {
   const [secret, setSecret] = createSignal('selection-secret');

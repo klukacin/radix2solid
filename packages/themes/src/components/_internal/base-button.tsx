@@ -1,7 +1,7 @@
 import { merge, omit, Show, untrack, type Element } from 'solid-js';
 import type { ComponentProps } from '@solidjs/web';
-import { Primitive, type PrimitiveProps } from '@radix-solid/primitives/internal';
-import { Slottable, type SlotRender } from '@radix-solid/primitives/slot';
+import { Primitive, type PrimitiveProps } from '@wsagency/radix2solid-primitives/internal';
+import { Slottable, type SlotRender } from '@wsagency/radix2solid-primitives/slot';
 import { extractProps } from '../../helpers/extract-props.js';
 import { mapButtonSizeToSpinnerSize, mapResponsiveProp } from '../../helpers/map-prop-values.js';
 import type { ComposedProps, RemovedProps } from '../../helpers/component-props.js';

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createRoot, createSignal, flush } from 'solid-js';
-import { createControllableState } from '@radix-solid/primitives/internal';
+import { createControllableState } from '@wsagency/radix2solid-primitives/internal';
 
 test('controlled requests never outrun the parent and use the latest callback', () => {
   const calls: string[] = [];

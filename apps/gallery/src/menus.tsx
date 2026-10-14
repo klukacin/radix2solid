@@ -1,5 +1,5 @@
 import { createSignal, type Element } from 'solid-js';
-import * as Primitives from '@radix-solid/primitives';
+import * as Primitives from '@wsagency/radix2solid-primitives';
 
 const AlertDialog = Primitives.AlertDialog;
 const HoverCard = Primitives.HoverCard;

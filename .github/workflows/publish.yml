@@ -1,0 +1,94 @@
+name: Publish native packages
+
+on:
+  push:
+    tags:
+      - 'v*-rc.*'
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    if: github.repository == 'wsagency/radix2solid'
+    runs-on: ubuntu-24.04
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.21.0
+          registry-url: https://registry.npmjs.org/
+          package-manager-cache: false
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.5.0
+      - name: Ensure supported npm CLI
+        run: npm install --global npm@11.21.0 && npm --version
+      - name: Validate release manifests
+        run: |
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import { readFileSync } from 'node:fs';
+          const version = process.env.GITHUB_REF_NAME.slice(1);
+          assert.match(version, /^\d+\.\d+\.\d+-rc\.\d+$/);
+          for (const name of ['primitives', 'icons', 'themes']) {
+            const pkg = JSON.parse(readFileSync(`packages/${name}/package.json`, 'utf8'));
+            assert.equal(pkg.name, `@wsagency/radix2solid-${name}`);
+            assert.equal(pkg.version, version);
+            assert.equal(pkg.private, false);
+            assert.equal(pkg.publishConfig.access, 'public');
+            assert.equal(pkg.publishConfig.tag, 'next');
+            assert.equal(pkg.repository.url, 'git+https://github.com/wsagency/radix2solid.git');
+            assert.equal(pkg.peerDependencies['solid-js'], '2.0.0-rc.13');
+            assert.equal(pkg.peerDependencies['@solidjs/web'], '2.0.0-rc.13');
+            if (name === 'themes') assert.equal(pkg.dependencies['@wsagency/radix2solid-primitives'], 'workspace:*');
+            assert(!JSON.stringify(pkg).includes('@radix-solid/'), `${name}: old scope`);
+          }
+          JS
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - run: pnpm check
+      - name: Pack and inspect actual release tarballs
+        run: |
+          mkdir -p .artifacts/npm-release
+          for name in primitives icons themes; do
+            pnpm --dir "packages/$name" pack --pack-destination "$PWD/.artifacts/npm-release"
+          done
+          node --input-type=module <<'JS'
+          import assert from 'node:assert/strict';
+          import { execFileSync } from 'node:child_process';
+          const version = process.env.GITHUB_REF_NAME.slice(1);
+          for (const name of ['primitives', 'icons', 'themes']) {
+            const archive = `.artifacts/npm-release/wsagency-radix2solid-${name}-${version}.tgz`;
+            const pkg = JSON.parse(execFileSync('tar', ['-xOf', archive, 'package/package.json'], { encoding: 'utf8' }));
+            assert.equal(pkg.name, `@wsagency/radix2solid-${name}`);
+            assert.equal(pkg.version, version);
+            assert.equal(pkg.private, false);
+            for (const value of Object.values(pkg.dependencies ?? {})) {
+              assert(!/^(workspace:|file:|link:)/.test(value));
+            }
+            if (name === 'themes') assert.equal(pkg.dependencies['@wsagency/radix2solid-primitives'], version);
+            assert(!JSON.stringify(pkg).includes('@radix-solid/'), `${name}: old scope`);
+            const files = execFileSync('tar', ['-tzf', archive], { encoding: 'utf8' }).split('\n');
+            for (const file of ['LICENSE', 'README.md', 'CHANGELOG.md', 'dist/client/index.js', 'dist/server/index.js', 'dist/types/index.d.ts']) {
+              assert(files.includes(`package/${file}`), `${name}: missing ${file}`);
+            }
+          }
+          JS
+          sha256sum .artifacts/npm-release/*.tgz
+      - name: Publish via npm OIDC
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          for name in primitives icons themes; do
+            npm publish "./.artifacts/npm-release/wsagency-radix2solid-$name-$version.tgz" --access public --tag next --registry=https://registry.npmjs.org/
+          done
+      - name: Read registry release metadata
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          for name in primitives icons themes; do
+            npm view "@wsagency/radix2solid-$name@$version" name version dist.integrity dist.attestations --json --registry=https://registry.npmjs.org/
+          done

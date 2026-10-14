@@ -1,6 +1,6 @@
 import { omit, type Element } from 'solid-js';
 import type { ComponentProps } from '@solidjs/web';
-import { Primitive, composeRefs } from '@radix-solid/primitives/internal';
+import { Primitive, composeRefs } from '@wsagency/radix2solid-primitives/internal';
 import { textFieldRootPropDefs, textFieldSlotPropDefs } from './text-field.props.js';
 import { extractProps } from '../helpers/extract-props.js';
 import { marginPropDefs, type MarginProps } from '../props/margin.props.js';

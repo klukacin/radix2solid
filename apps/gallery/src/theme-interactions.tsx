@@ -1,6 +1,6 @@
 import { createSignal, type Element } from 'solid-js';
-import { Theme, ThemePanel, unstable_ThemePanelContent as ThemePanelContent, CheckboxGroup, CheckboxCards, RadioGroup, RadioCards, SegmentedControl, Radio, TextField, TextArea, Text, Em, Checkbox, Switch, Slider, Tabs, TabNav, Dialog, AlertDialog, Popover, HoverCard, Tooltip, DropdownMenu, ContextMenu, Select, Button } from '@radix-solid/themes';
-import '@radix-solid/themes/styles.css';
+import { Theme, ThemePanel, unstable_ThemePanelContent as ThemePanelContent, CheckboxGroup, CheckboxCards, RadioGroup, RadioCards, SegmentedControl, Radio, TextField, TextArea, Text, Em, Checkbox, Switch, Slider, Tabs, TabNav, Dialog, AlertDialog, Popover, HoverCard, Tooltip, DropdownMenu, ContextMenu, Select, Button } from '@wsagency/radix2solid-themes';
+import '@wsagency/radix2solid-themes/styles.css';
 const responsiveMenuSize = Object.freeze({ initial: '1', md: '2' } as const);
 
 export function ThemeInteractions(): Element {

@@ -13,6 +13,6 @@ export default defineConfig(({ isSsrBuild }) => ({
     outDir: isSsrBuild ? 'dist/server' : 'dist/client',
     lib: { entry: entries, formats: ['es'], fileName: (_format, name) => `${name}.js` },
     minify: false,
-    rolldownOptions: { external: [/^solid-js(?:\/|$)/, /^@solidjs\//, /^@radix-solid\/primitives(?:\/|$)/] }
+    rolldownOptions: { external: [/^solid-js(?:\/|$)/, /^@solidjs\//, /^@wsagency\/radix2solid-primitives(?:\/|$)/] }
   }
 }));

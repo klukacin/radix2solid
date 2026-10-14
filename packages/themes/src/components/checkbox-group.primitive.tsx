@@ -1,7 +1,7 @@
 import { merge, omit, untrack, type Element } from 'solid-js';
-import * as Checkbox from '@radix-solid/primitives/checkbox';
-import { useDirection } from '@radix-solid/primitives/direction';
-import { Primitive, createContextScope, createControllableState, RovingFocusGroup, RovingFocusGroupItem, createRovingFocusGroupScope, type Scope, type PrimitiveProps } from '@radix-solid/primitives/internal';
+import * as Checkbox from '@wsagency/radix2solid-primitives/checkbox';
+import { useDirection } from '@wsagency/radix2solid-primitives/direction';
+import { Primitive, createContextScope, createControllableState, RovingFocusGroup, RovingFocusGroupItem, createRovingFocusGroupScope, type Scope, type PrimitiveProps } from '@wsagency/radix2solid-primitives/internal';
 import type { ComposedProps } from '../helpers/component-props.js';
 
 const [createContext, createCheckboxGroupScope] = createContextScope('CheckboxGroup', [createRovingFocusGroupScope, Checkbox.createCheckboxScope]);

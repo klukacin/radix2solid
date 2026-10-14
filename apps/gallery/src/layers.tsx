@@ -1,6 +1,6 @@
 import { createSignal, createUniqueId, For, getOwner, onCleanup, onSettled, runWithOwner, Show, type Element } from 'solid-js';
-import { Dialog, Popover, Direction, VisuallyHidden } from '@radix-solid/primitives';
-import { RovingFocusGroup, RovingFocusGroupItem } from '@radix-solid/primitives/internal';
+import { Dialog, Popover, Direction, VisuallyHidden } from '@wsagency/radix2solid-primitives';
+import { RovingFocusGroup, RovingFocusGroupItem } from '@wsagency/radix2solid-primitives/internal';
 import { render } from '@solidjs/web';
 
 const overlayStyle = { position: 'fixed', inset: 0, background: 'rgb(0 0 0 / .25)', 'z-index': 10 } as const;

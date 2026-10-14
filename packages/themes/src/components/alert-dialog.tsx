@@ -1,6 +1,6 @@
 import { merge, omit, type Element } from 'solid-js';
-import * as Native from '@radix-solid/primitives/alert-dialog';
-import type { SlotRender } from '@radix-solid/primitives/slot';
+import * as Native from '@wsagency/radix2solid-primitives/alert-dialog';
+import type { SlotRender } from '@wsagency/radix2solid-primitives/slot';
 import { Theme } from './theme.js';
 import { Heading, type HeadingProps } from './heading.js';
 import { Text } from './text.js';

@@ -1,5 +1,5 @@
 import { createSignal, For, type Element } from 'solid-js';
-import { Select } from '@radix-solid/primitives';
+import { Select } from '@wsagency/radix2solid-primitives';
 
 export function Selects(): Element {
   const [value, setValue] = createSignal('apple');

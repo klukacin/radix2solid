@@ -1,6 +1,6 @@
 import { createSignal, type Element } from 'solid-js';
-import { AccessibilityIcon, CheckIcon, SlashIcon, SketchLogoIcon, PanelLeftIcon, PanelRightIcon } from '@radix-solid/icons';
-import svgDownload from '@radix-solid/icons/icons/accessibility.svg?url';
+import { AccessibilityIcon, CheckIcon, SlashIcon, SketchLogoIcon, PanelLeftIcon, PanelRightIcon } from '@wsagency/radix2solid-icons';
+import svgDownload from '@wsagency/radix2solid-icons/icons/accessibility.svg?url';
 import { blue, blueDark, blueA, blueDarkA, blueP3, blueDarkP3 } from '@radix-ui/colors';
 import '@radix-ui/colors/blue.css';
 import '@radix-ui/colors/blue-dark.css';

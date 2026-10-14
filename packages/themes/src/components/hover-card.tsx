@@ -1,6 +1,6 @@
 import { merge, omit, type Element } from 'solid-js';
-import * as Native from '@radix-solid/primitives/hover-card';
-import type { SlotRender } from '@radix-solid/primitives/slot';
+import * as Native from '@wsagency/radix2solid-primitives/hover-card';
+import type { SlotRender } from '@wsagency/radix2solid-primitives/slot';
 import { Theme } from './theme.js';
 import { extractProps } from '../helpers/extract-props.js';
 import type { ComposedProps, RemovedProps } from '../helpers/component-props.js';

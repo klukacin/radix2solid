@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.0-rc.1 — prepared candidate, not yet published
+
+- Rename the package from `@radix-solid/icons` to `@wsagency/radix2solid-icons`; deep icon entries and `icons/*.svg` subpaths are unchanged under the new name.
+- Prepare public npm metadata for release under the `next` dist-tag; the Solid `2.0.0-rc.13` peers are unchanged.
+
 ## 0.0.0-local
 
 - Generate all 332 original icons from checked-in SVG assets and authoritative names, without network/Figma/React/Ink or geometry optimization.

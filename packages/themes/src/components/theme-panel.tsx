@@ -1,6 +1,6 @@
 import { createEffect, createSignal, flush, merge, omit, onCleanup, untrack, type Element } from 'solid-js';
 import { isServer, type ComponentProps } from '@solidjs/web';
-import { composeRefs } from '@radix-solid/primitives/internal';
+import { composeRefs } from '@wsagency/radix2solid-primitives/internal';
 import { AccessibleIcon } from './accessible-icon.js';
 import { Box } from './box.js';
 import { Button } from './button.js';

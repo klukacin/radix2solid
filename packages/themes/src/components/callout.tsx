@@ -1,6 +1,6 @@
 import { createContext, merge, omit, useContext, type Element } from 'solid-js';
 import type { ComponentProps } from '@solidjs/web';
-import { Primitive, type PrimitiveProps } from '@radix-solid/primitives/internal';
+import { Primitive, type PrimitiveProps } from '@wsagency/radix2solid-primitives/internal';
 import { Text } from './text.js';
 import { calloutRootPropDefs } from './callout.props.js';
 import { extractProps } from '../helpers/extract-props.js';

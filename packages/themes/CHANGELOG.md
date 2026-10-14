@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-rc.1 — prepared candidate, not yet published
+
+- Rename the package from `@radix-solid/themes` to `@wsagency/radix2solid-themes`; component, helpers, props, CSS and PostCSS plugin subpaths are unchanged under the new name.
+- Depend on `@wsagency/radix2solid-primitives` (packed as exactly `0.1.0-rc.1`) instead of `@radix-solid/primitives`, keeping it external in the build.
+- Prepare public npm metadata for release under the `next` dist-tag; the Solid `2.0.0-rc.13` peers are unchanged.
+
 ## 0.0.0-local
 
 - Native Solid 2 Theme/context, Foundation/Layout/Typography/Visual families, all compound presentational parts, four Themes icons and viewport-ref ScrollArea; no React runtime or type bridge.

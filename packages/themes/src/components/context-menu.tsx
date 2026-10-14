@@ -1,6 +1,6 @@
 import { createContext, merge, omit, Show, untrack, useContext, type Element } from 'solid-js';
-import * as Native from '@radix-solid/primitives/context-menu';
-import { Slottable, type SlotRender } from '@radix-solid/primitives/slot';
+import * as Native from '@wsagency/radix2solid-primitives/context-menu';
+import { Slottable, type SlotRender } from '@wsagency/radix2solid-primitives/slot';
 import { Theme, useThemeContext } from './theme.js';
 import { ScrollArea } from './scroll-area.js';
 import { ThickCheckIcon, ThickChevronRightIcon } from './icons.js';

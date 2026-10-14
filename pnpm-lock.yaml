@@ -18,15 +18,6 @@ importers:
       '@playwright/test':
         specifier: 1.64.0
         version: 1.64.0
-      '@radix-solid/icons':
-        specifier: workspace:*
-        version: link:packages/icons
-      '@radix-solid/primitives':
-        specifier: workspace:*
-        version: link:packages/primitives
-      '@radix-solid/themes':
-        specifier: workspace:*
-        version: link:packages/themes
       '@radix-ui/colors':
         specifier: 3.0.0
         version: 3.0.0
@@ -39,6 +30,15 @@ importers:
       '@types/node':
         specifier: 24.19.1
         version: 24.19.1
+      '@wsagency/radix2solid-icons':
+        specifier: workspace:*
+        version: link:packages/icons
+      '@wsagency/radix2solid-primitives':
+        specifier: workspace:*
+        version: link:packages/primitives
+      '@wsagency/radix2solid-themes':
+        specifier: workspace:*
+        version: link:packages/themes
       axe-core:
         specifier: 4.11.0
         version: 4.11.0
@@ -54,21 +54,21 @@ importers:
 
   apps/gallery:
     dependencies:
-      '@radix-solid/icons':
-        specifier: workspace:*
-        version: link:../../packages/icons
-      '@radix-solid/primitives':
-        specifier: workspace:*
-        version: link:../../packages/primitives
-      '@radix-solid/themes':
-        specifier: workspace:*
-        version: link:../../packages/themes
       '@radix-ui/colors':
         specifier: 3.0.0
         version: 3.0.0
       '@solidjs/web':
         specifier: 2.0.0-rc.13
         version: 2.0.0-rc.13(solid-js@2.0.0-rc.13)
+      '@wsagency/radix2solid-icons':
+        specifier: workspace:*
+        version: link:../../packages/icons
+      '@wsagency/radix2solid-primitives':
+        specifier: workspace:*
+        version: link:../../packages/primitives
+      '@wsagency/radix2solid-themes':
+        specifier: workspace:*
+        version: link:../../packages/themes
       solid-js:
         specifier: 2.0.0-rc.13
         version: 2.0.0-rc.13
@@ -96,15 +96,15 @@ importers:
 
   packages/themes:
     dependencies:
-      '@radix-solid/primitives':
-        specifier: workspace:*
-        version: link:../primitives
       '@radix-ui/colors':
         specifier: 3.0.0
         version: 3.0.0
       '@solidjs/web':
         specifier: 2.0.0-rc.13
         version: 2.0.0-rc.13(solid-js@2.0.0-rc.13)
+      '@wsagency/radix2solid-primitives':
+        specifier: workspace:*
+        version: link:../primitives
       postcss:
         specifier: 8.5.9
         version: 8.5.9

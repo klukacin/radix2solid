@@ -1,8 +1,8 @@
 import { createContext, createSignal, createEffect, merge, omit, untrack, useContext, type Element } from 'solid-js';
 import { isServer, type ComponentProps } from '@solidjs/web';
-import { Primitive, type PrimitiveProps } from '@radix-solid/primitives/internal';
-import { DirectionProvider } from '@radix-solid/primitives/direction';
-import { TooltipProvider } from '@radix-solid/primitives/tooltip';
+import { Primitive, type PrimitiveProps } from '@wsagency/radix2solid-primitives/internal';
+import { DirectionProvider } from '@wsagency/radix2solid-primitives/direction';
+import { TooltipProvider } from '@wsagency/radix2solid-primitives/tooltip';
 import { getMatchingGrayColor } from '../helpers/get-matching-gray-color.js';
 import type { ComposedProps } from '../helpers/component-props.js';
 import { themePropDefs } from './theme.props.js';

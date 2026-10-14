@@ -1,7 +1,7 @@
 import { omit, type Element } from 'solid-js';
 import { dynamic } from '@solidjs/web';
-import * as CheckboxPrimitive from '@radix-solid/primitives/checkbox';
-import { createControllableState } from '@radix-solid/primitives/internal';
+import * as CheckboxPrimitive from '@wsagency/radix2solid-primitives/checkbox';
+import { createControllableState } from '@wsagency/radix2solid-primitives/internal';
 import { checkboxPropDefs } from './checkbox.props.js';
 import { ThickCheckIcon, ThickDividerHorizontalIcon } from './icons.js';
 import { extractProps } from '../helpers/extract-props.js';
