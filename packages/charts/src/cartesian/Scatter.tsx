@@ -11,7 +11,7 @@ import type { JSX } from "@solidjs/web";
 // joint/fitting line) are wired.) Solid deviations:
 // resolveDefaultProps→merge; effect-dispatch registration → createEffect/onCleanup;
 // the `@ts-expect-error`-laden value plumbing is replaced with typed coercion.
-import { createMemo, For, merge, Show } from "solid-js";
+import { createMemo, For, merge, Show, untrack } from "solid-js";
 
 import {
   AnimatedItems,
@@ -428,13 +428,15 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
   const store = useAppStore();
   const merged = merge(scatterDefaultProps, props);
   const isPanorama = useIsPanorama();
-  const id = useUniqueId("recharts-scatter", props.id);
+  const id = useUniqueId(
+    "recharts-scatter",
+    untrack(() => props.id),
+  );
   // `shape` is either a built-in symbol type or a custom render fn; resolve once.
-  const customShape =
-    typeof merged.shape === "function" ? merged.shape : undefined;
-  const symbolType =
-    typeof merged.shape === "function" ? "circle" : merged.shape;
-  const { needClip } = useNeedsClip(merged.xAxisId, merged.yAxisId);
+  const shape = untrack(() => merged.shape);
+  const customShape = typeof shape === "function" ? shape : undefined;
+  const symbolType = typeof shape === "function" ? "circle" : shape;
+  const { needClip } = useNeedsClip(merged);
 
   // Active-shape highlight on the hovered point (recharts ScatterSymbols): the
   // active point swaps its shape for `activeShape` and renders in a
@@ -655,9 +657,7 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
       <For each={frame}>
         {(entry, i) => (
           <Layer
-            class={["recharts-scatter-symbol", entry.cell?.class]
-              .filter((c): c is string => Boolean(c))
-              .join(" ")}
+            class={["recharts-scatter-symbol", entry.cell?.class]}
             onMouseEnter={onItemEnter(entry, i())}
             onMouseLeave={onItemLeave(entry, i())}
             onClick={onItemClick(entry, i())}

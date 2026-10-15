@@ -73,7 +73,7 @@ const MainChartSurface = (props: RootSurfaceProps): JSX.Element => {
   // role/tabindex go through the (loosely-typed) spread, not typed props: Solid's
   // `role` prop is a strict ARIA-literal union that rejects a plain `string`.
   const attrs = (): Record<string, unknown> => ({
-    ...(props.otherAttributes ?? {}),
+    ...props.otherAttributes,
     role: role(),
     tabIndex: tabIndex(),
   });
@@ -123,16 +123,20 @@ const BrushPanoramaSurface = (props: {
 export const RootSurface = (props: RootSurfaceProps): JSX.Element => {
   const isPanorama = useIsPanorama();
 
-  if (isPanorama) {
-    return (
+  return (
+    <Show
+      when={isPanorama}
+      fallback={
+        <MainChartSurface {...props}>
+          <AllZIndexPortals isPanorama={false}>
+            {props.children}
+          </AllZIndexPortals>
+        </MainChartSurface>
+      }
+    >
       <BrushPanoramaSurface>
         <AllZIndexPortals isPanorama>{props.children}</AllZIndexPortals>
       </BrushPanoramaSurface>
-    );
-  }
-  return (
-    <MainChartSurface {...props}>
-      <AllZIndexPortals isPanorama={false}>{props.children}</AllZIndexPortals>
-    </MainChartSurface>
+    </Show>
   );
 };

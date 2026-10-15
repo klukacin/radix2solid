@@ -119,7 +119,7 @@ export function ThemeExtensions() {
         >
           <Button id="extension-override-button">Application scale</Button>
         </Theme>
-        <Theme style="--scaling: 1.25">
+        <Theme style={{ "--scaling": "1.25" }}>
           <Button id="extension-inline-button">Inline scale</Button>
         </Theme>
         <Checkbox

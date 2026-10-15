@@ -228,7 +228,7 @@ function ReferenceAreaImpl(props: Props): JSX.Element {
     return {
       clipPath,
       ...svgPropertiesAndEventsKeepCase({ ...merged }),
-      ...(r ?? {}),
+      ...r,
     };
   });
 

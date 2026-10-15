@@ -14,7 +14,7 @@ import { scaleLinear } from "d3-scale";
 // NON-GAP: `responsive` defaults to false in the reference too, and
 // ResponsiveContainer sizing flows via the wrapper context.
 // DEFERRED: event throttling nuances.
-import { createMemo, For, merge, Show } from "solid-js";
+import { createMemo, For, merge, Show, untrack } from "solid-js";
 
 import { Layer } from "../container/Layer";
 import { Surface } from "../container/Surface";
@@ -201,8 +201,6 @@ const SunburstChartImpl = (
     const thickness = (outerRadius() - merged.innerRadius) / treeDepth;
     const arcs: SunburstArc[] = [];
     const positions = new Map<string, ChartCoordinate>();
-    const centerX = cx();
-    const centerY = cy();
     const stroke = merged.stroke;
     const strokeWidth = merged.padding;
     const textOptions = merged.textOptions;
@@ -241,25 +239,20 @@ const SunburstChartImpl = (
           endAngle: start + arcLength,
           innerRadius: innerR,
           outerRadius: innerR + radius,
-          cx: centerX,
-          cy: centerY,
+          cx: cx(),
+          cy: cy(),
           stroke,
           strokeWidth,
           textOptions,
-          textX: mid.x + centerX,
-          textY: centerY - mid.y,
+          textX: mid.x + cx(),
+          textY: cy() - mid.y,
           label:
             typeof d[dataKey] === "number" || typeof d[dataKey] === "string"
               ? d[dataKey]
               : "",
           node: { ...d, tooltipIndex },
         });
-        const pos = polarToCartesian(
-          centerX,
-          centerY,
-          innerR + radius / 2,
-          start,
-        );
+        const pos = polarToCartesian(cx(), cy(), innerR + radius / 2, start);
         positions.set(d.name, { x: pos.x, y: pos.y });
         positions.set(String(tooltipIndex), { x: pos.x, y: pos.y });
         drawArcs(
@@ -404,7 +397,10 @@ const zeroMargin: Margin = { top: 0, right: 0, bottom: 0, left: 0 };
  * of sectors conveying the proportions within each level of the tree.
  */
 export const SunburstChart = (props: SunburstChartProps): JSX.Element => {
-  const id = useUniqueId("recharts-sunburst", props.id);
+  const id = useUniqueId(
+    "recharts-sunburst",
+    untrack(() => props.id),
+  );
   return (
     <RechartsStoreProvider preloadedState={sunburstPreloadedState()}>
       <ReportChartMargin margin={zeroMargin} />

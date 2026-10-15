@@ -36,9 +36,16 @@ export function createChartInitializer() {
     // Do not read a native proxy until collection ends: its property nodes cache
     // values, so mutating the raw seed after such a read would leave stale nodes.
     let reactive: [T, StateUpdate<T>] | undefined;
-    const live = () => (reactive ??= createStore<T>(initial));
+    const live = (): [T, StateUpdate<T>] => {
+      if (reactive === undefined) {
+        const [state, setState] = createStore<T>(initial);
+        reactive = [state, setState];
+      }
+      return reactive;
+    };
+    const read = () => (ready() ? live()[0] : initial);
     return [
-      () => (ready() ? live()[0] : initial),
+      read,
       (update) => {
         if (initializing) update(initial);
         else live()[1](update);

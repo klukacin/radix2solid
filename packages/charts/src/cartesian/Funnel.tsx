@@ -18,7 +18,7 @@ import type { JSX } from "@solidjs/web";
 // Enter/Leave/onTouchStart/Move/End, props-first `(data, index, event)`) ARE wired.
 // No legend registration and no ZIndexLayer — matching recharts (upstream Funnel
 // registers no legend payload and renders inline without a zIndex portal).
-import { createMemo, For, merge, Show } from "solid-js";
+import { createMemo, For, merge, Show, untrack } from "solid-js";
 
 import {
   AnimatedItems,
@@ -405,7 +405,10 @@ export function Funnel<
   DataValueType = unknown,
 >(props: FunnelProps<DataPointType, DataValueType>): JSX.Element {
   const merged = merge(funnelDefaultProps, props);
-  const id = useUniqueId("recharts-funnel", props.id);
+  const id = useUniqueId(
+    "recharts-funnel",
+    untrack(() => props.id),
+  );
 
   const { cells, resolve: resolveChildren } = createCellReader();
 
@@ -472,14 +475,14 @@ export function Funnel<
 
   // Remaining per-trapezoid pointer handlers (no tooltip dispatch); captured once
   // (reading them in the <For> callback would be an untracked prop read).
-  const onMouseDownHandler = props.onMouseDown;
-  const onMouseUpHandler = props.onMouseUp;
-  const onMouseMoveHandler = props.onMouseMove;
-  const onMouseOverHandler = props.onMouseOver;
-  const onMouseOutHandler = props.onMouseOut;
-  const onTouchStartHandler = props.onTouchStart;
-  const onTouchMoveHandler = props.onTouchMove;
-  const onTouchEndHandler = props.onTouchEnd;
+  const onMouseDownHandler = untrack(() => props.onMouseDown);
+  const onMouseUpHandler = untrack(() => props.onMouseUp);
+  const onMouseMoveHandler = untrack(() => props.onMouseMove);
+  const onMouseOverHandler = untrack(() => props.onMouseOver);
+  const onMouseOutHandler = untrack(() => props.onMouseOut);
+  const onTouchStartHandler = untrack(() => props.onTouchStart);
+  const onTouchMoveHandler = untrack(() => props.onTouchMove);
+  const onTouchEndHandler = untrack(() => props.onTouchEnd);
 
   // Active (hovered) trapezoid index for `activeShape` (item-type tooltip).
   const activeItemIndex = useAppSelector((state) =>
@@ -506,8 +509,8 @@ export function Funnel<
 
   // Captured once (a render prop rarely changes); reading it in the <For> callback
   // would be an untracked prop read.
-  const shape = merged.shape;
-  const activeShape = merged.activeShape;
+  const shape = untrack(() => merged.shape);
+  const activeShape = untrack(() => merged.activeShape);
 
   // FunnelChart runs in a "horizontal" cartesian layout; the interpolation fn
   // ignores the layout value but AnimatedItems requires one (and a defined layout

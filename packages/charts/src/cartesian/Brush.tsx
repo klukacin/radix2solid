@@ -25,14 +25,7 @@ import { scalePoint } from "d3-scale";
 // (drag overrides win mid-interaction, the Solid equivalent of recharts'
 // getDerivedStateFromProps "don't sync while interacting" guards). Covered by the
 // "with controlled startIndex/endIndex" Brush.spec block.
-import {
-  createEffect,
-  createMemo,
-  createSignal,
-  merge,
-  onCleanup,
-  Show,
-} from "solid-js";
+import { createMemo, createSignal, merge, onCleanup, Show } from "solid-js";
 
 import { Text } from "../component/Text";
 import { Layer } from "../container/Layer";

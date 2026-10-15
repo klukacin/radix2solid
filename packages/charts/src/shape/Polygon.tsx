@@ -110,8 +110,15 @@ export type PolygonProps = Omit<
   PolygonOwnProps;
 
 export const Polygon = (props: PolygonProps): JSX.Element => {
+  const forwardedProps = omit(
+    props,
+    "class",
+    "points",
+    "baseLinePoints",
+    "connectNulls",
+  );
   const others = (): Record<string, unknown> => ({
-    ...omit(props, "class", "points", "baseLinePoints", "connectNulls"),
+    ...forwardedProps,
   });
   const layerClass = (): Array<string | undefined> => [
     "recharts-polygon",

@@ -8,7 +8,7 @@ import type { JSX } from "@solidjs/web";
 //
 // Not yet adopted by <Line> (which currently generates its own id inline); this
 // is the shared primitive for graphical items (Line/Bar/Area/Scatter) to use.
-import { createContext, useContext } from "solid-js";
+import { createContext, untrack, useContext } from "solid-js";
 
 import { GraphicalItemId } from "../state/graphicalItemsSlice";
 import { useUniqueId } from "../util/useUniqueId";
@@ -29,7 +29,9 @@ export interface IdSetter {
 const GraphicalItemIdContext = createContext<GraphicalItemId | null>(null);
 
 export const RegisterGraphicalItemId = (props: IdSetter): JSX.Element => {
-  const resolvedId = useUniqueId(`recharts-${props.type}`, props.id);
+  const idPrefix = untrack(() => `recharts-${props.type}`);
+  const customId = untrack(() => props.id);
+  const resolvedId = useUniqueId(idPrefix, customId);
   return (
     <GraphicalItemIdContext value={resolvedId}>
       {props.children(resolvedId)}

@@ -22,7 +22,7 @@ import type { JSX } from "@solidjs/web";
 // cloneElement). PERMANENT-N/A: element-form `shape`. DEFERRED: object-form
 // `shape`. zIndex relayering IS wired: the `.recharts-radar` Layer is wrapped in
 // <ZIndexLayer> (default DefaultZIndexes.area = 100), matching recharts.
-import { createMemo, merge, Show } from "solid-js";
+import { createMemo, merge, Show, untrack } from "solid-js";
 
 import {
   AnimatedItems,
@@ -312,7 +312,10 @@ export function Radar<
   const store = useAppStore();
   const merged = merge(radarDefaultProps, props);
   const isPanorama = useIsPanorama();
-  const id = useUniqueId("recharts-radar", props.id);
+  const id = useUniqueId(
+    "recharts-radar",
+    untrack(() => props.id),
+  );
 
   if (store != null) {
     registerInStore<RadarSettings>(
@@ -391,7 +394,9 @@ export function Radar<
     return r?.isRange ? r.baseLinePoints : undefined;
   };
 
-  const mainColor = getLegendItemColor(merged.stroke, merged.fill);
+  const mainColor = untrack(() =>
+    getLegendItemColor(merged.stroke, merged.fill),
+  );
   const activeRadarPoints = createMemo(
     (): ReadonlyArray<RadarPoint> | undefined =>
       merged.hide ? undefined : radar()?.points,
@@ -594,7 +599,10 @@ function RadarAnimatedContent(props: {
 
   // Gate the label list while animating, mirroring recharts (showLabels = !isAnimating).
   const { isAnimating, handleAnimationStart, handleAnimationEnd } =
-    useAnimationCallbacks(props.onAnimationStart, props.onAnimationEnd);
+    useAnimationCallbacks(
+      () => props.onAnimationStart?.(),
+      () => props.onAnimationEnd?.(),
+    );
   const labelContextEntries = createMemo(() =>
     isAnimating() ? undefined : labelListEntries(),
   );

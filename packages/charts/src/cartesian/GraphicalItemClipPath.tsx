@@ -32,9 +32,15 @@ export interface NeedsClip {
   needClipY: Accessor<boolean>;
 }
 
-export function useNeedsClip(xAxisId: AxisId, yAxisId: AxisId): NeedsClip {
-  const xAxis = useAppSelector((state) => selectXAxisSettings(state, xAxisId));
-  const yAxis = useAppSelector((state) => selectYAxisSettings(state, yAxisId));
+export function useNeedsClip(
+  axisIds: Pick<GraphicalItemClipPathProps, "xAxisId" | "yAxisId">,
+): NeedsClip {
+  const xAxis = useAppSelector((state) =>
+    selectXAxisSettings(state, axisIds.xAxisId),
+  );
+  const yAxis = useAppSelector((state) =>
+    selectYAxisSettings(state, axisIds.yAxisId),
+  );
 
   const needClipX = createMemo(
     () => xAxis()?.allowDataOverflow ?? implicitXAxis.allowDataOverflow,
@@ -51,10 +57,7 @@ export function GraphicalItemClipPath(
   props: GraphicalItemClipPathProps,
 ): JSX.Element {
   const plotArea = usePlotArea();
-  const { needClip, needClipX, needClipY } = useNeedsClip(
-    props.xAxisId,
-    props.yAxisId,
-  );
+  const { needClip, needClipX, needClipY } = useNeedsClip(props);
   const xAxisRange = useAppSelector((state) =>
     selectXAxisRange(state, props.xAxisId, false),
   );

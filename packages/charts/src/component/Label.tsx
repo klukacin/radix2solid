@@ -221,12 +221,14 @@ const getAttrsOfPolarLabel = (
 
 // ---- helpers ----------------------------------------------------------------
 
-const getLabel = (props: Props): RenderableText => {
-  const label: RenderableText = isNullish(props.children)
-    ? props.value
-    : props.children;
-  if (typeof props.formatter === "function") {
-    return props.formatter(label);
+const getLabel = (
+  children: RenderableText,
+  value: RenderableText,
+  formatter: LabelFormatter | undefined,
+): RenderableText => {
+  const label: RenderableText = isNullish(children) ? value : children;
+  if (typeof formatter === "function") {
+    return formatter(label);
   }
   return label;
 };
@@ -339,7 +341,7 @@ export function Label(outerProps: Props): JSX.Element {
       ...(pos.height != null ? { height: String(pos.height) } : {}),
     };
     return {
-      label: getLabel(props),
+      label: getLabel(props.children, props.value, props.formatter),
       pos,
       class:
         props.class != null && props.class !== ""
@@ -361,7 +363,7 @@ export function Label(outerProps: Props): JSX.Element {
       return null;
     }
     return {
-      label: getLabel(props),
+      label: getLabel(props.children, props.value, props.formatter),
       attrs: getAttrsOfPolarLabel(pvb, props.offset, props.position),
       class:
         props.class != null && props.class !== ""
@@ -415,7 +417,7 @@ export function Label(outerProps: Props): JSX.Element {
     );
 
     return {
-      label: getLabel(props),
+      label: getLabel(props.children, props.value, props.formatter),
       path: `M${startPoint.x},${startPoint.y}\n    A${radius},${radius},0,1,${direction ? 0 : 1},\n    ${endPoint.x},${endPoint.y}`,
     };
   });
@@ -434,7 +436,8 @@ export function Label(outerProps: Props): JSX.Element {
     if (vb == null || typeof content !== "function") {
       return undefined;
     }
-    return { content, args: omit({ ...props, viewBox: vb }, "content") };
+    const args = omit({ ...props, viewBox: vb }, "content");
+    return { content, args };
   });
 
   // Render the default/polar/radial text labels inline under <Show> (their render

@@ -312,7 +312,7 @@ const AxisLine = (props: {
       // attribute consumers read off the line element). An object-form `axisLine={{…}}`
       // adds its own SVG props on top — run through the renamer so recharts-style
       // camelCase (`strokeWidth`) becomes the kebab SVG attribute.
-      {...svgPropertiesNoEvents({ width: props.width, ...(props.extra ?? {}) })}
+      {...svgPropertiesNoEvents({ width: props.width, ...props.extra })}
     />
   );
 };
@@ -437,7 +437,6 @@ export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
         : isNullish(entry.value)
           ? ""
           : // Recharts stringifies tick values directly, including Date objects.
-            // eslint-disable-next-line typescript/no-base-to-string
             String(entry.value);
     return `${formatted}${merged.unit ?? ""}`;
   };
@@ -495,9 +494,7 @@ export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
           class={[
             `recharts-cartesian-axis recharts-${merged.axisType} ${merged.axisType}`,
             merged.class,
-          ]
-            .filter((c): c is string => Boolean(c))
-            .join(" ")}
+          ]}
         >
           <Show when={merged.axisLine}>
             <AxisLine
@@ -598,9 +595,7 @@ export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
                           class={[
                             "recharts-cartesian-axis-tick-value",
                             tickSettings()?.class,
-                          ]
-                            .filter(Boolean)
-                            .join(" ")}
+                          ]}
                         >
                           {labelOf(item.entry, item.index)}
                         </Text>

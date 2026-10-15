@@ -110,10 +110,8 @@ export function createHorizontalChart<
     // The wrapper-chart map + the caller's components don't structurally match the
     // mapped result type (component identity is preserved at runtime, remapped only
     // at the type level), so the unsound cast is intentional — same as recharts.
-    // eslint-disable-next-line typescript/consistent-type-assertions -- runtime identity preserved; type is a remap
     return {
       ...createCartesianCharts<TData>("horizontal"),
-      // eslint-disable-next-line typescript/consistent-type-assertions -- NoFunnel<T> narrows to T at runtime
       ...(components as TComponents),
     } as unknown as TypedHorizontalChartContext<
       TData,
@@ -145,7 +143,6 @@ export function createVerticalChart<
         layout="vertical"
       />
     );
-    // eslint-disable-next-line typescript/consistent-type-assertions -- runtime identity preserved; type is a remap
     return {
       ...createCartesianCharts<TData>("vertical"),
       FunnelChart,

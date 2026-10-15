@@ -65,8 +65,9 @@ export const Cross = (props: CrossProps): JSX.Element => {
   // recharts spreads `{ x, y, top, left, width, height, ...rest }` through the
   // SVG-prop filter; only allowlisted keys (x, y, width, height, …) survive onto
   // the <path>. `top`/`left`/`class` are filtered/handled separately.
+  const forwardedProps = omit(props, "class");
   const passthrough = (): Record<string, unknown> => ({
-    ...omit(props, "class"),
+    ...forwardedProps,
     x: x(),
     y: y(),
     top: top(),

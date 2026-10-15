@@ -687,7 +687,10 @@ export function Pie<
 >(props: PieProps<DataPointType, DataValueType>): JSX.Element {
   const store = useAppStore();
   const merged = merge(pieDefaultProps, props);
-  const id = useUniqueId("recharts-pie", props.id);
+  const id = useUniqueId(
+    "recharts-pie",
+    untrack(() => props.id),
+  );
 
   if (store != null) {
     registerInStore<PieSettings>(
@@ -920,7 +923,7 @@ export function Pie<
   // `zIndex` prop relayers the whole pie into its portal. Following Bar's template,
   // the ZIndexLayer lives INSIDE the gate <Show> (never wrapping it) so an empty/
   // hidden pie mounts NO portal — the `fallback` renders the inline empty root Layer.
-  const renderedChildren = resolveChildren(() => props.children);
+  const renderedChildren = resolveChildren(() => <>{props.children}</>);
 
   return (
     <>
@@ -936,7 +939,7 @@ export function Pie<
           <Layer
             tabIndex={rootTabIndex()}
             class={layerClass()}
-          ></Layer>
+          />
         }
       >
         {(secs) => (

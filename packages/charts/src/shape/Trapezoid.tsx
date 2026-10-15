@@ -152,9 +152,12 @@ export const Trapezoid = (props: TrapezoidProps): JSX.Element => {
   let prevX = untrack(x);
   let prevY = untrack(y);
 
+  const staticPathProps = omit(props, "class");
+  const animatedPathProps = omit(props, "class", "style");
+
   const staticPath = (): JSX.Element => (
     <path
-      {...svgPropertiesAndEvents({ ...omit(props, "class") })}
+      {...svgPropertiesAndEvents({ ...staticPathProps })}
       class={layerClass()}
       d={getTrapezoidPath(x(), y(), upperWidth(), lowerWidth(), height())}
     />
@@ -237,9 +240,7 @@ export const Trapezoid = (props: TrapezoidProps): JSX.Element => {
                       : {};
                   return (
                     <path
-                      {...svgPropertiesAndEvents({
-                        ...omit(props, "class", "style"),
-                      })}
+                      {...svgPropertiesAndEvents({ ...animatedPathProps })}
                       ref={measurePath}
                       class={layerClass()}
                       d={getTrapezoidPath(

@@ -380,7 +380,10 @@ export const Line = (props: LineProps): JSX.Element => {
   const merged = merge(lineDefaultProps, props);
   const isPanorama = useIsPanorama();
   const layout = useCartesianChartLayout();
-  const id = useUniqueId("recharts-line", props.id);
+  const id = useUniqueId(
+    "recharts-line",
+    untrack(() => props.id),
+  );
 
   if (store != null) {
     registerInStore<LineSettings>(
@@ -494,7 +497,7 @@ export const Line = (props: LineProps): JSX.Element => {
   const activeTooltipIndex = useAppSelector(selectActiveTooltipIndex);
   const activeDataPoints = useActiveTooltipDataPoints();
 
-  const { needClip } = useNeedsClip(merged.xAxisId, merged.yAxisId);
+  const { needClip } = useNeedsClip(merged);
   const plotArea = usePlotArea();
   // Line is only ever horizontal | vertical (the render Show below cannot mount in
   // any other layout); coerce for the AnimatedItems layout prop.

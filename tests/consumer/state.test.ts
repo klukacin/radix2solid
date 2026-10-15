@@ -112,12 +112,14 @@ test("Slot preserves live absent, undefined and explicit ARIA relationships for 
       "aria-describedby"?: string;
     }) => {
       inspect = () =>
-        JSON.stringify({
-          hasLabel: "aria-labelledby" in props,
-          hasDescription: "aria-describedby" in props,
-          label: props["aria-labelledby"],
-          description: props["aria-describedby"],
-        });
+        untrack(() =>
+          JSON.stringify({
+            hasLabel: "aria-labelledby" in props,
+            hasDescription: "aria-describedby" in props,
+            label: props["aria-labelledby"],
+            description: props["aria-describedby"],
+          }),
+        );
       return "Slot target";
     };
     const source = merge(() =>
@@ -139,7 +141,7 @@ test("Slot preserves live absent, undefined and explicit ARIA relationships for 
     createRenderEffect(rendered, (value) => {
       assert.equal(value, "Slot target");
     });
-    return { output: () => untrack(inspect), setMode, dispose };
+    return { output: () => inspect(), setMode, dispose };
   });
   try {
     assert.deepEqual(JSON.parse(String(output())), {

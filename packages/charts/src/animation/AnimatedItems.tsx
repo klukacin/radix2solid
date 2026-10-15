@@ -126,11 +126,14 @@ export function AnimatedItems<
 >(props: AnimatedItemsProps<ItemType, LayoutType>): JSX.Element {
   const animationId = useAnimationId(
     () => props.animationInput,
-    props.animationIdPrefix,
+    untrack(() => props.animationIdPrefix),
   );
   const snapshot = useAnimationStartSnapshot<
     ReadonlyArray<ItemType> | null | undefined
-  >(animationId, props.previousItemsRef);
+  >(
+    animationId,
+    untrack(() => props.previousItemsRef),
+  );
 
   const rawPrevItems = createMemo<ReadonlyArray<ItemType> | null>(
     () => snapshot.startValue() ?? null,

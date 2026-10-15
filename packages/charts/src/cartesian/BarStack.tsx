@@ -8,6 +8,7 @@ import {
   For,
   merge,
   Show,
+  untrack,
   useContext,
 } from "solid-js";
 
@@ -95,9 +96,7 @@ export const BarStackClipLayer = (
   const clipPathUrl = createMemo(() => useBarStackClipPathUrl(props.index));
   return (
     <Layer
-      class={["recharts-bar-stack-layer", props.class]
-        .filter(Boolean)
-        .join(" ")}
+      class={["recharts-bar-stack-layer", props.class]}
       clipPath={clipPathUrl()}
       onMouseEnter={props.onMouseEnter}
       onMouseLeave={props.onMouseLeave}
@@ -159,11 +158,13 @@ export const BarStack = (props: BarStackProps): JSX.Element => {
   const merged = merge(defaultBarStackProps, props);
   const resolvedStackId = useUniqueId(
     "recharts-bar-stack",
-    getNormalizedStackId(merged.stackId),
+    untrack(() => getNormalizedStackId(merged.stackId)),
   );
   const context: BarStackSettings = {
     stackId: resolvedStackId,
-    radius: merged.radius,
+    get radius() {
+      return merged.radius;
+    },
   };
   return (
     <BarStackContext value={context}>

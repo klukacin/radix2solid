@@ -19,7 +19,7 @@ import type { JSX } from "@solidjs/web";
 // works via the wrapper context (the reference itself hardcodes responsive={false}
 // on its wrapper). DEFERRED: the element form of `content` & `nestIndexContent`,
 // per-node name-fit text sizing nuances.
-import { createMemo, createSignal, For, merge, Show } from "solid-js";
+import { createMemo, createSignal, For, merge, Show, untrack } from "solid-js";
 
 import { CSSTransitionAnimate } from "../animation/CSSTransitionAnimate";
 import type { EasingInput } from "../animation/easing";
@@ -748,8 +748,8 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
 
   // Captured once (a render prop rarely changes); reading it in the <For> callback
   // would be an untracked prop read.
-  const content = merged.content;
-  const nestIndexContent = merged.nestIndexContent;
+  const content = untrack(() => merged.content);
+  const nestIndexContent = untrack(() => merged.nestIndexContent);
 
   const handleTouchMove = (event: TouchEvent): void => {
     const touch = event.touches[0];
@@ -938,7 +938,10 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
  * rectangles (a squarified treemap).
  */
 export const Treemap = (props: TreemapProps): JSX.Element => {
-  const id = useUniqueId("recharts-treemap", props.id);
+  const id = useUniqueId(
+    "recharts-treemap",
+    untrack(() => props.id),
+  );
   return (
     <RechartsStoreProvider
       preloadedState={

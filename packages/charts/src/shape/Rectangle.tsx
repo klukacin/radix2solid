@@ -171,8 +171,9 @@ export const Rectangle = (props: RectangleProps): JSX.Element => {
   // attrs). Solid's PathSVGAttributes is stricter, so route them through the
   // (loosely-typed) svgPropertiesAndEvents spread rather than explicit attrs.
   // `radius` is rendered only when it's a number (array radius → undefined).
+  const forwardedProps = omit(props, "class", "style");
   const basePathProps = (): Record<string, unknown> => ({
-    ...omit(props, "class", "style"),
+    ...forwardedProps,
     radius: typeof radius() === "number" ? radius() : undefined,
   });
 

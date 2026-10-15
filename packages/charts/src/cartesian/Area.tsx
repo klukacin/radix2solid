@@ -12,7 +12,7 @@ import type { JSX } from "@solidjs/web";
 // registration components → `createEffect` add/replace + `onCleanup` (Line idiom);
 // React `useRef` prev-frame state → plain `{ current }` MutableRef objects driven
 // by AnimatedItems/useAnimationStartSnapshot.
-import { createMemo, merge, Show } from "solid-js";
+import { createMemo, merge, Show, untrack } from "solid-js";
 
 import {
   AnimatedItems,
@@ -470,7 +470,10 @@ export const Area = (props: AreaProps): JSX.Element => {
   const merged = merge(areaDefaultProps, props);
   const isPanorama = useIsPanorama();
   const layout = useCartesianChartLayout();
-  const id = useUniqueId("recharts-area", props.id);
+  const id = useUniqueId(
+    "recharts-area",
+    untrack(() => props.id),
+  );
 
   if (store != null) {
     registerInStore<AreaSettings>(
@@ -572,7 +575,7 @@ export const Area = (props: AreaProps): JSX.Element => {
 
   // Clip path: recharts wraps the curves in a Layer clipped to the plot area when
   // an axis has allowDataOverflow (needClip); the clipPath id is the area's id.
-  const { needClip } = useNeedsClip(merged.xAxisId, merged.yAxisId);
+  const { needClip } = useNeedsClip(merged);
   const plotArea = usePlotArea();
   const curveClipPath = createMemo(() =>
     needClip() ? `url(#clipPath-${id})` : undefined,

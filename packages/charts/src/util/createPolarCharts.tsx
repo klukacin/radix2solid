@@ -67,10 +67,8 @@ export function createCentricChart<
         layout="centric"
       />
     );
-    // eslint-disable-next-line typescript/consistent-type-assertions -- runtime identity preserved; type is a remap
     return {
       RadarChart,
-      // eslint-disable-next-line typescript/consistent-type-assertions -- NoRadial<T> narrows to T at runtime
       ...(components as TComponents),
     } as unknown as TypedCentricChartContext<
       TData,
@@ -108,11 +106,9 @@ export function createRadialChart<
         layout="radial"
       />
     );
-    // eslint-disable-next-line typescript/consistent-type-assertions -- runtime identity preserved; type is a remap
     return {
       RadialBarChart,
       PieChart,
-      // eslint-disable-next-line typescript/consistent-type-assertions -- NoCentric<T> narrows to T at runtime
       ...(components as TComponents),
     } as unknown as TypedRadialChartContext<
       TData,

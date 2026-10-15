@@ -8,7 +8,7 @@ import type { JSX } from "@solidjs/web";
 // The polar geometry props (cx/cy/innerRadius/outerRadius/startAngle/endAngle)
 // pass through to CategoricalChart exactly as in the reference — svgPropertiesNoEvents
 // forwards cx/cy onto the root <svg> (faithful) and drops the rest.
-import { omit } from "solid-js";
+import { createMemo, omit } from "solid-js";
 
 import { ChartDataContextProvider } from "../context/chartDataContext";
 import { ChartOptions } from "../state/optionsSlice";
@@ -82,6 +82,8 @@ export const PolarChart = (props: PolarChartOptions): JSX.Element => {
     outerRadius: cp().outerRadius ?? "80%",
   });
 
+  const chartProps = createMemo(() => omit(cp(), "children"));
+
   return (
     <RechartsStoreProvider preloadedState={{ options: options() }}>
       <ChartDataContextProvider chartData={cp().data} />
@@ -99,7 +101,7 @@ export const PolarChart = (props: PolarChartOptions): JSX.Element => {
           children getter here, before the provider sets context — running them
           outside the store); pass children as a lazy JSX child instead. */}
       <CategoricalChart
-        {...omit(cp(), "children")}
+        {...chartProps()}
         ref={props.ref}
       >
         {cp().children}

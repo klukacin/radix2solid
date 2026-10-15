@@ -8,7 +8,7 @@ import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
 
 interface LayerOwnProps {
-  class?: string;
+  class?: JSX.ClassValue;
   children?: JSX.Element;
   ref?: SVGGElement | ((el: SVGGElement) => void);
 }
@@ -27,12 +27,11 @@ export type LayerProps = Omit<
  * @link https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/g
  */
 export const Layer = (props: LayerProps): JSX.Element => {
+  const rest = omit(props, "class", "children", "ref");
   return (
     <g
       class={["recharts-layer", props.class]}
-      {...svgPropertiesAndEvents({
-        ...omit(props, "class", "children", "ref"),
-      })}
+      {...svgPropertiesAndEvents({ ...rest })}
       ref={props.ref}
     >
       {props.children}

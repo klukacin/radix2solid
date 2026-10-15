@@ -351,25 +351,27 @@ export function createOverlay(
   }
   function Title(props: OverlayPartProps<"h2">): Element {
     const root = context(props, "Title");
+    const forwarded = merge(
+      { id: root.titleId },
+      omit(props, "__scopeDialog", "__scopePopover"),
+    );
     return (
       <Primitive
         as="h2"
-        {...merge(
-          { id: root.titleId },
-          omit(props, "__scopeDialog", "__scopePopover"),
-        )}
+        {...forwarded}
       />
     );
   }
   function Description(props: OverlayPartProps<"p">): Element {
     const root = context(props, "Description");
+    const forwarded = merge(
+      { id: root.descriptionId },
+      omit(props, "__scopeDialog", "__scopePopover"),
+    );
     return (
       <Primitive
         as="p"
-        {...merge(
-          { id: root.descriptionId },
-          omit(props, "__scopeDialog", "__scopePopover"),
-        )}
+        {...forwarded}
       />
     );
   }

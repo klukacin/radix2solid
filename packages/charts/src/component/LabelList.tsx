@@ -132,7 +132,6 @@ const defaultAccessor = (entry: LabelListEntry): RenderableText => {
   // Range values arrive as arrays; the label shows the last element. Array.isArray
   // widens `unknown` to `any[]`, so the indexed read is `any` — narrowed straight
   // back by isRenderableText below.
-  // eslint-disable-next-line typescript/no-unsafe-assignment
   const val: unknown = Array.isArray(raw) ? raw[raw.length - 1] : raw;
   return isRenderableText(val) ? val : undefined;
 };
@@ -145,8 +144,9 @@ export function CartesianLabelListContextProvider(props: {
   value: Accessor<ReadonlyArray<CartesianLabelListEntry> | undefined>;
   children: JSX.Element;
 }): JSX.Element {
+  const value: typeof props.value = () => props.value();
   return (
-    <CartesianLabelListContext value={props.value}>
+    <CartesianLabelListContext value={value}>
       {props.children}
     </CartesianLabelListContext>
   );
@@ -160,8 +160,9 @@ export function PolarLabelListContextProvider(props: {
   value: Accessor<ReadonlyArray<PolarLabelListEntry> | undefined>;
   children: JSX.Element;
 }): JSX.Element {
+  const value: typeof props.value = () => props.value();
   return (
-    <PolarLabelListContext value={props.value}>
+    <PolarLabelListContext value={value}>
       {props.children}
     </PolarLabelListContext>
   );

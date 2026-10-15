@@ -33,6 +33,7 @@ function CustomLink(props: JSX.AnchorHTMLAttributes<HTMLAnchorElement>) {
   );
 }
 
+const slotDialogMarker = { "data-slot-dialog": "" };
 const SlotDialogContext = createContext("outside");
 function SlotDialogTarget(props: JSX.HTMLAttributes<HTMLElement>): Element {
   return (
@@ -64,7 +65,9 @@ function SlotDialogChildren(props: { onToggleLabel: () => void }): Element {
       >
         {context}
       </span>
-      <button onClick={props.onToggleLabel}>Toggle slot dialog label</button>
+      <button onClick={() => props.onToggleLabel()}>
+        Toggle slot dialog label
+      </button>
     </>
   );
 }
@@ -218,6 +221,33 @@ export function Composition(): Element {
   const [refs, setRefs] = createSignal("awaiting");
   const [boundOrder, setBoundOrder] = createSignal<string[]>([]);
   const [slotLabel, setSlotLabel] = createSignal<string | undefined>();
+  const slotRootProps = merge(
+    () =>
+      slotLabel()
+        ? { "aria-label": slotLabel(), "aria-describedby": undefined }
+        : {},
+    {
+      children: (content: Slot.SlotTarget) =>
+        content(Dialog.Content, {
+          asChild: true,
+          onOpenAutoFocus: (event) => event.preventDefault(),
+          children: (target) =>
+            target(SlotDialogTarget, {
+              get children() {
+                return (
+                  <SlotDialogChildren
+                    onToggleLabel={() =>
+                      setSlotLabel((previous) =>
+                        previous ? undefined : "Explicit slot dialog",
+                      )
+                    }
+                  />
+                );
+              },
+            }),
+        }),
+    },
+  );
   let parentHost: HTMLAnchorElement | undefined;
   let childHost: HTMLAnchorElement | undefined;
   const id = createUniqueId();
@@ -433,7 +463,7 @@ export function Composition(): Element {
         >
           {(target) =>
             target("section", {
-              ...{ "data-slot-dialog": "" },
+              ...slotDialogMarker,
               get children() {
                 return [
                   <Dialog.Title>Hydrated slot title</Dialog.Title>,
@@ -450,35 +480,7 @@ export function Composition(): Element {
         open
         modal={false}
       >
-        <Slot.Root
-          {...merge(
-            () =>
-              slotLabel()
-                ? { "aria-label": slotLabel(), "aria-describedby": undefined }
-                : {},
-            {
-              children: (content: Slot.SlotTarget) =>
-                content(Dialog.Content, {
-                  asChild: true,
-                  onOpenAutoFocus: (event) => event.preventDefault(),
-                  children: (target) =>
-                    target(SlotDialogTarget, {
-                      get children() {
-                        return (
-                          <SlotDialogChildren
-                            onToggleLabel={() =>
-                              setSlotLabel((previous) =>
-                                previous ? undefined : "Explicit slot dialog",
-                              )
-                            }
-                          />
-                        );
-                      },
-                    }),
-                }),
-            },
-          )}
-        />
+        <Slot.Root {...slotRootProps} />
       </Dialog.Root>
       <RadixThemes.Theme>
         <RadixThemes.DropdownMenu.Root>

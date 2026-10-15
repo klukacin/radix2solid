@@ -56,7 +56,9 @@ export function JavascriptAnimate(props: JavascriptAnimateProps): JSX.Element {
       : active;
   };
 
-  const animationController = useAnimationController(props.animationController);
+  const animationController = useAnimationController(
+    untrack(() => props.animationController),
+  );
 
   const [style, setStyle] = createSignal<number | string>(
     untrack(() => (isActive() ? from : to)),

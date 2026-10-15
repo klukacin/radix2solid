@@ -76,7 +76,9 @@ export function CSSTransitionAnimate(
       : active;
   };
 
-  const animationController = useAnimationController(props.animationController);
+  const animationController = useAnimationController(
+    untrack(() => props.animationController),
+  );
 
   const [style, setStyle] = createSignal<string>(
     untrack(() => (isActive() ? props.from : props.to)),

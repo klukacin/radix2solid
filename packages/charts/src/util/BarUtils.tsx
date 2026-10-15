@@ -36,8 +36,9 @@ export function BarRectangle(props: BarRectangleProps): JSX.Element {
   // fails to exclude `option` and leaks it to custom shape/background functions.
   // Spreading into a plain object keeps the downstream <Shape> reads a static
   // snapshot (no STRICT_READ), while the memo re-runs when any prop changes.
+  const forwardedProps = omit(props, "option");
   const shapeProps = createMemo((): BarRectangleShapeProps => ({
-    ...omit(props, "option"),
+    ...forwardedProps,
   }));
   return (
     <Shape<BarRectangleShapeProps, SVGPathElement>

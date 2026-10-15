@@ -577,7 +577,10 @@ export function RadialBar<
 >(props: RadialBarProps<DataPointType, DataValueType>): JSX.Element {
   const store = useAppStore();
   const merged = merge(radialBarDefaultProps, props);
-  const id = useUniqueId("recharts-radial-bar", props.id);
+  const id = useUniqueId(
+    "recharts-radial-bar",
+    untrack(() => props.id),
+  );
 
   const settings = (): RadialBarSettings => ({
     id,
@@ -701,19 +704,22 @@ export function RadialBar<
   // enter/leave/click drive the active tooltip). Each binds (entry, index).
   const onItemMouse =
     (
-      handler:
-        | ((d: RadialBarDataItem, i: number, e: MouseEvent) => void)
-        | undefined,
+      key:
+        | "onMouseDown"
+        | "onMouseUp"
+        | "onMouseMove"
+        | "onMouseOver"
+        | "onMouseOut",
     ) =>
     (entry: RadialBarDataItem, index: number) =>
     (event: MouseEvent): void => {
-      handler?.(entry, index, event);
+      props[key]?.(entry, index, event);
     };
-  const onItemMouseDown = onItemMouse(props.onMouseDown);
-  const onItemMouseUp = onItemMouse(props.onMouseUp);
-  const onItemMouseMove = onItemMouse(props.onMouseMove);
-  const onItemMouseOver = onItemMouse(props.onMouseOver);
-  const onItemMouseOut = onItemMouse(props.onMouseOut);
+  const onItemMouseDown = onItemMouse("onMouseDown");
+  const onItemMouseUp = onItemMouse("onMouseUp");
+  const onItemMouseMove = onItemMouse("onMouseMove");
+  const onItemMouseOver = onItemMouse("onMouseOver");
+  const onItemMouseOut = onItemMouse("onMouseOut");
 
   const onItemTouchStart =
     (entry: RadialBarDataItem, index: number) =>
@@ -831,37 +837,42 @@ export function RadialBar<
                 {(frame, animationElapsedTime, isEntrance) => (
                   <Layer class="recharts-radial-bar-sectors">
                     <For each={frame}>
-                      {(entry, i) => (
-                        <RadialBarSector
-                          {...entry}
-                          index={i()}
-                          isActive={isSectorActiveShape(i())}
-                          option={sectorOption(i())}
-                          animationElapsedTime={animationElapsedTime}
-                          isAnimating={
-                            isAnimating() || animationElapsedTime < 1
-                          }
-                          isEntrance={isEntrance}
-                          class={`recharts-radial-bar-sector ${entry.class ?? ""}`}
-                          fill={entry.fill ?? merged.fill}
-                          stroke={entry.stroke ?? merged.stroke}
-                          strokeWidth={entry.strokeWidth ?? merged.strokeWidth}
-                          cornerRadius={cornerRadius()}
-                          forceCornerRadius={merged.forceCornerRadius}
-                          cornerIsExternal={merged.cornerIsExternal}
-                          onMouseEnter={onItemEnter(entry, i())}
-                          onMouseLeave={onItemLeave(entry, i())}
-                          onClick={onItemClick(entry, i())}
-                          onMouseDown={onItemMouseDown(entry, i())}
-                          onMouseUp={onItemMouseUp(entry, i())}
-                          onMouseMove={onItemMouseMove(entry, i())}
-                          onMouseOver={onItemMouseOver(entry, i())}
-                          onMouseOut={onItemMouseOut(entry, i())}
-                          onTouchStart={onItemTouchStart(entry, i())}
-                          onTouchMove={onItemTouchMove(entry, i())}
-                          onTouchEnd={onItemTouchEnd(entry, i())}
-                        />
-                      )}
+                      {(entry, i) => {
+                        const sectorClass = `recharts-radial-bar-sector ${entry.class ?? ""}`;
+                        return (
+                          <RadialBarSector
+                            {...entry}
+                            index={i()}
+                            isActive={isSectorActiveShape(i())}
+                            option={sectorOption(i())}
+                            animationElapsedTime={animationElapsedTime}
+                            isAnimating={
+                              isAnimating() || animationElapsedTime < 1
+                            }
+                            isEntrance={isEntrance}
+                            class={sectorClass}
+                            fill={entry.fill ?? merged.fill}
+                            stroke={entry.stroke ?? merged.stroke}
+                            strokeWidth={
+                              entry.strokeWidth ?? merged.strokeWidth
+                            }
+                            cornerRadius={cornerRadius()}
+                            forceCornerRadius={merged.forceCornerRadius}
+                            cornerIsExternal={merged.cornerIsExternal}
+                            onMouseEnter={onItemEnter(entry, i())}
+                            onMouseLeave={onItemLeave(entry, i())}
+                            onClick={onItemClick(entry, i())}
+                            onMouseDown={onItemMouseDown(entry, i())}
+                            onMouseUp={onItemMouseUp(entry, i())}
+                            onMouseMove={onItemMouseMove(entry, i())}
+                            onMouseOver={onItemMouseOver(entry, i())}
+                            onMouseOut={onItemMouseOut(entry, i())}
+                            onTouchStart={onItemTouchStart(entry, i())}
+                            onTouchMove={onItemTouchMove(entry, i())}
+                            onTouchEnd={onItemTouchEnd(entry, i())}
+                          />
+                        );
+                      }}
                     </For>
                   </Layer>
                 )}

@@ -88,6 +88,10 @@ function DotRenderer(props: DotRendererProps): JSX.Element {
     points: props.points,
   }));
 
+  const dotAttributes = createMemo(() =>
+    omit(dotProps(), "index", "dataKey", "value", "payload", "points"),
+  );
+
   // A function dot is a render prop; boolean/props-object dots fall back to the
   // default <Dot>. A plain ternary (not <Show when={fn}>) keeps the read tracked
   // without tripping STRICT_READ on the function-valued condition.
@@ -101,14 +105,7 @@ function DotRenderer(props: DotRendererProps): JSX.Element {
         renderFn()?.(dotProps())
       ) : (
         <Dot
-          {...omit(
-            dotProps(),
-            "index",
-            "dataKey",
-            "value",
-            "payload",
-            "points",
-          )}
+          {...dotAttributes()}
           class={props.dotClass}
         />
       )}

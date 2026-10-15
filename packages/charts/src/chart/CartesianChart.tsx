@@ -5,7 +5,7 @@ import type { JSX } from "@solidjs/web";
 // `?? default` accessors (see the defaults-use-solid-merge memory — using
 // explicit nullish-coalescing avoids `merge`'s undefined-override gotcha AND the
 // required-ness typing gap). Provider + Report components mirror recharts.
-import { omit } from "solid-js";
+import { createMemo, omit } from "solid-js";
 
 import { ChartDataContextProvider } from "../context/chartDataContext";
 import { useIsPanorama } from "../context/PanoramaContext";
@@ -48,9 +48,7 @@ export const CartesianChart = (props: CartesianChartOptions): JSX.Element => {
   // panorama context — they register into the outer store and draw into the brush's
   // panorama surface (isPanorama=true → full data range + brush viewBox). No new
   // store/wrapper/surface; the chart-level props (width/height/data) are the outer's.
-  if (useIsPanorama()) {
-    return <>{cp().children}</>;
-  }
+  const isPanorama = useIsPanorama();
 
   const options = (): ChartOptions => ({
     chartName: props.chartName,
@@ -77,7 +75,11 @@ export const CartesianChart = (props: CartesianChartOptions): JSX.Element => {
     reverseStackOrder: cp().reverseStackOrder ?? false,
   });
 
-  return (
+  const chartProps = createMemo(() => omit(cp(), "children"));
+
+  const rendered = isPanorama ? (
+    <>{cp().children}</>
+  ) : (
     <RechartsStoreProvider preloadedState={{ options: options() }}>
       <ChartDataContextProvider chartData={cp().data} />
       <ReportMainChartProps
@@ -93,11 +95,12 @@ export const CartesianChart = (props: CartesianChartOptions): JSX.Element => {
           children getter here, before the provider sets context — running them
           outside the store); pass children as a lazy JSX child instead. */}
       <CategoricalChart
-        {...omit(cp(), "children")}
+        {...chartProps()}
         ref={props.ref}
       >
         {cp().children}
       </CategoricalChart>
     </RechartsStoreProvider>
   );
+  return rendered;
 };

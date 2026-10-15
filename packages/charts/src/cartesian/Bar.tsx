@@ -18,6 +18,7 @@ import {
   For,
   merge,
   Show,
+  untrack,
 } from "solid-js";
 
 import {
@@ -430,17 +431,18 @@ function BarBackground(props: {
   onTouchEnd?: BarMouseEvent;
 }): JSX.Element {
   const activeIndex = useAppSelector(selectActiveTooltipIndex);
+  const graphicalItemId = untrack(() => props.graphicalItemId);
   // Getter args: the hooks read handler/dataKey at event time (fresh, never stale).
   const onMouseEnter = useMouseEnterItemDispatch(
     () => props.onMouseEnter,
     () => props.dataKey,
-    props.graphicalItemId,
+    graphicalItemId,
   );
   const onMouseLeave = useMouseLeaveItemDispatch(() => props.onMouseLeave);
   const onClick = useMouseClickItemDispatch(
     () => props.onClick,
     () => props.dataKey,
-    props.graphicalItemId,
+    graphicalItemId,
   );
 
   // Per-background-rectangle BarRectangle props (DATA, not JSX). Recomputes on data /
@@ -490,8 +492,8 @@ function BarBackground(props: {
           ...rest,
           fill: "#eee",
           ...bg,
-          ...(backgroundProps ?? {}),
-          ...(backgroundEventProps ?? {}),
+          ...backgroundProps,
+          ...backgroundEventProps,
           onMouseEnter: onMouseEnter(entry, entry.originalDataIndex),
           onMouseLeave: onMouseLeave(entry, entry.originalDataIndex),
           onClick: onClick(entry, entry.originalDataIndex),
@@ -916,11 +918,14 @@ export const Bar = (props: BarProps): JSX.Element => {
   const store = useAppStore();
   const merged = merge(barDefaultProps, props);
   const isPanorama = useIsPanorama();
-  const id = useUniqueId("recharts-bar", props.id);
-  const stackId = useStackId(props.stackId);
+  const id = useUniqueId(
+    "recharts-bar",
+    untrack(() => props.id),
+  );
+  const stackId = useStackId(untrack(() => props.stackId));
   // Custom shape render prop (function form), captured once.
-  const shape = merged.shape ?? defaultBarShape;
-  const activeBar = merged.activeBar;
+  const shape = untrack(() => merged.shape) ?? defaultBarShape;
+  const activeBar = untrack(() => merged.activeBar);
   const hasCustomShape = shape !== defaultBarShape;
 
   if (store != null) {
@@ -1000,13 +1005,13 @@ export const Bar = (props: BarProps): JSX.Element => {
     id,
   );
   // Capture optional handlers once (not `props.*` reads inside <For>/<Layer>).
-  const onMouseOverHandler = props.onMouseOver;
-  const onMouseOutHandler = props.onMouseOut;
-  const onMouseMoveHandler = props.onMouseMove;
-  const onMouseDownHandler = props.onMouseDown;
-  const onMouseUpHandler = props.onMouseUp;
-  const onTouchMoveHandler = props.onTouchMove;
-  const onTouchEndHandler = props.onTouchEnd;
+  const onMouseOverHandler = untrack(() => props.onMouseOver);
+  const onMouseOutHandler = untrack(() => props.onMouseOut);
+  const onMouseMoveHandler = untrack(() => props.onMouseMove);
+  const onMouseDownHandler = untrack(() => props.onMouseDown);
+  const onMouseUpHandler = untrack(() => props.onMouseUp);
+  const onTouchMoveHandler = untrack(() => props.onTouchMove);
+  const onTouchEndHandler = untrack(() => props.onTouchEnd);
 
   // Legend payload entry for this bar.
   const legendPayload = createMemo<ReadonlyArray<LegendPayload>>(() => [
@@ -1082,7 +1087,7 @@ export const Bar = (props: BarProps): JSX.Element => {
     }
     return layout() === "vertical" ? r0.height / 2 : r0.width / 2;
   };
-  const { needClip } = useNeedsClip(merged.xAxisId, merged.yAxisId);
+  const { needClip } = useNeedsClip(merged);
   const barClipPath = createMemo(() =>
     needClip() ? `url(#clipPath-${id})` : undefined,
   );

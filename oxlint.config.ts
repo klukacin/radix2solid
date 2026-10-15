@@ -8,7 +8,13 @@ export default defineConfig({
     ...solidV2Strict.rules,
     "solid/reactivity": [
       "warn",
-      { customReactiveFunctions: ["composeEventHandlers"] },
+      {
+        customReactiveFunctions: [
+          "composeEventHandlers",
+          "registerInStore",
+          "createChartEffect",
+        ],
+      },
     ],
   },
   options: {

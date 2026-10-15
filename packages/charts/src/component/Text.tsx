@@ -116,7 +116,7 @@ interface TextProps {
   offset?: number | string;
   // Narrowed from the broad JSX attribute types so the values flow cleanly into
   // the class array / `fill.includes` check.
-  class?: string;
+  class?: JSX.ClassValue;
   fill?: string;
 }
 
@@ -373,7 +373,7 @@ export const Text = (props: Props): JSX.Element => {
     transform: string | undefined;
     textProps: Record<string, unknown>;
     fill: string;
-    class: string | undefined;
+    class: JSX.ClassValue;
     textAnchor: TextAnchor;
     lineHeight: number | string;
     breakAll: boolean;
