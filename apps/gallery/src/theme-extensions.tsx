@@ -13,6 +13,7 @@ import {
 } from "@wsagency/radix2solid-themes";
 import { createSignal, Show } from "solid-js";
 
+import "@wsagency/radix2solid-themes/styles.css";
 import "./theme-extensions.css";
 
 export function ThemeExtensions() {
