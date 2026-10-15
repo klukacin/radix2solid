@@ -446,7 +446,12 @@ test.describe('native Splitter', () => {
     await page.getByRole('textbox', { name: 'Pixel draft', exact: true }).focus();
     await page.keyboard.press('Tab'); await expect(scroll).toBeFocused();
     await page.keyboard.press('PageDown');
-    await expect.poll(() => scroll.evaluate(node => node.scrollTop)).toBeGreaterThan(0);
+    // WebKit animates keyboard scrolling and loses a Home pressed mid-animation, so let PageDown settle first.
+    let previous = -1;
+    await expect.poll(async () => {
+      const current = await scroll.evaluate(node => node.scrollTop), settled = current > 0 && current === previous;
+      previous = current; return settled;
+    }, { intervals: [100] }).toBe(true);
     await page.keyboard.press('Home');
     await expect.poll(() => scroll.evaluate(node => node.scrollTop)).toBe(0);
     await scroll.hover(); await page.mouse.wheel(0, 150);

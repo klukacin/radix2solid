@@ -172,7 +172,7 @@ export function Charts() {
           <ComposedChart data={data()} title="Revenue overview" desc="Five categories of revenue" accessibilityLayer>
             <CartesianGrid /><XAxis dataKey="name" /><YAxis /><ReferenceArea x1="Beta" x2="Delta" /><ReferenceLine y={25} /><ReferenceDot x="Gamma" y={20} r={4} />
             <Area dataKey="other" stackId="total" fill="#a6c9b0" isAnimationActive={false} />
-            <Bar dataKey="value" stackId="total" name="Revenue" fill="#52725e" isAnimationActive={false}><ErrorBar dataKey="error" /><LabelList dataKey="value" /></Bar>
+            <Bar dataKey="value" stackId="total" name="Revenue" fill="#52725e" isAnimationActive={false}><ErrorBar dataKey="error" isAnimationActive={false} /><LabelList dataKey="value" /></Bar>
             <Line dataKey="value" name="Trend" stroke="#704f95" isAnimationActive={animate() ? 'auto' : false} animationDuration={400}
               onAnimationStart={() => setAnimationStarts(value => value + 1)} onAnimationEnd={() => setAnimationEnds(value => value + 1)} />
             <Tooltip portal={target()} content={props => <div id="chart-custom-tooltip">{props.active ? String(props.label) + ':' + props.payload.map(item => item.value).join(',') : ''}</div>} />
