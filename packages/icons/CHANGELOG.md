@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.0-rc.3 — source candidate, not yet published
+
+- No icon, API or asset changes: the 332 generated components, deep entries and SVG subpaths are byte-identical to rc.2 output. The version moves with the five-package rc.3 source suite.
+- The repository-only generator accepts an optional package root and validates one `0 0 15 15` or `0 0 24 24` viewBox per package, so the new `@wsagency/radix2solid-icons-extra` package can share it. Folder icons live in that package, not here.
+
 ## 0.1.0-rc.2 — prepared candidate, not yet published
 
 - Require exactly `solid-js` and `@solidjs/web` `2.0.0-rc.15` as peers (was `2.0.0-rc.13`); Solid rc.15 requires Node `>=22.12.0`. Icons, deep entries and SVG subpaths are unchanged.

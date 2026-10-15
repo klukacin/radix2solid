@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.0-rc.3 — prepared candidate, not yet published
+
+- Port selected Recharts A1–A13 changes and B1/B2 guards, with per-change source mapping and passing local public-consumer evidence in `upstream.json`; the imported solid-recharts baseline and license/dependency notices are unchanged. This is not a complete Recharts 3.10.1 port or a theme API update.
+- Add positioned Legends, `offset`, automatic horizontal/vertical layout and the public `CartesianPosition` input type. Positioned default-mount legends use an owner-preserving HTML outlet for SSR/hydration, measuring only after the initial claim; legacy no-position and custom portals keep their previous server boundary.
+- Add `XAxis height="auto"` with a 30px initial server/hydration fallback, actual tick/string-label measurement and bounded height-history stabilization. Forward native text refs and axis rotation. Do not interpret unsupported JSX label nodes as settings objects or stringify their DOM children.
+- Correct the shared root clip producer: serialize the same-ID defs after ordinary child registration and reread plot geometry. Declared numeric axis heights now affect the server clip too (500×300, 5px margins, height30 X axis: clip260, formerly290). Tick geometry is preserved; defs order and server clip markup intentionally change.
+- Add Sankey root SVG accessibility/title/description props; use computed Pie radii for child labels; pass computed x/y to custom Label content without injecting anchors.
+- Keep controlled Brush drag pixels on release and controlled indices across chart data replacement; keyboard changes move the selected traveller without resetting the other retained handle.
+- Reset stale active Bar layer state when another bar becomes active, retaining native Cell ownership and transition cleanup.
+- Defer the positioned Legend outlet and initial Bar geometry until ordinary child registrations exist; isolate Brush data-replacement synchronization from keyboard/index updates.
+- Adapt all-null stacked Area connectivity, floating-gap band widths, configured gaps after bar-size clamping, missing-label tooltip index fallback, polar tick wrapping and value-stable rendered-tick reporting. Polar wrapping corrects the actual Tooltip anchor as well as selection; a clamped visible label alone did not prove a valid anchor.
+- Harden Text CSS calculations against replacement-token interpretation and inputs over 1,000 characters before normalization.
+- Observed local verification passed public Charts Node SSR20/20, selected cross-engine SSR/CSR cases, TS7/TS5.9 packed declarations and all Charts cases in the packed Chromium core suite. The composed packed gate completed its resumed stages on the same fixture. Full CI and npm publication remain pending.
+
 ## 0.1.0-rc.2 — prepared candidate, not yet published
 
 - First release. Source copy of solid-recharts `2.0.0-beta.1` (`b1f9c67`), which ports Recharts `3.9.2` (`b345105`), with the whole inherited root export surface: twelve chart families, series, axes, grids, reference elements, `Brush`, `Tooltip`, `Legend`, `ResponsiveContainer`, `Cell`, labels, shapes, hooks and animation helpers. Recharts `3.10.1` is tracked but not ported. See `UPSTREAM.md`.

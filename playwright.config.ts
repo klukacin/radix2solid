@@ -7,11 +7,11 @@ export default defineConfig({
   use: { baseURL: 'http://127.0.0.1:4147', browserName: 'chromium' },
   projects: [
     { name: 'ssr' },
-    { name: 'csr', testMatch: '**/{composition,layers,controls,menus,select,advanced,assets,themes,theme-interactions,theme-extensions,theme-css,charts}.spec.ts' },
-    { name: 'firefox-ssr', testMatch: '**/{hydration,layers,menus,select,advanced,assets,themes,theme-interactions}.spec.ts', use: { browserName: 'firefox' } },
-    { name: 'firefox-csr', testMatch: '**/{layers,menus,select,advanced,assets,themes,theme-interactions}.spec.ts', use: { browserName: 'firefox' } },
-    { name: 'webkit-ssr', testMatch: '**/{hydration,layers,menus,select,advanced,assets,themes,theme-interactions}.spec.ts', use: { browserName: 'webkit' } },
-    { name: 'webkit-csr', testMatch: '**/{layers,menus,select,advanced,assets,themes,theme-interactions}.spec.ts', use: { browserName: 'webkit' } }
+    { name: 'csr', testMatch: '**/{composition,layers,controls,menus,select,advanced,assets,themes,theme-interactions,theme-extensions,theme-css,charts,inputs,tree,splitter}.spec.ts' },
+    { name: 'firefox-ssr', testMatch: '**/{hydration,layers,menus,select,advanced,assets,themes,theme-interactions,inputs,tree,splitter}.spec.ts', use: { browserName: 'firefox' } },
+    { name: 'firefox-csr', testMatch: '**/{layers,menus,select,advanced,assets,themes,theme-interactions,inputs,tree,splitter}.spec.ts', use: { browserName: 'firefox' } },
+    { name: 'webkit-ssr', testMatch: '**/{hydration,layers,menus,select,advanced,assets,themes,theme-interactions,inputs,tree,splitter}.spec.ts', use: { browserName: 'webkit' } },
+    { name: 'webkit-csr', testMatch: '**/{layers,menus,select,advanced,assets,themes,theme-interactions,inputs,tree,splitter}.spec.ts', use: { browserName: 'webkit' } }
   ],
   webServer: [{
     command: process.env.GALLERY_PACKED === '1'

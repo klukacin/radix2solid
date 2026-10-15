@@ -439,3 +439,371 @@ test('tooltip synchronization follows index and reordered values without activat
   await expect(page.locator('#chart-isolated-tooltip')).toHaveText('');
   expect(errors).toEqual([]);
 });
+
+test('selected Charts controlled Brush retains drag and replacement indices', async ({ page }, info) => {
+  await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
+  const travellers = page.locator('#chart-selected-brush .recharts-brush-traveller');
+  await expect(travellers).toHaveCount(2);
+  const values = () => travellers.evaluateAll(nodes => nodes.map(node => Number(node.getAttribute('aria-valuenow'))));
+  for (const traveller of await travellers.all()) {
+    await expect(traveller).toHaveAttribute('aria-label', 'Min value: Category 3, Max value: Category 6');
+  }
+  const initial = await values();
+  expect(initial[0]).toBeCloseTo(5 + 485 * 3 / 9);
+  expect(initial[1]).toBeCloseTo(5 + 485 * 6 / 9);
+  const curve = page.locator('#chart-selected-brush .recharts-line-curve');
+  const beforeReplacement = await curve.getAttribute('d');
+  await page.getByRole('button', { name: 'Replace selected chart data', exact: true }).click();
+  await expect(curve).not.toHaveAttribute('d', beforeReplacement!);
+  await expect.poll(values).toEqual(initial);
+  for (const traveller of await travellers.all()) {
+    await expect(traveller).toHaveAttribute('aria-label', 'Min value: Category 3, Max value: Category 6');
+  }
+  const slide = page.locator('#chart-selected-brush .recharts-brush-slide');
+  await slide.scrollIntoViewIfNeeded();
+  const box = (await slide.boundingBox())!;
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width / 2 + (initial[1] - initial[0]) / 3, box.y + box.height / 2, { steps: 4 });
+  const during = await values();
+  expect(during).not.toEqual(initial);
+  await page.mouse.up();
+  await expect.poll(async () => (await values()).map(value => Math.round(value * 1e6)))
+    .toEqual(during.map(value => Math.round(value * 1e6)));
+  expect(await travellers.evaluateAll(nodes => nodes.map(node => Number(node.querySelector('rect')?.getAttribute('x')))))
+    .toEqual(await values());
+  const selection = (await travellers.first().getAttribute('aria-label'))!
+    .match(/^Min value: Category (\d+), Max value: Category (\d+)$/);
+  expect(selection).not.toBeNull();
+  const nextIndex = Number(selection![1]) + 1;
+  expect(nextIndex).toBeLessThan(Number(selection![2]));
+  await travellers.first().press('ArrowRight');
+  await expect.poll(async () => (await values())[0]).toBeCloseTo(5 + 485 * nextIndex / 9, 6);
+  expect((await values())[1]).toBeCloseTo(during[1], 6);
+});
+
+test('selected Charts active bars clear on leave and replacement', async ({ page }, info) => {
+  await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
+  const root = page.locator('#chart-selected-active');
+  await root.scrollIntoViewIfNeeded();
+  const bars = root.locator('.recharts-bar-rectangle .recharts-rectangle');
+  const boxes = await bars.evaluateAll(nodes => nodes.slice(0, 2).map(node => {
+    const box = node.getBoundingClientRect();
+    return { x: box.x, y: box.y, width: box.width, height: box.height, shapeX: node.getAttribute('x') };
+  }));
+  expect(boxes).toHaveLength(2);
+  expect(boxes[0].shapeX).not.toBe(boxes[1].shapeX);
+  const activate = async (index: number) => {
+    const box = boxes[index];
+    expect(box.width).toBeGreaterThan(0);
+    expect(box.height).toBeGreaterThan(0);
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  };
+  const active = root.locator('.selected-active-bar');
+  const activeLayer = active.locator('xpath=ancestor::*[starts-with(@class, "recharts-zIndex-layer_")][1]');
+  await activate(0);
+  await expect(active).toHaveCount(1);
+  await expect(active).toHaveAttribute('x', boxes[0].shapeX!);
+  await expect(activeLayer.locator('.recharts-active-bar')).toHaveCount(1);
+  await expect(activeLayer.locator('.recharts-inactive-bar')).toHaveCount(0);
+  await activate(1);
+  await expect(active).toHaveCount(1);
+  await expect(active).toHaveAttribute('x', boxes[1].shapeX!);
+  await expect(activeLayer.locator('.recharts-active-bar')).toHaveCount(1);
+  await expect(activeLayer.locator('.recharts-inactive-bar')).toHaveCount(0);
+  await page.mouse.move(0, 0);
+  await expect(page.locator('#chart-selected-active .selected-active-bar')).toHaveCount(0);
+  await activate(0);
+  await expect(page.locator('#chart-selected-active .selected-active-bar')).toHaveCount(1);
+  await page.getByRole('button', { name: 'Replace selected chart data', exact: true })
+    .evaluate(node => (node as HTMLButtonElement).click());
+  await expect(page.locator('#chart-selected-active .selected-active-bar')).toHaveCount(0);
+  await expect(page.locator('#chart-selected-active .recharts-bar-rectangle')).toHaveCount(0);
+});
+
+test('selected Charts tooltip uses missing-label index fallback', async ({ page }, info) => {
+  await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
+  await expect(page.locator('#chart-selected-tooltip .recharts-xAxis .recharts-cartesian-axis-tick-value'))
+    .toHaveText(['Page A', 'NonExistent', 'Page C', 'Page B']);
+  await expect(page.locator('#selected-tooltip-payload')).toHaveAttribute('data-label', 'NonExistent');
+  await expect(page.locator('#selected-tooltip-payload [data-series="uv"]')).toHaveText('20');
+  await expect(page.locator('#selected-tooltip-payload [data-series="pv"]')).toHaveText('200');
+});
+
+test('selected Charts polar tooltip selects the wrapping sector', async ({ page }, info) => {
+  await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
+  const surface = page.locator('#chart-selected-wrap svg.recharts-surface');
+  await surface.scrollIntoViewIfNeeded();
+  const box = (await surface.boundingBox())!;
+  const ticks = surface.locator('.recharts-polar-angle-axis-tick-value');
+  await expect(ticks).toHaveText(['a', 'b', 'c', 'd']);
+  const tickAngles = await ticks.evaluateAll(nodes => nodes.map(node => {
+    const x = Number(node.getAttribute('x')), y = Number(node.getAttribute('y'));
+    return (Math.atan2(200 - y, x - 200) * 180 / Math.PI + 360) % 360;
+  }));
+  [356, 86, 176, 266].forEach((expected, index) => expect(tickAngles[index]).toBeCloseTo(expected, 6));
+  for (const angle of [357, 358, 359.9, 20, 100, 200, 300, 330]) {
+    const radians = angle * Math.PI / 180;
+    await page.mouse.move(box.x + 200 + Math.cos(radians) * 100, box.y + 200 - Math.sin(radians) * 100);
+    const tooltip = page.locator('#selected-wrap-payload');
+    const index = angle === 100 ? 1 : angle === 200 ? 2 : angle === 300 ? 3 : 0;
+    await expect(tooltip).toHaveText(['a', 'b', 'c', 'd'][index]);
+    // The public label clamps a missing (-1) index to zero; the anchor must also select the sector.
+    await expect.poll(() => tooltip.evaluate(node => {
+      const x = Number(node.getAttribute('data-x')), y = Number(node.getAttribute('data-y'));
+      return (Math.atan2(200 - y, x - 200) * 180 / Math.PI + 360) % 360;
+    })).toBeCloseTo([356, 86, 176, 266][index], 6);
+    const radius = await tooltip.evaluate(node => Math.hypot(Number(node.getAttribute('data-x')) - 200, Number(node.getAttribute('data-y')) - 200));
+    // At most 1 CSS px of pointer quantization per axis gives a Euclidean/radius error of at most √2.
+    expect(Math.abs(radius - 100)).toBeLessThanOrEqual(Math.SQRT2);
+  }
+});
+
+test('selected Charts measured auto-xaxis uses ticks and actual string label without oscillation', async ({ page }, info) => {
+  await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
+  for (const kind of ['plain', 'string', 'multiline', 'numeric', 'function', 'jsx']) {
+    const root = page.locator(`#chart-selected-axis-${kind}`);
+    const geometry = () => root.evaluate(node => {
+      const ticks = [...node.querySelectorAll('.recharts-cartesian-axis-tick-value')];
+      const label = node.querySelector('.recharts-label');
+      const height = Math.round(Math.max(...ticks.map(tick => tick.getBoundingClientRect().height)) + 6 + 2 + (label ? label.getBoundingClientRect().height + 5 : 0));
+      return { expected: height, plot: Number(node.querySelector('clipPath rect')?.getAttribute('height')), tickCount: ticks.length, labelHeight: label?.getBoundingClientRect().height ?? 0 };
+    });
+    await expect.poll(async () => (await geometry()).tickCount).toBe(10);
+    if (kind === 'jsx') {
+      // Element/cloning labels are unsupported: a DOM node must never become a settings bag.
+      await expect(root.locator('.recharts-label')).toHaveCount(0);
+      await expect(root).not.toContainText('[object HTMLCollection]');
+    }
+    if (kind === 'plain' || kind === 'string' || kind === 'multiline') {
+      if (kind === 'string') expect((await geometry()).labelHeight).toBeGreaterThan(0);
+      await expect.poll(async () => { const g = await geometry(); return g.plot + g.expected; }).toBe(290);
+      expect((await geometry()).expected).toBeGreaterThan(30);
+    } else await expect.poll(async () => (await geometry()).plot).toBe(260);
+    const before = await geometry();
+    await page.getByRole('button', { name: 'Replace selected chart data', exact: true }).click();
+    await expect.poll(geometry).toEqual(before);
+    await page.getByRole('button', { name: 'Replace selected chart data', exact: true }).click();
+    await expect.poll(geometry).toEqual(before);
+  }
+});
+
+test('selected Charts rendered Pie Label Area and bar geometry matches selected contracts', async ({ page }, info) => {
+  await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
+  await expect(page.locator('.selected-pie-label')).toHaveText('pie:102.5:161:78:156');
+  await expect(page.locator('.selected-pie-label')).toHaveAttribute('x', '102.5');
+  await expect(page.locator('.selected-pie-label')).toHaveAttribute('y', '161');
+  for (const explicit of [false, true]) {
+    const custom = page.locator(`#chart-selected-label-${explicit} .selected-custom-label`);
+    await expect(custom).toHaveText(explicit ? 'label:17:23:start:end' : 'label:150:150:absent:absent');
+    const nested = page.locator(`#chart-selected-label-${explicit} .recharts-label`);
+    await expect(nested).toHaveAttribute('text-anchor', explicit ? 'start' : 'middle');
+  }
+  const paths = await page.locator('#chart-selected-null .recharts-area-curve').evaluateAll(nodes => nodes.map(node => node.getAttribute('d')!));
+  expect(paths).toHaveLength(3);
+  for (const path of paths) { expect(path).toMatch(/^M5,/); expect(path.match(/[MLCQ]/g)).toHaveLength(2); }
+  const floating = await page.locator('#chart-selected-bars-true .recharts-rectangle').evaluateAll(nodes => nodes.map(node => Number(node.getAttribute('width'))));
+  expect(floating).toEqual([10, 10, 10, 10, 10]);
+});
+
+test('selected Charts clamped paired bars preserve the configured gap', async ({ page }, info) => {
+  await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
+  const bars = await page.locator('#chart-selected-bars-false .recharts-rectangle').evaluateAll(nodes => nodes.map(node => ({
+    x: Number(node.getAttribute('x')), width: Number(node.getAttribute('width')), fill: node.getAttribute('fill'),
+  })));
+  expect(bars).toHaveLength(4);
+  const first = bars.filter(bar => bar.fill === '#123456'), second = bars.filter(bar => bar.fill === '#654321');
+  expect(first).toHaveLength(2);
+  expect(second).toHaveLength(2);
+  first.forEach((bar, index) => {
+    expect(bar.width).toBe(20);
+    expect(second[index].width).toBe(20);
+    expect(second[index].x - bar.x - bar.width).toBe(7);
+  });
+});
+
+test('selected Charts Legend owners preserve legacy placement and positioned cleanup', async ({ page }, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
+  const root = page.locator('#chart-selected-legend-legacy');
+  const legend = root.locator('.recharts-legend-wrapper');
+  await expect(legend).toHaveCount(1);
+  await expect(legend.locator('.recharts-legend-item')).toHaveText('value');
+  await expect(legend.locator('.recharts-legend-item')).toHaveCSS('display', 'inline-block');
+  expect(await legend.evaluate(node => {
+    const style = (node as HTMLElement).style;
+    return { placement: [style.left, style.bottom, style.width, style.transform], outsideSvg: node.closest('svg') === null };
+  })).toEqual({ placement: ['5px', '5px', '490px', ''], outsideSvg: true });
+  await expect.poll(async () => (await legend.boundingBox())?.height ?? 0).toBeGreaterThan(0);
+  await expect.poll(async () =>
+    Math.round(Number(await root.locator('clipPath rect').getAttribute('height')) + (await legend.boundingBox())!.height),
+  ).toBe(490);
+
+  const positions = ['top', 'bottom', 'left', 'right', 'insideBottomRight'];
+  const primary = (position: string) => page.locator(
+    `#chart-selected-legend-${position} .recharts-legend-wrapper:has([data-legend-owner="primary:${position}"])`,
+  );
+  const plots: (string | null)[][] = [];
+  const originalNodes = [];
+  for (const position of positions) {
+    const wrapper = primary(position);
+    await expect(wrapper).toHaveCount(1);
+    await expect(wrapper.locator('[data-legend-owner]')).toHaveText('value');
+    expect(await wrapper.evaluate(node => node.closest('svg') === null)).toBe(true);
+    const plot = page.locator(`#chart-selected-legend-${position} clipPath rect`);
+    if (position === 'insideBottomRight') {
+      await expect(plot).toHaveAttribute('width', '490');
+      await expect(plot).toHaveAttribute('height', '490');
+    } else {
+      const axis = position === 'left' || position === 'right' ? 'width' : 'height';
+      await expect.poll(async () =>
+        Math.round(Number(await plot.getAttribute(axis)) + (await wrapper.boundingBox())![axis] + 10),
+      ).toBe(490);
+    }
+    plots.push([await plot.getAttribute('width'), await plot.getAttribute('height')]);
+    originalNodes.push((await wrapper.elementHandle())!);
+  }
+  const extra = page.locator('#chart-selected-legend-insideBottomRight .recharts-legend-wrapper:has([data-legend-owner="secondary:insideTopLeft"])');
+  await expect(extra).toHaveCount(1);
+  const extraNode = (await extra.elementHandle())!;
+  await expect(page.locator('#chart-selected-legend-insideBottomRight .recharts-legend-wrapper')).toHaveCount(2);
+  await page.getByRole('button', { name: 'Toggle selected Legends', exact: true }).click();
+  for (const position of positions) {
+    await expect(primary(position)).toHaveCount(0);
+    const plot = page.locator(`#chart-selected-legend-${position} clipPath rect`);
+    await expect(plot).toHaveAttribute('width', '490');
+    await expect(plot).toHaveAttribute('height', '490');
+  }
+  for (const node of originalNodes) expect(await node.evaluate(element => element.isConnected)).toBe(false);
+  await expect(legend).toHaveCount(1);
+  await expect(extra).toHaveCount(1);
+  expect(await extra.evaluate((node, original) => node === original, extraNode)).toBe(true);
+  await page.getByRole('button', { name: 'Toggle additional Legend', exact: true }).click();
+  await expect(page.locator('#chart-selected-legend-insideBottomRight .recharts-legend-wrapper')).toHaveCount(0);
+  expect(await extraNode.evaluate(node => node.isConnected)).toBe(false);
+  await page.getByRole('button', { name: 'Toggle selected Legends', exact: true }).click();
+  for (const [index, position] of positions.entries()) {
+    await expect(primary(position)).toHaveCount(1);
+    await expect(page.locator(`#chart-selected-legend-${position} .recharts-legend-wrapper`)).toHaveCount(1);
+    const plot = page.locator(`#chart-selected-legend-${position} clipPath rect`);
+    await expect.poll(async () => [await plot.getAttribute('width'), await plot.getAttribute('height')]).toEqual(plots[index]);
+  }
+  await page.getByRole('button', { name: 'Toggle additional Legend', exact: true }).click();
+  await expect(extra).toHaveCount(1);
+  await expect(page.locator('#chart-selected-legend-insideBottomRight .recharts-legend-wrapper')).toHaveCount(2);
+  expect(await extra.evaluate((node, original) => node === original, extraNode)).toBe(false);
+  expect(errors).toEqual([]);
+});
+
+test('selected Charts legend-placement and accessible SVG hydrate in place before measurement', async ({ page }, info) => {
+  test.skip(info.project.name.endsWith('csr'), 'Captures server nodes before loading the real entry.');
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') errors.push(message.text()); });
+  await page.route('**/*', async route => {
+    if (route.request().resourceType() === 'script') await route.fulfill({ status: 200, contentType: 'text/javascript', body: '' });
+    else await route.continue();
+  });
+  await page.goto('/');
+  for (const kind of ['plain', 'string', 'multiline', 'function', 'jsx', 'numeric']) {
+    await expect(page.locator(`#chart-selected-axis-${kind} clipPath rect`)).toHaveAttribute('height', '260');
+  }
+  const placements = [
+    ['top', 5, 250, 0.5, 1], ['bottom', 495, 250, 0.5, 0],
+    ['left', 250, 5, 1, 0.5], ['right', 250, 495, 0, 0.5],
+    ['insideBottomRight', 485, 485, 1, 1],
+  ] as const;
+  for (const [position, top, left, xFraction, yFraction] of placements) {
+    const wrapper = page.locator(`#chart-selected-legend-${position} .recharts-legend-wrapper:has([data-legend-owner="primary:${position}"])`);
+    const anchor = await wrapper.evaluate((node, [xFraction, yFraction]) => {
+      const box = node.getBoundingClientRect();
+      const chart = node.closest('.recharts-wrapper')!.getBoundingClientRect();
+      return [box.top - chart.top + box.height * yFraction, box.left - chart.left + box.width * xFraction];
+    }, [xFraction, yFraction]);
+    // Compare the rendered anchor within half a CSS pixel, not equivalent CSS serializations.
+    expect(anchor[0]).toBeCloseTo(top, 0);
+    expect(anchor[1]).toBeCloseTo(left, 0);
+    await expect(wrapper.locator('.recharts-legend-item').first()).toHaveCSS('display', position === 'left' || position === 'right' ? 'block' : 'inline-block');
+    await expect(wrapper.locator('.recharts-legend-item').first()).toHaveCSS('white-space', 'nowrap');
+  }
+  await expect(page.locator('#chart-selected-legend-insideBottomRight .recharts-legend-wrapper')).toHaveCount(2);
+  await expect(page.locator('[data-legend-owner="secondary:insideTopLeft"]')).toHaveText('value');
+  const sankey = page.locator('#chart-selected-sankey svg');
+  await expect(sankey).toHaveAttribute('role', 'application');
+  await expect(sankey).toHaveAttribute('tabindex', '0');
+  await expect(sankey.locator('title')).toHaveText('Selected flows');
+  await expect(sankey.locator('desc')).toHaveText('Source sends ten units');
+  // Every server node must be claimed before measurement; reactive descendants may change afterward.
+  await page.evaluate(() => {
+    const roots = [...document.querySelectorAll('[id^="chart-selected-"]')].filter(root => root.id !== 'chart-selected-legend-legacy');
+    const nodes = roots.flatMap(root => [...root.querySelectorAll('svg, .recharts-legend-wrapper, .recharts-cartesian-axis-tick-value, .selected-pie-label, .selected-custom-label')]);
+    const placementProperties = ['top', 'left', 'right', 'bottom', 'width', 'height', 'transform'] as const;
+    const snapshots = nodes.map(node => {
+      const placementStyle = node instanceof HTMLElement && node.matches('.recharts-legend-wrapper') ? node.style : undefined;
+      return {
+        node, placementStyle, placement: placementStyle ? placementProperties.map(property => placementStyle[property]) : undefined,
+        persistent: node.matches('.recharts-legend-wrapper, svg:not(.recharts-legend-wrapper svg)'),
+      };
+    });
+    const firstReads: boolean[] = [];
+    const seen = new Set<Element>();
+    const original = Element.prototype.getBoundingClientRect;
+    Element.prototype.getBoundingClientRect = function () {
+      const snapshot = snapshots.find(item => item.node === this);
+      if (snapshot && !seen.has(this)) {
+        seen.add(this);
+        const claimed = snapshots.every(item => item.node.isConnected &&
+          ((firstReads.length > 0 && item.node !== this) || item.placement === undefined ||
+            placementProperties.every((property, index) => item.placementStyle?.[property] === item.placement?.[index])));
+        firstReads.push(claimed);
+      }
+      return original.call(this);
+    };
+    Object.assign(window, { selectedSnapshots: snapshots, selectedFirstReads: firstReads, selectedOriginalRect: original });
+  });
+  await page.unroute('**/*');
+  await page.evaluate(async () => {
+    const entry = document.querySelector<HTMLScriptElement>('script[type="module"]')!.src;
+    // The built entry URL is discovered from server HTML, not known at author time.
+    await import(/* @vite-ignore */ entry + '?selected-hydration');
+  });
+  await expect(page.locator('#chart-selected-axis-plain .recharts-cartesian-axis-tick-value')).toHaveCount(10);
+  expect(await page.evaluate(() => {
+    const state = window as unknown as { selectedSnapshots: { node: Element; persistent: boolean }[]; selectedFirstReads: boolean[]; selectedOriginalRect: typeof Element.prototype.getBoundingClientRect };
+    Element.prototype.getBoundingClientRect = state.selectedOriginalRect;
+    const roots = [...document.querySelectorAll('[id^="chart-selected-"]')].filter(root => root.id !== 'chart-selected-legend-legacy');
+    const current = roots.flatMap(root => [...root.querySelectorAll('svg:not(.recharts-legend-wrapper svg), .recharts-legend-wrapper')]);
+    const persistent = state.selectedSnapshots.filter(item => item.persistent);
+    const originals = new Set(persistent.map(item => item.node));
+    return {
+      nodes: current.length === persistent.length && current.every(node => originals.has(node)) && persistent.every(item => item.node.isConnected),
+      measured: state.selectedFirstReads.length > 0,
+      firstClaim: state.selectedFirstReads.every(Boolean),
+    };
+  })).toEqual({ nodes: true, measured: true, firstClaim: true });
+  for (const [position, top, left] of placements) {
+    const wrapper = page.locator(`#chart-selected-legend-${position} .recharts-legend-wrapper:has([data-legend-owner="primary:${position}"])`);
+    await expect.poll(() => wrapper.evaluate((node, p) => {
+      const style = (node as HTMLElement).style, box = node.getBoundingClientRect();
+      return [
+        Math.round(parseFloat(style.top) - (p === 'top' ? box.height : p === 'bottom' ? -box.height : 0)),
+        Math.round(parseFloat(style.left) - (p === 'left' ? box.width : p === 'right' ? -box.width : 0)),
+      ];
+    }, position)).toEqual([top, left]);
+    const plot = page.locator(`#chart-selected-legend-${position} clipPath rect`);
+    if (position === 'insideBottomRight') { await expect(plot).toHaveAttribute('width', '490'); await expect(plot).toHaveAttribute('height', '490'); }
+    else {
+      await expect.poll(async () => {
+        const box = await wrapper.boundingBox();
+        const axis = position === 'left' || position === 'right' ? 'width' : 'height';
+        return Math.round(Number(await plot.getAttribute(axis)) + box![axis] + 10);
+      }).toBe(490);
+    }
+  }
+  await expect(sankey).toHaveAttribute('role', 'application');
+  await expect(sankey.locator('title')).toHaveText('Selected flows');
+  await expect(sankey).toHaveAttribute('tabindex', '0');
+  await expect(sankey.locator('desc')).toHaveText('Source sends ten units');
+  expect(errors).toEqual([]);
+});

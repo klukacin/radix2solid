@@ -18,7 +18,7 @@ export function RenderedTicksReporter(props: {
   ticks: ReadonlyArray<CartesianTickItem>;
 }): JSX.Element {
   const store = useAppStore();
-  let prev: { axisType: "xAxis" | "yAxis"; axisId: AxisId } | null = null;
+  let prev: { axisType: "xAxis" | "yAxis"; axisId: AxisId; ticks: ReadonlyArray<TickItem> } | null = null;
 
   createEffect(
     (): { axisType: "xAxis" | "yAxis"; axisId: AxisId; ticks: ReadonlyArray<TickItem> } => ({
@@ -33,8 +33,19 @@ export function RenderedTicksReporter(props: {
       })),
     }),
     (payload) => {
+      if (prev != null) {
+        if (prev.axisType !== payload.axisType || prev.axisId !== payload.axisId) {
+          store?.actions.renderedTicks.removeRenderedTicks(prev);
+        } else if (prev.ticks.length === payload.ticks.length && payload.ticks.every((tick, index) => {
+          const last = prev!.ticks[index];
+          return last != null && Object.is(last.value, tick.value) && last.coordinate === tick.coordinate &&
+            last.offset === tick.offset && last.index === tick.index;
+        })) {
+          return;
+        }
+      }
       store?.actions.renderedTicks.setRenderedTicks(payload);
-      prev = { axisType: payload.axisType, axisId: payload.axisId };
+      prev = payload;
     },
   );
 

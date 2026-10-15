@@ -1,11 +1,62 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { test } from 'node:test';
 import { createComponent } from 'solid-js';
 import { renderToString } from '@solidjs/web';
 import { ComposedChart, LineChart, Line, BarChart, Bar, PieChart, Pie, ScatterChart, Scatter, FunnelChart, Funnel, RadialBarChart, RadialBar, XAxis, YAxis, CartesianAxis, CartesianGrid, Brush, Cell, ErrorBar } from '@wsagency/radix2solid-charts';
 import { Global } from '@wsagency/radix2solid-charts';
+import { AreaChart, Area, Legend, Label, Sankey, Text } from '@wsagency/radix2solid-charts';
 
 const data = [{ name: 'A', value: 10 }, { name: 'B', value: 30 }, { name: 'C', value: 20 }];
+
+test('public Text SSR preserves literal dollars and enforces calc expression length limits', () => {
+  const childSource = String.raw`
+    import assert from 'node:assert/strict';
+    import { createComponent } from 'solid-js';
+    import { renderToString } from '@solidjs/web';
+    import { Text } from '@wsagency/radix2solid-charts';
+
+    const decode = value => value.replace(/&(amp|quot|apos|lt|gt|#\d+|#x[\da-f]+);/gi, (entity, name) => {
+      const named = { amp: '&', quot: '"', apos: "'", lt: '<', gt: '>' };
+      return name[0] === '#'
+        ? String.fromCodePoint(name[1].toLowerCase() === 'x' ? parseInt(name.slice(2), 16) : Number(name.slice(1)))
+        : named[name.toLowerCase()];
+    });
+    // B1 must finish before B2: the gate first authorizes only the dollar fix.
+    const cases = [
+      ...['$&', '$\x60', "$'", '$1', '$$'].map(value => ({
+        name: 'B1 literal ' + JSON.stringify(value), capHeight: '(' + value + ')', dy: value,
+      })),
+      { name: 'B2 1000 inner characters', capHeight: ' '.repeat(997) + '1+1', dy: '2' },
+      { name: 'B2 1001 inner characters', capHeight: ' '.repeat(998) + '1+1', dy: '' },
+      ...['+', '*', '+@'].map(suffix => ({
+        name: 'B2 oversized ' + suffix, capHeight: '9'.repeat(50000) + suffix, dy: '',
+      })),
+    ];
+    for (const { name, capHeight, dy } of cases) {
+      console.error('Rendering ' + name);
+      const html = renderToString(() => createComponent(Text, {
+        x: 10, y: 20, verticalAnchor: 'start', capHeight, children: 'Revenue',
+      }));
+      const texts = [...html.matchAll(/<text\b([^>]*)>([\s\S]*?)<\/text>/g)];
+      assert.equal(texts.length, 1, name + ': one text');
+      assert.match(texts[0][1], /\sx="10"/, name + ': x');
+      assert.match(texts[0][1], /\sy="20"/, name + ': y');
+      const spans = [...texts[0][2].matchAll(/<tspan\b([^>]*)>([\s\S]*?)<\/tspan>/g)];
+      assert.equal(spans.length, 1, name + ': one tspan');
+      assert.equal(decode(spans[0][2].replace(/<!--[\s\S]*?-->/g, '')), 'Revenue', name + ': text');
+      const attribute = spans[0][1].match(/\sdy="([^"]*)"/);
+      assert.ok(attribute, name + ': dy attribute');
+      assert.equal(decode(attribute[1]), dy, name + ': decoded dy');
+      console.error('Passed ' + name + ': dy=' + JSON.stringify(dy));
+    }
+  `;
+  const child = spawnSync(process.execPath, ['--conditions=development', '--input-type=module', '--eval', childSource], {
+    timeout: 10000,
+    encoding: 'utf8',
+  });
+  assert.equal(child.status, 0, `Text SSR child failed: ${child.error?.message ?? child.signal ?? child.status}\n${child.stderr}`);
+});
 
 test('fixed size native charts emit actual finite data geometry before JavaScript', () => {
   assert.equal(typeof document, 'undefined');
@@ -173,4 +224,147 @@ test('axes-first bounded-domain stacked SSR emits correct values and the complet
     ['y', 'height'].map(attribute => Number(tag.match(new RegExp(`\\b${attribute}="([^"]+)"`))?.[1])));
   // The 260px plot represents [0,50]; the upper series starts at each lower value.
   assert.deepEqual(marks, [[213, 52], [161, 104], [109, 104], [5, 156]]);
+});
+
+// Selected upstream cases use only public components and their rendered output.
+for (const [position, top, left, transform] of [
+  ['top', 5, 250, 'translate(-50%, -100%)'],
+  ['bottom', 495, 250, 'translate(-50%, 0)'],
+  ['left', 250, 5, 'translate(-100%, -50%)'],
+  ['right', 250, 495, 'translate(0, -50%)'],
+  ['insideBottomRight', 485, 485, 'translate(-100%, -100%)'],
+] as const) {
+  test(`selected Charts SSR legend-placement ${position}`, () => {
+    const html = renderToString(() => createComponent(LineChart, {
+      width: 500, height: 500, data,
+      get children() { return [
+        createComponent(Line, { dataKey: 'value', isAnimationActive: false }),
+        createComponent(Legend, { position, offset: 10 }),
+      ]; },
+    }));
+    const wrapper = html.match(/<div\b[^>]*class="[^"]*recharts-legend-wrapper[^"]*"[^>]*>/)?.[0];
+    assert.ok(wrapper, html);
+    for (const [property, expected] of [['top', `${top}px`], ['left', `${left}px`], ['transform', transform]]) {
+      assert.ok(wrapper.includes(`${property}:${expected}`) || wrapper.includes(`${property}: ${expected}`), wrapper);
+    }
+  });
+}
+
+for (const height of [30, 'auto'] as const) {
+  test(`selected Charts SSR ${height === 'auto' ? 'auto-xaxis retains the 30px server fallback' : 'numeric xaxis reserves its 30px plot height'}`, () => {
+    const html = renderToString(() => createComponent(LineChart, {
+      width: 500, height: 300, data,
+      get children() { return [
+        createComponent(XAxis, { dataKey: 'name', height, label: 'Revenue categories' }),
+        createComponent(Line, { dataKey: 'value', isAnimationActive: false }),
+      ]; },
+    }));
+    const attributes = (tag: string | undefined, names: string[]) =>
+      names.map(name => Number(tag?.match(new RegExp(`\\b${name}="([^"]+)"`))?.[1]));
+    const text = (element: string) =>
+      [...element.matchAll(/<tspan\b[^>]*>([^<]*)<\/tspan>/g)].map(match => match[1]).join('');
+    const tickElements = [...html.matchAll(/<text\b[^>]*class="[^"]*\brecharts-cartesian-axis-tick-value\b[^"]*"[^>]*>[\s\S]*?<\/text>/g)];
+    const label = html.match(/<text\b[^>]*class="[^"]*\brecharts-label\b[^"]*"[^>]*>[\s\S]*?<\/text>/)?.[0];
+    assert.deepEqual({
+      plot: attributes(html.match(/<clipPath\b[^>]*><rect\b[^>]*>/)?.[0], ['x', 'y', 'width', 'height']),
+      ticks: tickElements.map(([element]) => [...attributes(element, ['x', 'y']), text(element)]),
+      label: [...attributes(label, ['x', 'y']), label == null ? undefined : text(label)],
+    }, {
+      plot: [5, 5, 490, 260],
+      ticks: [[5, 273, 'A'], [250, 273, 'B'], [495, 273, 'C']],
+      label: [250, 280, 'Revenue categories'],
+    });
+  });
+}
+
+test('selected Charts SSR Sankey exposes accessible SVG title and description', () => {
+  const html = renderToString(() => createComponent(Sankey, {
+    width: 500, height: 300, title: 'Selected flows', desc: 'Source sends ten units',
+    accessibilityLayer: true,
+    data: { nodes: [{ name: 'Source' }, { name: 'Target' }], links: [{ source: 0, target: 1, value: 10 }] },
+  }));
+  assert.match(html, /<svg\b[^>]*role="application"/);
+  assert.match(html, /<svg\b[^>]*tabindex="0"/i);
+  assert.match(html, /<title\b[^>]*>Selected flows<\/title>/);
+  assert.match(html, /<desc\b[^>]*>Source sends ten units<\/desc>/);
+});
+
+test('selected Charts SSR Pie children receive computed percentage radii', () => {
+  const html = renderToString(() => createComponent(PieChart, {
+    width: 400, height: 400,
+    get children() { return createComponent(Pie, {
+      data, dataKey: 'value', cx: '25%', cy: '40%', innerRadius: '40%', outerRadius: '80%', isAnimationActive: false,
+      get children() { return createComponent(Label, {
+        position: 'center',
+        content: props => {
+          const box = props.viewBox as { cx?: number; cy?: number; innerRadius?: number; outerRadius?: number };
+          return createComponent(Text, { x: props.x, y: props.y, children: `pie:${box.cx}:${box.cy}:${box.innerRadius}:${box.outerRadius}` });
+        },
+      }); },
+    }); },
+  }));
+  assert.match(html, /pie:102\.5:161:78:156/);
+  assert.match(html, /<text\b[^>]*x="102\.5"[^>]*y="161"/);
+});
+
+test('selected Charts SSR stacked connectNulls skips the all-null category', () => {
+  const html = renderToString(() => createComponent(AreaChart, {
+    width: 100, height: 50,
+    data: [{ name: 'Page A', uv: 400, pv: 2400, amt: 2400 }, { name: 'Page B' }, { name: 'Page C', uv: 300, pv: 1398, amt: 2400 }],
+    get children() { return ['uv', 'pv', 'amt'].map(dataKey => createComponent(Area, {
+      dataKey, stackId: '1', connectNulls: true, type: 'monotone', isAnimationActive: false,
+    })); },
+  }));
+  const paths = [...html.matchAll(/<path\b[^>]*class="[^"]*recharts-area-curve[^"]*"[^>]*>/g)];
+  assert.equal(paths.length, 3);
+  for (const [tag] of paths) {
+    const d = tag.match(/\sd="([^"]*)"/)?.[1];
+    assert.ok(d);
+    assert.match(d, /^M5,/);
+    assert.equal((d.match(/[MLCQ]/g) ?? []).length, 2, d);
+  }
+});
+
+test('selected Charts SSR numeric floating gaps and clamped bars preserve widths and gaps', () => {
+  for (const floating of [true, false]) {
+    const html = renderToString(() => createComponent(BarChart, {
+      width: floating ? 40 : 400, height: 200, margin: { top: 0, right: 0, bottom: 0, left: 0 },
+      data: (floating ? [0, 10, 20, 30, 30.00008318614652580436] : [0, 10]).map(x => ({ x, value: 10, other: 20 })),
+      barGap: floating ? 0 : 7, barCategoryGap: 0,
+      get children() { return [
+        createComponent(XAxis, { dataKey: 'x', type: 'number' as const, domain: [0, floating ? 40 : 20], allowDataOverflow: true, height: 0, ticks: floating ? [0, 10, 20, 30, 30.00008318614652580436] : [0, 10] }),
+        createComponent(YAxis, { width: 0 }),
+        createComponent(Bar, { dataKey: 'value', maxBarSize: floating ? undefined : 20, fill: '#123456', isAnimationActive: false }),
+        ...(floating ? [] : [createComponent(Bar, { dataKey: 'other', maxBarSize: 20, fill: '#654321', isAnimationActive: false })]),
+      ]; },
+    }));
+    const marks = [...html.matchAll(/<path\b[^>]*class="[^"]*recharts-rectangle[^"]*"[^>]*>/g)].map(([tag]) => ({
+      x: Number(tag.match(/\sx="([^"]*)"/)?.[1]), width: Number(tag.match(/\swidth="([^"]*)"/)?.[1]),
+      fill: tag.match(/\sfill="([^"]*)"/)?.[1],
+    }));
+    assert.equal(marks.length, floating ? 5 : 4);
+    if (floating) for (const mark of marks) assert.equal(mark.width, 10);
+    else {
+      const first = marks.filter(mark => mark.fill === '#123456');
+      const second = marks.filter(mark => mark.fill === '#654321');
+      first.forEach((mark, index) => {
+        assert.equal(mark.width, 20);
+        assert.equal(second[index].x - mark.x - mark.width, 7);
+      });
+    }
+  }
+});
+
+test('selected Charts SSR custom Label computes coordinates without overriding explicit props', () => {
+  for (const explicit of [false, true]) {
+    const html = renderToString(() => createComponent(Label, {
+      viewBox: { x: 50, y: 50, width: 200, height: 200 }, position: 'center',
+      ...(explicit ? { x: 17, y: 23, textAnchor: 'start' as const, verticalAnchor: 'end' as const } : {}),
+      content: props => createComponent(Text, {
+        x: props.x, y: props.y,
+        children: `label:${props.x}:${props.y}:${props.textAnchor ?? 'absent'}:${props.verticalAnchor ?? 'absent'}:${props.viewBox && 'width' in props.viewBox ? props.viewBox.width : 'absent'}`,
+      }),
+    }));
+    assert.ok(html.includes(explicit ? 'label:17:23:start:end:200' : 'label:150:150:absent:absent:200'), html);
+  }
 });

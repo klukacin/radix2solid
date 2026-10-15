@@ -1,7 +1,27 @@
 {
   "scope": "Public part/type availability is checked separately from the mapped family behavior. Isolated real-reader Announce/Toast/layer speech has separate observed evidence; automated availability checks do not certify every reader/platform or release ownership.",
-  "publicCounts": { "modules": 151, "declarations": 1602, "css": 94, "plugins": 6, "icons": 332 },
+  "publicCounts": { "modules": 155, "declarations": 1698, "css": 94, "plugins": 6, "icons": 332, "iconsExtra": 2 },
   "modules": [
+    {
+      "module": "@wsagency/radix2solid-primitives/combobox",
+      "exports": "Combobox Root ComboboxInput Input ComboboxTrigger Trigger ComboboxPortal Portal ComboboxContent Content ComboboxList List ComboboxItem Item ComboboxItemText ItemText ComboboxItemIndicator ItemIndicator ComboboxGroup Group ComboboxLabel Label ComboboxEmpty Empty ComboboxClear Clear createComboboxScope ComboboxProps ComboboxInputProps ComboboxTriggerProps ComboboxPortalProps ComboboxContentProps ComboboxListProps ComboboxItemProps ComboboxItemTextProps ComboboxItemIndicatorProps ComboboxGroupProps ComboboxLabelProps ComboboxEmptyProps ComboboxClearProps",
+      "checks": ["types", "inputs"]
+    },
+    {
+      "module": "@wsagency/radix2solid-primitives/command",
+      "exports": "Command Root CommandInput Input CommandList List CommandGroup Group CommandLabel Label CommandItem Item CommandEmpty Empty createCommandScope CommandProps CommandInputProps CommandListProps CommandGroupProps CommandLabelProps CommandItemProps CommandEmptyProps",
+      "checks": ["types", "inputs"]
+    },
+    {
+      "module": "@wsagency/radix2solid-primitives/splitter",
+      "exports": "Splitter Root SplitterPanel Panel SplitterHandle Handle createSplitterScope SplitterProps SplitterPanelProps SplitterHandleProps",
+      "checks": ["types", "splitter"]
+    },
+    {
+      "module": "@wsagency/radix2solid-primitives/tree",
+      "exports": "createTreeScope Tree Root TreeItem Item TreeItemText ItemText TreeItemIndicator ItemIndicator TreeItemGroup ItemGroup TreeExpandTrigger ExpandTrigger TreeProps TreeItemProps TreeItemTextProps TreeItemIndicatorProps TreeItemGroupProps TreeExpandTriggerProps",
+      "checks": ["types", "tree"]
+    },
     {
       "module": "@wsagency/radix2solid-primitives/slot",
       "exports": "createSlot createSlottable Root Slot SlotProps SlotRender Slottable SlottableProps SlotTarget",
@@ -337,7 +357,7 @@
     },
     {
       "module": "@wsagency/radix2solid-primitives",
-      "exports": "AccessibleIcon Accordion AlertDialog Announce Arrow AspectRatio Avatar Checkbox Collapsible ContextMenu Dialog Direction DropdownMenu Form HoverCard Label Menubar NavigationMenu Popover Portal Progress RadioGroup ScrollArea Select Separator Slider Slot Switch Tabs Toast Toggle ToggleGroup Toolbar Tooltip VisuallyHidden unstable_OneTimePasswordField unstable_PasswordToggleField",
+      "exports": "AccessibleIcon Accordion AlertDialog Announce Arrow AspectRatio Avatar Checkbox Collapsible Combobox Command ContextMenu Dialog Direction DropdownMenu Form HoverCard Label Menubar NavigationMenu Popover Portal Progress RadioGroup ScrollArea Select Separator Slider Slot Splitter Switch Tabs Toast Toggle ToggleGroup Toolbar Tooltip Tree VisuallyHidden unstable_OneTimePasswordField unstable_PasswordToggleField",
       "checks": [
         "packed",
         "types"
@@ -1410,7 +1430,7 @@
 ,
     {
       "module": "@wsagency/radix2solid-charts",
-      "exports": "ActiveDotProps ActiveLabel AnimationController AnimationControllerProvider AnimationHandle AnimationInterpolateFn AnimationItem AnimationMatchBy AnimationMatchByProp Area AreaChart AreaChartProps AreaPointItem AreaProps AreaRevealShape AreaRevealShapeProps AxisDomainItem AxisId AxisInterval AxisRange BandPosition Bar BarChart BarChartProps BarProps BarRectangleItem BarShapeProps BarStack BarStackProps BaseLineType BaseTickContentProps Brush BrushProps CSSTransitionAnimation CancelableTimeout CartesianAxis CartesianAxisProps CartesianDataPoint CartesianGrid CartesianGridProps CartesianLabelContextProvider CartesianLabelFromLabelProp CartesianLabelListEntry CartesianLayout CartesianTickContentProps CartesianTickItem CartesianViewBox Cell CellProps ChartOffset ComposedChart ComposedChartProps Coordinate Cross CrossProps Cursor CursorDefinition CursorProps Curve CurveProps CurveType CustomScaleDefinition DataKey DefaultLegendContent DefaultLegendContentProps DefaultTooltipContent DefaultTooltipContentProps DefaultZIndexes Dot DotItemDotProps DotProps EasingInput ErrorBar ErrorBarDirection ErrorBarProps Funnel FunnelChart FunnelChartProps FunnelProps FunnelTrapezoid FunnelTrapezoidItem FunnelTrapezoidProps Global HTMLMousePointer HTMLTouchPointer IfOverflow ImplicitLabelListType ImplicitLabelType InverseScaleFunction JavascriptAnimation Label LabelList LabelListEntry LabelListFromLabelProp LabelListProps LabelListPropsWithPosition LabelPosition LabelProps Layer LayerProps LayoutType Legend LegendPayload LegendProps LegendType Line LineChart LineChartProps LineDrawShape LineDrawShapeProps LinePointItem LineProps Margin MouseHandlerDataParam MousePointer NiceTicksAlgorithm NoCentric NoFunnel NoRadial NumberDomain OnAnimationStateUpdate Padding Pie PieChart PieChartProps PieLabel PieLabelRenderProps PieProps PieSectorDataItem PieSectorShapeProps PieShape PlotArea PolarAngleAxis PolarAngleAxisProps PolarAngleTickContentProps PolarCoordinate PolarGrid PolarGridProps PolarLabelContextProvider PolarLabelFromLabelProp PolarLayout PolarRadiusAxis PolarRadiusAxisProps PolarRadiusTickContentProps Polygon PolygonProps Radar RadarChart RadarChartProps RadarPoint RadarProps RadialBar RadialBarChart RadialBarChartProps RadialBarDataItem RadialBarProps RadialBarSectorProps RectRadius Rectangle RectangleProps ReferenceArea ReferenceAreaProps ReferenceDot ReferenceDotEventHandler ReferenceDotProps ReferenceDotTouchEventHandler ReferenceLine ReferenceLineProps ReferenceLineSegment RelativePointer RenderableText ResponsiveContainer ResponsiveContainerCalculations ResponsiveContainerProps SVGMousePointer SVGTouchPointer Sankey SankeyData SankeyElementType SankeyLink SankeyLinkProps SankeyNode SankeyNodeOptions SankeyNodeProps SankeyProps ScaleFunction Scatter ScatterChart ScatterChartProps ScatterPointItem ScatterPointNode ScatterProps ScatterShapeProps Sector SectorProps ShapeAnimationProps SunburstChart SunburstChartProps SunburstData Surface SurfaceProps SymbolType Symbols SymbolsProps Text TextAnchor TextProps TextVerticalAnchor TickItem TimeoutController Tooltip TooltipContentProps TooltipIndex TooltipItemSorter TooltipPayload TooltipPayloadEntry TooltipProps TooltipValueType TouchPointer Trapezoid TrapezoidProps Treemap TreemapContentType TreemapDataType TreemapNode TreemapProps TypedCentricChartContext TypedHorizontalChartContext TypedRadialChartContext TypedVerticalChartContext XAxis XAxisOrientation XAxisPadding XAxisProps XAxisTickContentProps YAxis YAxisOrientation YAxisPadding YAxisProps YAxisTickContentProps ZAxis ZAxisProps ZIndexLayer createCentricChart createHorizontalChart createRadialChart createVerticalChart defaultCurveProps defaultFunnelShape getNiceTickValues getPath getRelativeCoordinate interpolate matchAppend matchByDataKey matchByIndex useActiveTooltipCoordinate useActiveTooltipDataPoints useActiveTooltipLabel useCartesianChartLayout useCartesianScale useChartHeight useChartLayout useChartWidth useIsTooltipActive useMargin useOffset usePlotArea usePolarChartLayout useResponsiveContainerContext useXAxis useXAxisDomain useXAxisInverseDataSnapScale useXAxisInverseScale useXAxisInverseTickSnapScale useXAxisScale useXAxisTicks useYAxis useYAxisDomain useYAxisInverseDataSnapScale useYAxisInverseScale useYAxisInverseTickSnapScale useYAxisScale useYAxisTicks",
+      "exports": "ActiveDotProps ActiveLabel AnimationController AnimationControllerProvider AnimationHandle AnimationInterpolateFn AnimationItem AnimationMatchBy AnimationMatchByProp Area AreaChart AreaChartProps AreaPointItem AreaProps AreaRevealShape AreaRevealShapeProps AxisDomainItem AxisId AxisInterval AxisRange BandPosition Bar BarChart BarChartProps BarProps BarRectangleItem BarShapeProps BarStack BarStackProps BaseLineType BaseTickContentProps Brush BrushProps CSSTransitionAnimation CancelableTimeout CartesianAxis CartesianAxisProps CartesianDataPoint CartesianGrid CartesianGridProps CartesianLabelContextProvider CartesianLabelFromLabelProp CartesianLabelListEntry CartesianLayout CartesianPosition CartesianTickContentProps CartesianTickItem CartesianViewBox Cell CellProps ChartOffset ComposedChart ComposedChartProps Coordinate Cross CrossProps Cursor CursorDefinition CursorProps Curve CurveProps CurveType CustomScaleDefinition DataKey DefaultLegendContent DefaultLegendContentProps DefaultTooltipContent DefaultTooltipContentProps DefaultZIndexes Dot DotItemDotProps DotProps EasingInput ErrorBar ErrorBarDirection ErrorBarProps Funnel FunnelChart FunnelChartProps FunnelProps FunnelTrapezoid FunnelTrapezoidItem FunnelTrapezoidProps Global HTMLMousePointer HTMLTouchPointer IfOverflow ImplicitLabelListType ImplicitLabelType InverseScaleFunction JavascriptAnimation Label LabelList LabelListEntry LabelListFromLabelProp LabelListProps LabelListPropsWithPosition LabelPosition LabelProps Layer LayerProps LayoutType Legend LegendPayload LegendProps LegendType Line LineChart LineChartProps LineDrawShape LineDrawShapeProps LinePointItem LineProps Margin MouseHandlerDataParam MousePointer NiceTicksAlgorithm NoCentric NoFunnel NoRadial NumberDomain OnAnimationStateUpdate Padding Pie PieChart PieChartProps PieLabel PieLabelRenderProps PieProps PieSectorDataItem PieSectorShapeProps PieShape PlotArea PolarAngleAxis PolarAngleAxisProps PolarAngleTickContentProps PolarCoordinate PolarGrid PolarGridProps PolarLabelContextProvider PolarLabelFromLabelProp PolarLayout PolarRadiusAxis PolarRadiusAxisProps PolarRadiusTickContentProps Polygon PolygonProps Radar RadarChart RadarChartProps RadarPoint RadarProps RadialBar RadialBarChart RadialBarChartProps RadialBarDataItem RadialBarProps RadialBarSectorProps RectRadius Rectangle RectangleProps ReferenceArea ReferenceAreaProps ReferenceDot ReferenceDotEventHandler ReferenceDotProps ReferenceDotTouchEventHandler ReferenceLine ReferenceLineProps ReferenceLineSegment RelativePointer RenderableText ResponsiveContainer ResponsiveContainerCalculations ResponsiveContainerProps SVGMousePointer SVGTouchPointer Sankey SankeyData SankeyElementType SankeyLink SankeyLinkProps SankeyNode SankeyNodeOptions SankeyNodeProps SankeyProps ScaleFunction Scatter ScatterChart ScatterChartProps ScatterPointItem ScatterPointNode ScatterProps ScatterShapeProps Sector SectorProps ShapeAnimationProps SunburstChart SunburstChartProps SunburstData Surface SurfaceProps SymbolType Symbols SymbolsProps Text TextAnchor TextProps TextVerticalAnchor TickItem TimeoutController Tooltip TooltipContentProps TooltipIndex TooltipItemSorter TooltipPayload TooltipPayloadEntry TooltipProps TooltipValueType TouchPointer Trapezoid TrapezoidProps Treemap TreemapContentType TreemapDataType TreemapNode TreemapProps TypedCentricChartContext TypedHorizontalChartContext TypedRadialChartContext TypedVerticalChartContext XAxis XAxisOrientation XAxisPadding XAxisProps XAxisTickContentProps YAxis YAxisOrientation YAxisPadding YAxisProps YAxisTickContentProps ZAxis ZAxisProps ZIndexLayer createCentricChart createHorizontalChart createRadialChart createVerticalChart defaultCurveProps defaultFunnelShape getNiceTickValues getPath getRelativeCoordinate interpolate matchAppend matchByDataKey matchByIndex useActiveTooltipCoordinate useActiveTooltipDataPoints useActiveTooltipLabel useCartesianChartLayout useCartesianScale useChartHeight useChartLayout useChartWidth useIsTooltipActive useMargin useOffset usePlotArea usePolarChartLayout useResponsiveContainerContext useXAxis useXAxisDomain useXAxisInverseDataSnapScale useXAxisInverseScale useXAxisInverseTickSnapScale useXAxisScale useXAxisTicks useYAxis useYAxisDomain useYAxisInverseDataSnapScale useYAxisInverseScale useYAxisInverseTickSnapScale useYAxisScale useYAxisTicks",
       "checks": [
         "packed",
         "types"
@@ -1418,6 +1438,9 @@
     }
   ],
   "checks": {
+    "inputs": "e2e/inputs.spec.ts",
+    "tree": "e2e/tree.spec.ts",
+    "splitter": "e2e/splitter.spec.ts",
     "packed": "tests/consumer/packed.test.ts",
     "types": "tests/consumer/types.tsx",
     "state": "tests/consumer/state.test.ts",
@@ -1439,6 +1462,11 @@
       "assets",
       "types"
     ]
+  },
+  "iconsExtra": {
+    "names": "packages/icons-extra/icons.json",
+    "check": "packages/icons/scripts/generate.ts",
+    "behavior": ["assets", "types"]
   },
   "css": [
     "@wsagency/radix2solid-themes/components.css",

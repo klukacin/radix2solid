@@ -48,6 +48,7 @@ import type { AnimationDuration, PolarLayout } from "../util/types";
 import { Layer } from "../container/Layer";
 import { Sector } from "../shape/Sector";
 import { Text } from "../component/Text";
+import { PolarLabelContextProvider } from "../component/Label";
 import { Shape } from "../util/ActiveShapeUtils";
 import type { ActiveShape, ShapeAnimationProps } from "../util/types";
 import { type CellProps, createCellReader } from "../component/Cell";
@@ -785,7 +786,19 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
   // `zIndex` prop relayers the whole pie into its portal. Following Bar's template,
   // the ZIndexLayer lives INSIDE the gate <Show> (never wrapping it) so an empty/
   // hidden pie mounts NO portal — the `fallback` renders the inline empty root Layer.
-  const renderedChildren = resolveChildren(() => props.children);
+  const renderedChildren = resolveChildren(() => (
+    <PolarLabelContextProvider
+      cx={sectors()?.[0]?.cx ?? 0}
+      cy={sectors()?.[0]?.cy ?? 0}
+      innerRadius={sectors()?.[0]?.innerRadius ?? 0}
+      outerRadius={sectors()?.[0]?.outerRadius ?? 0}
+      startAngle={merged.startAngle}
+      endAngle={merged.endAngle}
+      clockWise={false}
+    >
+      {props.children}
+    </PolarLabelContextProvider>
+  ));
 
   return (
     <>

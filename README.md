@@ -6,14 +6,21 @@ The four packages keep their native API under the `@wsagency` npm scope:
 
 - `@wsagency/radix2solid-primitives` — native API and migration notes: [`packages/primitives/README.md`](packages/primitives/README.md)
 - `@wsagency/radix2solid-icons` — all 332 generated icons, SVG download subpaths and Colors 3.0.0 reuse: [`packages/icons/README.md`](packages/icons/README.md)
+- `@wsagency/radix2solid-icons-extra` — separate original 24-grid folder artwork, not part of the 332 upstream icons: [`packages/icons-extra/README.md`](packages/icons-extra/README.md)
 - `@wsagency/radix2solid-themes` — all native Themes families, themed portals, ThemePanel, responsive styling, custom accents, percentage scaling, per-component and cascade-layer CSS: [`packages/themes/README.md`](packages/themes/README.md)
 - `@wsagency/radix2solid-charts` — SVG charts that read Themes tokens, with `d3-scale` and `d3-shape` as external dependencies: [`packages/charts`](packages/charts)
 
-**Prepared candidate `0.1.0-rc.2` — not yet published.** All four packages share the version `0.1.0-rc.2` and will be released together under the npm `next` dist-tag; they are not tagged `latest` because their `solid-js` and `@solidjs/web` peers are still `2.0.0-rc.15`. `0.1.0-rc.1` (three packages, Solid `2.0.0-rc.13`) was the previous prepared candidate. Until the maintainer publishes them, consume `pnpm pack` tarballs. After publication:
+**Source candidate `0.1.0-rc.3` — not yet published.** All five source packages share this version. Published `0.1.0-rc.2` remains unchanged and does not provide the new Combobox, Command, Tree, Splitter or extra-icons APIs. Consume builds from the implementation source and `pnpm pack` tarballs until DevOps publishes through the existing npm workflow; source availability is not npm availability. No implementation commit is claimed here before review/merge.
 
 ```sh
-pnpm add @wsagency/radix2solid-primitives@0.1.0-rc.2 @wsagency/radix2solid-icons@0.1.0-rc.2 @wsagency/radix2solid-themes@0.1.0-rc.2 @wsagency/radix2solid-charts@0.1.0-rc.2 solid-js@2.0.0-rc.15 @solidjs/web@2.0.0-rc.15
+# From the reviewed source checkout, with pinned Node 24 and pnpm 11:
+pnpm install --frozen-lockfile
+pnpm build
+pnpm --dir packages/primitives pack
+pnpm --dir packages/icons-extra pack
 ```
+
+Pack the other needed packages in the same way; install the resulting tarballs in your application and override Themes' primitives dependency to the same primitives tarball. Source-pinned website deployment is independent of npm publication. The eventual five-package release uses the `next` dist-tag, subject to release-maintainer authorization; first publication and Trusted Publisher configuration for icons-extra remain DevOps-owned.
 
 Consumers need Node `>=22.12.0` (required by Solid rc.15). If you use the Themes PostCSS plugins, also install `postcss@^8.5.9`; it is an optional peer.
 

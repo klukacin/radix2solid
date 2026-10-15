@@ -1,6 +1,6 @@
 # Native Radix icons for Solid 2
 
-`@wsagency/radix2solid-icons` provides all 332 original icon names with native Solid 2 SVG props, events and refs. It requires `solid-js` and `@solidjs/web` **2.0.0-rc.15** as peers (Node `>=22.12.0`); no React runtime or cloning API. **Prepared candidate `0.1.0-rc.2` — not yet published**; it will be released under the npm `next` dist-tag. After publication: `pnpm add @wsagency/radix2solid-icons@0.1.0-rc.2`; until then consume a `pnpm pack` tarball.
+`@wsagency/radix2solid-icons` provides all 332 original icon names with native Solid 2 SVG props, events and refs. It requires `solid-js` and `@solidjs/web` **2.0.0-rc.15** as peers (Node `>=22.12.0`); no React runtime or cloning API. The published release candidate (not a stable release) is `0.1.0-rc.2`, under the npm `next` dist-tag: `pnpm add -E @wsagency/radix2solid-icons@0.1.0-rc.2`. This source is the **prepared candidate `0.1.0-rc.3` — not yet published**; consume it from a `pnpm pack` tarball. The separate extra icons package exists only in this candidate.
 
 ```tsx
 import { CheckIcon } from '@wsagency/radix2solid-icons';
@@ -14,7 +14,7 @@ Each public deep icon entry supports both `import GitHubLogoIcon from '@wsagency
 
 **Bundle cost.** Import only the icons you render; root (`import { CheckIcon } from '@wsagency/radix2solid-icons'`) and deep (`@wsagency/radix2solid-icons/CheckIcon`) imports both tree-shake and cost the same. The first `CheckIcon` adds 22,379 B (7,966 B gzip) to an empty Solid app, most of it the Solid web runtime, and 1,310 B (631 B gzip) to an app that already renders a Themes `Button`. Measured with Vite 8.3.3 client builds, minified, zlib gzip level 9, on Node 22.12 with Solid 2.0.0-rc.13 and package release 0.1.0-rc.1; not re-measured for this candidate. Don't add Themes just to use icons.
 
-**Custom icons.** Use your own SVG or Solid component; there is no icon factory or extension package, and folder or brand icons stay in your app rather than in this repository.
+**Custom icons.** Use your own SVG or Solid component; there is no icon factory. Folder icons (`FolderIcon`, `FolderOpenIcon`) are in the separate [`@wsagency/radix2solid-icons-extra`](../icons-extra/README.md) package, drawn for this project rather than ported from Radix Icons, with the same props and import shapes. Brand icons are not shipped; keep them in your app.
 
 Defaults: 15×15, `viewBox="0 0 15 15"`, `currentColor` geometry. `size` sets both dimensions; explicit native `width`, `height`, `viewBox`, class/style and other outer props retain precedence. `color` sets the original currentColor fills; inherited CSS color works when it is omitted. Native SVG stroke props remain available.
 

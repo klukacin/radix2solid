@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.0-rc.3 — source candidate, not yet published
+
+- Add data-driven Combobox with independent selection/query/open, draft-safe native form participation and client-only portal options; add caller-filtered Command with cancellable action selection and no form/value channel.
+- Default Combobox.Input's native HTML autocomplete to off, preventing competing browser form-history suggestions from consuming Enter; preserve explicit consumer and target-factory overrides.
+- Correct the Command gallery's keyed Show callback signature for native Solid 2 type checking; public Command item types and target-factory usage are unchanged.
+- Add two-pane Splitter with both-panel constraints, accepted size commits, independent collapse, native pointer/keyboard handling and provisional server layout reconciled after measurement without user callbacks.
+- Add native Tree parts, scope and types with independent controlled selection/expansion, cancellable activation, visible enabled preorder focus, explicit typeahead and collapse/removal focus repair.
+- Preserve native target-factory composition and server-rendered hierarchy/selection; retained closed groups remain excluded from navigation. Prefer disclosure lists for ordinary navigation.
+- Stabilize controlled render reads across conditional JSX with an identity-compared tuple memo, preserving raw Promise/AsyncIterable values. Setters continue reading fresh parent authority, preserving existing no-op suppression and Menu submenu teardown notifications, including simultaneous parent close and unmount. The duplicate notification found during candidate development was an unreleased regression, not a defect in rc.1.
+- This source candidate is not an npm publication or screen-reader interoperability certification.
+
 ## 0.1.0-rc.2 — prepared candidate, not yet published
 
 - Require exactly `solid-js` and `@solidjs/web` `2.0.0-rc.15` as peers (was `2.0.0-rc.13`). The repository builds with `@solidjs/vite-plugin` `3.0.0-next.50`; Solid rc.15 requires Node `>=22.12.0`.

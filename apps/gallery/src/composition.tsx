@@ -12,6 +12,9 @@ import { Themes } from './themes.js';
 import { ThemeInteractions } from './theme-interactions.js';
 import { ThemeExtensions } from './theme-extensions.js';
 import { Charts } from './charts.js';
+import { Inputs } from './inputs.js';
+import { Trees } from './tree.js';
+import { Splitters } from './splitter.js';
 
 function CustomLink(props: JSX.AnchorHTMLAttributes<HTMLAnchorElement>) {
   return <a data-custom-target="true" {...props} />;
@@ -237,6 +240,9 @@ export function Composition(): Element {
     <Controls />
     <Menus />
     <Selects />
+    <Inputs />
+    <Trees />
+    <Splitters />
     <Advanced />
     <Assets />
     <Themes />

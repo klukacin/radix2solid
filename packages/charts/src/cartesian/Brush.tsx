@@ -19,10 +19,9 @@
 // `dy`, `onDragEnd` (fires at drag release), and `leaveTimeOut` (drag ends after
 // the pointer leaves the brush) are WIRED.
 // Controlled startIndex/endIndex prop-sync is WIRED: the effect below dispatches
-// prop changes into the store, and traveller pixels DERIVE from the store indices
-// (drag overrides win mid-interaction, the Solid equivalent of recharts'
-// getDerivedStateFromProps "don't sync while interacting" guards). Covered by the
-// "with controlled startIndex/endIndex" Brush.spec block.
+// prop changes into the store, and traveller pixels derive from the store indices.
+// Drag overrides survive release until the scale or selection changes; keyboard
+// and synchronized index changes still supersede the retained pixels.
 import { createEffect, createMemo, createSignal, merge, onCleanup, Show } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { scalePoint } from "d3-scale";
@@ -216,8 +215,10 @@ export const Brush = (props: BrushProps): JSX.Element => {
 
   const dimensions = useAppSelector(selectBrushDimensions);
   const dataState = useAppSelector(selectChartDataWithIndexes);
+  // Index updates must not look like a chart-data replacement to controlled sync.
+  const chartData = useAppSelector(state => state.chartData.chartData);
 
-  const data = (): ChartData => dataState()?.chartData ?? [];
+  const data = (): ChartData => chartData() ?? [];
   const startIndex = (): number => dataState()?.dataStartIndex ?? 0;
   const endIndex = (): number => dataState()?.dataEndIndex ?? 0;
 
@@ -239,12 +240,19 @@ export const Brush = (props: BrushProps): JSX.Element => {
   );
   unregisterOnCleanup(() => store?.actions.brush.setBrushSettings(null));
 
-  // Sync controlled start/end index props into the store (recharts BrushInternal
-  // useEffect — always dispatch; the reducer ignores undefined fields).
+  // Reapply controlled indices when chart data changes, since data replacement
+  // resets the store's selection even when the controlled props are unchanged.
   createChartEffect(
-    () => ({ startIndex: merged.startIndex, endIndex: merged.endIndex }),
+    () => ({
+      startIndex: merged.startIndex,
+      endIndex: merged.endIndex,
+      chartData: data(),
+    }),
     (idx) => {
-      store?.actions.chartData.setDataStartEndIndexes(idx);
+      store?.actions.chartData.setDataStartEndIndexes({
+        startIndex: idx.startIndex,
+        endIndex: idx.endIndex,
+      });
     },
   );
 
@@ -276,11 +284,34 @@ export const Brush = (props: BrushProps): JSX.Element => {
   const [movingTravellerId, setMovingTravellerId] = createSignal<BrushTravellerId | null>(null);
   let dragStartPageX = 0;
 
-  // Traveller pixels are DERIVED from the current indices via the scale; a drag sets
-  // a per-traveller pixel override (so the handle tracks the cursor mid-drag), which
-  // is cleared on release so the handle snaps to the (now-updated) index position.
+  // Keep the exact dragged pixels until the scale or selection changes.
   const [overrideStartX, setOverrideStartX] = createSignal<number | null>(null);
   const [overrideEndX, setOverrideEndX] = createSignal<number | null>(null);
+  createEffect(
+    () => ({
+      chartData: data(),
+      startIndex: merged.startIndex,
+      endIndex: merged.endIndex,
+      x: x(),
+      width: width(),
+      travellerWidth: merged.travellerWidth,
+    }),
+    () => {
+      setOverrideStartX(null);
+      setOverrideEndX(null);
+    },
+  );
+  // Effects rerun for either projected index; only the changed index loses its override.
+  createEffect(startIndex, (next, previous) => {
+    if (next !== previous && !isTravellerMoving() && !isSlideMoving()) {
+      setOverrideStartX(null);
+    }
+  });
+  createEffect(endIndex, (next, previous) => {
+    if (next !== previous && !isTravellerMoving() && !isSlideMoving()) {
+      setOverrideEndX(null);
+    }
+  });
   const startX = createMemo<number>(() => {
     const o = overrideStartX();
     if (o != null) {
@@ -408,9 +439,6 @@ export const Brush = (props: BrushProps): JSX.Element => {
     const wasDragging = isTravellerMoving() || isSlideMoving();
     setIsTravellerMoving(false);
     setIsSlideMoving(false);
-    // Drop the pixel overrides so the travellers snap to the final index positions.
-    setOverrideStartX(null);
-    setOverrideEndX(null);
     detachListeners();
     if (leaveTimer != null) {
       clearTimeout(leaveTimer);

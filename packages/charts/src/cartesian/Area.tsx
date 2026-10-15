@@ -165,6 +165,7 @@ export function computeArea({
   xAxisTicks,
   yAxisTicks,
   bandSize,
+  stackDataKeys,
 }: {
   areaSettings: AreaSettings;
   layout: CartesianLayout;
@@ -177,6 +178,7 @@ export function computeArea({
   xAxisTicks: TickItem[];
   yAxisTicks: TickItem[];
   bandSize: number;
+  stackDataKeys?: ReadonlyArray<DataKey<unknown>>;
 }): ComputedArea {
   const hasStack = stackedData != null && stackedData.length > 0;
   const baseValue = getBaseValue(layout, chartBaseValue, itemBaseValue, xAxis, yAxis);
@@ -200,8 +202,12 @@ export function computeArea({
       }
     }
     const value1 = valueAsArray[1] ?? null;
+    const rawValue = getValueByDataKey(entry, dataKey);
+    // An individual null preserves its stack offset; an entirely null stack is a gap.
+    const wholeStackIsNull = hasStack && rawValue == null && stackDataKeys != null &&
+      stackDataKeys.length > 0 && stackDataKeys.every(key => getValueByDataKey(entry, key) == null);
     const isBreakPoint =
-      value1 == null || (hasStack && !connectNulls && getValueByDataKey(entry, dataKey) == null);
+      value1 == null || (hasStack && !connectNulls && rawValue == null) || wholeStackIsNull;
 
     if (isHorizontalLayout) {
       return {

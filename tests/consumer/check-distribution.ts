@@ -10,11 +10,15 @@ type Coverage = {
   checks: Record<string, string>;
   css: string[];
   plugins: string[];
-  publicCounts: { modules: number; declarations: number; css: number; plugins: number; icons: number };
+  publicCounts: { modules: number; declarations: number; css: number; plugins: number; icons: number; iconsExtra: number };
 };
 type ExportTarget = string | null | { [condition: string]: ExportTarget };
 const coverage: Coverage = JSON.parse(await readFile(new URL('./coverage-manifest.json', import.meta.url), 'utf8'));
 const iconNames: Record<string, string> = JSON.parse(await readFile(new URL('./icons.json', import.meta.url), 'utf8'));
+const extraIconNames: Record<string, string> = JSON.parse(await readFile(new URL('./icons-extra.json', import.meta.url), 'utf8'));
+assert.equal(Object.keys(extraIconNames).length, 2);
+assert.deepEqual(Object.keys(extraIconNames).filter(name => name in iconNames), [], 'Extra icon names must not collide');
+assert.deepEqual(Object.values(extraIconNames).filter(asset => Object.values(iconNames).includes(asset)), [], 'Extra SVG names must not collide');
 const reachableChecks: string[] = JSON.parse(await readFile(resolve('consumer-check-files.json'), 'utf8'));
 for (const [name, path] of Object.entries(coverage.checks)) {
   assert(reachableChecks.includes(path), `${name}: check is not reached by the consumer runner: ${path}`);
@@ -26,12 +30,26 @@ function targets(value: ExportTarget): string[] {
   return value === null ? [] : typeof value === 'string' ? [value] : Object.values(value).flatMap(targets);
 }
 const publicPaths = new Set<string>();
-for (const name of ['primitives', 'themes', 'icons', 'charts']) {
+for (const name of ['primitives', 'themes', 'icons', 'icons-extra', 'charts']) {
   const packageName = `@wsagency/radix2solid-${name}`;
   const packageRoot = resolve(dirname(await realpath(fileURLToPath(import.meta.resolve(packageName)))), '../..');
-  const manifest: { exports: Record<string, ExportTarget> } = JSON.parse(await readFile(resolve(packageRoot, 'package.json'), 'utf8'));
+  const manifest: { exports: Record<string, ExportTarget>; dependencies?: Record<string, string>; peerDependencies?: Record<string, string> } = JSON.parse(await readFile(resolve(packageRoot, 'package.json'), 'utf8'));
+  for (const [dependency, version] of Object.entries({ ...manifest.dependencies, ...manifest.peerDependencies })) {
+    assert(!/^(?:workspace:|file:|link:)/.test(version), `${packageName}: local dependency ${dependency}`);
+    assert(!/^(?:react|react-dom|recharts|@radix-solid\/)/.test(dependency), `${packageName}: non-native dependency ${dependency}`);
+    if (name === 'icons-extra') assert(!dependency.startsWith('@wsagency/radix2solid-'), 'Extra icons must remain package-independent');
+  }
   const files = (await readdir(packageRoot, { recursive: true, withFileTypes: true }))
     .filter(entry => entry.isFile()).map(entry => `./${resolve(entry.parentPath, entry.name).slice(packageRoot.length + 1)}`);
+  for (const file of files.filter(file => file.startsWith('./dist/') && /\.(?:js|mjs|cjs|d\.ts)$/.test(file))) {
+    const source = await readFile(resolve(packageRoot, file), 'utf8');
+    for (const match of source.matchAll(/(?:from\s*|import\s*\(|import\s*|require\s*\()\s*['"]([^'"]+)['"]/g)) {
+      const specifier = match[1];
+      assert(!/^(?:react(?:\/|$)|react-dom(?:\/|$)|recharts(?:\/|$)|@radix-solid\/|workspace:|file:|link:)/.test(specifier), `${packageName}${file}: forbidden import ${specifier}`);
+      assert(!/(?:^|\/)(?:upstream|packages|src)\//.test(specifier), `${packageName}${file}: source import ${specifier}`);
+      if (name === 'icons-extra') assert(!specifier.startsWith('@wsagency/radix2solid-'), `${file}: cross-package icon import`);
+    }
+  }
   const keys = Object.keys(manifest.exports).sort((a, b) => {
     if (!a.includes('*')) return b.includes('*') ? -1 : 0;
     if (!b.includes('*')) return 1;
@@ -62,7 +80,9 @@ for (const name of ['primitives', 'themes', 'icons', 'charts']) {
 const expectedPaths = [
   ...coverage.modules.map(contract => contract.module), ...coverage.css, ...coverage.css.map(css => css.replace(/\.css$/, '.layer.css')), ...coverage.plugins,
   '@wsagency/radix2solid-icons', ...Object.keys(iconNames).map(name => `@wsagency/radix2solid-icons/${name}`),
-  ...Object.values(iconNames).map(asset => `@wsagency/radix2solid-icons/icons/${asset}`)
+  ...Object.values(iconNames).map(asset => `@wsagency/radix2solid-icons/icons/${asset}`),
+  '@wsagency/radix2solid-icons-extra', ...Object.keys(extraIconNames).map(name => `@wsagency/radix2solid-icons-extra/${name}`),
+  ...Object.values(extraIconNames).map(asset => `@wsagency/radix2solid-icons-extra/icons/${asset}`)
 ];
 assert.deepEqual([...publicPaths].sort(), expectedPaths.sort(), 'Every actual packed export and all conditional targets require a coverage mapping');
 
@@ -73,7 +93,9 @@ const anchor = resolve('distribution-consumer.ts');
 const contracts = [
   ...coverage.modules,
   { module: '@wsagency/radix2solid-icons', exports: ['IconProps', ...Object.keys(iconNames)].join(' '), checks: ['assets', 'types'] },
-  ...Object.keys(iconNames).map(name => ({ module: `@wsagency/radix2solid-icons/${name}`, exports: `${name} default`, checks: ['assets', 'types'] }))
+  ...Object.keys(iconNames).map(name => ({ module: `@wsagency/radix2solid-icons/${name}`, exports: `${name} default`, checks: ['assets', 'types'] })),
+  { module: '@wsagency/radix2solid-icons-extra', exports: ['IconProps', ...Object.keys(extraIconNames)].join(' '), checks: ['assets', 'types'] },
+  ...Object.keys(extraIconNames).map(name => ({ module: `@wsagency/radix2solid-icons-extra/${name}`, exports: `${name} default`, checks: ['assets', 'types'] }))
 ].map(contract => {
   const resolved = ts.resolveModuleName(contract.module, anchor, options, ts.sys).resolvedModule;
   assert(resolved, `Missing declared public subpath ${contract.module}`);
@@ -109,6 +131,6 @@ for (const contract of contracts) {
   }
 }
 for (const module of [...coverage.css, ...coverage.plugins]) await access(fileURLToPath(import.meta.resolve(module)));
-assert.deepEqual({ modules: coverage.modules.length, declarations, css: coverage.css.length, plugins: coverage.plugins.length, icons: Object.keys(iconNames).length }, coverage.publicCounts, 'Exact intentional public counts');
+assert.deepEqual({ modules: coverage.modules.length, declarations, css: coverage.css.length, plugins: coverage.plugins.length, icons: Object.keys(iconNames).length, iconsExtra: Object.keys(extraIconNames).length }, coverage.publicCounts, 'Exact intentional public counts');
 assert(!program.getSourceFiles().some(source => /\/node_modules\/(?:react|react-dom|@types\/react)(?:\/|$)/.test(source.fileName)), 'Declaration graph must remain native');
 console.log(`Distribution contract passed: ${coverage.modules.length} public modules, ${declarations} part/type exports, ${values} server values, ${coverage.css.length} CSS outputs, ${coverage.plugins.length} plugin subpaths and ${Object.keys(iconNames).length} icons.`);

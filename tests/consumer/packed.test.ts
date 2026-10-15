@@ -10,11 +10,13 @@ import { AccessibleIcon, Accordion, AlertDialog, Announce, AspectRatio, Avatar, 
 import { Form, ScrollArea, Slider, Toast, unstable_PasswordToggleField as Password, unstable_OneTimePasswordField as OTP } from '@wsagency/radix2solid-primitives';
 import { AccessibilityIcon, PanelLeftIcon, PanelRightIcon } from '@wsagency/radix2solid-icons';
 import GitHubLogoIcon from '@wsagency/radix2solid-icons/GitHubLogoIcon';
+import { FolderIcon, FolderOpenIcon } from '@wsagency/radix2solid-icons-extra';
+import DeepFolderIcon from '@wsagency/radix2solid-icons-extra/FolderIcon';
 import ts from 'typescript5';
 import * as Themes from '@wsagency/radix2solid-themes';
 
 test('packed packages resolve one physical native runtime from every package origin and Themes shares primitives', async () => {
-  const names = ['primitives', 'themes', 'icons', 'charts'];
+  const names = ['primitives', 'themes', 'icons', 'icons-extra', 'charts'];
   const origins = await Promise.all(names.map(async name =>
     dirname(await realpath(fileURLToPath(import.meta.resolve(`@wsagency/radix2solid-${name}`))))));
   const consumerRequire = createRequire(import.meta.url);
@@ -714,6 +716,23 @@ test('packed Toast keeps default-open notifications client-only while serializin
   assert.match(html, /role="region"/); assert.match(html, /aria-label="Updates \(alt\+N\)"/);
   assert.match(html, /<ol\b[^>]*id="notification-list"/); assert.match(html, /tabindex="-1"/);
   assert.doesNotMatch(html, /Client notification|<li\b/);
+});
+
+test('packed extra icons retain independent artwork, public deep identity and raw SVGs', async () => {
+  assert.equal(DeepFolderIcon, FolderIcon);
+  const map: Record<string, string> = JSON.parse(await readFile(new URL('./icons-extra.json', import.meta.url), 'utf8'));
+  assert.deepEqual(Object.keys(map).sort(), ['FolderIcon', 'FolderOpenIcon']);
+  for (const [name, Icon] of [['FolderIcon', FolderIcon], ['FolderOpenIcon', FolderOpenIcon]] as const) {
+    const raw = await readFile(fileURLToPath(import.meta.resolve(`@wsagency/radix2solid-icons-extra/icons/${map[name]}`)), 'utf8');
+    assert.match(raw, /viewBox="0 0 24 24"/);
+    const html = renderToString(() => createComponent(Icon, { title: name, size: 30, width: 28, color: 'tomato' }));
+    assert.match(html, /viewBox="0 0 24 24"/);
+    assert.match(html, /width="28"/);
+    assert.match(html, /height="30"/);
+    assert.match(html, /role="img"/);
+    assert.match(html, new RegExp(`<title[^>]*>${name}</title>`));
+    for (const path of raw.matchAll(/\bd="([^"]+)"/g)) assert.ok(html.includes(`d="${path[1]}"`), `${name}: original path geometry`);
+  }
 });
 
 test('packed icons render named native SVG and isolate mask references without a document', () => {
