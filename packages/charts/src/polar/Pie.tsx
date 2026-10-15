@@ -42,7 +42,7 @@ import {
 } from "../animation/AnimatedItems";
 import { matchAppend, type AnimationMatchByProp } from "../animation/matchBy";
 import type { MutableRef } from "../animation/useAnimationStartSnapshot";
-import { usePolarChartLayout } from "../context/chartLayoutContext";
+import { useOffsetInternal, usePolarChartLayout } from "../context/chartLayoutContext";
 import type { EasingInput } from "../animation/easing";
 import type { AnimationDuration, PolarLayout } from "../util/types";
 import { Layer } from "../container/Layer";
@@ -52,7 +52,7 @@ import { PolarLabelContextProvider } from "../component/Label";
 import { Shape } from "../util/ActiveShapeUtils";
 import type { ActiveShape, ShapeAnimationProps } from "../util/types";
 import { type CellProps, createCellReader } from "../component/Cell";
-import { selectPieSectors, selectPieLegend } from "../state/selectors/pieSelectors";
+import { selectDisplayedData, selectPieSectors, selectPieLegend } from "../state/selectors/pieSelectors";
 import {
   selectActiveTooltipIndex,
   selectActiveTooltipDataKey,
@@ -168,7 +168,7 @@ const getOuterRadius = (
 };
 
 const parseCoordinateOfPie = (
-  pieSettings: PieSettings,
+  pieSettings: Pick<PieSettings, "cx" | "cy" | "innerRadius" | "outerRadius" | "maxRadius">,
   offset: ChartOffsetInternal,
   dataPoint: unknown,
 ): PieCoordinate => {
@@ -623,6 +623,15 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
   // Per-slice <Cell> overrides (collected from children, in data order).
   const { cells, resolve: resolveChildren } = createCellReader();
   const sectors = useAppSelector((state) => selectPieSectors(state, id, cells()));
+  const chartOffset = useOffsetInternal();
+  const firstDataPoint = useAppSelector(state => selectDisplayedData(state, id, cells())?.[0]);
+  const childCoordinates = createMemo(() => sectors()?.[0] ?? parseCoordinateOfPie({
+    cx: merged.cx,
+    cy: merged.cy,
+    innerRadius: merged.innerRadius,
+    outerRadius: merged.outerRadius,
+    maxRadius: merged.maxRadius,
+  }, chartOffset(), firstDataPoint()));
 
   // Layer takes a single class string (user-class forwarding parity with clsx).
   const layerClass = (): string =>
@@ -788,10 +797,10 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
   // hidden pie mounts NO portal — the `fallback` renders the inline empty root Layer.
   const renderedChildren = resolveChildren(() => (
     <PolarLabelContextProvider
-      cx={sectors()?.[0]?.cx ?? 0}
-      cy={sectors()?.[0]?.cy ?? 0}
-      innerRadius={sectors()?.[0]?.innerRadius ?? 0}
-      outerRadius={sectors()?.[0]?.outerRadius ?? 0}
+      cx={childCoordinates().cx}
+      cy={childCoordinates().cy}
+      innerRadius={childCoordinates().innerRadius}
+      outerRadius={childCoordinates().outerRadius}
       startAngle={merged.startAngle}
       endAngle={merged.endAngle}
       clockWise={false}

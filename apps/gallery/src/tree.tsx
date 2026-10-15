@@ -90,7 +90,9 @@ export function Trees(): Element {
       <button onClick={() => remove('projects')}>Remove Projects</button>
       <button onClick={() => restore('projects')}>Restore Projects</button>
       <button onClick={() => setEmpty(true)}>Empty workspace tree</button>
+      <button onClick={() => setEmpty(false)}>Restore workspace tree</button>
       <button onClick={() => setAllDisabled(true)}>Disable all tree items</button>
+      <button onClick={() => setAllDisabled(false)}>Enable all tree items</button>
       <button onClick={() => setExiting(true)}>Use exiting Docs group</button>
       <button onClick={() => setMounted(false)}>Unmount workspace tree</button>
       <button onClick={() => setMounted(true)}>Mount workspace tree</button>

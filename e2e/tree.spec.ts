@@ -128,6 +128,7 @@ test.describe('native Tree', () => {
   });
 
   test('tree-navigation: explicit textValue, repeated prefixes, expiry and blur reset govern typeahead', async ({ page }) => {
+    await page.clock.install();
     const tree = workspace(page);
     await row(tree, 'archive').focus();
     await page.keyboard.press('a');
@@ -136,7 +137,7 @@ test.describe('native Tree', () => {
     await expect(row(tree, 'alpine')).toBeFocused();
     await page.keyboard.press('a');
     await expect(row(tree, 'api')).toBeFocused();
-    await page.waitForTimeout(1050);
+    await page.clock.runFor(1000);
     await page.keyboard.press('z');
     await expect(row(tree, 'zulu')).toBeFocused();
     await control(page, 'After workspace tree').focus();
@@ -452,6 +453,21 @@ test.describe('native Tree', () => {
     });
   }
 
+  test('tree-repair: explicit blur keeps body focused when an unfocused control removes the prior item', async ({ page }) => {
+    const tree = workspace(page), guide = row(tree, 'guide');
+    await guide.focus();
+    await guide.evaluate((node: HTMLElement) => node.blur());
+    await expect(page.locator('body')).toBeFocused();
+    await update(page, 'Remove Guide');
+    await expect(guide).toHaveCount(0);
+    await expect(row(tree, 'docs')).toHaveAttribute('tabindex', '0');
+    await expect(page.locator('body')).toBeFocused();
+    await expect(page.locator('#tree-value')).toHaveText('guide');
+    await expectLog(page, 'tree-selection-requests', []);
+    await expectLog(page, 'tree-expansion-requests', []);
+    await expectLog(page, 'tree-activations', []);
+  });
+
   test('tree-repair: top-level removal uses the old position and external changes never steal focus', async ({ page }) => {
     const tree = workspace(page);
     await row(tree, 'alpha').focus();
@@ -496,6 +512,43 @@ test.describe('native Tree', () => {
       await expect(control(page, 'After workspace tree')).toBeFocused();
       await page.keyboard.press('Shift+Tab');
       await expect(tree).toBeFocused();
+    });
+  }
+
+  for (const [unavailable, restore] of [
+    ['Empty workspace tree', 'Restore workspace tree'],
+    ['Disable all tree items', 'Enable all tree items']
+  ]) {
+    test(`tree-repair: ${restore} hands a focused fallback Root to the preferred item`, async ({ page }) => {
+      const tree = workspace(page);
+      await control(page, unavailable!).click();
+      await tree.focus();
+      await expect(tree).toBeFocused();
+      await update(page, restore!);
+      await expect(row(tree, 'guide')).toBeFocused();
+      await expect(tree).toHaveAttribute('tabindex', '-1');
+      await page.keyboard.press('ArrowDown');
+      await expect(row(tree, 'api')).toBeFocused();
+      await page.keyboard.press('n');
+      await expect(row(tree, 'notes')).toBeFocused();
+      await page.keyboard.press('Tab');
+      await expect(control(page, 'After workspace tree')).toBeFocused();
+      await expectLog(page, 'tree-selection-requests', []);
+      await expectLog(page, 'tree-expansion-requests', []);
+      await expectLog(page, 'tree-activations', []);
+    });
+
+    test(`tree-repair: ${restore} does not move focus back from outside the Root`, async ({ page }) => {
+      const tree = workspace(page);
+      await control(page, unavailable!).click();
+      await tree.focus();
+      await expect(tree).toBeFocused();
+      await control(page, 'After workspace tree').focus();
+      await update(page, restore!);
+      await expect(row(tree, 'guide')).toHaveAttribute('tabindex', '0');
+      await expect(control(page, 'After workspace tree')).toBeFocused();
+      await page.keyboard.press('Shift+Tab');
+      await expect(row(tree, 'guide')).toBeFocused();
     });
   }
 

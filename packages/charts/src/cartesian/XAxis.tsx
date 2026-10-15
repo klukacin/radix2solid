@@ -10,8 +10,8 @@
 // plus `onCleanup` for removal. Defaults are resolved field-by-field to match
 // recharts' `resolveDefaultProps`: explicit `undefined` falls back to defaults.
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createEffect, createMemo, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
+import { createEffect, createMemo, createSignal, Show } from "solid-js";
+import { isServer, type JSX } from "@solidjs/web";
 import { useAppSelector, useAppStore } from "../state/hooks";
 import {
   NiceTicksAlgorithm,
@@ -229,13 +229,16 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
 
   let layerEl: SVGGElement | null = null;
   let labelEl: SVGTextElement | null = null;
+  const [fontRevision, setFontRevision] = createSignal(0);
   createEffect(
     () => ({
       ticks: ticks(), size: size(), height: props.height, label: props.label, id: xAxisId(),
       tickSize: props.tickSize ?? 6, tickMargin: props.tickMargin ?? 2,
+      fontSize: props.fontSize, letterSpacing: props.letterSpacing,
+      fontRevision: fontRevision(),
     }),
     inputs => {
-      if (inputs.height !== "auto" || typeof inputs.label === "function" ||
+      if (isServer || inputs.height !== "auto" || typeof inputs.label === "function" ||
         Array.isArray(inputs.label) || (typeof Node !== "undefined" && inputs.label instanceof Node) ||
         layerEl == null || inputs.ticks == null || inputs.size == null || store == null) return;
       const tickNodes = layerEl.getElementsByClassName("recharts-cartesian-axis-tick-label");
@@ -246,6 +249,25 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
       if (Math.round(inputs.size.height) !== height) {
         store.actions.cartesianAxis.updateXAxisHeight({ id: inputs.id, height });
       }
+      // A completed web font changes live SVG metrics without changing axis props.
+      const fonts = layerEl.ownerDocument.fonts;
+      if (fonts == null) return;
+      let disposed = false;
+      let pendingReady: Promise<FontFaceSet> | undefined;
+      const watchFontCompletion = () => {
+        const ready = fonts.ready;
+        if (ready === pendingReady) return;
+        pendingReady = ready;
+        void ready.then(() => {
+          if (!disposed) setFontRevision(revision => revision + 1);
+        });
+      };
+      fonts.addEventListener("loading", watchFontCompletion);
+      if (fonts.status === "loading") watchFontCompletion();
+      return () => {
+        disposed = true;
+        fonts.removeEventListener("loading", watchFontCompletion);
+      };
     },
   );
 

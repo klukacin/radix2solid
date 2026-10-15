@@ -585,6 +585,21 @@ test('selected Charts measured auto-xaxis uses ticks and actual string label wit
     await expect.poll(geometry).toEqual(before);
     await page.getByRole('button', { name: 'Replace selected chart data', exact: true }).click();
     await expect.poll(geometry).toEqual(before);
+    if (kind === 'plain') {
+      let previous = await geometry();
+      for (const [button, property, value] of [
+        ['Enlarge selected axis font', 'font-size', '40px'],
+        ['Space selected axis letters', 'letter-spacing', '2px'],
+      ] as const) {
+        await page.getByRole('button', { name: button, exact: true }).click();
+        await expect(root.locator('.recharts-cartesian-axis-tick-value').first()).toHaveCSS(property, value);
+        await expect.poll(async () => { const g = await geometry(); return g.plot + g.expected; }).toBe(290);
+        const current = await geometry();
+        expect(current.expected).toBeGreaterThan(previous.expected);
+        expect(current.tickCount).toBe(previous.tickCount);
+        previous = current;
+      }
+    }
   }
 });
 
@@ -593,6 +608,14 @@ test('selected Charts rendered Pie Label Area and bar geometry matches selected 
   await expect(page.locator('.selected-pie-label')).toHaveText('pie:102.5:161:78:156');
   await expect(page.locator('.selected-pie-label')).toHaveAttribute('x', '102.5');
   await expect(page.locator('.selected-pie-label')).toHaveAttribute('y', '161');
+  await page.getByRole('button', { name: 'Zero selected Pie data', exact: true }).click();
+  await expect(page.locator('#chart-selected-pie .recharts-sector')).toHaveCount(0);
+  await expect(page.locator('.selected-pie-label')).toHaveText('pie:102.5:161:78:156');
+  await expect(page.locator('.selected-pie-label')).toHaveAttribute('x', '102.5');
+  await expect(page.locator('.selected-pie-label')).toHaveAttribute('y', '161');
+  await expect(page.locator('.selected-zero-pie-label')).toHaveText('0');
+  await expect(page.locator('.selected-zero-pie-label')).toHaveAttribute('x', '102.5');
+  await expect(page.locator('.selected-zero-pie-label')).toHaveAttribute('y', '161');
   for (const explicit of [false, true]) {
     const custom = page.locator(`#chart-selected-label-${explicit} .selected-custom-label`);
     await expect(custom).toHaveText(explicit ? 'label:17:23:start:end' : 'label:150:150:absent:absent');

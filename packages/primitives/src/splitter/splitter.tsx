@@ -152,29 +152,57 @@ export function Splitter(props: SplitterProps): Element {
   };
   if (!isServer) {
     onCleanup(release);
-    createEffect(() => [node(), version()] as const, ([element]) => {
+    createEffect(() => [node(), version(), orientation(), direction()] as const, ([element]) => {
       if (!element) return;
       validateParts(parts.map(part => part.kind));
       const handle = parts.find(part => part.kind === 'handle')?.node();
-      if (!handle) return;
+      const primary = parts.find(part => part.kind === 'primary')?.node(), secondary = parts.find(part => part.kind === 'secondary')?.node();
+      if (!handle || !primary || !secondary) return;
       for (const part of parts) if (part.node()?.parentElement !== element) throw new Error('Splitter parts must be direct children of their Root.');
       const direct = [...element.children].filter(child => parts.some(part => part.node() === child));
       validateParts(direct.map(child => parts.find(part => part.node() === child)!.kind));
-      let last = '';
+      // Inherited CSS can change gaps without resizing any public part.
+      // One spanning grid item measures a native gap, including percentages and calc().
+      const sensor = element.ownerDocument.createElement('div'), gapSignal = element.ownerDocument.createElement('div');
+      sensor.setAttribute('aria-hidden', 'true'); sensor.inert = true;
+      Object.assign(sensor.style, {
+        all: 'initial', position: 'fixed', left: '0', top: '0', width: '0px', height: '0px',
+        display: 'grid', gridTemplateColumns: '0 0', gridTemplateRows: '0 0', gap: 'inherit',
+        contain: 'strict', overflow: 'hidden', clip: 'rect(0, 0, 0, 0)', visibility: 'hidden', pointerEvents: 'none'
+      });
+      Object.assign(gapSignal.style, {
+        all: 'initial', gridArea: '1 / 1 / 3 / 3', minWidth: '0', minHeight: '0',
+        justifySelf: 'stretch', alignSelf: 'stretch', visibility: 'hidden', pointerEvents: 'none'
+      });
+      sensor.append(gapSignal); element.append(sensor);
+      let last = '', contentWidth: number | undefined, contentHeight = 0;
       const measure = () => {
+        if (contentWidth === undefined) return;
         const style = getComputedStyle(element), horizontal = orientation() === 'horizontal';
         const rect = element.getBoundingClientRect(), h = handle.getBoundingClientRect();
+        const p = primary.getBoundingClientRect(), s = secondary.getBoundingClientRect();
         const inset = horizontal ? ['borderLeftWidth', 'borderRightWidth', 'paddingLeft', 'paddingRight'] : ['borderTopWidth', 'borderBottomWidth', 'paddingTop', 'paddingBottom'];
-        const gap = parseFloat(horizontal ? style.columnGap : style.rowGap) || 0;
-        const a = Math.max(0, (horizontal ? rect.width : rect.height) - inset.reduce((sum, key) => sum + (parseFloat(Reflect.get(style, key)) || 0), 0) - (horizontal ? h.width : h.height) - gap * 2);
-        const signature = [rect.x, rect.y, rect.width, rect.height, h.width, h.height, gap, a].join(':');
+        const content = horizontal ? contentWidth : contentHeight;
+        const border = content + inset.reduce((sum, key) => sum + (parseFloat(Reflect.get(style, key)) || 0), 0);
+        const scale = border > 0 ? (horizontal ? rect.width : rect.height) / border : 0;
+        const gaps = horizontal
+          ? Math.max(h.left - p.right, p.left - h.right) + Math.max(s.left - h.right, h.left - s.right)
+          : Math.max(h.top - p.bottom, p.top - h.bottom) + Math.max(s.top - h.bottom, h.top - s.bottom);
+        const a = scale > 0 ? Math.max(0, content - ((horizontal ? h.width : h.height) + gaps) / scale) : 0;
+        const signature = [rect.x, rect.y, rect.width, rect.height, h.width, h.height, gaps, a].join(':');
         if (last && last !== signature) release();
         last = signature; setAvailable(Number.isFinite(a) ? a : 0);
       };
-      const observer = new ResizeObserver(measure); observer.observe(element); observer.observe(handle);
+      const observer = new ResizeObserver(entries => {
+        for (const entry of entries) if (entry.target === element) {
+          contentWidth = entry.contentRect.width; contentHeight = entry.contentRect.height;
+          sensor.style.width = `${contentWidth}px`; sensor.style.height = `${contentHeight}px`;
+        }
+        measure();
+      });
+      observer.observe(element); observer.observe(handle, { box: 'border-box' }); observer.observe(gapSignal);
       const mutations = new MutationObserver(measure); mutations.observe(element, { attributes: true, attributeFilter: ['style', 'class', 'dir'] }); mutations.observe(handle, { attributes: true, attributeFilter: ['style', 'class'] });
-      measure();
-      return () => { observer.disconnect(); mutations.disconnect(); release(); };
+      return () => { observer.disconnect(); mutations.disconnect(); release(); sensor.remove(); };
     }, { transparent: true });
     createEffect(() => [orientation(), direction(), unit(), props.disabled, panel('primary')?.minSize, panel('primary')?.maxSize, panel('secondary')?.minSize, panel('secondary')?.maxSize, collapsed()] as const, () => { release(); }, { transparent: true });
     createEffect(size, value => { if (drag && !requesting && drag.accepted !== value) release(); }, { transparent: true });

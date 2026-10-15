@@ -10,6 +10,7 @@ export function Splitters(): Element {
   const [size, setSize] = createSignal(400), [collapsed, setCollapsed] = createSignal(false);
   const [mode, setMode] = createSignal<'accept' | 'refuse' | 'delay' | 'round'>('accept'), [acceptCollapse, setAcceptCollapse] = createSignal(true);
   const [log, setLog] = createSignal<Event[]>([]), [percentLog, setPercentLog] = createSignal<Event[]>([]);
+  const [verticalLog, setVerticalLog] = createSignal<Event[]>([]), [rtlLog, setRtlLog] = createSignal<Event[]>([]);
   const [width, setWidth] = createSignal(1080), [axis, setAxis] = createSignal<'horizontal' | 'vertical'>('horizontal');
   const [rtl, setRtl] = createSignal(false), [unit, setUnit] = createSignal<'px' | '%'>('px');
   const [pmin, setPmin] = createSignal(100), [pmax, setPmax] = createSignal(800), [smin, setSmin] = createSignal(300), [smax, setSmax] = createSignal<number | undefined>(700);
@@ -84,12 +85,14 @@ export function Splitters(): Element {
         <Splitter.Panel side="secondary" id="splitter-percent-secondary" minSize={percentSecondaryMin()} maxSize={percentMax()}>Percentage secondary</Splitter.Panel>
       </Splitter.Root>
       <output id="splitter-percent-events">{JSON.stringify(percentLog())}</output>
-      <Splitter.Root id="splitter-vertical" unit="px" defaultSize={400} orientation="vertical" style={rootStyle(true)}>
+      <Splitter.Root id="splitter-vertical" unit="px" defaultSize={400} orientation="vertical" style={rootStyle(true)} onSizeChange={v => setVerticalLog(previous => [...previous, ['change', v]])} onSizeCommit={v => setVerticalLog(previous => [...previous, ['commit', v]])}>
         <Splitter.Panel side="primary" id="splitter-vertical-primary" minSize={100} maxSize={800}>Vertical primary</Splitter.Panel><Splitter.Handle aria-label="Vertical workspace" style={handleStyle(true)} /><Splitter.Panel side="secondary" id="splitter-vertical-secondary" minSize={300} maxSize={700}>Vertical secondary</Splitter.Panel>
       </Splitter.Root>
-      <Splitter.Root id="splitter-rtl" unit="px" defaultSize={400} dir="rtl" style={rootStyle()}>
+      <output id="splitter-vertical-events">{JSON.stringify(verticalLog())}</output>
+      <Splitter.Root id="splitter-rtl" unit="px" defaultSize={400} dir="rtl" style={rootStyle()} onSizeChange={v => setRtlLog(previous => [...previous, ['change', v]])} onSizeCommit={v => setRtlLog(previous => [...previous, ['commit', v]])}>
         <Splitter.Panel side="primary" id="splitter-rtl-primary" minSize={100} maxSize={800}>RTL primary</Splitter.Panel><Splitter.Handle aria-label="RTL workspace" style={handleStyle()} /><Splitter.Panel side="secondary" id="splitter-rtl-secondary" minSize={300} maxSize={700}>RTL secondary</Splitter.Panel>
       </Splitter.Root>
+      <output id="splitter-rtl-events">{JSON.stringify(rtlLog())}</output>
       <Splitter.Root id="splitter-default" style={rootStyle()}>
         <Splitter.Panel side="primary" id="splitter-default-primary">Default half</Splitter.Panel><Splitter.Handle aria-label="Default workspace" style={handleStyle()} /><Splitter.Panel side="secondary" id="splitter-default-secondary">Default remainder</Splitter.Panel>
       </Splitter.Root>

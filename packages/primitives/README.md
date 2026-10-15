@@ -35,7 +35,9 @@ Parts: Root, Input, Trigger, Portal, Content, List, Item, ItemText, ItemIndicato
 
 `Command.Root` supplies `search`, `defaultSearch`, `onSearchChange` and `loop`; the caller owns filtering, ranking and remote results. Parts are Root, Input, List, Group, Label, Item and Empty, with matching `/command` exports, props and `createCommandScope`. Items require `value` and `textValue`; `onSelect(event: Event)` is cancellable. Command has no selected value, form field, popup or global-shortcut API. In a dialog recipe, guard the action first, then request close and run the action; controlled refusal to close must not erase an accepted action.
 
-Both families use native target-factory `asChild`, real refs, consumer-first event cancellation and IME-safe input editing. They do not clone elements. Browser focus/ARIA checks are not screen-reader certification.
+Both families use native target-factory `asChild`, real refs, consumer-first event cancellation and IME-safe input editing. Shift+Up/Down keep native text selection. List, Item and Label retain their component-owned IDs even when a target-factory child supplies an ID, keeping controls, active descendants and group labels connected; unrelated child props retain normal Slot precedence. They do not clone elements. Browser focus/ARIA checks are not screen-reader certification.
+
+`Empty` is client-resolved from mounted, visible rows, including disabled rows. Server rendering does not announce an empty result before client registration, even for an actually empty list. Accepted Command search changes reset to the first enabled result after the caller's rendered update; if results are empty or all disabled, that intent waits for enabled results without requiring another query. Ordinary object replacement and reordering preserve an existing active key; initial results alone do not create one.
 
 ## Splitter
 
@@ -45,11 +47,15 @@ Both families use native target-factory `asChild`, real refs, consumer-first eve
 
 **SSR sizing has two phases.** Before measurement, percentage tracks use deterministic native fractions and ARIA reports finite own-bound provisional values; infeasible percentage bounds are not promised exact pre-JavaScript pixels. Pixel SSR reserves the supplied own-bound-clamped primary and a bounded native secondary remainder, not the complete cross-panel feasible interval. After positive measurement, available-space conversion, both-panel bounds and overflow/underflow are exact. Measurement can reconcile panel sizing without user proposals or commits, while preserving nodes and Root/Handle structure. For example, primary100/secondary-max700 with available1000 can render100/700 on the server then reconcile to300/700. This is not an N-pane solver or assistive-technology certification.
 
+On the client, Root appends one private measurement node after its three semantic parts so inherited or changed CSS gaps update available space without proposals or commits. It is hidden, inert, `aria-hidden`, unfocusable and removed with Root; it is not a part. Do not count Root children or style the secondary Panel through `:last-child`.
+
 ## Tree
 
 Import the `Tree` namespace from `@wsagency/radix2solid-primitives` or parts from `/tree`. Parts are `Root`, `Item`, `ItemText`, `ItemIndicator`, `ItemGroup`, and `ExpandTrigger`; the family also exports their `Tree*` names, props and `createTreeScope`.
 
 Use a named Root with controlled `value`/`onValueChange` and independent `expandedValues`/`onExpandedValuesChange`, or their initial-only defaults. Each Item requires a unique nonempty `value` and explicit `textValue`; declare branches with `hasChildren` and nest descendants inside ItemGroup. Partial trees may supply native `aria-level`, `aria-posinset` and `aria-setsize`. Selection, focus and expansion are independent: Space selects, Enter activates through cancellable `onActivate`, and logical Left/Right navigate or expand branches. `selectionMode="none"` retains the selected key but suppresses selection semantics and requests.
+
+Collapse, removal and disabling repair focus only while focus is inside Root. After an explicit blur or outside focus, they update the tab stop without moving focus. When the tree was empty or fully disabled and Root itself holds focus, restoring an enabled item hands focus to the preferred item.
 
 Style focused Items separately from `[aria-selected="true"]` selection; use native focus-visible styling for keyboard focus. ItemGroup supports `forceMount`, but collapsed retained descendants remain outside navigation. Native target-factory `asChild` and refs follow the shared composition contract. For ordinary sidebar navigation, prefer disclosure lists rather than a tree widget. DOM/browser checks do not constitute screen-reader interoperability certification.
 

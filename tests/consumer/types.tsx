@@ -754,19 +754,28 @@ export const nativeInteractiveThemes = <Themes.Theme>
   <Themes.Tooltip content="Invalid target"><button>Target</button></Themes.Tooltip>
 </Themes.Theme>;
 
+const chartLegendPosition: Charts.CartesianPosition = 'insideTopRight';
+const chartLegendCoordinates: Charts.CartesianPosition = { x: '25%', y: '75%' };
 export const nativeCharts = <Charts.ResponsiveContainer width="100%" height={300} initialDimension={{ width: 500, height: 300 }}
   onResize={(width, height) => { const dimensions: number[] = [width, height]; void dimensions; }}>
   <Charts.ComposedChart data={[{ name: 'A', value: 10 }]} syncId="typed" syncMethod="value" accessibilityLayer title="Typed chart">
-    <Charts.XAxis dataKey="name" scale="band" interval={0} />
+    <Charts.XAxis dataKey="name" scale="band" interval={0} height="auto" />
     <Charts.YAxis domain={[0, 50]} allowDataOverflow />
     <Charts.Bar dataKey="value" stackId="total" isAnimationActive={false}
       shape={props => <Charts.Rectangle {...props} />}><Charts.Cell fill="#123456" /></Charts.Bar>
     <Charts.Line dataKey="value" isAnimationActive="auto" onAnimationEnd={() => {}} />
     <Charts.Tooltip content={props => <span>{props.active ? String(props.label) + ':' + props.payload.map(item => item.value).join(',') : ''}</span>} />
-    <Charts.Legend /><Charts.Brush onChange={range => { const start: number | undefined = range.startIndex; void start; }} />
+    <Charts.Legend position={chartLegendPosition} offset={10} />
+    <Charts.Legend position={chartLegendCoordinates} offset={5} />
+    <Charts.Brush onChange={range => { const start: number | undefined = range.startIndex; void start; }} />
   </Charts.ComposedChart>
 </Charts.ResponsiveContainer>;
 // @ts-expect-error Chart dimensions accept numbers or percentages, not arbitrary CSS lengths.
 export const invalidFixedChart = <Charts.LineChart width="wide" height={300} />;
 // @ts-expect-error Treemap does not implement a separate update-animation toggle.
 export const invalidTreemapUpdateAnimation = <Charts.Treemap isUpdateAnimationActive />;
+export const nativeSankey = <Charts.Sankey width={500} height={300} accessibilityLayer
+  title="Typed flow" desc="Ten units from source to target"
+  data={{ nodes: [{ name: 'Source' }, { name: 'Target' }], links: [{ source: 0, target: 1, value: 10 }] }} />;
+// @ts-expect-error Legend positions use the public CartesianPosition union.
+export const invalidLegendPosition = <Charts.Legend position="unknown" />;

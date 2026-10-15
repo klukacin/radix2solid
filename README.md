@@ -1,8 +1,8 @@
 # Radix2Solid
 
-Native Solid 2 port of Radix Primitives, Radix Icons and Radix Themes, with released Radix Colors 3.0.0 reused unchanged, plus Charts, a Solid 2 port of the Recharts component model derived from solid-recharts. This is an independent, unofficial project: it is not affiliated with or endorsed by Radix, WorkOS, Modulz, Recharts or solid-recharts. The MIT license covers the code only and grants no rights to their names, logos or trademarks.
+Native Solid 2 port of Radix Primitives, Radix Icons and Radix Themes, with released Radix Colors 3.0.0 reused unchanged, plus Charts, a Solid 2 port of the Recharts component model derived from solid-recharts, and Icons Extra, a separate package of original artwork. This is an independent, unofficial project: it is not affiliated with or endorsed by Radix, WorkOS, Modulz, Recharts or solid-recharts. The MIT license covers the project's code and its original package artwork; it grants no rights to those projects' names, logos or trademarks.
 
-The four packages keep their native API under the `@wsagency` npm scope:
+The five packages keep their native API under the `@wsagency` npm scope:
 
 - `@wsagency/radix2solid-primitives` — native API and migration notes: [`packages/primitives/README.md`](packages/primitives/README.md)
 - `@wsagency/radix2solid-icons` — all 332 generated icons, SVG download subpaths and Colors 3.0.0 reuse: [`packages/icons/README.md`](packages/icons/README.md)
@@ -77,4 +77,4 @@ Actual Announce and Toast/layer speech was exercised with isolated Orca/AT-SPI/S
 
 ## License
 
-MIT, Copyright (c) 2026 Radix2Solid contributors. Adapted and reused upstream software keeps its original MIT copyright notices and full license texts (Radix Primitives, Icons and Themes: WorkOS; Radix Colors: Modulz, WorkOS and Radix; Charts: solid-recharts, Thomas Guehenneux, and Recharts); see [`LICENSE`](LICENSE) and each package's `LICENSE`. The Charts package's `NOTICE` reproduces the ISC licenses of its resolved D3 dependencies.
+MIT, Copyright (c) 2026 Radix2Solid contributors, covering the project's code and the original `@wsagency/radix2solid-icons-extra` SVG artwork. Adapted and reused upstream software, including generator and helper code, keeps its original MIT copyright notices and full license texts (Radix Primitives, Icons and Themes: WorkOS; Radix Colors: Modulz, WorkOS and Radix; Charts: solid-recharts, Thomas Guehenneux, and Recharts); see [`LICENSE`](LICENSE) and each package's `LICENSE`. The Charts package's `NOTICE` reproduces the ISC licenses of its resolved D3 dependencies. No license grants rights to any trademark.

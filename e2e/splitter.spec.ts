@@ -84,12 +84,51 @@ test.describe('native Splitter', () => {
     expect(await events(page)).toEqual([]);
   });
 
+  test('splitter-geometry: percentage CSS gaps use actual space without callbacks', async ({ page }) => {
+    const handle = pixelHandle(page);
+    await expect(handle).toHaveAttribute('aria-valuemax', '700');
+    await root(page).evaluate(node => { node.style.columnGap = '10%'; });
+    await expectSize(primary(page), 400); await expectSize(secondary(page), 428);
+    await expect(handle).toHaveAttribute('aria-valuemin', '128');
+    await expect(handle).toHaveAttribute('aria-valuemax', '528');
+    const [first, divider, last] = await Promise.all([primary(page), handle, secondary(page)].map(node => node.boundingBox()));
+    expect(divider!.x - first!.x - first!.width).toBeCloseTo(106, 1);
+    expect(last!.x - divider!.x - divider!.width).toBeCloseTo(106, 1);
+    expect(await events(page)).toEqual([]);
+  });
+
+  test('splitter-geometry: inherited gaps invalidate transformed roots and zero-width handles', async ({ page }) => {
+    const handle = pixelHandle(page);
+    await expect(handle).toHaveAttribute('aria-valuemax', '700');
+    const position = await root(page).evaluate(node => getComputedStyle(node).position);
+    await root(page).evaluate(node => {
+      node.style.gap = 'var(--splitter-test-gap, 20px)';
+      node.style.transform = 'scale(0.5)'; node.style.transformOrigin = '0 0';
+    });
+    await expectSize(primary(page), 200);
+    await root(page).evaluate(node => { node.parentElement!.style.setProperty('--splitter-test-gap', '40px'); });
+    await expectSize(secondary(page), 280);
+    await expect(handle).toHaveAttribute('aria-valuenow', '400');
+    await expect(handle).toHaveAttribute('aria-valuemin', '260');
+    await expect(handle).toHaveAttribute('aria-valuemax', '660');
+    await handle.evaluate(node => { node.style.width = '0px'; });
+    await expectSize(secondary(page), 290);
+    await root(page).evaluate(node => { node.parentElement!.style.setProperty('--splitter-test-gap', '60px'); });
+    await expectSize(handle, 0); await expectSize(secondary(page), 270);
+    await expect(handle).toHaveAttribute('aria-valuemax', '640');
+    expect(await root(page).evaluate(node => getComputedStyle(node).position)).toBe(position);
+    expect(await root(page).evaluate(node => node.scrollWidth <= node.clientWidth)).toBe(true);
+    expect(await events(page)).toEqual([]);
+  });
+
   test('splitter-composition: custom target provider, real refs and single host survive updates', async ({ page }) => {
     await expect(pixelHandle(page)).toBeVisible({ timeout: 1500 });
     await expect(page.locator('#splitter-host-context')).toHaveText('inside splitter host');
     await expect(page.locator('#splitter-pixel-refs')).toHaveText('actual hosts');
     await expect(root(page)).toHaveCount(1); await expect(primary(page)).toHaveJSProperty('tagName', 'ARTICLE');
     const hosts = await Promise.all([root(page), primary(page), pixelHandle(page)].map(node => node.elementHandle()));
+    const measurement = await root(page).locator(':scope > [aria-hidden="true"][inert]').elementHandle();
+    expect(measurement).not.toBeNull();
     await pixelHandle(page).focus(); await pixelHandle(page).press('ArrowRight');
     await expectSize(primary(page), 410);
     expect(await hosts[0]!.evaluate(node => node === document.querySelector('#splitter-pixel'))).toBe(true);
@@ -98,6 +137,7 @@ test.describe('native Splitter', () => {
     await button(page, 'Unmount pixel splitter').click();
     await expect(root(page)).toHaveCount(0);
     for (const host of hosts) expect(await host!.evaluate(node => node.isConnected)).toBe(false);
+    expect(await measurement!.evaluate(node => node.parentElement)).toBeNull();
     await button(page, 'Remount pixel splitter').click();
     await expect(root(page)).toHaveCount(1);
     await expect(primary(page)).toHaveJSProperty('tagName', 'ARTICLE');
@@ -136,6 +176,15 @@ test.describe('native Splitter', () => {
       await expect(handle).toHaveAttribute('aria-disabled', 'true'); await orderedAria(handle);
       await handle.focus(); await handle.press('Enter'); await handle.press('ArrowRight');
       expect(await events(page, 'percent')).toEqual([]);
+      await root(page, 'percent').evaluate(node => {
+        node.style.gap = 'var(--splitter-test-gap, 20px)';
+        node.parentElement!.style.setProperty('--splitter-test-gap', '40px');
+      });
+      await expectSize(primary(page, 'percent'), state === 'overflow' ? 576 : 192);
+      await expectSize(secondary(page, 'percent'), state === 'overflow' ? 480 : 288);
+      await expect(root(page, 'percent')).toHaveAttribute('data-constraint-state', state);
+      await expect(handle).toHaveAttribute('aria-disabled', 'true');
+      expect(await events(page, 'percent')).toEqual([]);
     });
   }
 
@@ -170,6 +219,31 @@ test.describe('native Splitter', () => {
         await handle.focus(); await handle.press('ArrowRight');
         await expectSize(primary(page, example.id), 410);
         expect(await events(page, example.id)).toEqual([['change', 41], ['commit', 41]]);
+      }
+      if (example.id !== 'percent') {
+        const before = await events(page, example.id);
+        const accepted = example.id === 'rtl' ? 390 : 410;
+        expect(before).toEqual([['change', accepted], ['commit', accepted]]);
+        await root(page, example.id).evaluate(node => { node.style.gap = 'var(--splitter-test-gap, 20px)'; });
+        await root(page, example.id).evaluate(node => { node.parentElement!.style.setProperty('--splitter-test-gap', '40px'); });
+        await expectSize(primary(page, example.id), example.id === 'rtl' ? 390 : 410, example.axis);
+        await expectSize(secondary(page, example.id), example.id === 'rtl' ? 570 : 550, example.axis);
+        await orderedAria(handle);
+        expect(await events(page, example.id)).toEqual(before);
+        for (const boundary of [
+          { key: 'Home', attribute: 'aria-valuemin', primary: 260, secondary: 700 },
+          { key: 'End', attribute: 'aria-valuemax', primary: 660, secondary: 300 }
+        ]) {
+          await handle.press(boundary.key);
+          await expectSize(primary(page, example.id), boundary.primary, example.axis);
+          await expectSize(secondary(page, example.id), boundary.secondary, example.axis);
+          await orderedAria(handle);
+          const [now, bound] = await handle.evaluate((node, attribute) => ['aria-valuenow', attribute].map(name => Number(node.getAttribute(name))), boundary.attribute);
+          expect(now).toBe(bound);
+          expect(Math.abs(now! - await extent(primary(page, example.id), example.axis))).toBeLessThan(0.75);
+          before.push(['change', now!], ['commit', now!]);
+          expect(await events(page, example.id)).toEqual(before);
+        }
       }
     });
   }

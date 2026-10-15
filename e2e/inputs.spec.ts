@@ -280,6 +280,20 @@ test.describe('native Inputs', () => {
     await expect(callbacks).toHaveText(before!);
   });
 
+  test('reset-data: unmount cancels a reset already queued by the owning form', async ({ page }) => {
+    await page.getByRole('button', { name: 'Set reset Beta', exact: true }).click();
+    await expect(page.getByRole('combobox', { name: 'Reset choice', exact: true })).toHaveValue('Beta');
+    const callbacks = page.getByRole('status', { name: 'Reset callback count', exact: true });
+    const before = await callbacks.textContent();
+    await page.getByRole('form', { name: 'External choice form', exact: true }).evaluate((form: HTMLFormElement) => {
+      form.reset();
+      [...document.querySelectorAll('button')].find(button => button.textContent === 'Unmount reset choice')!.click();
+    });
+    await expect(page.getByRole('combobox', { name: 'Reset choice', exact: true })).toHaveCount(0);
+    await page.evaluate(() => new Promise<void>(resolve => setTimeout(resolve, 0)));
+    await expect(callbacks).toHaveText(before!);
+  });
+
   test('reset-data: unknown initial key has no invented label and uncontrolled data loss clears without selecting a neighbor', async ({ page }) => {
     const unknown = page.getByRole('combobox', { name: 'Unknown choice', exact: true });
     await expect(unknown).toHaveValue('');
@@ -320,6 +334,23 @@ test.describe('native Inputs', () => {
     await input.fill('no matches');
     await expectNoActive(input);
     await expect(page.getByRole('status', { name: 'Lifecycle empty', exact: true })).toBeVisible();
+  });
+
+  test('active-lifecycle: object replacement and data reorder preserve the active key', async ({ page }) => {
+    const input = page.getByRole('combobox', { name: 'Lifecycle choice', exact: true });
+    const list = page.getByRole('listbox', { name: 'Lifecycle suggestions', exact: true });
+    await input.press('ArrowDown');
+    await input.press('ArrowDown');
+    const beta = list.getByRole('option', { name: 'Beta', exact: true });
+    await expectActive(input, beta);
+    for (const name of ['Replace choice objects', 'Reverse choice objects']) {
+      // Invoke the public parent control without an outside-pointer dismissal.
+      await page.getByRole('button', { name, exact: true }).evaluate((button: HTMLButtonElement) => button.click());
+      await expectActive(input, beta);
+    }
+    await page.getByRole('button', { name: 'Show disabled choices only', exact: true }).evaluate((button: HTMLButtonElement) => button.click());
+    await expectNoActive(input);
+    await expect(page.getByRole('status', { name: 'Lifecycle empty', exact: true })).toBeHidden();
   });
 
   test('active-lifecycle: opening upward reaches the last result, clamps and scrolls without moving focus', async ({ page }) => {
@@ -393,6 +424,58 @@ test.describe('native Inputs', () => {
     await expect(input).toHaveAttribute('aria-expanded', 'false');
     await expect(input).toHaveValue('');
   });
+  test('input-editing: shifted vertical arrows match native selection without moving either cursor', async ({ page }) => {
+    await page.evaluate(() => {
+      const input = document.createElement('input');
+      input.id = 'shift-selection-reference';
+      document.body.append(input);
+    });
+    const reference = page.locator('#shift-selection-reference');
+    const selection = (node: HTMLInputElement) => [node.selectionStart, node.selectionEnd, node.selectionDirection];
+    try {
+      for (const name of ['Lifecycle choice', 'Command search']) for (const dir of ['ltr', 'rtl']) for (const key of ['Shift+ArrowUp', 'Shift+ArrowDown']) {
+        await reference.fill('Hello world');
+        await reference.evaluate((node: HTMLInputElement, direction) => { node.dir = direction; node.setSelectionRange(5, 5); }, dir);
+        await reference.press(key);
+        const expected = await reference.evaluate(selection);
+        const input = page.getByRole('combobox', { name, exact: true });
+        await input.fill('Hello world');
+        await expect(input).toHaveValue('Hello world');
+        await input.evaluate((node: HTMLInputElement, direction) => { node.dir = direction; node.setSelectionRange(5, 5); }, dir);
+        const active = await input.getAttribute('aria-activedescendant'), expanded = await input.getAttribute('aria-expanded');
+        await input.press(key);
+        expect(await input.evaluate(selection), `${name} ${dir} ${key}`).toEqual(expected);
+        expect(await input.getAttribute('aria-activedescendant')).toBe(active);
+        expect(await input.getAttribute('aria-expanded')).toBe(expanded);
+        await expect(input).toHaveValue('Hello world');
+      }
+      await expect(page.getByRole('status', { name: 'Command actions', exact: true })).toHaveText('alpha:0,beta:0');
+    } finally { await reference.evaluate(node => node.remove()); }
+  });
+
+  test('input-native-targets: child IDs cannot break live list, active-option or group-label relationships', async ({ page }) => {
+    for (const [name, results, group, first] of [
+      ['Native choice', 'Native suggestions', 'Native choices', 'Native Alpha button'],
+      ['Native command search', 'Native command results', 'Native commands', 'Native action button']
+    ]) {
+      const input = page.getByRole('combobox', { name, exact: true });
+      const list = page.getByRole('listbox', { name: results, exact: true });
+      await input.press('ArrowDown');
+      await expectActive(input, list.getByRole('option', { name: first, exact: true }));
+      expect(await input.getAttribute('aria-controls')).toBe(await list.getAttribute('id'));
+      expect(await input.evaluate(node => document.getElementById(node.getAttribute('aria-controls')!)?.getAttribute('role'))).toBe('listbox');
+      await expect(list.getByRole('group', { name: group, exact: true })).toBeVisible();
+    }
+  });
+
+  test('empty-results: client settlement distinguishes absent rows from disabled rows', async ({ page }) => {
+    for (const family of ['commands', 'choices']) for (const [state, count] of [['populated', 3], ['empty', 0], ['disabled', 1]] as const) {
+      const list = page.getByRole('listbox', { name: `Server ${state} ${family}`, exact: true });
+      await expect(list.getByRole('option')).toHaveCount(count);
+      await expect(page.getByRole('status', { name: `Server ${state} ${family} empty`, exact: true })).toHaveCount(state === 'empty' ? 1 : 0);
+    }
+  });
+
 
   test('filtering: trimmed case-insensitive matching, replacement filter, duplicate labels and disabled-only results', async ({ page }) => {
     const input = page.getByRole('combobox', { name: 'Lifecycle choice', exact: true });
@@ -587,6 +670,50 @@ test.describe('native Inputs', () => {
     await expect(input).toHaveValue(' ');
   });
 
+  test('command-replace: synchronous caller filtering resets after replacement and preserves manual identity afterward', async ({ page }) => {
+    const input = page.getByRole('combobox', { name: 'Command search', exact: true });
+    const list = page.getByRole('listbox', { name: 'Command results', exact: true });
+    await expectNoActive(input);
+    await page.getByLabel('Filter command results', { exact: true }).check();
+    await input.fill('Beta');
+    const beta = list.getByRole('option', { name: 'Run Beta', exact: true });
+    await expect(list.getByRole('option')).toHaveCount(1);
+    await expectActive(input, beta);
+    await input.press('Enter');
+    await expect(page.getByRole('status', { name: 'Command actions', exact: true })).toHaveText('alpha:0,beta:1');
+    await page.getByLabel('Accept command search', { exact: true }).uncheck();
+    await input.fill('Alpha');
+    await expect(input).toHaveValue('Beta');
+    await expectActive(input, beta);
+    await page.getByLabel('Filter command results', { exact: true }).uncheck();
+    await input.press('ArrowUp');
+    await input.press('ArrowDown');
+    await expectActive(input, beta);
+    for (const name of ['Replace command objects', 'Reverse command objects']) {
+      await page.getByRole('button', { name, exact: true }).click();
+      await input.focus();
+      await expectActive(input, beta);
+    }
+    await expect(page.getByRole('status', { name: 'Command submissions', exact: true })).toHaveText('0');
+  });
+
+  for (const pending of ['Remove all commands', 'Show disabled commands only']) {
+    test(`command-replace: accepted search waits through ${pending} for results without a second query`, async ({ page }) => {
+      const input = page.getByRole('combobox', { name: 'Command search', exact: true });
+      const list = page.getByRole('listbox', { name: 'Command results', exact: true });
+      await page.getByRole('button', { name: 'Remove all commands', exact: true }).click();
+      await page.getByRole('button', { name: 'Deliver remote commands', exact: true }).click();
+      await expectNoActive(input);
+      await page.getByRole('button', { name: pending, exact: true }).click();
+      await input.fill('remote');
+      await expectNoActive(input);
+      await page.getByRole('button', { name: 'Deliver remote commands', exact: true }).click();
+      await input.focus();
+      await expect(input).toHaveValue('remote');
+      await expectActive(input, list.getByRole('option', { name: 'Remote first', exact: true }));
+    });
+  }
+
   test('command-native-targets: button and anchor defaults cannot duplicate or bypass cancelled actions', async ({ page }) => {
     const input = page.getByRole('combobox', { name: 'Native command search', exact: true });
     const list = page.getByRole('listbox', { name: 'Native command results', exact: true });
@@ -674,6 +801,9 @@ test.describe('native Inputs', () => {
 
 test('ssr-hydration: data-defined labels and stale-key omission survive node-preserving hydration', async ({ page }, info) => {
   test.skip(info.project.name.endsWith('csr'), 'Server HTML and hydration are SSR-only; interactions run in both projects.');
+  const diagnostics: string[] = [];
+  page.on('pageerror', error => diagnostics.push(error.message));
+  page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') diagnostics.push(message.text()); });
   let release!: () => void;
   const held = new Promise<void>(resolve => { release = resolve; });
   await page.route(/\/(src\/entry-client\.tsx|assets\/.*\.js)(\?.*)?$/, async route => { await held; await route.continue(); });
@@ -696,6 +826,13 @@ test('ssr-hydration: data-defined labels and stale-key omission survive node-pre
     const id = await input.getAttribute('id');
     expect(id).toBeTruthy();
     await expect(page.getByRole('listbox', { name: 'Draft suggestions', exact: true })).toHaveCount(0);
+    const serverLists = await page.locator('[data-server-result]').elementHandles();
+    expect(serverLists).toHaveLength(6);
+    await expect(page.locator('[data-server-empty]')).toHaveCount(0);
+    await expect(page.getByRole('status', { name: 'No commands', exact: true })).toHaveCount(0);
+    for (const family of ['commands', 'choices']) for (const [state, count] of [['populated', 3], ['empty', 0], ['disabled', 1]] as const) {
+      await expect(page.getByRole('listbox', { name: `Server ${state} ${family}`, exact: true }).getByRole('option')).toHaveCount(count);
+    }
     release();
     // The existing gallery ref output is the hydration boundary, not a test-only timer.
     await expect(page.locator('#refs')).toHaveText('same host');
@@ -703,9 +840,15 @@ test('ssr-hydration: data-defined labels and stale-key omission survive node-pre
     await expect(input).toHaveAttribute('id', id!);
     await expect(input).toHaveValue('Alpha');
     await expectInvalid(draft);
+    for (const list of serverLists) expect(await list.evaluate(node => node.isConnected)).toBe(true);
+    await expect(page.locator('[data-server-empty]')).toHaveCount(2);
+    for (const family of ['commands', 'choices']) for (const state of ['populated', 'empty', 'disabled']) {
+      await expect(page.getByRole('status', { name: `Server ${state} ${family} empty`, exact: true })).toHaveCount(state === 'empty' ? 1 : 0);
+    }
     await page.getByRole('button', { name: 'Toggle draft suggestions', exact: true }).click();
     await expect(input).toHaveAttribute('aria-expanded', 'true');
     expect(await input.evaluate((current, server) => current === server, node)).toBe(true);
     await expect(input).toHaveAccessibleDescription('Choose an existing item; drafts are not submitted.');
+    expect(diagnostics).toEqual([]);
   } finally { release(); }
 });

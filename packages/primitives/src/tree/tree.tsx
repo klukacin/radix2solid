@@ -196,6 +196,9 @@ export function Tree(props: TreeProps): Element {
         setCurrent(target?.item);
         if (affected) focus(target?.node ?? root, false, false);
       }
+      if (focusWithin && live.length && !previous.some(entry => entry.visible && entry.enabled) && activeElement(root.ownerDocument) === root) {
+        focus(live.find(entry => entry.item === tabStop())?.node);
+      }
       previous = next;
     }, { transparent: true });
   }
@@ -208,11 +211,14 @@ export function Tree(props: TreeProps): Element {
       focusWithin = true;
       if (event.target === event.currentTarget) focus(available().find(entry => entry.item === tabStop())?.node);
     }),
-    onBlur: composeEventHandlers<FocusEvent>(() => props.onBlur, event => {
+    // Native blur does not bubble; subtree focus ownership follows focusout.
+    onFocusOut: composeEventHandlers<FocusEvent>(() => props.onFocusOut, event => {
       if (!(event.currentTarget as HTMLElement).contains(event.relatedTarget as Node | null)) {
         resetSearch();
-        // Removal may blur to nowhere before repair; a real outside focus is tracked on document.
-        if (event.relatedTarget) focusWithin = false;
+        const departing = current(), registered = departing ? keys.get(departing.key()) : undefined;
+        // A live row's explicit blur ends ownership; invalidation may blur before focus repair.
+        if (event.relatedTarget || event.target === event.currentTarget ||
+          departing && registered?.isConnected && registered.contains(event.target as Node) && departing.visible() && !departing.disabled()) focusWithin = false;
       }
     }),
     onCompositionStart: composeEventHandlers<CompositionEvent>(() => props.onCompositionStart, () => { context.composing = true; }),

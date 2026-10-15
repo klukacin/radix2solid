@@ -289,22 +289,33 @@ test('selected Charts SSR Sankey exposes accessible SVG title and description', 
   assert.match(html, /<desc\b[^>]*>Source sends ten units<\/desc>/);
 });
 
-test('selected Charts SSR Pie children receive computed percentage radii', () => {
-  const html = renderToString(() => createComponent(PieChart, {
-    width: 400, height: 400,
-    get children() { return createComponent(Pie, {
-      data, dataKey: 'value', cx: '25%', cy: '40%', innerRadius: '40%', outerRadius: '80%', isAnimationActive: false,
-      get children() { return createComponent(Label, {
-        position: 'center',
-        content: props => {
-          const box = props.viewBox as { cx?: number; cy?: number; innerRadius?: number; outerRadius?: number };
-          return createComponent(Text, { x: props.x, y: props.y, children: `pie:${box.cx}:${box.cy}:${box.innerRadius}:${box.outerRadius}` });
-        },
+test('selected Charts SSR Pie children retain configured geometry for positive and zero data', () => {
+  for (const rows of [data, [{ value: 0 }]]) {
+    const html = renderToString(() => createComponent(PieChart, {
+      width: 400, height: 400,
+      get children() { return createComponent(Pie, {
+        data: rows, dataKey: 'value', cx: '25%', cy: '40%', innerRadius: '40%', outerRadius: '80%', isAnimationActive: false,
+        get children() { return [
+          createComponent(Label, {
+            position: 'center',
+            content: props => {
+              const box = props.viewBox as { cx?: number; cy?: number; innerRadius?: number; outerRadius?: number };
+              return createComponent(Text, { x: props.x, y: props.y, children: `pie:${box.cx}:${box.cy}:${box.innerRadius}:${box.outerRadius}` });
+            },
+          }),
+          createComponent(Label, { position: 'center', value: 0 }),
+        ]; },
       }); },
-    }); },
-  }));
-  assert.match(html, /pie:102\.5:161:78:156/);
-  assert.match(html, /<text\b[^>]*x="102\.5"[^>]*y="161"/);
+    }));
+    assert.match(html, /pie:102\.5:161:78:156/);
+    const texts = [...html.matchAll(/<text\b([^>]*)>([\s\S]*?)<\/text>/g)];
+    assert.equal(texts.length, 2);
+    for (const [, attributes] of texts) {
+      assert.match(attributes, /\sx="102\.5"/);
+      assert.match(attributes, /\sy="161"/);
+    }
+    assert.match(texts[1][2], />0</);
+  }
 });
 
 test('selected Charts SSR stacked connectNulls skips the all-null category', () => {

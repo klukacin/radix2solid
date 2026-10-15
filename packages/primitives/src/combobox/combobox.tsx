@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal, createUniqueId, merge, omit, onCleanup, Show, untrack, type Element } from 'solid-js';
+import { createEffect, createMemo, createRenderEffect, createSignal, createUniqueId, merge, omit, onCleanup, Show, untrack, type Element } from 'solid-js';
 import { isServer, Portal as NativePortal } from '@solidjs/web';
 import type { ComponentProps } from '@solidjs/web';
 import { createContextScope, type Scope } from '../internal/context.js';
@@ -117,7 +117,7 @@ export function Combobox(props: ComboboxProps): Element {
     }, { transparent: true });
     createEffect(() => ({ open: open(), rows: rows().map(item => [item.value.key(), records().get(item.value.key())?.disabled]) }), state => {
       if (!state.open) { cursor.setActive(null); return; }
-      if (pendingNavigation && state.rows.length) { const direction = pendingNavigation; pendingNavigation = undefined; cursor.move(direction); }
+      if (pendingNavigation && rows().length) { const direction = pendingNavigation; pendingNavigation = undefined; cursor.move(direction); }
       else cursor.reconcile();
     }, { transparent: true });
     createEffect(() => [field(), value()] as const, ([node, key]) => {
@@ -194,7 +194,7 @@ export function ComboboxInput(props: ComboboxInputProps): Element {
     }),
     onKeyDown: composeEventHandlers<KeyboardEvent>(() => props.onKeyDown, event => {
       if (root.locked() || composing || event.isComposing || event.keyCode === 229 || event.ctrlKey || event.metaKey || event.altKey) return;
-      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); root.navigate(event.key === 'ArrowDown' ? 'first' : 'last'); }
+      if (!event.shiftKey && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) { event.preventDefault(); root.navigate(event.key === 'ArrowDown' ? 'first' : 'last'); }
       else if (event.key === 'Enter' && root.open() && root.cursor.activeId()) { event.preventDefault(); root.commit(root.cursor.active()!, event); }
       else if (event.key === 'Escape') { if (root.open()) event.preventDefault(); root.resolve(); }
     })
@@ -255,36 +255,39 @@ export function ComboboxContent(props: ComboboxContentProps): Element {
 }
 export function ComboboxList(props: ComboboxListProps): Element {
   const root = useRoot('ComboboxList', untrack(() => props.__scopeCombobox)), [node, ref] = createSignal<HTMLElement | undefined>();
-  if (!isServer) createEffect(node, element => {
+  if (!isServer) createRenderEffect(node, element => {
     if (!element) return;
     root.setList(element);
     const observer = new MutationObserver(() => { root.changed(); root.cursor.reconcile(); });
     observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'style', 'class', 'aria-disabled'] });
     return () => { observer.disconnect(); root.input()?.removeAttribute('aria-activedescendant'); root.cursor.setActive(null); root.setList(undefined); };
   }, { transparent: true });
-  return <Primitive as="div" {...merge(omit(props, '__scopeCombobox'), { role: 'listbox' as const, id: root.listId, get ref() { return composeRefs(props.ref, ref); } })} />;
+  const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => target(component, merge(childProps, { id: root.listId }) as ComponentProps<typeof component>));
+  return <Primitive as="div" {...(merge(omit(props, '__scopeCombobox'), { role: 'listbox' as const, id: root.listId, get ref() { return composeRefs(props.ref, ref); }, get children() { return props.asChild ? render : props.children; } }) as PrimitiveProps<'div'>)} />;
 }
 export function ComboboxItem(props: ComboboxItemProps): Element {
   const root = useRoot('ComboboxItem', untrack(() => props.__scopeCombobox)), id = props.id || createUniqueId();
   const [node, ref] = createSignal<HTMLElement | undefined>();
-  if (!isServer) createEffect(node, element => {
+  if (!isServer) createRenderEffect(node, element => {
     if (!element) return;
     const unregister = root.collection.register(element, { key: () => props.value, id });
     return () => { if (root.cursor.activeId() === id) root.input()?.removeAttribute('aria-activedescendant'); unregister(); };
   }, { transparent: true });
-  return <Show when={root.matches(props.value)}><ItemProvider scope={props.__scopeCombobox} value={() => props.value}><Primitive as="div" {...merge(omit(props, '__scopeCombobox', 'value'), {
+  const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => target(component, merge(childProps, { id }) as ComponentProps<typeof component>));
+  return <Show when={root.matches(props.value)}><ItemProvider scope={props.__scopeCombobox} value={() => props.value}><Primitive as="div" {...(merge(omit(props, '__scopeCombobox', 'value'), {
     id, role: 'option' as const, tabIndex: -1,
     get ['aria-label']() { return props['aria-label'] ?? root.records().get(props.value)?.label; },
     get ['aria-disabled']() { return root.records().get(props.value)?.disabled ? 'true' as const : undefined; },
     get ['aria-selected']() { return root.cursor.active() === props.value ? 'true' as const : 'false' as const; },
     get ['data-state']() { return root.value() === props.value ? 'checked' : 'unchecked'; },
     get ref() { return composeRefs(props.ref, ref); },
+    get children() { return props.asChild ? render : props.children; },
     onPointerDown: composeEventHandlers<PointerEvent>(() => props.onPointerDown, event => { if (event.pointerType === 'mouse' && event.button === 0) event.preventDefault(); }),
     onClick(event: MouseEvent) {
       callEventHandler(props.onClick, event); const cancelled = event.defaultPrevented; event.preventDefault();
       if (!cancelled && event.button === 0) root.commit(props.value, event);
     }
-  })} /></ItemProvider></Show>;
+  }) as PrimitiveProps<'div'>)} /></ItemProvider></Show>;
 }
 export function ComboboxItemText(props: ComboboxItemTextProps): Element {
   const root = useRoot('ComboboxItemText', untrack(() => props.__scopeCombobox)), key = useItem('ComboboxItemText', untrack(() => props.__scopeCombobox));
@@ -300,9 +303,10 @@ export function ComboboxGroup(props: ComboboxGroupProps): Element {
 }
 export function ComboboxLabel(props: ComboboxLabelProps): Element {
   const id = useGroup('ComboboxLabel', untrack(() => props.__scopeCombobox));
-  return <Primitive as="div" {...merge(omit(props, '__scopeCombobox'), { id })} />;
+  const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => target(component, merge(childProps, { id }) as ComponentProps<typeof component>));
+  return <Primitive as="div" {...(merge(omit(props, '__scopeCombobox'), { id, get children() { return props.asChild ? render : props.children; } }) as PrimitiveProps<'div'>)} />;
 }
 export function ComboboxEmpty(props: ComboboxEmptyProps): Element {
   const root = useRoot('ComboboxEmpty', untrack(() => props.__scopeCombobox));
-  return <Show when={!root.rows().length}><Primitive as="div" {...merge({ role: 'status' as const }, omit(props, '__scopeCombobox'))} /></Show>;
+  return <Show when={!!root.list() && !root.rows().length}><Primitive as="div" {...merge({ role: 'status' as const }, omit(props, '__scopeCombobox'))} /></Show>;
 }

@@ -81,6 +81,7 @@ function Lifecycle(): Element {
   return <section aria-label="Lifecycle inputs">
     <button onClick={() => setDir('ltr')}>Use LTR inputs</button><button onClick={() => setDir('rtl')}>Use RTL inputs</button>
     <button onClick={() => setSuffix(true)}>Use suffix choice filter</button>
+    <button onClick={() => setItems(items => items.map(item => ({ ...item })))}>Replace choice objects</button><button onClick={() => setItems(items => [...items].reverse().map(item => ({ ...item })))}>Reverse choice objects</button>
     <button onClick={() => setItems([{ value: 'blocked', label: 'Unavailable', disabled: true }])}>Show disabled choices only</button>
     <button onClick={() => setItems([{ value: 'same-1', label: 'Same' }, { value: 'same-2', label: 'Same' }])}>Show duplicate choice labels</button>
     <button onClick={() => setItems(Array.from({ length: 25 }, (_, i) => ({ value: `choice-${i}`, label: `Choice ${i}` })))}>Show long choice list</button>
@@ -102,11 +103,13 @@ function NativeChoice(): Element {
       <Combobox.Input aria-label="Native choice" ref={node => { input = node; }} onKeyDown={e => { if (cancelKeys()) e.preventDefault(); }} asChild>{target => target('input', {})}</Combobox.Input>
       <Combobox.Trigger aria-label="Toggle native suggestions" asChild>{target => target('button', { children: 'Suggestions' })}</Combobox.Trigger>
       <Combobox.Clear aria-label="Clear native choice" asChild>{target => target('button', { children: 'Clear' })}</Combobox.Clear>
-      <Combobox.Portal><Combobox.Content style={surface}><Combobox.List aria-label="Native suggestions" style={viewport}>
-        <Combobox.Item value="alpha" aria-label="Native Alpha button" onClick={e => { if (cancel()) e.preventDefault(); }} asChild>{target => target('button', { type: 'submit', form: 'native-choice-form', children: 'Alpha' })}</Combobox.Item>
-        <Combobox.Item value="beta" aria-label="Native Beta link" onClick={e => { if (cancel()) e.preventDefault(); }} asChild>{target => target('a', { href: '#native-choice-navigation', children: 'Beta' })}</Combobox.Item>
-        <For each={items.slice(3)}>{item => <Combobox.Item value={item.value} style={{ padding: '12px' }}><Combobox.ItemText /></Combobox.Item>}</For>
-      </Combobox.List></Combobox.Content></Combobox.Portal>
+      <Combobox.Portal><Combobox.Content style={surface}><Combobox.List aria-label="Native suggestions" style={viewport} asChild>{target => target('div', { id: 'native-choice-child-list', children:
+        <Combobox.Group><Combobox.Label asChild>{label => label('span', { id: 'native-choice-child-label', children: 'Native choices' })}</Combobox.Label>
+          <Combobox.Item value="alpha" aria-label="Native Alpha button" onClick={e => { if (cancel()) e.preventDefault(); }} asChild>{item => item('button', { id: 'native-choice-child-alpha', type: 'submit', form: 'native-choice-form', children: 'Alpha' })}</Combobox.Item>
+          <Combobox.Item value="beta" aria-label="Native Beta link" onClick={e => { if (cancel()) e.preventDefault(); }} asChild>{item => item('a', { id: 'native-choice-child-beta', href: '#native-choice-navigation', children: 'Beta' })}</Combobox.Item>
+          <For each={items.slice(3)}>{item => <Combobox.Item value={item.value} style={{ padding: '12px' }}><Combobox.ItemText /></Combobox.Item>}</For>
+        </Combobox.Group>
+      })}</Combobox.List></Combobox.Content></Combobox.Portal>
     </Combobox.Root></form><output aria-label="Native choice commits">{commits()}</output><output aria-label="Native choice submissions">{submits()}</output>
   </section>;
 }
@@ -114,15 +117,18 @@ function Commands(): Element {
   const initial = [{ value: 'alpha', label: 'Run Alpha' }, { value: 'blocked', label: 'Unavailable action', disabled: true }, { value: 'beta', label: 'Run Beta' }];
   const [search, setSearch] = createSignal(''), [accept, setAccept] = createSignal(true), [clamp, setClamp] = createSignal(false), [items, setItems] = createSignal(initial);
   const [alpha, setAlpha] = createSignal(0), [beta, setBeta] = createSignal(0), [submits, setSubmits] = createSignal(0), [generation, setGeneration] = createSignal(1);
+  const [filter, setFilter] = createSignal(false);
   return <section aria-label="Inline commands">
     <label><input type="checkbox" checked={accept()} onChange={e => setAccept(e.currentTarget.checked)} />Accept command search</label>
     <label><input type="checkbox" checked={clamp()} onChange={e => setClamp(e.currentTarget.checked)} />Clamp command cursor</label>
+    <label><input type="checkbox" checked={filter()} onChange={e => setFilter(e.currentTarget.checked)} />Filter command results</label>
+    <button onClick={() => setItems(items => items.map(item => ({ ...item })))}>Replace command objects</button><button onClick={() => setItems(items => [...items].reverse().map(item => ({ ...item })))}>Reverse command objects</button>
     <button onClick={() => setItems([initial[1]!])}>Show disabled commands only</button><button onClick={() => setItems([])}>Remove all commands</button>
     <button onClick={() => setItems([{ value: 'remote-first', label: 'Remote first' }, { value: 'remote-second', label: 'Remote second' }])}>Deliver remote commands</button>
     <button onClick={() => setItems(initial)}>Restore initial commands</button><button onClick={() => setGeneration(n => n + 1)}>Remount command list</button>
     <form aria-label="Command form" onSubmit={e => { e.preventDefault(); setSubmits(n => n + 1); }}><Command.Root search={search()} onSearchChange={text => { if (accept()) setSearch(text); }} loop={!clamp()}>
       <Command.Input id={false} aria-label="Command search" /><Show when={generation()} keyed>{_generation => <Command.List aria-label="Command results">
-        <Command.Group><Command.Label>Available commands</Command.Label><For each={items()}>{item => <Command.Item value={item.value} id={item.value === 'alpha' ? false : item.value === 'beta' ? '' : undefined} textValue={item.label} disabled={item.disabled} onSelect={() => { if (item.value === 'alpha') setAlpha(n => n + 1); if (item.value === 'beta') setBeta(n => n + 1); }}>{item.label}</Command.Item>}</For></Command.Group>
+        <Command.Group><Command.Label>Available commands</Command.Label>{items().filter(item => !filter() || item.label.toLowerCase().includes(search().toLowerCase())).map(item => <Command.Item value={item.value} id={item.value === 'alpha' ? false : item.value === 'beta' ? '' : undefined} textValue={item.label} disabled={item.disabled} onSelect={() => { if (item.value === 'alpha') setAlpha(n => n + 1); if (item.value === 'beta') setBeta(n => n + 1); }}>{item.label}</Command.Item>)}</Command.Group>
         <span role="status" aria-label="Command loading">Results supplied by the application</span><Command.Empty aria-label="No commands">No commands</Command.Empty>
       </Command.List>}</Show>
     </Command.Root></form><output aria-label="Command actions">alpha:{alpha()},beta:{beta()}</output><output aria-label="Command submissions">{submits()}</output>
@@ -134,12 +140,27 @@ function NativeCommands(): Element {
   return <section aria-label="Native target commands">
     <label><input type="checkbox" checked={cancel()} onChange={e => setCancel(e.currentTarget.checked)} />Cancel native command action</label><button onClick={() => input?.focus()}>Focus native command ref</button>
     <form id="native-command-form" aria-label="Native command form" onSubmit={e => { e.preventDefault(); setSubmits(n => n + 1); }}><Command.Root>
-      <Command.Input aria-label="Native command search" ref={node => { input = node; }} asChild>{target => target('input', {})}</Command.Input><Command.List aria-label="Native command results">
-        <Command.Item value="button" textValue="Native action button" onSelect={event => { if (cancel()) event.preventDefault(); if (!event.defaultPrevented) setButton(n => n + 1); }} asChild>{target => target('button', { type: 'submit', children: 'Native action button' })}</Command.Item>
-        <Command.Item value="link" textValue="Native action link" onSelect={event => { if (cancel()) event.preventDefault(); if (!event.defaultPrevented) setLink(n => n + 1); }} asChild>{target => target('a', { href: '#native-command-navigation', children: 'Native action link' })}</Command.Item>
-      </Command.List>
+      <Command.Input aria-label="Native command search" ref={node => { input = node; }} asChild>{target => target('input', {})}</Command.Input><Command.List aria-label="Native command results" asChild>{target => target('div', { id: 'native-command-child-list', children:
+        <Command.Group><Command.Label asChild>{label => label('span', { id: 'native-command-child-label', children: 'Native commands' })}</Command.Label>
+          <Command.Item value="button" textValue="Native action button" onSelect={event => { if (cancel()) event.preventDefault(); if (!event.defaultPrevented) setButton(n => n + 1); }} asChild>{item => item('button', { id: 'native-command-child-button', type: 'submit', children: 'Native action button' })}</Command.Item>
+          <Command.Item value="link" textValue="Native action link" onSelect={event => { if (cancel()) event.preventDefault(); if (!event.defaultPrevented) setLink(n => n + 1); }} asChild>{item => item('a', { id: 'native-command-child-link', href: '#native-command-navigation', children: 'Native action link' })}</Command.Item>
+        </Command.Group>
+      })}</Command.List>
     </Command.Root></form><output aria-label="Native command actions">button:{button()},link:{link()}</output><output aria-label="Native command submissions">{submits()}</output>
   </section>;
+}
+function EmptyResults(): Element {
+  const states = [{ name: 'populated', items: basic }, { name: 'empty', items: [] }, { name: 'disabled', items: basic.filter(item => item.disabled) }];
+  return <section aria-label="Server result states"><For each={states}>{state => <>
+    <Command.Root><Command.Input aria-label={`Server ${state.name} command search`} /><Command.List aria-label={`Server ${state.name} commands`} data-server-result="">
+      <For each={state.items}>{item => <Command.Item value={item.value} textValue={item.label} disabled={item.disabled}>{item.label}</Command.Item>}</For>
+      <Command.Empty aria-label={`Server ${state.name} commands empty`} data-server-empty="">No commands</Command.Empty>
+    </Command.List></Command.Root>
+    <Combobox.Root items={state.items}><Combobox.Input aria-label={`Server ${state.name} choice`} /><Combobox.List aria-label={`Server ${state.name} choices`} data-server-result="">
+      <For each={state.items}>{item => <Combobox.Item value={item.value}><Combobox.ItemText /></Combobox.Item>}</For>
+      <Combobox.Empty aria-label={`Server ${state.name} choices empty`} data-server-empty="">No choices</Combobox.Empty>
+    </Combobox.List></Combobox.Root>
+  </>}</For></section>;
 }
 function InputDialogs(): Element {
   const [palette, setPalette] = createSignal(false), [search, setSearch] = createSignal(''), [cancel, setCancel] = createSignal(false), [refuse, setRefuse] = createSignal(false), [actions, setActions] = createSignal(0), [destination, setDestination] = createSignal(false);
@@ -173,5 +194,5 @@ function InvalidConfiguration(): Element {
   </section>;
 }
 export function Inputs(): Element {
-  return <section aria-label="Native editable inputs"><h2>Editable inputs and actions</h2><Draft /><Controlled /><Reset /><Lifecycle /><NativeChoice /><Commands /><NativeCommands /><InputDialogs /><InvalidConfiguration /></section>;
+  return <section aria-label="Native editable inputs"><h2>Editable inputs and actions</h2><Draft /><Controlled /><Reset /><Lifecycle /><NativeChoice /><Commands /><NativeCommands /><EmptyResults /><InputDialogs /><InvalidConfiguration /></section>;
 }

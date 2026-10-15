@@ -1,4 +1,4 @@
-import { createEffect, createSignal, createUniqueId, merge, omit, Show, untrack, type Element } from 'solid-js';
+import { createEffect, createRenderEffect, createSignal, createUniqueId, merge, omit, Show, untrack, type Element } from 'solid-js';
 import { isServer } from '@solidjs/web';
 import type { ComponentProps } from '@solidjs/web';
 import { createContextScope, type Scope } from '../internal/context.js';
@@ -40,10 +40,13 @@ export function Command(props: CommandProps): Element {
   const collection = createCollection<Item>();
   const rows = () => { version(); return collection.items(list()).filter(item => item.node.getClientRects().length && !item.node.hidden && item.node.ownerDocument.defaultView!.getComputedStyle(item.node).visibility !== 'hidden'); };
   const cursor = createActiveDescendant({ items: () => rows().map(({ node, value }) => ({ node, key: value.key(), id: value.id, disabled: value.disabled() })), loop: () => props.loop ?? true });
-  let previous = untrack(search);
+  let previous = untrack(search), pendingSearch = false;
   if (!isServer) createEffect(() => ({ search: search(), rows: rows().map(item => [item.value.key(), item.value.disabled()]) }), state => {
-    const reset = previous !== state.search; previous = state.search;
+    if (previous !== state.search) { previous = state.search; pendingSearch = true; }
+    // Registration runs in the render queue; inspect final connected rows afterward.
+    const reset = pendingSearch && rows().some(item => !item.value.disabled());
     cursor.reconcile(reset);
+    if (reset) pendingSearch = false;
   }, { transparent: true });
   return <Provider scope={props.__scopeCommand} value={{ search, setSearch, input, setInput, list, setList, collection, rows, cursor, changed: () => changed(n => n + 1), listId: createUniqueId() }}>{props.children}</Provider>;
 }
@@ -63,7 +66,7 @@ export function CommandInput(props: CommandInputProps): Element {
     onCompositionEnd: composeEventHandlers<CompositionEvent>(() => props.onCompositionEnd, () => { composing = false; }),
     onKeyDown: composeEventHandlers<KeyboardEvent>(() => props.onKeyDown, event => {
       if (composing || event.isComposing || event.keyCode === 229 || event.ctrlKey || event.metaKey || event.altKey) return;
-      if (event.key === 'ArrowDown' || event.key === 'ArrowUp') { event.preventDefault(); root.cursor.move(event.key === 'ArrowDown' ? 'next' : 'previous'); }
+      if (!event.shiftKey && (event.key === 'ArrowDown' || event.key === 'ArrowUp')) { event.preventDefault(); root.cursor.move(event.key === 'ArrowDown' ? 'next' : 'previous'); }
       if (event.key === 'Enter') { event.preventDefault(); root.rows().find(item => item.value.key() === root.cursor.active())?.value.select(); }
     })
   }) as PrimitiveProps<'input'>)} />;
@@ -71,14 +74,15 @@ export function CommandInput(props: CommandInputProps): Element {
 export function CommandList(props: CommandListProps): Element {
   const root = useRoot('CommandList', untrack(() => props.__scopeCommand));
   const [node, ref] = createSignal<HTMLElement | undefined>();
-  if (!isServer) createEffect(node, element => {
+  if (!isServer) createRenderEffect(node, element => {
     if (!element) return;
     root.setList(element);
     const observer = new MutationObserver(() => { root.changed(); root.cursor.reconcile(); });
     observer.observe(element, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'style', 'class', 'aria-disabled'] });
     return () => { observer.disconnect(); root.cursor.setActive(null); root.setList(undefined); };
   }, { transparent: true });
-  return <Primitive as="div" {...merge(omit(props, '__scopeCommand'), { role: 'listbox' as const, id: root.listId, get ref() { return composeRefs(props.ref, ref); } })} />;
+  const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => target(component, merge(childProps, { id: root.listId }) as ComponentProps<typeof component>));
+  return <Primitive as="div" {...(merge(omit(props, '__scopeCommand'), { role: 'listbox' as const, id: root.listId, get ref() { return composeRefs(props.ref, ref); }, get children() { return props.asChild ? render : props.children; } }) as PrimitiveProps<'div'>)} />;
 }
 export function CommandItem(props: CommandItemProps): Element {
   const root = useRoot('CommandItem', untrack(() => props.__scopeCommand));
@@ -88,16 +92,18 @@ export function CommandItem(props: CommandItemProps): Element {
     if (!target || props.disabled || !root.rows().some(item => item.node === target)) return;
     dispatchCancelableEvent(target, new Event('command.select', { bubbles: true, cancelable: true }), props.onSelect);
   };
-  if (!isServer) createEffect(node, element => {
+  if (!isServer) createRenderEffect(node, element => {
     if (!element) return;
     const unregister = root.collection.register(element, { key: () => props.value, id, disabled: () => !!props.disabled, select });
     return () => { if (element.id === root.cursor.activeId()) root.input()?.removeAttribute('aria-activedescendant'); unregister(); };
   }, { transparent: true });
-  return <Primitive as="div" {...merge(omit(props, '__scopeCommand', 'value', 'textValue', 'disabled', 'onSelect'), {
+  const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => target(component, merge(childProps, { id }) as ComponentProps<typeof component>));
+  return <Primitive as="div" {...(merge(omit(props, '__scopeCommand', 'value', 'textValue', 'disabled', 'onSelect'), {
     role: 'option' as const, id, tabIndex: -1, get ['aria-label']() { return props['aria-label'] ?? props.textValue; },
     get ['aria-disabled']() { return props.disabled ? 'true' as const : undefined; }, get ['data-disabled']() { return props.disabled ? '' : undefined; },
     get ['aria-selected']() { return root.cursor.active() === props.value ? 'true' as const : 'false' as const; },
     get ref() { return composeRefs(props.ref, ref); },
+    get children() { return props.asChild ? render : props.children; },
     onPointerDown: composeEventHandlers<PointerEvent>(() => props.onPointerDown, event => { if (event.pointerType === 'mouse' && event.button === 0) event.preventDefault(); }),
     onClick(event: MouseEvent) {
       callEventHandler(props.onClick, event);
@@ -105,7 +111,7 @@ export function CommandItem(props: CommandItemProps): Element {
       event.preventDefault();
       if (!cancelled && event.button === 0 && !props.disabled) { root.cursor.setActive(props.value); root.input()?.focus({ preventScroll: true }); select(); }
     }
-  })} />;
+  }) as PrimitiveProps<'div'>)} />;
 }
 export function CommandGroup(props: CommandGroupProps): Element {
   const id = createUniqueId();
@@ -113,9 +119,10 @@ export function CommandGroup(props: CommandGroupProps): Element {
 }
 export function CommandLabel(props: CommandLabelProps): Element {
   const id = useGroup('CommandLabel', untrack(() => props.__scopeCommand));
-  return <Primitive as="div" {...merge(omit(props, '__scopeCommand'), { id })} />;
+  const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => target(component, merge(childProps, { id }) as ComponentProps<typeof component>));
+  return <Primitive as="div" {...(merge(omit(props, '__scopeCommand'), { id, get children() { return props.asChild ? render : props.children; } }) as PrimitiveProps<'div'>)} />;
 }
 export function CommandEmpty(props: CommandEmptyProps): Element {
   const root = useRoot('CommandEmpty', untrack(() => props.__scopeCommand));
-  return <Show when={!root.rows().length}><Primitive as="div" {...merge({ role: 'status' as const }, omit(props, '__scopeCommand'))} /></Show>;
+  return <Show when={!!root.list() && !root.rows().length}><Primitive as="div" {...merge({ role: 'status' as const }, omit(props, '__scopeCommand'))} /></Show>;
 }
