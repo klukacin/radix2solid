@@ -10,8 +10,8 @@
 // plus `onCleanup` for removal. Defaults are resolved field-by-field to match
 // recharts' `resolveDefaultProps`: explicit `undefined` falls back to defaults.
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createMemo, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
+import { createEffect, createMemo, createSignal, Show } from "solid-js";
+import { isServer, type JSX } from "@solidjs/web";
 import { useAppSelector, useAppStore } from "../state/hooks";
 import {
   NiceTicksAlgorithm,
@@ -44,6 +44,7 @@ import {
 } from "../util/types";
 import { CustomScaleDefinition } from "../util/scale/CustomScaleDefinition";
 import { registerInStore } from "../state/registerInStore";
+import { getCalculatedXAxisHeight } from "../util/XAxisUtils";
 
 export interface XAxisProps<DataPointType = unknown, DataValueType = unknown> {
   xAxisId?: string | number;
@@ -61,7 +62,7 @@ export interface XAxisProps<DataPointType = unknown, DataValueType = unknown> {
   tickCount?: number;
   tickFormatter?: TickFormatter;
   padding?: XAxisPadding;
-  height?: number;
+  height?: number | "auto";
   orientation?: XAxisOrientation;
   mirror?: boolean;
   minTickGap?: number;
@@ -226,13 +227,70 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
     return { position: p, size: s, ticks: ticks() ?? [] };
   });
 
+  let layerEl: SVGGElement | null = null;
+  let labelEl: SVGTextElement | null = null;
+  const [fontRevision, setFontRevision] = createSignal(0);
+  createEffect(
+    () => ({
+      ticks: ticks(), size: size(), height: props.height, label: props.label, id: xAxisId(),
+      tickSize: props.tickSize ?? 6, tickMargin: props.tickMargin ?? 2,
+      fontSize: props.fontSize, letterSpacing: props.letterSpacing,
+      fontRevision: fontRevision(),
+    }),
+    inputs => {
+      if (isServer || inputs.height !== "auto" || typeof inputs.label === "function" ||
+        Array.isArray(inputs.label) || (typeof Node !== "undefined" && inputs.label instanceof Node) ||
+        layerEl == null || inputs.ticks == null || inputs.size == null || store == null) return;
+      const tickNodes = layerEl.getElementsByClassName("recharts-cartesian-axis-tick-label");
+      const height = getCalculatedXAxisHeight({
+        ticks: tickNodes, label: labelEl?.isConnected ? labelEl : undefined,
+        labelGapWithTick: 5, tickSize: inputs.tickSize, tickMargin: inputs.tickMargin,
+      });
+      if (Math.round(inputs.size.height) !== height) {
+        store.actions.cartesianAxis.updateXAxisHeight({ id: inputs.id, height });
+      }
+    },
+  );
+
   return (
     <Show when={!isPanorama && !hide() && axisRender()}>
-      {(ar) => (
+      {(ar) => {
+        let renderedHost: SVGGElement | null = null;
+        const autoHeightActive = createMemo(() => {
+          if (props.height !== "auto") return false;
+          const label = props.label;
+          return typeof label !== "function" && !Array.isArray(label) &&
+            !(typeof Node !== "undefined" && label instanceof Node);
+        });
+        createEffect(autoHeightActive, active => {
+          if (isServer || !active || renderedHost == null) return;
+          // This branch owns the axis host; geometry updates do not renew its font subscription.
+          const fonts = renderedHost.ownerDocument.fonts;
+          if (fonts == null) return;
+          let disposed = false;
+          let pendingReady: Promise<FontFaceSet> | undefined;
+          const watchFontCompletion = () => {
+            const ready = fonts.ready;
+            if (ready === pendingReady) return;
+            pendingReady = ready;
+            void ready.then(() => {
+              if (!disposed) setFontRevision(revision => revision + 1);
+            });
+          };
+          fonts.addEventListener("loading", watchFontCompletion);
+          if (fonts.status === "loading") watchFontCompletion();
+          return () => {
+            disposed = true;
+            fonts.removeEventListener("loading", watchFontCompletion);
+          };
+        });
+        return (
         <>
           <RenderedTicksReporter axisType="xAxis" axisId={xAxisId()} ticks={ar().ticks} />
           <CartesianAxis
             axisType="xAxis"
+            layerRef={el => { layerEl = el; renderedHost = el; }}
+            labelRef={el => { labelEl = el; }}
             x={ar().position.x}
             y={ar().position.y}
             width={ar().size.width}
@@ -274,7 +332,8 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
             {props.children}
           </CartesianAxis>
         </>
-      )}
+        );
+      }}
     </Show>
   );
 }

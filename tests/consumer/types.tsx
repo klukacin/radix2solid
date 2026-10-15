@@ -28,6 +28,121 @@ import * as ContextParts from '@wsagency/radix2solid-primitives/context-menu';
 import * as MenubarParts from '@wsagency/radix2solid-primitives/menubar';
 import * as NavigationParts from '@wsagency/radix2solid-primitives/navigation-menu';
 import * as SelectParts from '@wsagency/radix2solid-primitives/select';
+import { Tree, Combobox, Command, Splitter } from '@wsagency/radix2solid-primitives';
+import * as TreeParts from '@wsagency/radix2solid-primitives/tree';
+import * as ComboboxParts from '@wsagency/radix2solid-primitives/combobox';
+import * as CommandParts from '@wsagency/radix2solid-primitives/command';
+import * as SplitterParts from '@wsagency/radix2solid-primitives/splitter';
+import { FolderIcon, FolderOpenIcon, type IconProps as ExtraIconProps } from '@wsagency/radix2solid-icons-extra';
+import DeepFolderIcon from '@wsagency/radix2solid-icons-extra/FolderIcon';
+
+const treeProps: TreeParts.TreeProps = {
+  value: null, expandedValues: ['branch'] as readonly string[],
+  onValueChange: value => { const accepted: string | null = value; void accepted; },
+  onExpandedValuesChange: values => { const accepted: readonly string[] = values; void accepted; },
+};
+export const nextTreeConsumer = <Tree.Root {...treeProps} aria-label="Typed tree">
+  <Tree.Item value="branch" textValue="Branch" hasChildren aria-level={1} aria-posinset={1} aria-setsize={-1}>
+    <Tree.ItemText>Branch</Tree.ItemText><Tree.ItemIndicator>Selected</Tree.ItemIndicator>
+    <Tree.ExpandTrigger aria-label="Expand branch" />
+    <Tree.ItemGroup forceMount>
+      <Tree.Item value="leaf" textValue="Leaf" asChild onActivate={event => event.preventDefault()}>
+        {target => target('a', { href: '#leaf', ref: node => { node.href = '#leaf'; }, children: <Tree.ItemText>Leaf</Tree.ItemText> })}
+      </Tree.Item>
+    </Tree.ItemGroup>
+  </Tree.Item>
+</Tree.Root>;
+export const treeParts = [TreeParts.Root, TreeParts.Item, TreeParts.ItemText, TreeParts.ItemIndicator, TreeParts.ItemGroup, TreeParts.ExpandTrigger, TreeParts.createTreeScope];
+const extraProps: ExtraIconProps = { size: 24, title: 'Folder', color: 'tomato', width: 32 };
+export const extraIconConsumer = <><FolderIcon {...extraProps} ref={node => { const svg: SVGSVGElement = node; void svg; }} /><FolderOpenIcon /><DeepFolderIcon /></>;
+// @ts-expect-error Extra icon geometry is fixed; children are not accepted.
+export const invalidExtraIcon = <FolderIcon>replacement</FolderIcon>;
+// @ts-expect-error Tree does not have a multiple selection mode.
+export const invalidTreeMode = <Tree.Root selectionMode="multiple" />;
+// @ts-expect-error Tree has no checked-state alias.
+export const invalidTreeProp = <Tree.Item value="leaf" textValue="Leaf" checked />;
+
+const choiceItems: readonly ComboboxParts.ComboboxItem[] = [{ value: 'one', label: 'One' }];
+export const typedChoice = <Combobox.Root items={choiceItems} value={null} query="" filter={false} name="choice" form="external">
+  <Combobox.Input asChild>{target => target('input', { ref: node => { node.select(); }, 'aria-label': 'Choice' })}</Combobox.Input>
+  <Combobox.Trigger asChild>{target => target('button', { children: 'Open' })}</Combobox.Trigger>
+  <Combobox.Clear asChild>{target => target('button', { children: 'Clear' })}</Combobox.Clear>
+  <Combobox.Portal container={null} forceMount><Combobox.Content forceMount side="bottom" onEscapeKeyDown={event => event.preventDefault()}>
+    <Combobox.List><Combobox.Group><Combobox.Label>Choices</Combobox.Label>
+      <Combobox.Item value="one" asChild>{target => target('button', { children: <><Combobox.ItemText /><Combobox.ItemIndicator>Selected</Combobox.ItemIndicator></> })}</Combobox.Item>
+    </Combobox.Group></Combobox.List><Combobox.Empty>No matches</Combobox.Empty>
+  </Combobox.Content></Combobox.Portal>
+</Combobox.Root>;
+export const filteredChoice = <ComboboxParts.Root items={choiceItems} filter={(item, query) => item.label.endsWith(query)} />;
+export const typedCommand = <Command.Root search="" onSearchChange={search => { const text: string = search; void text; }} loop={false}>
+  <Command.Input ref={node => node.focus()} />
+  <Command.List><Command.Group><Command.Label>Actions</Command.Label>
+    <Command.Item value="run" textValue="Run" onSelect={event => event.preventDefault()} asChild>
+      {target => target('a', { href: '#run', ref: node => { node.href = '#run'; }, children: 'Run' })}
+    </Command.Item>
+  </Command.Group></Command.List><Command.Empty>No actions</Command.Empty>
+</Command.Root>;
+export const typedSplitter = <Splitter.Root unit="px" defaultSize={200} onSizeChange={size => { const px: number = size; void px; }} onSizeCommit={size => { const accepted: number = size; void accepted; }}>
+  <Splitter.Panel side="primary" minSize={100} maxSize={400} collapsible collapsedSize={20}>Primary</Splitter.Panel>
+  <Splitter.Handle aria-label="Resize panels" asChild>{target => target('div', { ref: node => { node.focus(); } })}</Splitter.Handle>
+  <Splitter.Panel side="secondary" minSize={100}>Secondary</Splitter.Panel>
+</Splitter.Root>;
+export const percentageSplitter = <SplitterParts.Root unit="%" defaultSize={40} orientation="vertical" collapsed={false} onCollapsedChange={collapsed => { const accepted: boolean = collapsed; void accepted; }} />;
+export const nextParts = [
+  ComboboxParts.Root, ComboboxParts.Input, ComboboxParts.Trigger, ComboboxParts.Portal, ComboboxParts.Content, ComboboxParts.List, ComboboxParts.Item, ComboboxParts.ItemText, ComboboxParts.ItemIndicator, ComboboxParts.Group, ComboboxParts.Label, ComboboxParts.Empty, ComboboxParts.Clear, ComboboxParts.createComboboxScope,
+  CommandParts.Root, CommandParts.Input, CommandParts.List, CommandParts.Group, CommandParts.Label, CommandParts.Item, CommandParts.Empty, CommandParts.createCommandScope,
+  SplitterParts.Root, SplitterParts.Panel, SplitterParts.Handle, SplitterParts.createSplitterScope,
+];
+export type NewFamilyProps = [
+  ComboboxParts.ComboboxProps, ComboboxParts.ComboboxInputProps, ComboboxParts.ComboboxTriggerProps, ComboboxParts.ComboboxPortalProps, ComboboxParts.ComboboxContentProps, ComboboxParts.ComboboxListProps, ComboboxParts.ComboboxItemProps, ComboboxParts.ComboboxItemTextProps, ComboboxParts.ComboboxItemIndicatorProps, ComboboxParts.ComboboxGroupProps, ComboboxParts.ComboboxLabelProps, ComboboxParts.ComboboxEmptyProps, ComboboxParts.ComboboxClearProps,
+  CommandParts.CommandProps, CommandParts.CommandInputProps, CommandParts.CommandListProps, CommandParts.CommandGroupProps, CommandParts.CommandLabelProps, CommandParts.CommandItemProps, CommandParts.CommandEmptyProps,
+  TreeParts.TreeProps, TreeParts.TreeItemProps, TreeParts.TreeItemTextProps, TreeParts.TreeItemIndicatorProps, TreeParts.TreeItemGroupProps, TreeParts.TreeExpandTriggerProps,
+  SplitterParts.SplitterProps, SplitterParts.SplitterPanelProps, SplitterParts.SplitterHandleProps,
+];
+// @ts-expect-error Canonical data is required.
+export const noChoiceData = <Combobox.Root />;
+// @ts-expect-error A row requires a string key.
+export const noChoiceKey = <Combobox.Item />;
+// @ts-expect-error Choice keys are strings.
+export const numericChoiceKey = <Combobox.Item value={1} />;
+// @ts-expect-error Root owns Input value.
+export const inputValue = <Combobox.Input value="text" />;
+// @ts-expect-error Root owns Input defaultValue.
+export const inputDefault = <Combobox.Input defaultValue="text" />;
+// @ts-expect-error Root owns Input name.
+export const inputName = <Combobox.Input name="choice" />;
+// @ts-expect-error Root owns Input form association.
+export const inputForm = <Combobox.Input form="external" />;
+// @ts-expect-error Query is text.
+export const numericQuery = <Combobox.Root items={choiceItems} query={1} />;
+// @ts-expect-error Search is text.
+export const numericSearch = <Command.Root search={1} />;
+// @ts-expect-error Command selection is a cancellable Event.
+export const invalidCommandAction = <Command.Item value="run" textValue="Run" onSelect={(value: string) => { void value; }} />;
+// @ts-expect-error Command requires a key.
+export const missingCommandKey = <Command.Item textValue="Run" />;
+// @ts-expect-error Command requires explicit textValue.
+export const missingCommandText = <Command.Item value="run" />;
+// @ts-expect-error Command has no selected value.
+export const commandValue = <Command.Root value="run" />;
+// @ts-expect-error Command has no default selected value.
+export const commandDefault = <Command.Root defaultValue="run" />;
+// @ts-expect-error Command has no selected-value callback.
+export const commandChange = <Command.Root onValueChange={() => {}} />;
+// @ts-expect-error Command is not a form control.
+export const commandName = <Command.Root name="command" />;
+// @ts-expect-error Command has no form association.
+export const commandForm = <Command.Root form="external" />;
+// @ts-expect-error Command has no popup state.
+export const commandOpen = <Command.Root open />;
+// @ts-expect-error Command has no readOnly state.
+export const commandReadonly = <Command.Root readOnly />;
+// @ts-expect-error Splitter supports only percent or pixels.
+export const invalidSplitterUnit = <Splitter.Root unit="rem" />;
+// @ts-expect-error Splitter panel side is required.
+export const missingSplitterSide = <Splitter.Panel />;
+// @ts-expect-error No N-pane/snap API.
+export const invalidSplitterSnap = <Splitter.Root snapPoints={[10, 20]} />;
 
 function CustomTarget(props: JSX.AnchorHTMLAttributes<HTMLAnchorElement> & { token: string }) {
   return <a data-token={props.token} {...props} />;
@@ -639,19 +754,28 @@ export const nativeInteractiveThemes = <Themes.Theme>
   <Themes.Tooltip content="Invalid target"><button>Target</button></Themes.Tooltip>
 </Themes.Theme>;
 
+const chartLegendPosition: Charts.CartesianPosition = 'insideTopRight';
+const chartLegendCoordinates: Charts.CartesianPosition = { x: '25%', y: '75%' };
 export const nativeCharts = <Charts.ResponsiveContainer width="100%" height={300} initialDimension={{ width: 500, height: 300 }}
   onResize={(width, height) => { const dimensions: number[] = [width, height]; void dimensions; }}>
   <Charts.ComposedChart data={[{ name: 'A', value: 10 }]} syncId="typed" syncMethod="value" accessibilityLayer title="Typed chart">
-    <Charts.XAxis dataKey="name" scale="band" interval={0} />
+    <Charts.XAxis dataKey="name" scale="band" interval={0} height="auto" />
     <Charts.YAxis domain={[0, 50]} allowDataOverflow />
     <Charts.Bar dataKey="value" stackId="total" isAnimationActive={false}
       shape={props => <Charts.Rectangle {...props} />}><Charts.Cell fill="#123456" /></Charts.Bar>
     <Charts.Line dataKey="value" isAnimationActive="auto" onAnimationEnd={() => {}} />
     <Charts.Tooltip content={props => <span>{props.active ? String(props.label) + ':' + props.payload.map(item => item.value).join(',') : ''}</span>} />
-    <Charts.Legend /><Charts.Brush onChange={range => { const start: number | undefined = range.startIndex; void start; }} />
+    <Charts.Legend position={chartLegendPosition} offset={10} />
+    <Charts.Legend position={chartLegendCoordinates} offset={5} />
+    <Charts.Brush onChange={range => { const start: number | undefined = range.startIndex; void start; }} />
   </Charts.ComposedChart>
 </Charts.ResponsiveContainer>;
 // @ts-expect-error Chart dimensions accept numbers or percentages, not arbitrary CSS lengths.
 export const invalidFixedChart = <Charts.LineChart width="wide" height={300} />;
 // @ts-expect-error Treemap does not implement a separate update-animation toggle.
 export const invalidTreemapUpdateAnimation = <Charts.Treemap isUpdateAnimationActive />;
+export const nativeSankey = <Charts.Sankey width={500} height={300} accessibilityLayer
+  title="Typed flow" desc="Ten units from source to target"
+  data={{ nodes: [{ name: 'Source' }, { name: 'Target' }], links: [{ source: 0, target: 1, value: 10 }] }} />;
+// @ts-expect-error Legend positions use the public CartesianPosition union.
+export const invalidLegendPosition = <Charts.Legend position="unknown" />;

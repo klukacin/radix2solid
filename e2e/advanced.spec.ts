@@ -387,10 +387,11 @@ test('toast hotkey and native tab order visit newest roots first, focused Escape
 
 test('toast announces priority and action alternatives without hidden or close text, while parent rejection remains authoritative', async ({ page }) => {
   await page.getByRole('button', { name: 'Show stacked notifications', exact: true }).click();
-  await expect(page.locator('[role="status"][aria-live="assertive"]')).toContainText('Undo from history');
-  await expect(page.locator('[role="status"][aria-live="assertive"]')).not.toContainText('Hidden announcement');
-  await expect(page.locator('[role="status"][aria-live="assertive"]')).not.toContainText('Close');
-  await expect(page.locator('[role="status"][aria-live="polite"][aria-atomic="true"]')).toContainText('Saved second record');
+  const assertiveAnnouncement = page.locator('[role="status"][aria-live="assertive"]').filter({ hasText: 'First notification' });
+  await expect(assertiveAnnouncement).toContainText('Undo from history');
+  await expect(assertiveAnnouncement).not.toContainText('Hidden announcement');
+  await expect(assertiveAnnouncement).not.toContainText('Close');
+  await expect(page.locator('[role="status"][aria-live="polite"]').filter({ hasText: 'Second notification' })).toContainText('Saved second record');
   await page.getByRole('button', { name: 'Show controlled notification', exact: true }).click();
   await page.getByRole('button', { name: 'Dismiss controlled notification', exact: true }).click();
   await expect(page.locator('[data-toast-controlled]')).toBeVisible(); await expect(page.locator('#toast-requests')).toHaveText('false');

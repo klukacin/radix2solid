@@ -5,11 +5,12 @@
 // ResponsiveContainer-context sizing, and the tooltip/legend portal contexts.
 // Renders the `recharts-wrapper` div + `ReportChartSize` (which drives the
 // Surface dimensions) + children.
-import { createMemo, createSignal, flush, onCleanup, untrack } from "solid-js";
+import { createMemo, createSignal, flush, For, onCleanup, untrack } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { ReportChartSize } from "../context/chartLayoutContext";
 import { TooltipPortalContext } from "../context/tooltipPortalContext";
-import { LegendPortalContext } from "../context/legendPortalContext";
+import { LegendOutletContext, LegendPortalContext, type LegendOutletRenderer } from "../context/legendPortalContext";
+import { unregisterCleanup } from "../state/unregisterOnCleanup";
 import { useResponsiveContainerContext } from "../component/ResponsiveContainer";
 import { useAppStore } from "../state/hooks";
 import { getRelativeCoordinate } from "../util/getRelativeCoordinate";
@@ -105,6 +106,13 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
   let resizeObserver: ResizeObserver | null = null;
 
   const store = useAppStore();
+  const legendOutlet = store?.createState<{ renderers: ReadonlyArray<LegendOutletRenderer> }>({ renderers: [] });
+  const registerLegend = legendOutlet == null ? undefined : (render: LegendOutletRenderer) => {
+    legendOutlet[1](state => { state.renderers = [...state.renderers, render]; });
+    return unregisterCleanup(() => {
+      legendOutlet[1](state => { state.renderers = state.renderers.filter(entry => entry !== render); });
+    });
+  };
   const responsiveContainerCalculations = useResponsiveContainerContext();
 
   // Subscribe this chart to cross-chart synchronisation (tooltip + brush). No-op
@@ -453,6 +461,7 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
   return (
     <TooltipPortalContext value={tooltipPortal}>
       <LegendPortalContext value={tooltipPortal}>
+        <LegendOutletContext value={registerLegend}>
         <ReportChartSize width={reportedWidth()} height={reportedHeight()} />
         <div
           class={["recharts-wrapper", props.class]}
@@ -479,7 +488,10 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
           tabindex={0}
         >
           {props.children}
+          {/* Create the list after ordinary children register, not while SSR builds their slots. */}
+          {() => <For each={legendOutlet?.[0]().renderers}>{render => render()}</For>}
         </div>
+        </LegendOutletContext>
       </LegendPortalContext>
     </TooltipPortalContext>
   );

@@ -1,6 +1,6 @@
 # Native Solid 2 Charts
 
-Native fork, not an official Recharts or solid-recharts product. **Prepared candidate `@wsagency/radix2solid-charts@0.1.0-rc.2` — not yet published.** It will be released under the npm `next` dist-tag because its Solid peers are release candidates. After publication: `pnpm add @wsagency/radix2solid-charts@0.1.0-rc.2`; until then consume `pnpm pack` tarballs.
+Native fork, not an official Recharts or solid-recharts product. **Prepared candidate `@wsagency/radix2solid-charts@0.1.0-rc.3` — not yet published.** It will be released under the npm `next` dist-tag because its Solid peers are release candidates. After publication: `pnpm add @wsagency/radix2solid-charts@0.1.0-rc.3`; until then consume `pnpm pack` tarballs.
 
 Charts is a source copy of [solid-recharts](https://github.com/yumemi-thomas/solid-recharts) `2.0.0-beta.1`, a Solid port of the [Recharts](https://github.com/recharts/recharts) `3.9.2` component model, adapted to Solid `2.0.0-rc.15` and to server rendering. See `UPSTREAM.md` for the exact commits and every local change.
 
@@ -32,7 +32,7 @@ If your pnpm configuration sets `minimumReleaseAge`, also add exact-version `min
 In the application, install the tarball with the exact Solid peers and the matching toolchain:
 
 ```sh
-pnpm add ./vendor/wsagency-radix2solid-charts-0.1.0-rc.2.tgz solid-js@2.0.0-rc.15 @solidjs/web@2.0.0-rc.15
+pnpm add ./vendor/wsagency-radix2solid-charts-0.1.0-rc.3.tgz solid-js@2.0.0-rc.15 @solidjs/web@2.0.0-rc.15
 pnpm add -D vite@8.3.3 @solidjs/vite-plugin@3.0.0-next.50 typescript@7.0.2
 ```
 
@@ -64,7 +64,32 @@ The root export keeps the whole inherited solid-recharts surface: the twelve cha
 
 Series accept any CSS color. Charts does not depend on Themes. The examples use Themes tokens with a plain fallback (`var(--accent-9, royalblue)`): without Themes they draw in the fallback color, and inside a Themes `Theme` they follow the nearest theme.
 
-Custom ticks, shapes, labels and tooltip content are render functions. React element forms that Recharts clones (for example an element passed as `tick` or `shape`) are not supported, because Solid has no element cloning. `Customized` is not exported.
+Custom ticks, shapes, labels and tooltip content are render functions. Create custom label JSX inside its render function (for example, `label={props => <text x={props.x} y={props.y}>Categories</text>}`), so it is rendered and hydrated with the chart; do not eagerly create a JSX node and pass it as a label prop. React element forms that Recharts clones (for example an element passed as `tick` or `shape`) are not supported, because Solid has no element cloning. `Customized` is not exported.
+
+### Selected upstream additions
+
+The rc.3 candidate ports the selected A1–A13 changes and B1/B2 guards, with passing local public Node SSR, cross-engine SSR/CSR and packed-consumer evidence recorded in `UPSTREAM.md` and `upstream.json`. This is not a complete Recharts 3.10.1 port. Full CI and npm publication remain pending.
+
+- `Legend` accepts `position` and `offset` (default `0`). The exported `CartesianPosition` type includes `top`, `bottom`, `left`, `right`, `center`, the Cartesian `inside*` positions, and `{ x, y }` with numbers or percentages. A supplied position overrides `align`/`verticalAlign`; without it, existing alignment remains unchanged. `layout="auto"` is the default: left/right/insideLeft/insideRight resolve to vertical, other positions to horizontal. Explicit horizontal/vertical layouts still win.
+- Outside positioned legends reserve their measured width/height plus offset; inside legends overlay the plot without reserving space. Default-mount positioned legends render in the chart wrapper's HTML outlet on the server and hydrate that element before measurement. Server placement uses a zero-sized legend box, not the final measured dimensions. No-position and explicit custom-portal legends retain the legacy DOM-portal boundary; this does not add their HTML to server output. A custom portal uses only `wrapperStyle` for positioning.
+- `XAxis height="auto"` starts at `30px` on the server and for the initial hydration claim. In the browser it measures the tallest rendered tick-label wrapper, tick size/margin and an actual string-label element (including the `5px` label gap), rounded to a pixel. Changes to `fontSize`/`letterSpacing` and native web-font completion invalidate that measurement; font subscriptions are disposed with the axis. Function labels skip automatic measurement. JSX element/cloning label props remain unsupported and are not interpreted as Label settings. Numeric heights remain declared heights. Rotated ticks can increase the measured height; this is not server-final sizing.
+- `Sankey` accepts `title`, `desc`, `accessibilityLayer`, `role` and `tabIndex`. The accessibility layer defaults to true, supplying `role="application"` and `tabindex="0"` unless explicitly overridden. Title and description belong to the root SVG.
+- Pie child labels use the Pie's computed center/radii, including percentage radii. Zero-valued data that produces no sectors retains the configured center/radii for child labels, including `value={0}`. Function Label content receives computed `x`/`y`, followed by explicit props and the viewBox; computed anchors are not injected into custom content. Explicit coordinates/anchors keep precedence for nested labels.
+- Controlled `Brush` keeps the exact dragged traveller positions on release, even without `onChange`, and reapplies unchanged controlled indices when chart data is replaced. Keyboard and synchronized selection changes still update the travellers. This deliberately follows Charts' retained-drag behavior, not parent-authoritative refusal semantics of other controlled inputs.
+- Selected fixes cover all-null stacked Area gaps, missing-label tooltip index fallback, floating tick-gap band sizing, configured gaps between max-size-clamped bars, polar tooltip wrap-around, and unchanged rendered-tick reports. Text's CSS calculation evaluator treats replacement tokens literally and rejects inputs longer than 1,000 characters before whitespace normalization.
+
+Local verification includes all 20 public Charts Node SSR tests, the selected browser cases across Chromium/Firefox/WebKit, and every Charts case in the packed Chromium core suite. Review follow-ups passed font/spacing changes and positive-to-zero Pie geometry in packed Chromium, plus controlled real-font completion and axis disposal in all three engines. TS7 and TS5.9 packed declarations passed, including the selected public prop types. Server-only claim cases intentionally skip CSR; these local results are not a claim that the full CI workflow has run.
+
+```tsx
+import { Legend } from '@wsagency/radix2solid-charts';
+
+<LineChart width={500} height={300} data={data}>
+  <XAxis dataKey="month" height="auto" angle={-45} interval={0} label="Month" />
+  <Line dataKey="visitors" />
+  <Legend position="bottom" offset={10} />
+</LineChart>
+```
+
 
 ## Server rendering
 
@@ -93,13 +118,13 @@ function StackedTotals() {
 }
 ```
 
-Charts that rely on automatic domains or automatic axis sizes, including stacked series, are not supported on the server: their client render is correct, but their server HTML is not until the client redraws it.
+Automatic domains are not server-final. Automatic axis sizing is likewise not server-final: `XAxis height="auto"` has the documented 30px fallback and measures only in the browser. The shared root clip now reads the plot after ordinary children register their axes, including declared numeric heights. Its `<defs>` follows those children; a 500×300 chart with 5px margins and a 30px X axis therefore clips to height260 instead of the old erroneous margin-only290. This corrects clipping, not tick geometry, and does not promise byte-identical server markup.
 
 ## Known limits
 
 - `Treemap` has entry animation only. It has no `isUpdateAnimationActive` prop: Recharts' Treemap update animation is not ported.
 - Some copied source comments (for example `DEFERRED` notes or file headers that list unported paths) are historical solid-recharts comments and may be stale. They are not evidence of what works; this README, `UPSTREAM.md` and the tests are.
-- Recharts `3.10.1` is tracked but not ported.
+- The Recharts 3.10.1 comparison is selectively adapted, not a complete version upgrade. The new upstream theme API, unrelated Legend/Tooltip type changes and canary packaging remain excluded; CSS colors and existing Themes tokens continue to work.
 
 ## Attribution
 

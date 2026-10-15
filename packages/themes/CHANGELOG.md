@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.0-rc.3 — source candidate, not yet published
+
+- Align the packed primitives dependency with the five-package rc.3 source suite. Existing Themes wrappers and public behavior remain unchanged; new UI families are primitive APIs styled by consumers.
+- Publication remains release-maintainer controlled; source-pinned use does not imply npm availability.
+
 ## 0.1.0-rc.2 — prepared candidate, not yet published
 
 - Require exactly `solid-js` and `@solidjs/web` `2.0.0-rc.15` as peers (was `2.0.0-rc.13`); Solid rc.15 requires Node `>=22.12.0`. Depend on `@wsagency/radix2solid-primitives` packed as exactly `0.1.0-rc.2`.

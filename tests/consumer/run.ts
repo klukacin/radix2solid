@@ -19,7 +19,7 @@ function run(command: string, args: string[], cwd = root, extra: Record<string, 
 await mkdir(fixture, { recursive: true });
 await mkdir(packs, { recursive: true });
 const dependencies: Record<string, string> = {};
-for (const name of ['primitives', 'icons', 'themes', 'charts']) {
+for (const name of ['primitives', 'icons', 'icons-extra', 'themes', 'charts']) {
   run('pnpm', ['--dir', `packages/${name}`, 'pack', '--pack-destination', packs]);
   const metadata = JSON.parse(await readFile(resolve(root, `packages/${name}/package.json`), 'utf8'));
   const tarball = resolve(packs, `${metadata.name.replace(/^@/, '').replace('/', '-')}-${metadata.version}.tgz`);
@@ -58,6 +58,7 @@ await cp(resolve(root, 'apps/gallery/scripts'), resolve(fixture, 'scripts'), { r
 await copyFile(resolve(root, 'apps/gallery/vite.config.ts'), resolve(fixture, 'vite.config.ts'));
 for (const name of ['state.test.ts', 'themes.test.ts', 'theme-settings.test.ts', 'charts.test.ts', 'packed.test.ts', 'types.tsx', 'check-distribution.ts', 'check-tree-shaking.ts', 'coverage-manifest.json']) await copyFile(resolve(root, `tests/consumer/${name}`), resolve(fixture, name));
 await copyFile(resolve(root, 'packages/icons/icons.json'), resolve(fixture, 'icons.json'));
+await copyFile(resolve(root, 'packages/icons-extra/icons.json'), resolve(fixture, 'icons-extra.json'));
 await cp(resolve(root, 'e2e'), resolve(fixture, 'e2e'), { recursive: true });
 await writeFile(resolve(fixture, 'consumer-check-files.json'), JSON.stringify([
   'tests/consumer/packed.test.ts', 'tests/consumer/types.tsx', 'tests/consumer/state.test.ts', 'tests/consumer/themes.test.ts', 'tests/consumer/theme-settings.test.ts', 'tests/consumer/charts.test.ts',
@@ -71,16 +72,20 @@ run(process.execPath, ['--conditions=browser', '--conditions=development', '--te
 run(process.execPath, ['--conditions=development', '--test', 'theme-settings.test.ts', 'charts.test.ts'], fixture);
 run(process.execPath, ['--test', 'packed.test.ts'], fixture);
 run(process.execPath, ['check-distribution.ts'], fixture);
+run(process.execPath, ['check-tree-shaking.ts'], fixture);
 if (nextCore) {
-  run('pnpm', ['exec', 'playwright', 'test', 'e2e/charts.spec.ts', 'e2e/theme-extensions.spec.ts', 'e2e/theme-css.spec.ts', '--project=ssr', '--project=csr'], root, { GALLERY_PACKED: '1' });
+  run('pnpm', ['exec', 'playwright', 'test', 'e2e/inputs.spec.ts', 'e2e/tree.spec.ts', 'e2e/splitter.spec.ts', 'e2e/assets.spec.ts', 'e2e/charts.spec.ts', 'e2e/theme-extensions.spec.ts', 'e2e/theme-css.spec.ts', '--project=ssr', '--project=csr'], root, { GALLERY_PACKED: '1' });
   run('pnpm', ['exec', 'playwright', 'test', 'e2e/hydration.spec.ts', '--project=ssr'], root, { GALLERY_PACKED: '1' });
   run('pnpm', ['exec', 'playwright', 'test',
     'e2e/composition.spec.ts', 'e2e/controls.spec.ts', 'e2e/layers.spec.ts', 'e2e/theme-interactions.spec.ts', 'e2e/advanced.spec.ts', 'e2e/select.spec.ts',
     '--project=ssr', '--project=csr', '--grep',
-    'controlled rejection|reactive custom target|native ref consumers|atomic prop updates|required checkbox validation|required delete confirmation|mixed checks, external ownership|a nested native render root|a portalled nonmodal Popover|modal themed portals|themed menus propagate|form native default props|form server errors clear|Select keyboard Home and End'
+    'controlled rejection|reactive custom target|native ref consumers|atomic prop updates|required checkbox validation|required delete confirmation|mixed checks, external ownership|a nested native render root|a portalled nonmodal Popover|modal themed portals|themed menus propagate|form native default props|form server errors clear|Select keyboard Home and End|toast announces priority and action alternatives|settled native gallery and an open modal'
   ], root, { GALLERY_PACKED: '1' });
+  // Development gallery: dev-only reactive diagnostics never reach the packed production checks above.
+  run('pnpm', ['exec', 'playwright', 'test', 'e2e/advanced.spec.ts', 'e2e/inputs.spec.ts', '--project=ssr', '--project=csr', '--grep',
+    'toast announces priority and action alternatives|settled native gallery and an open modal|uncontrolled data loss clears without selecting a neighbor|object replacement and data reorder preserve the active key|filtering: trimmed case-insensitive matching'
+  ], root, { GALLERY_PACKED: '', GALLERY_PRODUCTION: '' });
 } else {
-  run(process.execPath, ['check-tree-shaking.ts'], fixture);
   run('pnpm', ['exec', 'playwright', 'test'], root, { GALLERY_PACKED: '1' });
 }
 console.log(`Independent packed consumer (${nextCore ? 'next-core' : 'all'}): client/server/TS7/TS5/state/selected browser checks passed.`);

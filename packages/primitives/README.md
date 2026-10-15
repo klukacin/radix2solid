@@ -1,9 +1,10 @@
 # Native Solid 2 Primitives
 
-Native fork, not an official Radix product. **Prepared candidate `@wsagency/radix2solid-primitives@0.1.0-rc.2` — not yet published.** It will be released under the npm `next` dist-tag because its `solid-js`/`@solidjs/web` peers are `2.0.0-rc.15`, which require Node `>=22.12.0`. After publication: `pnpm add @wsagency/radix2solid-primitives@0.1.0-rc.2`; until then consume a `pnpm pack` tarball.
+Native fork, not an official Radix product. **Source candidate `@wsagency/radix2solid-primitives@0.1.0-rc.3` — not yet published.** Its `solid-js`/`@solidjs/web` peers are `2.0.0-rc.15`, which require Node `>=22.12.0`. Consume a `pnpm pack` tarball until publication; npm publication and the `next` dist-tag remain release-maintainer controlled.
 
 Implemented namespaces: all 35 upstream main entries plus standalone `Announce` and `Arrow`: `Slot`, `Toggle`, `Direction`, `Portal`, `VisuallyHidden`, `Arrow`, `Dialog`, `Popover`, `AccessibleIcon`, `AspectRatio`, `Avatar`, `Label`, `Progress`, `Separator`, `Announce`, `Collapsible`, `Accordion`, `Checkbox`, `Switch`, `RadioGroup`, `Tabs`, `ToggleGroup`, `Toolbar`, `AlertDialog`, `HoverCard`, `Tooltip`, `DropdownMenu`, `ContextMenu`, `Menubar`, `NavigationMenu`, `Select`, `unstable_PasswordToggleField`, `unstable_OneTimePasswordField`, `Slider`, `ScrollArea`, `Form` and `Toast`, with corresponding subpaths/parts. Explicit `/internal` exports provide native state/ref/event, scoped context, collection/roving-focus, presence, focus/layer/scroll and Popper helpers; no React hook aliases. Solid/web RC.15 are peers, never bundled copies. ESM export conditions select `dist/client` for browser and `dist/server` by default; declarations are shared.
 The `/internal` entry also exports the existing `Primitive`, `PrimitiveProps` and Slot `mergeStyles` for native Themes reuse; this does not introduce another composition or CSS parser.
+The rc.3 source additionally exports `Combobox`, `Command`, `Tree` and `Splitter` namespaces with corresponding `/combobox`, `/command`, `/tree` and `/splitter` parts, props and scope creators. These additions are not new React upstream or Themes wrappers.
 
 ### Shared-layer migration map
 
@@ -23,6 +24,44 @@ The public `/internal` surface is native and deliberately not a React-hook compa
 | `useSize`, `useEscapeKeydown` | Owned owner-document ResizeObservers in form controls/Slider/ScrollArea/Popper; shared top-layer Escape dispatch with native cancellation. No unowned hook replacement. |
 
 
+
+## Combobox and Command
+
+`Combobox.Root` requires a readonly `items` array of unique nonempty `{ value, label, disabled? }` records. Selection (`value: string | null`), text (`query`) and popup (`open`) are independent controlled channels, each with its own initial default and change callback. Filtering defaults to trimmed case-insensitive label matching; `filter={false}` disables it and a function replaces it. Canonical data supplies server labels, not mounted popup rows.
+
+Parts: Root, Input, Trigger, Portal, Content, List, Item, ItemText, ItemIndicator, Group, Label, Empty and Clear. Import the root namespace or `/combobox` long names, aliases, props and `createComboboxScope`. Root owns `name`/`form` and Input text. A draft, disabled/removed key or unresolved label never submits the old key; the unnamed visible Input owns validation and focus after hydration. SSR emits data-derived labels/invalid state and successful-field eligibility, but native Portal options are client-only. Input keeps focus while its active descendant moves; active highlight is not committed selection.
+
+`Combobox.Input` defaults native HTML `autocomplete` to `"off"` so browser form-history suggestions do not intercept the custom popup's Enter activation. An explicit `autocomplete` prop overrides this default and stays reactive; a target-factory child's value retains normal child precedence.
+
+`Command.Root` supplies `search`, `defaultSearch`, `onSearchChange` and `loop`; the caller owns filtering, ranking and remote results. Parts are Root, Input, List, Group, Label, Item and Empty, with matching `/command` exports, props and `createCommandScope`. Items require `value` and `textValue`; `onSelect(event: Event)` is cancellable. Command has no selected value, form field, popup or global-shortcut API. In a dialog recipe, guard the action first, then request close and run the action; controlled refusal to close must not erase an accepted action.
+
+Both families use native target-factory `asChild`, real refs, consumer-first event cancellation and IME-safe input editing. Shift+Up/Down keep native text selection. List, Item and Label retain their component-owned IDs even when a target-factory child supplies an ID, keeping controls, active descendants and group labels connected; unrelated child props retain normal Slot precedence. They do not clone elements. Browser focus/ARIA checks are not screen-reader certification.
+
+`Empty` is client-resolved from mounted, visible rows, including disabled rows. Server rendering does not announce an empty result before client registration, even for an actually empty list. Accepted Command search changes reset to the first enabled result after the caller's rendered update; if results are empty or all disabled, that intent waits for enabled results without requiring another query. Ordinary object replacement and reordering preserve an existing active key; initial results alone do not create one.
+
+Record/filter derivations and shared collection/state accessors remain reactive. Initialization captures, post-render cursor reconciliation and disposal read explicit snapshots; reconciliation still inspects the final registered rows rather than an earlier render-phase snapshot.
+
+Place `Empty` and caller-owned loading/status messages **beside `List`, not inside it**: keep `Command.Empty` within `Command.Root`, and `Combobox.Empty` within the existing `Combobox.Content` (or `Combobox.Root` for an inline list). They retain `role="status"` and resolve from the Root's registered List; listbox descendants must remain options or option groups rather than live-status regions.
+
+## Splitter
+
+`Splitter.Root` contains exactly a primary `Panel`, named `Handle`, then secondary `Panel`. Import the namespace or `/splitter` parts, `SplitterProps`, `SplitterPanelProps`, `SplitterHandleProps` and `createSplitterScope`. Root controls numeric size with `unit="%"` (default) or `"px"`, independent collapsed state, orientation/direction, step and disabled state. Pixel mode requires an initial size. Panels set `minSize`/`maxSize`; only primary supports `collapsible` and `collapsedSize`.
+
+`onSizeChange` proposes constrained size; `onSizeCommit` reports accepted effective size once after a changed completed gesture. Refused proposals, measurement-only reconciliation and cancelled drags do not commit. Collapse requests do not overwrite expanded size. Handle must have `aria-label` or `aria-labelledby`; it supports physical-axis arrows, Shift stepping, Home/End and Enter collapse with native cancellation. Native factory targets and refs retain the normal composition contract.
+
+**SSR sizing has two phases.** Before measurement, percentage tracks use deterministic native fractions and ARIA reports finite own-bound provisional values; infeasible percentage bounds are not promised exact pre-JavaScript pixels. Pixel SSR reserves the supplied own-bound-clamped primary and a bounded native secondary remainder, not the complete cross-panel feasible interval. After positive measurement, available-space conversion, both-panel bounds and overflow/underflow are exact. Measurement can reconcile panel sizing without user proposals or commits, while preserving nodes and Root/Handle structure. For example, primary100/secondary-max700 with available1000 can render100/700 on the server then reconcile to300/700. This is not an N-pane solver or assistive-technology certification.
+
+On the client, Root appends one private measurement node after its three semantic parts so inherited or changed CSS gaps update available space without proposals or commits. It is hidden, inert, `aria-hidden`, unfocusable and removed with Root; it is not a part. Do not count Root children or style the secondary Panel through `:last-child`.
+
+## Tree
+
+Import the `Tree` namespace from `@wsagency/radix2solid-primitives` or parts from `/tree`. Parts are `Root`, `Item`, `ItemText`, `ItemIndicator`, `ItemGroup`, and `ExpandTrigger`; the family also exports their `Tree*` names, props and `createTreeScope`.
+
+Use a named Root with controlled `value`/`onValueChange` and independent `expandedValues`/`onExpandedValuesChange`, or their initial-only defaults. Each Item requires a unique nonempty `value` and explicit `textValue`; declare branches with `hasChildren` and nest descendants inside ItemGroup. Partial trees may supply native `aria-level`, `aria-posinset` and `aria-setsize`. Selection, focus and expansion are independent: Space selects, Enter activates through cancellable `onActivate`, and logical Left/Right navigate or expand branches. `selectionMode="none"` retains the selected key but suppresses selection semantics and requests.
+
+Collapse, removal and disabling repair focus only while focus is inside Root. After an explicit blur or outside focus, they update the tab stop without moving focus. When the tree was empty or fully disabled and Root itself holds focus, restoring an enabled item hands focus to the preferred item.
+
+Style focused Items separately from `[aria-selected="true"]` selection; use native focus-visible styling for keyboard focus. ItemGroup supports `forceMount`, but collapsed retained descendants remain outside navigation. Native target-factory `asChild` and refs follow the shared composition contract. For ordinary sidebar navigation, prefer disclosure lists rather than a tree widget. DOM/browser checks do not constitute screen-reader interoperability certification.
 
 ## Toggle
 

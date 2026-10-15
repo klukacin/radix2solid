@@ -134,6 +134,7 @@ export { CartesianGrid } from "./cartesian/CartesianGrid";
 export type { CartesianGridProps } from "./cartesian/CartesianGrid";
 export { Legend } from "./component/Legend";
 export type { LegendProps } from "./component/Legend";
+export type { CartesianPosition } from "./cartesian/getCartesianPosition";
 export {
   ResponsiveContainer,
   useResponsiveContainerContext,

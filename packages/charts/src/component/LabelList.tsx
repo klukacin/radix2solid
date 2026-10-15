@@ -21,6 +21,7 @@ import {
   type LabelContentType,
   type LabelFormatter,
   type LabelPosition,
+  type Props as LabelProps,
   Label,
   isLabelContentAFunction,
 } from "./Label";
@@ -64,7 +65,7 @@ export interface PolarLabelListEntry extends LabelListEntry {
   clockWise?: boolean;
 }
 
-interface LabelListProps {
+interface LabelListProps extends Pick<LabelProps, "textAnchor" | "verticalAnchor"> {
   id?: string;
   /** Class applied to each rendered label (recharts `className`); spread onto Label. */
   class?: string;
@@ -96,7 +97,7 @@ interface LabelListProps {
 
 export type Props = Omit<
   CamelSvgProps<JSX.TextSVGAttributes<SVGTextElement>>,
-  "children" | "class"
+  "children" | "class" | "textAnchor" | "verticalAnchor"
 > &
   LabelListProps;
 
