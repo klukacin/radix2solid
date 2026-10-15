@@ -584,6 +584,8 @@ test('splitter-ssr: original panels and CSS survive hydration before measured AR
     });
     expect(await page.evaluate(() => window.__splitterServerNodes!.length)).toBe(8);
     release();
+    // Client startup (module evaluation and hydration of the whole gallery) uses the test budget; the 5s checks below cover measurement only.
+    await page.locator('#refs').filter({ hasText: /^same host$/ }).waitFor();
     await expect(handle).toHaveAttribute('aria-disabled', 'false');
     await expect(handle).toHaveAttribute('aria-valuemin', '300');
     await expect(handle).toHaveAttribute('aria-valuemax', '700');
