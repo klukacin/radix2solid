@@ -249,36 +249,47 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
       if (Math.round(inputs.size.height) !== height) {
         store.actions.cartesianAxis.updateXAxisHeight({ id: inputs.id, height });
       }
-      // A completed web font changes live SVG metrics without changing axis props.
-      const fonts = layerEl.ownerDocument.fonts;
-      if (fonts == null) return;
-      let disposed = false;
-      let pendingReady: Promise<FontFaceSet> | undefined;
-      const watchFontCompletion = () => {
-        const ready = fonts.ready;
-        if (ready === pendingReady) return;
-        pendingReady = ready;
-        void ready.then(() => {
-          if (!disposed) setFontRevision(revision => revision + 1);
-        });
-      };
-      fonts.addEventListener("loading", watchFontCompletion);
-      if (fonts.status === "loading") watchFontCompletion();
-      return () => {
-        disposed = true;
-        fonts.removeEventListener("loading", watchFontCompletion);
-      };
     },
   );
 
   return (
     <Show when={!isPanorama && !hide() && axisRender()}>
-      {(ar) => (
+      {(ar) => {
+        let renderedHost: SVGGElement | null = null;
+        const autoHeightActive = createMemo(() => {
+          if (props.height !== "auto") return false;
+          const label = props.label;
+          return typeof label !== "function" && !Array.isArray(label) &&
+            !(typeof Node !== "undefined" && label instanceof Node);
+        });
+        createEffect(autoHeightActive, active => {
+          if (isServer || !active || renderedHost == null) return;
+          // This branch owns the axis host; geometry updates do not renew its font subscription.
+          const fonts = renderedHost.ownerDocument.fonts;
+          if (fonts == null) return;
+          let disposed = false;
+          let pendingReady: Promise<FontFaceSet> | undefined;
+          const watchFontCompletion = () => {
+            const ready = fonts.ready;
+            if (ready === pendingReady) return;
+            pendingReady = ready;
+            void ready.then(() => {
+              if (!disposed) setFontRevision(revision => revision + 1);
+            });
+          };
+          fonts.addEventListener("loading", watchFontCompletion);
+          if (fonts.status === "loading") watchFontCompletion();
+          return () => {
+            disposed = true;
+            fonts.removeEventListener("loading", watchFontCompletion);
+          };
+        });
+        return (
         <>
           <RenderedTicksReporter axisType="xAxis" axisId={xAxisId()} ticks={ar().ticks} />
           <CartesianAxis
             axisType="xAxis"
-            layerRef={el => { layerEl = el; }}
+            layerRef={el => { layerEl = el; renderedHost = el; }}
             labelRef={el => { labelEl = el; }}
             x={ar().position.x}
             y={ar().position.y}
@@ -321,7 +332,8 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
             {props.children}
           </CartesianAxis>
         </>
-      )}
+        );
+      }}
     </Show>
   );
 }
