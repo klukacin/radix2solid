@@ -445,13 +445,11 @@ test.describe('native Splitter', () => {
     const scroll = page.getByRole('region', { name: 'Scrollable primary content', exact: true });
     await page.getByRole('textbox', { name: 'Pixel draft', exact: true }).focus();
     await page.keyboard.press('Tab'); await expect(scroll).toBeFocused();
+    // WebKit animates keyboard scrolling and loses a Home pressed mid-animation, so let PageDown end first.
+    const pageDown = await scroll.evaluateHandle(node => ({ ended: new Promise<number>(resolve => node.addEventListener('scrollend', () => resolve(node.scrollTop), { once: true })) }));
     await page.keyboard.press('PageDown');
-    // WebKit animates keyboard scrolling and loses a Home pressed mid-animation, so let PageDown settle first.
-    let previous = -1;
-    await expect.poll(async () => {
-      const current = await scroll.evaluate(node => node.scrollTop), settled = current > 0 && current === previous;
-      previous = current; return settled;
-    }, { intervals: [100] }).toBe(true);
+    expect(await pageDown.evaluate(state => state.ended)).toBeGreaterThan(0);
+    await pageDown.dispose();
     await page.keyboard.press('Home');
     await expect.poll(() => scroll.evaluate(node => node.scrollTop)).toBe(0);
     await scroll.hover(); await page.mouse.wheel(0, 150);
