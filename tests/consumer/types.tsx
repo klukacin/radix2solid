@@ -70,7 +70,7 @@ export const typedChoice = <Combobox.Root items={choiceItems} value={null} query
   <Combobox.Portal container={null} forceMount><Combobox.Content forceMount side="bottom" onEscapeKeyDown={event => event.preventDefault()}>
     <Combobox.List><Combobox.Group><Combobox.Label>Choices</Combobox.Label>
       <Combobox.Item value="one" asChild>{target => target('button', { children: <><Combobox.ItemText /><Combobox.ItemIndicator>Selected</Combobox.ItemIndicator></> })}</Combobox.Item>
-    </Combobox.Group><Combobox.Empty>No matches</Combobox.Empty></Combobox.List>
+    </Combobox.Group></Combobox.List><Combobox.Empty>No matches</Combobox.Empty>
   </Combobox.Content></Combobox.Portal>
 </Combobox.Root>;
 export const filteredChoice = <ComboboxParts.Root items={choiceItems} filter={(item, query) => item.label.endsWith(query)} />;
@@ -80,7 +80,7 @@ export const typedCommand = <Command.Root search="" onSearchChange={search => { 
     <Command.Item value="run" textValue="Run" onSelect={event => event.preventDefault()} asChild>
       {target => target('a', { href: '#run', ref: node => { node.href = '#run'; }, children: 'Run' })}
     </Command.Item>
-  </Command.Group><Command.Empty>No actions</Command.Empty></Command.List>
+  </Command.Group></Command.List><Command.Empty>No actions</Command.Empty>
 </Command.Root>;
 export const typedSplitter = <Splitter.Root unit="px" defaultSize={200} onSizeChange={size => { const px: number = size; void px; }} onSizeCommit={size => { const accepted: number = size; void accepted; }}>
   <Splitter.Panel side="primary" minSize={100} maxSize={400} collapsible collapsedSize={20}>Primary</Splitter.Panel>

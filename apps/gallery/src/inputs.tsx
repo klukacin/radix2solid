@@ -10,8 +10,8 @@ const viewport = { 'max-height': '150px', overflow: 'auto' };
 function Suggestions(props: { name: string; items: readonly ComboboxItem[]; empty?: string }): Element {
   return <Combobox.Portal><Combobox.Content style={surface}><Combobox.List aria-label={props.name} style={viewport}>
     <Combobox.Group><Combobox.Label>Choices</Combobox.Label><For each={props.items}>{item => <Combobox.Item value={item.value} id={item.value === 'alpha' ? false : item.value === 'beta' ? '' : undefined} style={{ padding: '8px' }}><Combobox.ItemText><strong>{item.label}</strong></Combobox.ItemText><Combobox.ItemIndicator>Selected</Combobox.ItemIndicator></Combobox.Item>}</For></Combobox.Group>
-    <Combobox.Empty aria-label={props.empty ?? `${props.name} empty`}>No choices</Combobox.Empty>
-  </Combobox.List></Combobox.Content></Combobox.Portal>;
+  </Combobox.List><Combobox.Empty aria-label={props.empty ?? `${props.name} empty`}>No choices</Combobox.Empty>
+  </Combobox.Content></Combobox.Portal>;
 }
 function Draft(): Element {
   const [required, setRequired] = createSignal(false), [disabled, setDisabled] = createSignal(false), [readOnly, setReadOnly] = createSignal(false);
@@ -129,8 +129,8 @@ function Commands(): Element {
     <form aria-label="Command form" onSubmit={e => { e.preventDefault(); setSubmits(n => n + 1); }}><Command.Root search={search()} onSearchChange={text => { if (accept()) setSearch(text); }} loop={!clamp()}>
       <Command.Input id={false} aria-label="Command search" /><Show when={generation()} keyed>{_generation => <Command.List aria-label="Command results">
         <Command.Group><Command.Label>Available commands</Command.Label>{items().filter(item => !filter() || item.label.toLowerCase().includes(search().toLowerCase())).map(item => <Command.Item value={item.value} id={item.value === 'alpha' ? false : item.value === 'beta' ? '' : undefined} textValue={item.label} disabled={item.disabled} onSelect={() => { if (item.value === 'alpha') setAlpha(n => n + 1); if (item.value === 'beta') setBeta(n => n + 1); }}>{item.label}</Command.Item>)}</Command.Group>
-        <span role="status" aria-label="Command loading">Results supplied by the application</span><Command.Empty aria-label="No commands">No commands</Command.Empty>
       </Command.List>}</Show>
+      <span role="status" aria-label="Command loading">Results supplied by the application</span><Command.Empty aria-label="No commands">No commands</Command.Empty>
     </Command.Root></form><output aria-label="Command actions">alpha:{alpha()},beta:{beta()}</output><output aria-label="Command submissions">{submits()}</output>
   </section>;
 }
@@ -154,12 +154,12 @@ function EmptyResults(): Element {
   return <section aria-label="Server result states"><For each={states}>{state => <>
     <Command.Root><Command.Input aria-label={`Server ${state.name} command search`} /><Command.List aria-label={`Server ${state.name} commands`} data-server-result="">
       <For each={state.items}>{item => <Command.Item value={item.value} textValue={item.label} disabled={item.disabled}>{item.label}</Command.Item>}</For>
-      <Command.Empty aria-label={`Server ${state.name} commands empty`} data-server-empty="">No commands</Command.Empty>
-    </Command.List></Command.Root>
+    </Command.List><Command.Empty aria-label={`Server ${state.name} commands empty`} data-server-empty="">No commands</Command.Empty>
+    </Command.Root>
     <Combobox.Root items={state.items}><Combobox.Input aria-label={`Server ${state.name} choice`} /><Combobox.List aria-label={`Server ${state.name} choices`} data-server-result="">
       <For each={state.items}>{item => <Combobox.Item value={item.value}><Combobox.ItemText /></Combobox.Item>}</For>
-      <Combobox.Empty aria-label={`Server ${state.name} choices empty`} data-server-empty="">No choices</Combobox.Empty>
-    </Combobox.List></Combobox.Root>
+    </Combobox.List><Combobox.Empty aria-label={`Server ${state.name} choices empty`} data-server-empty="">No choices</Combobox.Empty>
+    </Combobox.Root>
   </>}</For></section>;
 }
 function InputDialogs(): Element {

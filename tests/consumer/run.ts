@@ -79,8 +79,12 @@ if (nextCore) {
   run('pnpm', ['exec', 'playwright', 'test',
     'e2e/composition.spec.ts', 'e2e/controls.spec.ts', 'e2e/layers.spec.ts', 'e2e/theme-interactions.spec.ts', 'e2e/advanced.spec.ts', 'e2e/select.spec.ts',
     '--project=ssr', '--project=csr', '--grep',
-    'controlled rejection|reactive custom target|native ref consumers|atomic prop updates|required checkbox validation|required delete confirmation|mixed checks, external ownership|a nested native render root|a portalled nonmodal Popover|modal themed portals|themed menus propagate|form native default props|form server errors clear|Select keyboard Home and End'
+    'controlled rejection|reactive custom target|native ref consumers|atomic prop updates|required checkbox validation|required delete confirmation|mixed checks, external ownership|a nested native render root|a portalled nonmodal Popover|modal themed portals|themed menus propagate|form native default props|form server errors clear|Select keyboard Home and End|toast announces priority and action alternatives|settled native gallery and an open modal'
   ], root, { GALLERY_PACKED: '1' });
+  // Development gallery: dev-only reactive diagnostics never reach the packed production checks above.
+  run('pnpm', ['exec', 'playwright', 'test', 'e2e/advanced.spec.ts', 'e2e/inputs.spec.ts', '--project=ssr', '--project=csr', '--grep',
+    'toast announces priority and action alternatives|settled native gallery and an open modal|uncontrolled data loss clears without selecting a neighbor|object replacement and data reorder preserve the active key|filtering: trimmed case-insensitive matching'
+  ], root, { GALLERY_PACKED: '', GALLERY_PRODUCTION: '' });
 } else {
   run('pnpm', ['exec', 'playwright', 'test'], root, { GALLERY_PACKED: '1' });
 }

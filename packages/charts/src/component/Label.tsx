@@ -16,7 +16,7 @@
 //  - context value carries an `Accessor<TrapezoidViewBox>` (Solid context is fixed
 //    at provide-time; the accessor keeps the box reactive).
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createContext, createMemo, merge, omit, Show, useContext } from "solid-js";
+import { createContext, createMemo, merge, omit, Show, untrack, useContext } from "solid-js";
 import type { Accessor } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { type RenderableText, type TextAnchor, type TextVerticalAnchor, Text } from "./Text";
@@ -418,13 +418,14 @@ export function Label(outerProps: Props): JSX.Element {
   // JSX). Returning JSX from a memo and feeding it into <ZIndexLayer> (a Portal)
   // leaks ownerless render-effects on recompute — see Bar.tsx. A non-keyed <Show>
   // keeps each subtree stable and reads the narrowed accessor inside JSX (tracked).
+  // Ref callbacks are attachment-time snapshots; all label geometry and content stay tracked.
   return (
     <>
       <Show when={textRender()}>
         {(d) => (
           <ZIndexLayer zIndex={props.zIndex}>
             <Text
-              ref={node => { props.labelRef?.(node); if (typeof props.ref === "function") props.ref(node); }}
+              ref={node => { untrack(() => props.labelRef)?.(node); const ref = untrack(() => props.ref); if (typeof ref === "function") ref(node); }}
               {...d().svgProps}
               class={d().class}
               x={props.x ?? d().pos.x}
@@ -443,7 +444,7 @@ export function Label(outerProps: Props): JSX.Element {
         {(d) => (
           <ZIndexLayer zIndex={props.zIndex}>
             <Text
-              ref={node => { props.labelRef?.(node); if (typeof props.ref === "function") props.ref(node); }}
+              ref={node => { untrack(() => props.labelRef)?.(node); const ref = untrack(() => props.ref); if (typeof ref === "function") ref(node); }}
               {...textSvgProps()}
               class={d().class}
               x={props.x ?? d().attrs.x}

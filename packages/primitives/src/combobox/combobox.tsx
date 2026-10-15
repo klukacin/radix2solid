@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createRenderEffect, createSignal, createUniqueId, merge, omit, onCleanup, Show, untrack, type Element } from 'solid-js';
+import { createEffect, createMemo, createRenderEffect, createSignal, createUniqueId, merge, omit, onCleanup, runWithOwner, Show, untrack, type Element } from 'solid-js';
 import { isServer, Portal as NativePortal } from '@solidjs/web';
 import type { ComponentProps } from '@solidjs/web';
 import { createContextScope, type Scope } from '../internal/context.js';
@@ -69,7 +69,7 @@ export function Combobox(props: ComboboxProps): Element {
   const initialKey = untrack(() => props.value !== undefined ? props.value : props.defaultValue ?? null);
   const initialQuery = untrack(() => props.query ?? props.defaultQuery ?? (initialKey === null ? '' : records().get(initialKey)?.label ?? ''));
   // Force data validation even when no selected record or Item is mounted (including SSR).
-  records();
+  untrack(records);
   const [value, setValue] = createControllableState<string | null>({ value: () => props.value, defaultValue: initialKey, get onChange() { return props.onValueChange; } });
   const [query, setQuery] = createControllableState({ value: () => props.query, defaultValue: initialQuery, get onChange() { return props.onQueryChange; } });
   const [open, changeOpen] = createControllableState({ value: () => props.open, get defaultValue() { return props.defaultOpen ?? false; }, get onChange() { return props.onOpenChange; } });
@@ -105,7 +105,7 @@ export function Combobox(props: ComboboxProps): Element {
   };
   if (!isServer) {
     let lastKey = initialKey;
-    let wasAvailable = initialKey !== null && !!records().get(initialKey) && !records().get(initialKey)!.disabled;
+    let wasAvailable = untrack(() => initialKey !== null && !!records().get(initialKey) && !records().get(initialKey)!.disabled);
     let lastNative = initialKey;
     createEffect(() => ({ key: value(), record: value() === null ? undefined : records().get(value()!) }), ({ key, record }) => {
       const available = !!record && !record.disabled;
@@ -115,11 +115,12 @@ export function Combobox(props: ComboboxProps): Element {
       if (keyChanged && immediateCommit !== key && (key === null || record)) setQuery(record?.label ?? '');
       lastKey = key;
     }, { transparent: true });
-    createEffect(() => ({ open: open(), rows: rows().map(item => [item.value.key(), records().get(item.value.key())?.disabled]) }), state => {
+    createEffect(() => ({ open: open(), rows: rows().map(item => [item.value.key(), records().get(item.value.key())?.disabled]) }), state => untrack(() => {
+      // Reconcile against the final DOM registrations, not the earlier compute-phase rows.
       if (!state.open) { cursor.setActive(null); return; }
       if (pendingNavigation && rows().length) { const direction = pendingNavigation; pendingNavigation = undefined; cursor.move(direction); }
       else cursor.reconcile();
-    }, { transparent: true });
+    }), { transparent: true });
     createEffect(() => [field(), value()] as const, ([node, key]) => {
       if (!node || key === lastNative) return;
       lastNative = key;
@@ -260,18 +261,18 @@ export function ComboboxList(props: ComboboxListProps): Element {
     root.setList(element);
     const observer = new MutationObserver(() => { root.changed(); root.cursor.reconcile(); });
     observer.observe(element, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden', 'style', 'class', 'aria-disabled'] });
-    return () => { observer.disconnect(); root.input()?.removeAttribute('aria-activedescendant'); root.cursor.setActive(null); root.setList(undefined); };
+    return () => runWithOwner(null, () => untrack(() => { observer.disconnect(); root.input()?.removeAttribute('aria-activedescendant'); root.cursor.setActive(null); root.setList(undefined); }));
   }, { transparent: true });
   const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => target(component, merge(childProps, { id: root.listId }) as ComponentProps<typeof component>));
   return <Primitive as="div" {...(merge(omit(props, '__scopeCombobox'), { role: 'listbox' as const, id: root.listId, get ref() { return composeRefs(props.ref, ref); }, get children() { return props.asChild ? render : props.children; } }) as PrimitiveProps<'div'>)} />;
 }
 export function ComboboxItem(props: ComboboxItemProps): Element {
-  const root = useRoot('ComboboxItem', untrack(() => props.__scopeCombobox)), id = props.id || createUniqueId();
+  const root = useRoot('ComboboxItem', untrack(() => props.__scopeCombobox)), id = untrack(() => props.id) || createUniqueId();
   const [node, ref] = createSignal<HTMLElement | undefined>();
   if (!isServer) createRenderEffect(node, element => {
     if (!element) return;
     const unregister = root.collection.register(element, { key: () => props.value, id });
-    return () => { if (root.cursor.activeId() === id) root.input()?.removeAttribute('aria-activedescendant'); unregister(); };
+    return () => untrack(() => { if (root.cursor.activeId() === id) root.input()?.removeAttribute('aria-activedescendant'); unregister(); });
   }, { transparent: true });
   const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => target(component, merge(childProps, { id }) as ComponentProps<typeof component>));
   return <Show when={root.matches(props.value)}><ItemProvider scope={props.__scopeCombobox} value={() => props.value}><Primitive as="div" {...(merge(omit(props, '__scopeCombobox', 'value'), {

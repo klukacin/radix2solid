@@ -104,8 +104,10 @@ export function Splitter(props: SplitterProps): Element {
   const context = {
     register(part: Part) {
       if (parts.some(other => other.kind === part.kind)) throw new Error(`Splitter has duplicate ${part.kind} parts.`);
-      parts.push(part); setVersion(value => value + 1);
-      onCleanup(() => { const index = parts.indexOf(part); if (index !== -1) parts.splice(index, 1); setVersion(value => value + 1); release(); });
+      parts.push(part);
+      // Keep metadata synchronous; invalidate after construction, not in an eager render effect.
+      if (!isServer) createEffect(part.node, () => { setVersion(value => value + 1); }, { transparent: true });
+      onCleanup(() => { const index = parts.indexOf(part); if (index !== -1) parts.splice(index, 1); if (!isServer) setVersion(value => value + 1); release(); });
     },
     primaryId: () => {
       const id = panel('primary')?.id;
@@ -152,15 +154,15 @@ export function Splitter(props: SplitterProps): Element {
   };
   if (!isServer) {
     onCleanup(release);
-    createEffect(() => [node(), version(), orientation(), direction()] as const, ([element]) => {
+    createEffect(() => [node(), version(), orientation(), direction(), parts.map(part => ({ kind: part.kind, node: part.node() }))] as const, ([element, , , , registered]) => {
       if (!element) return;
-      validateParts(parts.map(part => part.kind));
-      const handle = parts.find(part => part.kind === 'handle')?.node();
-      const primary = parts.find(part => part.kind === 'primary')?.node(), secondary = parts.find(part => part.kind === 'secondary')?.node();
+      validateParts(registered.map(part => part.kind));
+      const handle = registered.find(part => part.kind === 'handle')?.node;
+      const primary = registered.find(part => part.kind === 'primary')?.node, secondary = registered.find(part => part.kind === 'secondary')?.node;
       if (!handle || !primary || !secondary) return;
-      for (const part of parts) if (part.node()?.parentElement !== element) throw new Error('Splitter parts must be direct children of their Root.');
-      const direct = [...element.children].filter(child => parts.some(part => part.node() === child));
-      validateParts(direct.map(child => parts.find(part => part.node() === child)!.kind));
+      for (const part of registered) if (part.node?.parentElement !== element) throw new Error('Splitter parts must be direct children of their Root.');
+      const direct = [...element.children].filter(child => registered.some(part => part.node === child));
+      validateParts(direct.map(child => registered.find(part => part.node === child)!.kind));
       // Inherited CSS can change gaps without resizing any public part.
       // One spanning grid item measures a native gap, including percentages and calc().
       const sensor = element.ownerDocument.createElement('div'), gapSignal = element.ownerDocument.createElement('div');
@@ -214,11 +216,13 @@ export function Splitter(props: SplitterProps): Element {
       get style() { return mergeStyles({ display: 'flex', 'flex-direction': orientation() === 'horizontal' ? 'row' : 'column', 'min-width': '0', 'min-height': '0' }, props.style); }
     });
     const host = <Primitive as="div" {...forwarded} />;
-    // Resolve the rendered host, not its child declarations: native dynamic/Provider hosts are lazy.
-    // Keep the same resolution boundary on server/client, inside the custom target's normal owner.
-    const rendered = children(() => host)();
-    if (isServer) { validateParts(parts.map(part => part.kind)); configuration(); }
-    return rendered;
+    // Only server metadata validation needs an initial resolution of the native host.
+    if (isServer) {
+      const rendered = untrack(children(() => host));
+      validateParts(parts.map(part => part.kind)); configuration();
+      return rendered;
+    }
+    return host;
   }
   return <Provider scope={scope} value={context}><Frame /></Provider>;
 }

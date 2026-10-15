@@ -22,7 +22,7 @@
 // prop changes into the store, and traveller pixels derive from the store indices.
 // Drag overrides survive release until the scale or selection changes; keyboard
 // and synchronized index changes still supersede the retained pixels.
-import { createEffect, createMemo, createSignal, merge, onCleanup, Show } from "solid-js";
+import { createEffect, createMemo, createSignal, merge, onCleanup, Show, untrack } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import { scalePoint } from "d3-scale";
 import { useAppSelector, useAppStore } from "../state/hooks";
@@ -302,13 +302,14 @@ export const Brush = (props: BrushProps): JSX.Element => {
     },
   );
   // Effects rerun for either projected index; only the changed index loses its override.
+  // Sample interaction flags on index changes only: releasing a drag must retain its pixels.
   createEffect(startIndex, (next, previous) => {
-    if (next !== previous && !isTravellerMoving() && !isSlideMoving()) {
+    if (next !== previous && !untrack(isTravellerMoving) && !untrack(isSlideMoving)) {
       setOverrideStartX(null);
     }
   });
   createEffect(endIndex, (next, previous) => {
-    if (next !== previous && !isTravellerMoving() && !isSlideMoving()) {
+    if (next !== previous && !untrack(isTravellerMoving) && !untrack(isSlideMoving)) {
       setOverrideEndX(null);
     }
   });

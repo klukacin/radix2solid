@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { children, createMemo, createRenderEffect, createRoot, createSignal, flush, merge, onCleanup, untrack } from 'solid-js';
+import { children, createEffect, createMemo, createRenderEffect, createRoot, createSignal, flush, merge, onCleanup, untrack } from 'solid-js';
 import { createControllableState } from '@wsagency/radix2solid-primitives/internal';
 import { Slot } from '@wsagency/radix2solid-primitives';
 
@@ -59,6 +59,33 @@ test('controlled cleanup compares with the current parent in either unmount writ
       assert.deepEqual(calls, order === 'unmount-only' ? [{ next: false, accepted: true }] : [], order);
     } finally { dispose(); }
   }
+});
+
+test('effect-callback requests read compiled conditional props freshly and dispose their memos', () => {
+  const calls: (string | null)[] = [];
+  const memos = { created: 0, disposed: 0 };
+  const { request, dispose } = createRoot(dispose => {
+    const [override] = createSignal(true), [parent, accept] = createSignal<string | null>('alpha');
+    const [next, request] = createSignal<string | null | undefined>(undefined);
+    const handlers = { accept: (key: string | null) => { calls.push(key); accept(key); }, ignore: () => {} };
+    // Mirror the compiler's `prop={cond() ? x() : y}` getters: one memo per read.
+    const condition = () => createMemo(() => { memos.created++; onCleanup(() => memos.disposed++); return override(); })();
+    const props = { get value() { return condition() ? parent() : undefined; }, get onValueChange() { return condition() ? handlers.accept : handlers.ignore; } };
+    const [, setValue] = createControllableState<string | null>({ value: () => props.value, defaultValue: 'alpha', get onChange() { return props.onValueChange; } });
+    createEffect(next, key => { if (key !== undefined) setValue(key); });
+    return { request, dispose };
+  });
+  try {
+    flush();
+    const live = () => memos.created - memos.disposed, baseline = live();
+    request(null); flush();
+    request('beta'); flush();
+    assert.deepEqual(calls, [null, 'beta'], 'the retrieved callback runs outside the read scope and may write');
+    request(undefined); flush(); request('beta'); flush();
+    assert.deepEqual(calls, [null, 'beta'], 'an unchanged request stays a no-op');
+    assert.equal(live(), baseline, 'requests never grow retained memos beyond the initial baseline');
+  } finally { dispose(); }
+  assert.equal(memos.created, memos.disposed);
 });
 
 test('uncontrolled defaults initialize once and queued functional updates preserve each request', () => {

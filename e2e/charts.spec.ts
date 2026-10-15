@@ -272,6 +272,9 @@ test('responsive composition resizes real geometry, exposes tooltip payload and 
 });
 
 test('Brush keyboard range synchronizes peer data while panorama and isolated chart keep full data', async ({ page }, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') errors.push(message.text()); });
   await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
   const isolated = await page.locator('#chart-area .recharts-area-curve').getAttribute('d');
   const peer = page.locator('#chart-bar .recharts-bar-rectangle');
@@ -317,6 +320,7 @@ test('Brush keyboard range synchronizes peer data while panorama and isolated ch
   await expect(peer).toHaveCount(4);
   await expect(miniature).toHaveAttribute('d', fullRangePath!);
   await expect(page.locator('#chart-area .recharts-area-curve')).toHaveAttribute('d', isolated!);
+  expect(errors).toEqual([]);
 });
 
 test('keyed Cells keep current data order, paint, custom-shape payload and one event after reorder and replacement', async ({ page }, info) => {
@@ -441,6 +445,9 @@ test('tooltip synchronization follows index and reordered values without activat
 });
 
 test('selected Charts controlled Brush retains drag and replacement indices', async ({ page }, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') errors.push(message.text()); });
   await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
   const travellers = page.locator('#chart-selected-brush .recharts-brush-traveller');
   await expect(travellers).toHaveCount(2);
@@ -480,6 +487,7 @@ test('selected Charts controlled Brush retains drag and replacement indices', as
   await travellers.first().press('ArrowRight');
   await expect.poll(async () => (await values())[0]).toBeCloseTo(5 + 485 * nextIndex / 9, 6);
   expect((await values())[1]).toBeCloseTo(during[1], 6);
+  expect(errors).toEqual([]);
 });
 
 test('selected Charts active bars clear on leave and replacement', async ({ page }, info) => {
@@ -560,7 +568,25 @@ test('selected Charts polar tooltip selects the wrapping sector', async ({ page 
 });
 
 test('selected Charts measured auto-xaxis uses ticks and actual string label without oscillation', async ({ page }, info) => {
+  const errors: string[] = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') errors.push(message.text()); });
   await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
+  const jsxLabel = page.locator('#chart-selected-axis-jsx .selected-jsx-label');
+  await expect(jsxLabel).toHaveText('JSX categories');
+  const initialLabelWidth = await jsxLabel.evaluate(node => (node as SVGGraphicsElement).getBBox().width);
+  await page.getByRole('button', { name: 'Replace selected chart data', exact: true }).click();
+  await expect(jsxLabel).toHaveText('JSX categories 1');
+  await expect(jsxLabel).toBeVisible();
+  expect(await jsxLabel.evaluate(node => node.namespaceURI)).toBe('http://www.w3.org/2000/svg');
+  await expect.poll(() => jsxLabel.evaluate(node => (node as SVGGraphicsElement).getBBox().width)).toBeGreaterThan(initialLabelWidth);
+  await page.getByRole('button', { name: 'Toggle unsupported axis label', exact: true }).click();
+  await expect(jsxLabel).toHaveCount(0);
+  await expect(page.locator('#chart-selected-axis-jsx .recharts-label')).toHaveCount(0);
+  await expect(page.locator('#chart-selected-axis-jsx')).not.toContainText('Unsupported raw label');
+  await expect(page.locator('#chart-selected-axis-jsx')).not.toContainText('[object HTMLCollection]');
+  await page.getByRole('button', { name: 'Toggle unsupported axis label', exact: true }).click();
+  await expect(jsxLabel).toHaveText('JSX categories 1');
   for (const kind of ['plain', 'string', 'multiline', 'numeric', 'function', 'jsx']) {
     const root = page.locator(`#chart-selected-axis-${kind}`);
     const geometry = () => root.evaluate(node => {
@@ -571,8 +597,9 @@ test('selected Charts measured auto-xaxis uses ticks and actual string label wit
     });
     await expect.poll(async () => (await geometry()).tickCount).toBe(10);
     if (kind === 'jsx') {
-      // Element/cloning labels are unsupported: a DOM node must never become a settings bag.
+      // JSX is created by the supported render function, not treated as a settings bag.
       await expect(root.locator('.recharts-label')).toHaveCount(0);
+      await expect(root.locator('.selected-jsx-label')).toHaveCount(1);
       await expect(root).not.toContainText('[object HTMLCollection]');
     }
     if (kind === 'plain' || kind === 'string' || kind === 'multiline') {
@@ -601,6 +628,7 @@ test('selected Charts measured auto-xaxis uses ticks and actual string label wit
       }
     }
   }
+  expect(errors).toEqual([]);
 });
 
 test('selected Charts rendered Pie Label Area and bar geometry matches selected contracts', async ({ page }, info) => {
@@ -732,6 +760,11 @@ test('selected Charts legend-placement and accessible SVG hydrate in place befor
   for (const kind of ['plain', 'string', 'multiline', 'function', 'jsx', 'numeric']) {
     await expect(page.locator(`#chart-selected-axis-${kind} clipPath rect`)).toHaveAttribute('height', '260');
   }
+  const jsxLabel = page.locator('#chart-selected-axis-jsx .selected-jsx-label');
+  await expect(jsxLabel).toHaveText('JSX categories');
+  expect(await jsxLabel.evaluate(node =>
+    node.namespaceURI === 'http://www.w3.org/2000/svg' && node.closest('svg')?.namespaceURI === node.namespaceURI,
+  )).toBe(true);
   const placements = [
     ['top', 5, 250, 0.5, 1], ['bottom', 495, 250, 0.5, 0],
     ['left', 250, 5, 1, 0.5], ['right', 250, 495, 0, 0.5],
@@ -760,6 +793,8 @@ test('selected Charts legend-placement and accessible SVG hydrate in place befor
   // Every server node must be claimed before measurement; reactive descendants may change afterward.
   await page.evaluate(() => {
     const roots = [...document.querySelectorAll('[id^="chart-selected-"]')].filter(root => root.id !== 'chart-selected-legend-legacy');
+    const serverLabel = document.querySelector('#chart-selected-axis-jsx .selected-jsx-label')!;
+    const labelClaim = { beforeMeasurement: false };
     const nodes = roots.flatMap(root => [...root.querySelectorAll('svg, .recharts-legend-wrapper, .recharts-cartesian-axis-tick-value, .selected-pie-label, .selected-custom-label')]);
     const placementProperties = ['top', 'left', 'right', 'bottom', 'width', 'height', 'transform'] as const;
     const snapshots = nodes.map(node => {
@@ -776,6 +811,10 @@ test('selected Charts legend-placement and accessible SVG hydrate in place befor
       const snapshot = snapshots.find(item => item.node === this);
       if (snapshot && !seen.has(this)) {
         seen.add(this);
+        if (firstReads.length === 0) {
+          labelClaim.beforeMeasurement = serverLabel.isConnected &&
+            serverLabel === document.querySelector('#chart-selected-axis-jsx .selected-jsx-label');
+        }
         const claimed = snapshots.every(item => item.node.isConnected &&
           ((firstReads.length > 0 && item.node !== this) || item.placement === undefined ||
             placementProperties.every((property, index) => item.placementStyle?.[property] === item.placement?.[index])));
@@ -783,7 +822,7 @@ test('selected Charts legend-placement and accessible SVG hydrate in place befor
       }
       return original.call(this);
     };
-    Object.assign(window, { selectedSnapshots: snapshots, selectedFirstReads: firstReads, selectedOriginalRect: original });
+    Object.assign(window, { selectedSnapshots: snapshots, selectedFirstReads: firstReads, selectedLabelClaim: labelClaim, selectedOriginalRect: original });
   });
   await page.unroute('**/*');
   await page.evaluate(async () => {
@@ -791,9 +830,10 @@ test('selected Charts legend-placement and accessible SVG hydrate in place befor
     // The built entry URL is discovered from server HTML, not known at author time.
     await import(/* @vite-ignore */ entry + '?selected-hydration');
   });
+  await expect(jsxLabel).toHaveText('JSX categories');
   await expect(page.locator('#chart-selected-axis-plain .recharts-cartesian-axis-tick-value')).toHaveCount(10);
   expect(await page.evaluate(() => {
-    const state = window as unknown as { selectedSnapshots: { node: Element; persistent: boolean }[]; selectedFirstReads: boolean[]; selectedOriginalRect: typeof Element.prototype.getBoundingClientRect };
+    const state = window as unknown as { selectedSnapshots: { node: Element; persistent: boolean }[]; selectedFirstReads: boolean[]; selectedLabelClaim: { beforeMeasurement: boolean }; selectedOriginalRect: typeof Element.prototype.getBoundingClientRect };
     Element.prototype.getBoundingClientRect = state.selectedOriginalRect;
     const roots = [...document.querySelectorAll('[id^="chart-selected-"]')].filter(root => root.id !== 'chart-selected-legend-legacy');
     const current = roots.flatMap(root => [...root.querySelectorAll('svg:not(.recharts-legend-wrapper svg), .recharts-legend-wrapper')]);
@@ -803,8 +843,9 @@ test('selected Charts legend-placement and accessible SVG hydrate in place befor
       nodes: current.length === persistent.length && current.every(node => originals.has(node)) && persistent.every(item => item.node.isConnected),
       measured: state.selectedFirstReads.length > 0,
       firstClaim: state.selectedFirstReads.every(Boolean),
+      labelClaim: state.selectedLabelClaim.beforeMeasurement,
     };
-  })).toEqual({ nodes: true, measured: true, firstClaim: true });
+  })).toEqual({ nodes: true, measured: true, firstClaim: true, labelClaim: true });
   for (const [position, top, left] of placements) {
     const wrapper = page.locator(`#chart-selected-legend-${position} .recharts-legend-wrapper:has([data-legend-owner="primary:${position}"])`);
     await expect.poll(() => wrapper.evaluate((node, p) => {
@@ -828,5 +869,11 @@ test('selected Charts legend-placement and accessible SVG hydrate in place befor
   await expect(sankey.locator('title')).toHaveText('Selected flows');
   await expect(sankey).toHaveAttribute('tabindex', '0');
   await expect(sankey.locator('desc')).toHaveText('Source sends ten units');
+  const initialLabelWidth = await jsxLabel.evaluate(node => (node as SVGGraphicsElement).getBBox().width);
+  await page.getByRole('button', { name: 'Replace selected chart data', exact: true }).click();
+  await expect(jsxLabel).toHaveText('JSX categories 1');
+  await expect(jsxLabel).toBeVisible();
+  expect(await jsxLabel.evaluate(node => node.namespaceURI)).toBe('http://www.w3.org/2000/svg');
+  await expect.poll(() => jsxLabel.evaluate(node => (node as SVGGraphicsElement).getBBox().width)).toBeGreaterThan(initialLabelWidth);
   expect(errors).toEqual([]);
 });

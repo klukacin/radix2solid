@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { readFile, realpath } from 'node:fs/promises';
 import { test } from 'node:test';
 import { createRequire } from 'node:module';
@@ -38,6 +39,42 @@ test('packed server entry imports and renders pressed state without a DOM', () =
   const html = renderToString(() => createComponent(Toggle.Root, { defaultPressed: true, children: 'Packed state' }), { renderId: 'packed-' });
   assert.match(html, /<button[^>]*aria-pressed="true"[^>]*>Packed state<\/button>/);
   assert.match(html, /type="button"/);
+});
+
+test('packed Splitter development SSR renders public parts without server signal writes', () => {
+  const childSource = String.raw`
+    import { createComponent } from 'solid-js';
+    import { renderToString } from '@solidjs/web';
+    import * as Splitter from '@wsagency/radix2solid-primitives/splitter';
+
+    const html = renderToString(() => createComponent(Splitter.Root, {
+      id: 'development-splitter', unit: 'px', defaultSize: 400,
+      get children() { return [
+        createComponent(Splitter.Panel, {
+          side: 'primary', id: 'development-primary', minSize: 100, maxSize: 800,
+          children: 'Primary workspace',
+        }),
+        createComponent(Splitter.Handle, { 'aria-label': 'Development workspace' }),
+        createComponent(Splitter.Panel, {
+          side: 'secondary', minSize: 300, maxSize: 700, children: 'Secondary workspace',
+        }),
+      ]; },
+    }));
+    process.stdout.write(html);
+  `;
+  const child = spawnSync(process.execPath, ['--conditions=development', '--input-type=module', '--eval', childSource], {
+    cwd: import.meta.dirname, timeout: 10000, encoding: 'utf8',
+  });
+  assert.equal(child.status, 0, `Splitter SSR child failed: ${child.error?.message ?? child.signal ?? child.status}\n${child.stderr}`);
+  assert.doesNotMatch(child.stdout + child.stderr, /\[SERVER_WRITE\]/);
+  assert.match(child.stdout, /id="development-splitter"/);
+  assert.match(child.stdout, /id="development-primary"/);
+  assert.match(child.stdout, /Primary workspace/);
+  assert.match(child.stdout, /Secondary workspace/);
+  assert.match(child.stdout, /role="separator"/);
+  assert.match(child.stdout, /aria-label="Development workspace"/);
+  assert.match(child.stdout, /aria-controls="development-primary"/);
+  assert.match(child.stdout, /aria-valuenow="400"/);
 });
 
 test('packed Slot merges accessible descriptions and serializes its only target on the server', () => {

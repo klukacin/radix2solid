@@ -1,4 +1,4 @@
-import { createEffect, createRenderEffect, createSignal, createUniqueId, merge, omit, Show, untrack, type Element } from 'solid-js';
+import { createEffect, createRenderEffect, createSignal, createUniqueId, merge, omit, runWithOwner, Show, untrack, type Element } from 'solid-js';
 import { isServer } from '@solidjs/web';
 import type { ComponentProps } from '@solidjs/web';
 import { createContextScope, type Scope } from '../internal/context.js';
@@ -41,13 +41,13 @@ export function Command(props: CommandProps): Element {
   const rows = () => { version(); return collection.items(list()).filter(item => item.node.getClientRects().length && !item.node.hidden && item.node.ownerDocument.defaultView!.getComputedStyle(item.node).visibility !== 'hidden'); };
   const cursor = createActiveDescendant({ items: () => rows().map(({ node, value }) => ({ node, key: value.key(), id: value.id, disabled: value.disabled() })), loop: () => props.loop ?? true });
   let previous = untrack(search), pendingSearch = false;
-  if (!isServer) createEffect(() => ({ search: search(), rows: rows().map(item => [item.value.key(), item.value.disabled()]) }), state => {
+  if (!isServer) createEffect(() => ({ search: search(), rows: rows().map(item => [item.value.key(), item.value.disabled()]) }), state => untrack(() => {
     if (previous !== state.search) { previous = state.search; pendingSearch = true; }
     // Registration runs in the render queue; inspect final connected rows afterward.
     const reset = pendingSearch && rows().some(item => !item.value.disabled());
     cursor.reconcile(reset);
     if (reset) pendingSearch = false;
-  }, { transparent: true });
+  }), { transparent: true });
   return <Provider scope={props.__scopeCommand} value={{ search, setSearch, input, setInput, list, setList, collection, rows, cursor, changed: () => changed(n => n + 1), listId: createUniqueId() }}>{props.children}</Provider>;
 }
 export function CommandInput(props: CommandInputProps): Element {
@@ -79,14 +79,14 @@ export function CommandList(props: CommandListProps): Element {
     root.setList(element);
     const observer = new MutationObserver(() => { root.changed(); root.cursor.reconcile(); });
     observer.observe(element, { subtree: true, childList: true, attributes: true, attributeFilter: ['hidden', 'style', 'class', 'aria-disabled'] });
-    return () => { observer.disconnect(); root.cursor.setActive(null); root.setList(undefined); };
+    return () => runWithOwner(null, () => untrack(() => { observer.disconnect(); root.cursor.setActive(null); root.setList(undefined); }));
   }, { transparent: true });
   const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => target(component, merge(childProps, { id: root.listId }) as ComponentProps<typeof component>));
   return <Primitive as="div" {...(merge(omit(props, '__scopeCommand'), { role: 'listbox' as const, id: root.listId, get ref() { return composeRefs(props.ref, ref); }, get children() { return props.asChild ? render : props.children; } }) as PrimitiveProps<'div'>)} />;
 }
 export function CommandItem(props: CommandItemProps): Element {
   const root = useRoot('CommandItem', untrack(() => props.__scopeCommand));
-  const id = props.id || createUniqueId(), [node, ref] = createSignal<HTMLElement | undefined>();
+  const id = untrack(() => props.id) || createUniqueId(), [node, ref] = createSignal<HTMLElement | undefined>();
   const select = () => {
     const target = node();
     if (!target || props.disabled || !root.rows().some(item => item.node === target)) return;
@@ -95,7 +95,7 @@ export function CommandItem(props: CommandItemProps): Element {
   if (!isServer) createRenderEffect(node, element => {
     if (!element) return;
     const unregister = root.collection.register(element, { key: () => props.value, id, disabled: () => !!props.disabled, select });
-    return () => { if (element.id === root.cursor.activeId()) root.input()?.removeAttribute('aria-activedescendant'); unregister(); };
+    return () => untrack(() => { if (element.id === root.cursor.activeId()) root.input()?.removeAttribute('aria-activedescendant'); unregister(); });
   }, { transparent: true });
   const render: SlotRender = target => untrack(() => props.children as SlotRender)((component, childProps) => target(component, merge(childProps, { id }) as ComponentProps<typeof component>));
   return <Primitive as="div" {...(merge(omit(props, '__scopeCommand', 'value', 'textValue', 'disabled', 'onSelect'), {

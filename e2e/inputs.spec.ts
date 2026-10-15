@@ -281,6 +281,9 @@ test.describe('native Inputs', () => {
   });
 
   test('reset-data: unmount cancels a reset already queued by the owning form', async ({ page }) => {
+    const diagnostics: string[] = [];
+    page.on('pageerror', error => diagnostics.push(error.message));
+    page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') diagnostics.push(message.text()); });
     await page.getByRole('button', { name: 'Set reset Beta', exact: true }).click();
     await expect(page.getByRole('combobox', { name: 'Reset choice', exact: true })).toHaveValue('Beta');
     const callbacks = page.getByRole('status', { name: 'Reset callback count', exact: true });
@@ -292,9 +295,13 @@ test.describe('native Inputs', () => {
     await expect(page.getByRole('combobox', { name: 'Reset choice', exact: true })).toHaveCount(0);
     await page.evaluate(() => new Promise<void>(resolve => setTimeout(resolve, 0)));
     await expect(callbacks).toHaveText(before!);
+    expect(diagnostics).toEqual([]);
   });
 
   test('reset-data: unknown initial key has no invented label and uncontrolled data loss clears without selecting a neighbor', async ({ page }) => {
+    const diagnostics: string[] = [];
+    page.on('pageerror', error => diagnostics.push(error.message));
+    page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') diagnostics.push(message.text()); });
     const unknown = page.getByRole('combobox', { name: 'Unknown choice', exact: true });
     await expect(unknown).toHaveValue('');
     await expectInvalid(unknown);
@@ -304,6 +311,7 @@ test.describe('native Inputs', () => {
     await expect(draft).toHaveValue('');
     expect(await successfulValues(page.getByRole('form', { name: 'Draft choice form', exact: true }))).toEqual([]);
     expect(await draft.evaluate((node: HTMLInputElement) => node.checkValidity())).toBe(true);
+    expect(diagnostics).toEqual([]);
   });
 
   test('active-lifecycle: DOM reorder preserves identity and removal repairs next then previous then none', async ({ page }) => {
@@ -334,9 +342,13 @@ test.describe('native Inputs', () => {
     await input.fill('no matches');
     await expectNoActive(input);
     await expect(page.getByRole('status', { name: 'Lifecycle empty', exact: true })).toBeVisible();
+    await expect(list.getByRole('status')).toHaveCount(0);
   });
 
   test('active-lifecycle: object replacement and data reorder preserve the active key', async ({ page }) => {
+    const diagnostics: string[] = [];
+    page.on('pageerror', error => diagnostics.push(error.message));
+    page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') diagnostics.push(message.text()); });
     const input = page.getByRole('combobox', { name: 'Lifecycle choice', exact: true });
     const list = page.getByRole('listbox', { name: 'Lifecycle suggestions', exact: true });
     await input.press('ArrowDown');
@@ -351,6 +363,7 @@ test.describe('native Inputs', () => {
     await page.getByRole('button', { name: 'Show disabled choices only', exact: true }).evaluate((button: HTMLButtonElement) => button.click());
     await expectNoActive(input);
     await expect(page.getByRole('status', { name: 'Lifecycle empty', exact: true })).toBeHidden();
+    expect(diagnostics).toEqual([]);
   });
 
   test('active-lifecycle: opening upward reaches the last result, clamps and scrolls without moving focus', async ({ page }) => {
@@ -473,11 +486,15 @@ test.describe('native Inputs', () => {
       const list = page.getByRole('listbox', { name: `Server ${state} ${family}`, exact: true });
       await expect(list.getByRole('option')).toHaveCount(count);
       await expect(page.getByRole('status', { name: `Server ${state} ${family} empty`, exact: true })).toHaveCount(state === 'empty' ? 1 : 0);
+      await expect(list.getByRole('status')).toHaveCount(0);
     }
   });
 
 
   test('filtering: trimmed case-insensitive matching, replacement filter, duplicate labels and disabled-only results', async ({ page }) => {
+    const diagnostics: string[] = [];
+    page.on('pageerror', error => diagnostics.push(error.message));
+    page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') diagnostics.push(message.text()); });
     const input = page.getByRole('combobox', { name: 'Lifecycle choice', exact: true });
     const list = page.getByRole('listbox', { name: 'Lifecycle suggestions', exact: true });
     await input.fill('  aL  ');
@@ -505,6 +522,7 @@ test.describe('native Inputs', () => {
     await input.press('Enter');
     await expect(input).toHaveValue('Same');
     expect(await successfulValues(page.getByRole('form', { name: 'Lifecycle choice form', exact: true }))).toEqual([['lifecycle-choice', 'same-2']]);
+    expect(diagnostics).toEqual([]);
   });
 
   test('input-native-targets: native button and anchor activation commit once and cancellation prevents defaults', async ({ page }) => {
@@ -606,6 +624,8 @@ test.describe('native Inputs', () => {
   test('command-actions: IME, disabled and empty results never act or accidentally submit', async ({ page }) => {
     const input = page.getByRole('combobox', { name: 'Command search', exact: true });
     const list = page.getByRole('listbox', { name: 'Command results', exact: true });
+    await expect(page.getByRole('status', { name: 'Command loading', exact: true })).toBeVisible();
+    await expect(list.getByRole('status')).toHaveCount(0);
     await input.press('ArrowDown');
     await input.dispatchEvent('compositionstart', { data: '' });
     await input.dispatchEvent('keydown', { key: 'Enter', isComposing: true });
@@ -622,11 +642,15 @@ test.describe('native Inputs', () => {
     await page.getByRole('button', { name: 'Remove all commands', exact: true }).click();
     await input.press('Enter');
     await expect(page.getByRole('status', { name: 'No commands', exact: true })).toBeVisible();
+    await expect(list.getByRole('status')).toHaveCount(0);
     await expect(page.getByRole('status', { name: 'Command actions', exact: true })).toHaveText('alpha:0,beta:0');
     await expect(page.getByRole('status', { name: 'Command submissions', exact: true })).toHaveText('0');
   });
 
   test('command-replace: controlled search and caller-ranked replacements repair live active identity', async ({ page }) => {
+    const diagnostics: string[] = [];
+    page.on('pageerror', error => diagnostics.push(error.message));
+    page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') diagnostics.push(message.text()); });
     const input = page.getByRole('combobox', { name: 'Command search', exact: true });
     const list = page.getByRole('listbox', { name: 'Command results', exact: true });
     await page.getByLabel('Accept command search', { exact: true }).uncheck();
@@ -668,9 +692,13 @@ test.describe('native Inputs', () => {
     await input.press('ControlOrMeta+a');
     await input.press('Space');
     await expect(input).toHaveValue(' ');
+    expect(diagnostics).toEqual([]);
   });
 
   test('command-replace: synchronous caller filtering resets after replacement and preserves manual identity afterward', async ({ page }) => {
+    const diagnostics: string[] = [];
+    page.on('pageerror', error => diagnostics.push(error.message));
+    page.on('console', message => { if (message.type() === 'error' || message.type() === 'warning') diagnostics.push(message.text()); });
     const input = page.getByRole('combobox', { name: 'Command search', exact: true });
     const list = page.getByRole('listbox', { name: 'Command results', exact: true });
     await expectNoActive(input);
@@ -695,6 +723,7 @@ test.describe('native Inputs', () => {
       await expectActive(input, beta);
     }
     await expect(page.getByRole('status', { name: 'Command submissions', exact: true })).toHaveText('0');
+    expect(diagnostics).toEqual([]);
   });
 
   for (const pending of ['Remove all commands', 'Show disabled commands only']) {

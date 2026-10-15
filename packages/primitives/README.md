@@ -39,6 +39,10 @@ Both families use native target-factory `asChild`, real refs, consumer-first eve
 
 `Empty` is client-resolved from mounted, visible rows, including disabled rows. Server rendering does not announce an empty result before client registration, even for an actually empty list. Accepted Command search changes reset to the first enabled result after the caller's rendered update; if results are empty or all disabled, that intent waits for enabled results without requiring another query. Ordinary object replacement and reordering preserve an existing active key; initial results alone do not create one.
 
+Record/filter derivations and shared collection/state accessors remain reactive. Initialization captures, post-render cursor reconciliation and disposal read explicit snapshots; reconciliation still inspects the final registered rows rather than an earlier render-phase snapshot.
+
+Place `Empty` and caller-owned loading/status messages **beside `List`, not inside it**: keep `Command.Empty` within `Command.Root`, and `Combobox.Empty` within the existing `Combobox.Content` (or `Combobox.Root` for an inline list). They retain `role="status"` and resolve from the Root's registered List; listbox descendants must remain options or option groups rather than live-status regions.
+
 ## Splitter
 
 `Splitter.Root` contains exactly a primary `Panel`, named `Handle`, then secondary `Panel`. Import the namespace or `/splitter` parts, `SplitterProps`, `SplitterPanelProps`, `SplitterHandleProps` and `createSplitterScope`. Root controls numeric size with `unit="%"` (default) or `"px"`, independent collapsed state, orientation/direction, step and disabled state. Pixel mode requires an initial size. Panels set `minSize`/`maxSize`; only primary supports `collapsible` and `collapsedSize`.

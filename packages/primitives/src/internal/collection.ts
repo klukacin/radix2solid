@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js';
+import { createSignal, runWithOwner } from 'solid-js';
 
 /** Registration belongs to the component owner; ordering is read from the current DOM. */
 export function createCollection<T>() {
@@ -8,7 +8,8 @@ export function createCollection<T>() {
     register(node: HTMLElement, value: T) {
       entries.set(node, value);
       changed(previous => previous + 1);
-      return () => { entries.delete(node); changed(previous => previous + 1); };
+      // Row disposal can run inside a caller's list computation; invalidation is imperative.
+      return () => { entries.delete(node); runWithOwner(null, () => changed(previous => previous + 1)); };
     },
     items(container?: Node) {
       version();

@@ -12,6 +12,7 @@
 - Defer the positioned Legend outlet and initial Bar geometry until ordinary child registrations exist; isolate Brush data-replacement synchronization from keyboard/index updates.
 - Adapt all-null stacked Area connectivity, floating-gap band widths, configured gaps after bar-size clamping, missing-label tooltip index fallback, polar tick wrapping and value-stable rendered-tick reporting. Polar wrapping corrects the actual Tooltip anchor as well as selection; a clamped visible label alone did not prove a valid anchor.
 - Harden Text CSS calculations against replacement-token interpretation and inputs over 1,000 characters before normalization.
+- Mark Text/Label ref attachment and Brush index-change drag guards as intentional imperative snapshots for Solid's strict-read diagnostics, without untracking rendered geometry or content. Gallery custom JSX labels use the supported render-function lifecycle; unsupported DOM-node input is exercised by an explicit post-mount user action.
 - Observed local verification passed public Charts Node SSR20/20, selected cross-engine SSR/CSR cases, TS7/TS5.9 packed declarations and all Charts cases in the rebuilt packed Chromium core suite. Review follow-ups cover zero-data Pie SSR, positive-to-zero and font/spacing changes in packed Chromium, explicit public position/offset/auto-height/Sankey types, and real-font completion plus disposal in Chromium/Firefox/WebKit. Full CI and npm publication remain pending.
 
 ## 0.1.0-rc.2 — prepared candidate, not yet published

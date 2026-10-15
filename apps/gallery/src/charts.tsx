@@ -34,6 +34,7 @@ export function Charts() {
   const [selectedFontSize, setSelectedFontSize] = createSignal(12);
   const [selectedLetterSpacing, setSelectedLetterSpacing] = createSignal(0);
   const [selectedPieZero, setSelectedPieZero] = createSignal(false);
+  const [selectedUnsupportedLabel, setSelectedUnsupportedLabel] = createSignal<ImplicitLabelType>();
   const selectedRows = () => Array.from({ length: 10 }, (_, index) => ({ name: `Category ${index}`, value: 10 + index + selectedRevision() }));
   return <section aria-label="Native Charts" id="native-charts">
     <button onClick={() => setRevision(value => value + 1)}>Update chart data</button>
@@ -55,6 +56,16 @@ export function Charts() {
     <button onClick={() => setSelectedFontSize(40)}>Enlarge selected axis font</button>
     <button onClick={() => setSelectedLetterSpacing(2)}>Space selected axis letters</button>
     <button onClick={() => setSelectedPieZero(true)}>Zero selected Pie data</button>
+    <button onClick={() => {
+      if (selectedUnsupportedLabel()) {
+        setSelectedUnsupportedLabel(undefined);
+        return;
+      }
+      const label = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      label.textContent = 'Unsupported raw label';
+      // @ts-expect-error Exercise an invalid JavaScript-consumer input after mounting, without allocating hydration JSX.
+      setSelectedUnsupportedLabel(label);
+    }}>Toggle unsupported axis label</button>
     <Show when={mounted()}>
     <div id="chart-selected-brush"><LineChart width={500} height={300} data={selectedRows()}>
       <XAxis dataKey="name" /><Line dataKey="value" isAnimationActive={false} />
@@ -83,11 +94,6 @@ export function Charts() {
       </LineChart></div>
     }</For>
     <For each={['plain', 'string', 'multiline', 'function', 'jsx', 'numeric'] as const}>{kind => {
-      let unsupportedJsxLabel: ImplicitLabelType | undefined;
-      if (kind === 'jsx') {
-        // @ts-expect-error Raw JSX is unsupported; exercise the defensive JavaScript-consumer boundary.
-        unsupportedJsxLabel = <text>JSX categories</text>;
-      }
       return <div id={`chart-selected-axis-${kind}`}><LineChart width={500} height={300} data={selectedRows()}>
         <XAxis dataKey="name" interval={0} angle={-45} tickSize={6} tickMargin={2}
           height={kind === 'numeric' ? 30 : 'auto'}
@@ -96,7 +102,10 @@ export function Charts() {
           tick={kind === 'multiline' ? props => <text class="recharts-cartesian-axis-tick-value" x={props.x} y={props.y}>
             <tspan x={props.x}>Category</tspan><tspan x={props.x} dy={24}>{props.index}</tspan>
           </text> : undefined}
-          label={kind === 'string' ? 'Revenue categories' : kind === 'function' ? () => <text>Custom categories</text> : unsupportedJsxLabel} />
+          label={kind === 'string' ? 'Revenue categories' : kind === 'function' ? () => <text>Custom categories</text> : kind === 'jsx' ?
+            selectedUnsupportedLabel() ?? (props => <text class="selected-jsx-label" x={props.x} y={props.y}>
+              {selectedRevision() ? `JSX categories ${selectedRevision()}` : 'JSX categories'}
+            </text>) : undefined} />
         <Line dataKey="value" isAnimationActive={false} />
       </LineChart></div>;
     }}</For>

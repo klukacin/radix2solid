@@ -64,7 +64,7 @@ The root export keeps the whole inherited solid-recharts surface: the twelve cha
 
 Series accept any CSS color. Charts does not depend on Themes. The examples use Themes tokens with a plain fallback (`var(--accent-9, royalblue)`): without Themes they draw in the fallback color, and inside a Themes `Theme` they follow the nearest theme.
 
-Custom ticks, shapes, labels and tooltip content are render functions. React element forms that Recharts clones (for example an element passed as `tick` or `shape`) are not supported, because Solid has no element cloning. `Customized` is not exported.
+Custom ticks, shapes, labels and tooltip content are render functions. Create custom label JSX inside its render function (for example, `label={props => <text x={props.x} y={props.y}>Categories</text>}`), so it is rendered and hydrated with the chart; do not eagerly create a JSX node and pass it as a label prop. React element forms that Recharts clones (for example an element passed as `tick` or `shape`) are not supported, because Solid has no element cloning. `Customized` is not exported.
 
 ### Selected upstream additions
 

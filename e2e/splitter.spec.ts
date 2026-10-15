@@ -442,10 +442,18 @@ test.describe('native Splitter', () => {
     await page.mouse.move(point.x + 25, point.y); await page.mouse.up();
     await expectSize(primary(page, 'nested'), nestedBefore + 25);
     await expectSize(primary(page), 400); expect(await events(page)).toEqual([]);
-    const scroll = page.locator('#splitter-pixel-scroll');
+    const scroll = page.getByRole('region', { name: 'Scrollable primary content', exact: true });
+    await page.getByRole('textbox', { name: 'Pixel draft', exact: true }).focus();
+    await page.keyboard.press('Tab'); await expect(scroll).toBeFocused();
+    await page.keyboard.press('PageDown');
+    await expect.poll(() => scroll.evaluate(node => node.scrollTop)).toBeGreaterThan(0);
+    await page.keyboard.press('Home');
+    await expect.poll(() => scroll.evaluate(node => node.scrollTop)).toBe(0);
     await scroll.hover(); await page.mouse.wheel(0, 150);
     await expect.poll(() => scroll.evaluate(node => node.scrollTop)).toBeGreaterThan(0);
     expect(await scroll.evaluate(node => getComputedStyle(node).touchAction)).not.toBe('none');
+    await expect(scroll).toBeFocused();
+    await expectSize(primary(page), 400); expect(await events(page)).toEqual([]);
     expect(await page.evaluate(() => [document.documentElement.style.cursor, document.body.style.cursor])).toEqual(documentStyle);
     await button(page, 'Unmount nested splitter').click(); await expect(nested).toHaveCount(0);
     await handle.focus(); await handle.press('ArrowRight'); await expectSize(primary(page), 410);
@@ -585,6 +593,9 @@ test('splitter-ssr: original panels and CSS survive hydration before measured AR
     await expectSize(primary(page, 'reconcile'), 300); await expectSize(secondary(page, 'reconcile'), 700);
     await expect(page.getByRole('separator', { name: 'Reconciled workspace', exact: true })).toHaveAttribute('aria-valuenow', '300');
     expect(await events(page)).toEqual([]); expect(await events(page, 'percent')).toEqual([]);
+    await handle.focus(); await handle.press('ArrowRight');
+    await expectSize(primary(page), 410); await expectSize(secondary(page), 590);
+    expect(await events(page)).toEqual([['change', 410], ['commit', 410]]);
     expect(problems).toEqual([]);
   } finally {
     release();

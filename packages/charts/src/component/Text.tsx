@@ -9,7 +9,7 @@
 // SVG passthrough props go through svgPropertiesAndEvents like the shape ports;
 // `React.ReactNode` children → `RenderableText`.
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createMemo, For, merge, omit, Show } from "solid-js";
+import { createMemo, For, merge, omit, Show, untrack } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import type { Properties as CSSProperties } from "csstype";
 import { isNullish, isNumber, isNumOrStr } from "../util/DataUtils";
@@ -423,7 +423,8 @@ export const Text = (props: Props): JSX.Element => {
           class={["recharts-text", g().class]}
           text-anchor={g().textAnchor}
           fill={g().fill}
-          ref={props.ref}
+          // The ref is sampled once when this text node attaches, not derived with its geometry.
+          ref={untrack(() => props.ref)}
         >
           <For each={wordsByLines()}>
             {(line, index) => (

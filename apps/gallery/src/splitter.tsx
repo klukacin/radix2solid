@@ -59,7 +59,7 @@ export function Splitters(): Element {
           style={{ ...rootStyle(axis() === 'vertical'), [axis() === 'horizontal' ? 'width' : 'height']: `${width()}px` }}>
           {target => target(CustomHost, { get children() { return <>
             <Splitter.Panel asChild side="primary" id="splitter-pixel-primary" ref={setPanelRef} minSize={pmin()} maxSize={pmax()} collapsible collapsedSize={value(20)}>
-              {panel => panel('article', { children: <><ContextWitness /><input aria-label="Pixel draft" /><div id="splitter-pixel-scroll" style={{ height: '100px', overflow: 'auto' }}><div style={{ height: '600px' }}>Scrollable primary content</div></div><button>Before pixel handle</button></> })}
+              {panel => panel('article', { children: <><ContextWitness /><input aria-label="Pixel draft" /><div id="splitter-pixel-scroll" role="region" aria-label="Scrollable primary content" tabindex={0} style={{ height: '100px', overflow: 'auto' }}><div style={{ height: '600px' }}>Scrollable primary content</div></div><button>Before pixel handle</button></> })}
             </Splitter.Panel>
             <Splitter.Handle asChild ref={setHandleRef} aria-label="Pixel workspace" style={handleStyle(axis() === 'vertical')} onKeyDown={event => { if (cancel()) event.preventDefault(); }} onPointerDown={event => { if (cancel()) event.preventDefault(); }}>
               {handle => handle('div', handleTargetProps)}

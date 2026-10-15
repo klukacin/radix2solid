@@ -46,7 +46,7 @@ type Item = {
 };
 type Entry = { node: HTMLElement; item: Item; visible: boolean; enabled: boolean };
 type TreeContext = {
-  register: (node: HTMLElement, item: Item) => () => void;
+  register: (node: HTMLElement, item: Item, key: string) => () => void;
   value: Accessor<string | null>;
   mode: Accessor<'single' | 'none'>;
   expanded: Accessor<readonly string[]>;
@@ -93,8 +93,7 @@ export function Tree(props: TreeProps): Element {
 
   const context: TreeContext = {
     value, expanded, dir, tabStop, composing: false,
-    register(element, item) {
-      const key = item.key();
+    register(element, item, key) {
       if (typeof key !== 'string' || !key.length) throw new Error('Tree Item value must be nonempty.');
       if (keys.has(key)) throw new Error(`Duplicate Tree Item value: ${key}`);
       keys.set(key, element);
@@ -170,7 +169,7 @@ export function Tree(props: TreeProps): Element {
         focusWithin = false;
       };
     }, { transparent: true });
-    createEffect(() => [entries(), current(), node()] as const, ([next, focused, root]) => {
+    createEffect(() => [entries(), current(), node(), tabStop()] as const, ([next, focused, root, preferred]) => {
       if (!root?.isConnected) { previous = next; return; }
       const live = next.filter(entry => entry.visible && entry.enabled);
       if (focused && !live.some(entry => entry.item === focused)) {
@@ -197,7 +196,7 @@ export function Tree(props: TreeProps): Element {
         if (affected) focus(target?.node ?? root, false, false);
       }
       if (focusWithin && live.length && !previous.some(entry => entry.visible && entry.enabled) && activeElement(root.ownerDocument) === root) {
-        focus(live.find(entry => entry.item === tabStop())?.node);
+        focus(live.find(entry => entry.item === preferred)?.node);
       }
       previous = next;
     }, { transparent: true });
@@ -238,8 +237,8 @@ export function TreeItem(props: TreeItemProps): Element {
     visible: () => parent.visible() && !props.hidden, branch: () => props.hasChildren ?? false,
     expanded: () => !!props.hasChildren && root.expanded().includes(props.value), parent: parent.item, textId
   };
-  if (!isServer) createEffect(() => [node(), props.value] as const, ([element]) =>
-    element ? root.register(element, item) : undefined, { transparent: true });
+  if (!isServer) createEffect(() => [node(), props.value] as const, ([element, key]) =>
+    element ? root.register(element, item, key) : undefined, { transparent: true });
   // Text/indicator descendants belong to this row; descendant items and disclosure buttons do not.
   const ownRow = (event: Event) => {
     const target = event.target as HTMLElement | null;
