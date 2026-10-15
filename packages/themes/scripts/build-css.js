@@ -28,7 +28,7 @@ const targets = [
 
 const common = ["reset", "animations", "layout", "skeleton", "text"];
 const index = await readFile(resolve(root, "src/components/index.css"), "utf8");
-const order = [...index.matchAll(/^@import '\.\/([\w-]+)\.css';/gm)]
+const order = [...index.matchAll(/^@import ["']\.\/([\w-]+)\.css["'];/gm)]
   .map((match) => match[1])
   .filter((name) => !common.includes(name) && name !== "shared");
 // Composed JSX dependencies not already imported by the component's CSS.
