@@ -49,7 +49,7 @@ pnpm --filter @wsagency/radix2solid-icons-extra build
 
 ## Artwork
 
-Both assets (`folder.svg`, `folder-open.svg`) were created for this package by an AI coding agent: Claude by Anthropic (model `anthropic/claude-opus-5-5`, run in the omp coding harness), as hand-written SVG path data during implementation of the next-suite specification. They were not traced or derived from Radix Icons, another icon set, an existing application's inline icons, or brand artwork. No human drew them. The commit that added them is the one returned by `git log --diff-filter=A -- packages/icons-extra/icons/folder.svg`.
+Both assets (`folder.svg`, `folder-open.svg`) were created for this package by an AI coding agent: Claude by Anthropic (model `anthropic/claude-opus-5-5`, run in the omp coding harness), as hand-written SVG path data during implementation of the next-suite specification. They were not traced or derived from Radix Icons, another icon set, an existing application's inline icons, or brand artwork. No human drew them. They were added in commit `8e8de79ad38c23472bef74f552dc24e8b6484c93`; `git log --diff-filter=A -- packages/icons-extra/icons/folder.svg` returns it.
 
 ## License
 
