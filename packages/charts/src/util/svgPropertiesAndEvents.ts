@@ -7,7 +7,11 @@
 // `null`. React's `SVGProps`/`CSSProperties` types are replaced with JSX.*
 // from '@solidjs/web'.
 import { isEventKey } from "./excludeEventProps";
-import { isDataAttribute, isSvgElementPropKey, toSvgAttributeName } from "./svgPropertiesNoEvents";
+import {
+  isDataAttribute,
+  isSvgElementPropKey,
+  toSvgAttributeName,
+} from "./svgPropertiesNoEvents";
 import { svgPropertiesNoEventsKeepCase } from "./svgPropertiesNoEvents";
 
 /**
@@ -19,7 +23,9 @@ import { svgPropertiesNoEventsKeepCase } from "./svgPropertiesNoEvents";
  * @param obj - The object to filter.
  * @returns A new object containing only valid SVG attributes, data attributes, and event handlers.
  */
-export function svgPropertiesAndEvents(obj: Record<string, unknown>): Record<string, unknown> {
+export function svgPropertiesAndEvents(
+  obj: Record<string, unknown>,
+): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   // for ... in loop is 10x faster than Object.entries + filter + Object.fromEntries in Chrome.
   // Note: for...in only iterates string (and numeric-as-string) keys; symbols are naturally excluded.
@@ -71,7 +77,9 @@ export function svgPropertiesAndEventsKeepCase(
  * @param input - The input to filter.
  * @returns A filtered record of SVG properties if the input is a plain object, otherwise null.
  */
-export function svgPropertiesAndEventsFromUnknown(input: unknown): Record<string, unknown> | null {
+export function svgPropertiesAndEventsFromUnknown(
+  input: unknown,
+): Record<string, unknown> | null {
   if (input == null) {
     return null;
   }

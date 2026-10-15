@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/polar/PolarRadiusAxis.tsx (commit 7a23854).
 //
 // MINIMAL PORT — registers a RadiusAxisSettings into the polarAxis slice and
@@ -15,18 +16,29 @@
 // DEFERRED (documented): ELEMENT-form `tick` (Solid can't clone-and-inject
 // computed props into an evaluated node — use the function form instead).
 import { For, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { svgPropertiesNoEvents } from "../util/svgPropertiesNoEvents";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import { Layer } from "../container/Layer";
-import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
-import { ZIndexLayer } from "../zIndex/ZIndexLayer";
-import { Text } from "../component/Text";
+
 import {
   type ImplicitLabelType,
   PolarLabelContextProvider,
   PolarLabelFromLabelProp,
 } from "../component/Label";
+import { Text } from "../component/Text";
+import { Layer } from "../container/Layer";
+import { usePolarChartLayout } from "../context/chartLayoutContext";
+import { NiceTicksAlgorithm } from "../state/cartesianAxisSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { RadiusAxisSettings } from "../state/polarAxisSlice";
+import { registerInStore } from "../state/registerInStore";
+import { selectPolarViewBox } from "../state/selectors/polarAxisSelectors";
+import {
+  selectPolarAxisScale,
+  selectPolarAxisTicks,
+} from "../state/selectors/polarScaleSelectors";
+import { isNumOrStr } from "../util/DataUtils";
+import { getAxisTypeBasedOnLayout } from "../util/getAxisTypeBasedOnLayout";
+import { polarToCartesian } from "../util/PolarUtils";
+import { CustomScaleDefinition } from "../util/scale/CustomScaleDefinition";
+import { svgPropertiesNoEvents } from "../util/svgPropertiesNoEvents";
 import {
   AxisDomain,
   AxisDomainTypeInput,
@@ -37,21 +49,19 @@ import {
   TickItem,
   TickProp,
 } from "../util/types";
-import { NiceTicksAlgorithm } from "../state/cartesianAxisSlice";
-import { RadiusAxisSettings } from "../state/polarAxisSlice";
-import { polarToCartesian } from "../util/PolarUtils";
-import { isNumOrStr } from "../util/DataUtils";
-import { selectPolarAxisScale, selectPolarAxisTicks } from "../state/selectors/polarScaleSelectors";
-import { selectPolarViewBox } from "../state/selectors/polarAxisSelectors";
-import { usePolarChartLayout } from "../context/chartLayoutContext";
-import { getAxisTypeBasedOnLayout } from "../util/getAxisTypeBasedOnLayout";
-import { CustomScaleDefinition } from "../util/scale/CustomScaleDefinition";
-import type { PolarAxisLineObjectProps, PolarTickEventHandler } from "./PolarAngleAxis";
-import { registerInStore } from "../state/registerInStore";
+import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
+import { ZIndexLayer } from "../zIndex/ZIndexLayer";
+import type {
+  PolarAxisLineObjectProps,
+  PolarTickEventHandler,
+} from "./PolarAngleAxis";
 
 type TickOrientation = "left" | "right" | "middle";
 
-export interface PolarRadiusAxisProps<DataPointType = unknown, DataValueType = unknown> {
+export interface PolarRadiusAxisProps<
+  DataPointType = unknown,
+  DataValueType = unknown,
+> {
   radiusAxisId?: string | number;
   /** Center x; defaults to the chart's polar center. */
   cx?: number;
@@ -130,14 +140,17 @@ export const polarRadiusAxisDefaultProps = {
 // The polar label viewBox spans from the smallest to the largest tick radius
 // (matches recharts' getViewBox via maxBy/minBy on tick.coordinate).
 const minTickCoordinate = (ticks: ReadonlyArray<TickItem>): number =>
-  ticks.reduce((min, t) => Math.min(min, t.coordinate || 0), Infinity) === Infinity
+  ticks.reduce((min, t) => Math.min(min, t.coordinate || 0), Infinity) ===
+  Infinity
     ? 0
     : ticks.reduce((min, t) => Math.min(min, t.coordinate || 0), Infinity);
 
 const maxTickCoordinate = (ticks: ReadonlyArray<TickItem>): number =>
   ticks.reduce((max, t) => Math.max(max, t.coordinate || 0), 0);
 
-const getTickTextAnchor = (orientation: TickOrientation): "start" | "end" | "middle" => {
+const getTickTextAnchor = (
+  orientation: TickOrientation,
+): "start" | "end" | "middle" => {
   switch (orientation) {
     case "left":
       return "end";
@@ -204,7 +217,9 @@ const RadiusAxisTick = (props: RadiusTickProps): JSX.Element => {
     if (props.tickFormatter) {
       return props.tickFormatter(props.entry.value, props.index);
     }
-    return isNumOrStr(props.entry.value) ? props.entry.value : String(props.entry.value);
+    return isNumOrStr(props.entry.value)
+      ? props.entry.value
+      : String(props.entry.value);
   };
   return (
     <Layer
@@ -258,9 +273,10 @@ const RadiusAxisTick = (props: RadiusTickProps): JSX.Element => {
   );
 };
 
-export function PolarRadiusAxis<DataPointType = unknown, DataValueType = unknown>(
-  props: PolarRadiusAxisProps<DataPointType, DataValueType>,
-): JSX.Element {
+export function PolarRadiusAxis<
+  DataPointType = unknown,
+  DataValueType = unknown,
+>(props: PolarRadiusAxisProps<DataPointType, DataValueType>): JSX.Element {
   const store = useAppStore();
   const layout = usePolarChartLayout();
   const merged = merge(polarRadiusAxisDefaultProps, props);
@@ -268,7 +284,11 @@ export function PolarRadiusAxis<DataPointType = unknown, DataValueType = unknown
   if (store != null) {
     registerInStore<RadiusAxisSettings>(
       (): RadiusAxisSettings | undefined => {
-        const evaluatedType = getAxisTypeBasedOnLayout(layout(), "radiusAxis", merged.type);
+        const evaluatedType = getAxisTypeBasedOnLayout(
+          layout(),
+          "radiusAxis",
+          merged.type,
+        );
         if (evaluatedType == null) {
           return undefined;
         }
@@ -312,10 +332,20 @@ export function PolarRadiusAxis<DataPointType = unknown, DataValueType = unknown
     selectPolarAxisTicks(state, "radiusAxis", merged.radiusAxisId, false),
   );
 
-  const renderData = (): { cx: number; cy: number; ticks: ReadonlyArray<TickItem> } | null => {
+  const renderData = (): {
+    cx: number;
+    cy: number;
+    ticks: ReadonlyArray<TickItem>;
+  } | null => {
     const vb = viewBox();
     const t = ticks();
-    if (vb == null || scale() == null || t == null || t.length === 0 || merged.hide) {
+    if (
+      vb == null ||
+      scale() == null ||
+      t == null ||
+      t.length === 0 ||
+      merged.hide
+    ) {
       return null;
     }
     return { cx: vb.cx, cy: vb.cy, ticks: t };
@@ -359,7 +389,8 @@ export function PolarRadiusAxis<DataPointType = unknown, DataValueType = unknown
                 class="recharts-polar-radius-axis-line"
                 fill="none"
                 stroke={merged.stroke}
-                {...(typeof merged.axisLine === "object" && merged.axisLine != null
+                {...(typeof merged.axisLine === "object" &&
+                merged.axisLine != null
                   ? svgPropertiesNoEvents({ ...merged.axisLine })
                   : {})}
                 x1={axisLineCoords(rd()).x1}

@@ -1,11 +1,11 @@
+import { getValueByDataKey } from "../../../util/ChartUtils";
+import { isWellFormedNumberDomain } from "../../../util/isDomainSpecifiedByUser";
+import { isWellBehavedNumber } from "../../../util/isWellBehavedNumber";
+import { CategoricalDomain, DataKey, NumberDomain } from "../../../util/types";
+import { ChartData } from "../../chartDataSlice";
 // Ported from recharts 3.8.1 src/state/selectors/combiners/combineActiveTooltipIndex.ts.
 // Deviation: `DataKey<unknown>` instead of `DataKey<any>`.
 import { TooltipIndex, TooltipInteractionState } from "../../tooltipSlice";
-import { ChartData } from "../../chartDataSlice";
-import { isWellBehavedNumber } from "../../../util/isWellBehavedNumber";
-import { CategoricalDomain, DataKey, NumberDomain } from "../../../util/types";
-import { getValueByDataKey } from "../../../util/ChartUtils";
-import { isWellFormedNumberDomain } from "../../../util/isDomainSpecifiedByUser";
 
 function toFiniteNumber(value: unknown): number | undefined {
   if (typeof value === "number") {
@@ -19,7 +19,10 @@ function toFiniteNumber(value: unknown): number | undefined {
   return Number.isFinite(parsed) ? parsed : undefined;
 }
 
-function isValueWithinNumberDomain(value: unknown, domain: NumberDomain): boolean {
+function isValueWithinNumberDomain(
+  value: unknown,
+  domain: NumberDomain,
+): boolean {
   const numericValue = toFiniteNumber(value);
   const lowerBound = domain[0];
   const upperBound = domain[1];
@@ -78,7 +81,10 @@ export const combineActiveTooltipIndex = (
     upperLimit = chartData.length - 1;
   }
 
-  const clampedIndex = Math.max(lowerLimit, Math.min(indexAsNumber, upperLimit));
+  const clampedIndex = Math.max(
+    lowerLimit,
+    Math.min(indexAsNumber, upperLimit),
+  );
   const entry = chartData[clampedIndex];
 
   if (entry == null) {

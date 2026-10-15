@@ -1,3 +1,8 @@
+import type { JSX } from "@solidjs/web";
+import { Show, omit } from "solid-js";
+
+import { isNumber } from "../util/DataUtils";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 /**
  * @fileOverview Cross
  *
@@ -7,10 +12,6 @@
  * accessors; `clsx` → `class={[...]}`; `return null` → `<Show>`.
  */
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { Show, omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { isNumber } from "../util/DataUtils";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 
 interface CrossOwnProps {
   /** The x-coordinate of the vertical line of the cross in pixels. */
@@ -28,7 +29,10 @@ interface CrossOwnProps {
   class?: string;
 }
 
-export type CrossProps = Omit<CamelSvgProps<JSX.PathSVGAttributes<SVGPathElement>>, "class"> &
+export type CrossProps = Omit<
+  CamelSvgProps<JSX.PathSVGAttributes<SVGPathElement>>,
+  "class"
+> &
   CrossOwnProps;
 
 const getPath = (

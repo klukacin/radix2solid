@@ -1,9 +1,11 @@
+import type { CategoricalChartFunc } from "../chart/types";
+import type { MouseHandlerDataParam } from "../synchronisation/types";
 // Ported from recharts 3.8.1 src/state/externalEventsMiddleware.ts (commit 7a23854).
 //
 // Solid rewrite: redux listener middleware → `dispatchExternalEvent(store, payload)`.
 import { createEventProxy } from "../util/createEventProxy";
-import type { CategoricalChartFunc } from "../chart/types";
-import type { MouseHandlerDataParam } from "../synchronisation/types";
+import { isEventThrottled } from "./isEventThrottled";
+import { selectTooltipEventType } from "./selectors/selectTooltipEventType";
 import {
   selectActiveCoordinate,
   selectActiveLabel,
@@ -11,9 +13,7 @@ import {
   selectActiveTooltipIndex,
   selectIsTooltipActive,
 } from "./selectors/tooltipSelectors";
-import { selectTooltipEventType } from "./selectors/selectTooltipEventType";
 import type { RechartsStore } from "./store";
-import { isEventThrottled } from "./isEventThrottled";
 
 export type ExternalEventActionPayload<E = Event> = {
   reactEvent: E;
@@ -30,10 +30,9 @@ const latestEventMap = new Map<
   }
 >();
 
-export function dispatchExternalEvent<E extends Event & { currentTarget: unknown }>(
-  store: RechartsStore,
-  payload: ExternalEventActionPayload<E>,
-): void {
+export function dispatchExternalEvent<
+  E extends Event & { currentTarget: unknown },
+>(store: RechartsStore, payload: ExternalEventActionPayload<E>): void {
   const { handler, reactEvent } = payload;
   if (handler == null) {
     return;
@@ -60,7 +59,10 @@ export function dispatchExternalEvent<E extends Event & { currentTarget: unknown
   const isThrottled = isEventThrottled(throttledEvents, eventType);
 
   const existingTimeoutId = timeoutIdMap.get(eventType);
-  if (existingTimeoutId !== undefined && (typeof throttleDelay !== "number" || !isThrottled)) {
+  if (
+    existingTimeoutId !== undefined &&
+    (typeof throttleDelay !== "number" || !isThrottled)
+  ) {
     clearTimeout(existingTimeoutId);
     timeoutIdMap.delete(eventType);
   }
@@ -89,7 +91,12 @@ export function dispatchExternalEvent<E extends Event & { currentTarget: unknown
         ),
         activeDataKey: selectActiveTooltipDataKey(currentState),
         activeIndex: selectActiveTooltipIndex(currentState),
-        activeLabel: selectActiveLabel(currentState, tooltipEventType, trigger, defaultIndex),
+        activeLabel: selectActiveLabel(
+          currentState,
+          tooltipEventType,
+          trigger,
+          defaultIndex,
+        ),
         activeTooltipIndex: selectActiveTooltipIndex(currentState),
         isTooltipActive: selectIsTooltipActive(
           currentState,

@@ -1,3 +1,4 @@
+import { BrushStartEndIndex } from "../context/brushUpdateContext";
 // Ported from recharts 3.8.1 src/state/chartDataSlice.ts (commit 7a23854).
 //
 // FULL SOLID-NATIVE REWRITE of the state layer (no Redux — see the project's
@@ -8,7 +9,6 @@
 //
 // `castDraft`/immer are unnecessary — Solid's store setter takes a mutable draft.
 import type { ChartStateInitializer } from "./createChartState";
-import { BrushStartEndIndex } from "../context/brushUpdateContext";
 
 /**
  * This is the data that's coming through main chart `data` prop
@@ -75,39 +75,47 @@ export interface ChartDataSlice {
  * Equivalent to recharts' `createSlice({ name: 'chartData', ... })`, but the
  * store is a Solid store and the actions mutate it directly.
  */
-export function createChartDataSlice(initialState: ChartDataState=initialChartDataState,createState: ChartStateInitializer): ChartDataSlice {
-  const [state,setState]=createState<ChartDataState>({ ...initialState });
+export function createChartDataSlice(
+  initialState: ChartDataState = initialChartDataState,
+  createState: ChartStateInitializer,
+): ChartDataSlice {
+  const [state, setState] = createState<ChartDataState>({ ...initialState });
 
-  const actions: ChartDataActions={
+  const actions: ChartDataActions = {
     setChartData(chartData) {
       setState((s) => {
-        s.chartData=chartData;
-        if(chartData==null) {
-          s.dataStartIndex=0;
-          s.dataEndIndex=0;
+        s.chartData = chartData;
+        if (chartData == null) {
+          s.dataStartIndex = 0;
+          s.dataEndIndex = 0;
           return;
         }
-        if(chartData.length>0&&s.dataEndIndex!==chartData.length-1) {
-          s.dataEndIndex=chartData.length-1;
+        if (chartData.length > 0 && s.dataEndIndex !== chartData.length - 1) {
+          s.dataEndIndex = chartData.length - 1;
         }
       });
     },
     setComputedData(computedData) {
       setState((s) => {
-        s.computedData=computedData;
+        s.computedData = computedData;
       });
     },
-    setDataStartEndIndexes({ startIndex,endIndex }) {
+    setDataStartEndIndexes({ startIndex, endIndex }) {
       setState((s) => {
-        if(startIndex!=null) {
-          s.dataStartIndex=startIndex;
+        if (startIndex != null) {
+          s.dataStartIndex = startIndex;
         }
-        if(endIndex!=null) {
-          s.dataEndIndex=endIndex;
+        if (endIndex != null) {
+          s.dataEndIndex = endIndex;
         }
       });
     },
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

@@ -1,4 +1,4 @@
-import type { PropDef } from './prop-def.js';
+import type { PropDef } from "./prop-def.js";
 
 const asChildPropDef = {
   /**
@@ -6,7 +6,7 @@ const asChildPropDef = {
    * Provide a single-target native Slot render function.
    */
   asChild: {
-    type: 'boolean',
+    type: "boolean",
   },
 } satisfies {
   asChild: PropDef<boolean>;

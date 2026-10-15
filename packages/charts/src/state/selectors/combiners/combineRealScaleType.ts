@@ -1,9 +1,10 @@
 // Ported from recharts 3.8.1 src/state/selectors/combiners/combineRealScaleType.ts
 // (commit 7a23854).
 import * as d3Scales from "d3-scale";
+
+import { upperFirst } from "../../../util/DataUtils";
 import { RechartsScaleType } from "../../../util/types";
 import { BaseCartesianAxis } from "../../cartesianAxisSlice";
-import { upperFirst } from "../../../util/DataUtils";
 
 // Deviation: the reference returns a `D3ScaleType` here via `as D3ScaleType`
 // (banned in this repo). The name is only used in an `in` check, so a plain

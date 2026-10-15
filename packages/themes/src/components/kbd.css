@@ -77,14 +77,14 @@
           0 0 0 0.05em var(--gray-a5);
       }
     }
-    &:where([data-state='open']) {
+    &:where([data-state="open"]) {
       transition-duration: 40ms, 40ms;
       background-color: var(--color-background);
       box-shadow:
         var(--kbd-box-shadow),
         0 0 0 0.05em var(--gray-a5);
     }
-    &:where(:active:not([data-state='open'])) {
+    &:where(:active:not([data-state="open"])) {
       padding-top: 0.05em;
       padding-bottom: 0;
       transition-duration: 40ms, 40ms;
@@ -108,10 +108,10 @@
         background-color: var(--gray-a4);
       }
     }
-    &:where([data-state='open']) {
+    &:where([data-state="open"]) {
       background-color: var(--gray-a4);
     }
-    &:where(:active:not([data-state='open'])) {
+    &:where(:active:not([data-state="open"])) {
       background-color: var(--gray-a5);
     }
     &:where(:focus-visible) {

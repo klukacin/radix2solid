@@ -1,3 +1,15 @@
+import type { CustomScaleDefinition } from "../util/scale/CustomScaleDefinition";
+import type {
+  AxisDomain,
+  AxisInterval,
+  AxisTick,
+  CartesianTickContentProps,
+  DataKey,
+  EvaluatedAxisDomainType,
+  ScaleType,
+  TickFormatter,
+  TickProp,
+} from "../util/types";
 // Ported from recharts 3.8.1 src/state/cartesianAxisSlice.ts (commit 7a23854).
 //
 // FULL SOLID-NATIVE REWRITE of the state layer (no Redux/immer — see the
@@ -10,18 +22,6 @@
 // draft. The `add/replace/remove` reducers (RTK `prepareAutoBatched`) become
 // plain action functions; batching is handled by Solid's store microtask.
 import type { ChartStateInitializer } from "./createChartState";
-import type {
-  AxisDomain,
-  AxisInterval,
-  AxisTick,
-  CartesianTickContentProps,
-  DataKey,
-  EvaluatedAxisDomainType,
-  ScaleType,
-  TickFormatter,
-  TickProp,
-} from "../util/types";
-import type { CustomScaleDefinition } from "../util/scale/CustomScaleDefinition";
 // Type-only import; axisSelectors imports types back from here — the cycle is
 // erased at runtime (same as the reference's `import type { AxisRange }`).
 import type { AxisRange } from "./selectors/axisSelectors";
@@ -186,8 +186,11 @@ export interface CartesianAxisSlice {
  * This is the slice where each individual Axis element pushes its own
  * configuration. Prefer this one over the legacy axisSlice.
  */
-export function createCartesianAxisSlice(initialState: AxisMapState=initialCartesianAxisState,createState: ChartStateInitializer): CartesianAxisSlice {
-  const [state,setState]=createState<AxisMapState>({
+export function createCartesianAxisSlice(
+  initialState: AxisMapState = initialCartesianAxisState,
+  createState: ChartStateInitializer,
+): CartesianAxisSlice {
+  const [state, setState] = createState<AxisMapState>({
     xAxis: { ...initialState.xAxis },
     yAxis: { ...initialState.yAxis },
     zAxis: { ...initialState.zAxis },
@@ -198,20 +201,22 @@ export function createCartesianAxisSlice(initialState: AxisMapState=initialCarte
   // identity, which downstream reads rely on. So this is a local record helper, not
   // the shared array `createCollectionActions`; `pick` selects the map to touch.
   // Concentrates the replace body that was written verbatim three times (x/y/z).
-  function axisCollection<A extends { id: AxisId }>(pick: (s: AxisMapState) => Record<AxisId,A>) {
+  function axisCollection<A extends { id: AxisId }>(
+    pick: (s: AxisMapState) => Record<AxisId, A>,
+  ) {
     return {
       add: (axis: A) =>
         setState((s) => {
-          pick(s)[axis.id]=axis;
+          pick(s)[axis.id] = axis;
         }),
-      replace: ({ prev,next }: { prev: A; next: A }) =>
+      replace: ({ prev, next }: { prev: A; next: A }) =>
         setState((s) => {
-          const map=pick(s);
-          if(map[prev.id]!==undefined) {
-            if(prev.id!==next.id) {
+          const map = pick(s);
+          if (map[prev.id] !== undefined) {
+            if (prev.id !== next.id) {
               delete map[prev.id];
             }
-            map[next.id]=next;
+            map[next.id] = next;
           }
         }),
       remove: (axis: A) =>
@@ -220,11 +225,11 @@ export function createCartesianAxisSlice(initialState: AxisMapState=initialCarte
         }),
     };
   }
-  const x=axisCollection<XAxisSettings>((s) => s.xAxis);
-  const y=axisCollection<YAxisSettings>((s) => s.yAxis);
-  const z=axisCollection<ZAxisSettings>((s) => s.zAxis);
+  const x = axisCollection<XAxisSettings>((s) => s.xAxis);
+  const y = axisCollection<YAxisSettings>((s) => s.yAxis);
+  const z = axisCollection<ZAxisSettings>((s) => s.zAxis);
 
-  const actions: CartesianAxisActions={
+  const actions: CartesianAxisActions = {
     addXAxis: x.add,
     replaceXAxis: x.replace,
     removeXAxis: x.remove,
@@ -234,25 +239,25 @@ export function createCartesianAxisSlice(initialState: AxisMapState=initialCarte
     addZAxis: z.add,
     replaceZAxis: z.replace,
     removeZAxis: z.remove,
-    updateYAxisWidth({ id,width }) {
+    updateYAxisWidth({ id, width }) {
       setState((s) => {
-        const axis=s.yAxis[id];
-        if(axis) {
-          const history=axis.widthHistory||[];
+        const axis = s.yAxis[id];
+        if (axis) {
+          const history = axis.widthHistory || [];
           // An oscillation is detected when the new width matches the width
           // before the last one — a simple A -> B -> A pattern. If the next
           // width is B and the difference is under 1 pixel, we ignore it.
-          if(
-            history.length===3&&
-            history[0]===history[2]&&
-            width===history[1]&&
-            width!==axis.width&&
-            Math.abs(width-(history[0]??0))<=1
+          if (
+            history.length === 3 &&
+            history[0] === history[2] &&
+            width === history[1] &&
+            width !== axis.width &&
+            Math.abs(width - (history[0] ?? 0)) <= 1
           ) {
             return;
           }
-          const newHistory=[...history,width].slice(-3);
-          s.yAxis[id]={
+          const newHistory = [...history, width].slice(-3);
+          s.yAxis[id] = {
             ...axis,
             width,
             widthHistory: newHistory,
@@ -262,5 +267,10 @@ export function createCartesianAxisSlice(initialState: AxisMapState=initialCarte
     },
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

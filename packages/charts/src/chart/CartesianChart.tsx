@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/chart/CartesianChart.tsx (commit 7a23854).
 //
 // Solid deviations: `forwardRef` → `ref` prop; `resolveDefaultProps` → per-field
@@ -5,18 +6,23 @@
 // explicit nullish-coalescing avoids `merge`'s undefined-override gotcha AND the
 // required-ness typing gap). Provider + Report components mirror recharts.
 import { omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
+
+import { ChartDataContextProvider } from "../context/chartDataContext";
+import { useIsPanorama } from "../context/PanoramaContext";
 import { ChartOptions } from "../state/optionsSlice";
 import { RechartsStoreProvider } from "../state/RechartsStoreProvider";
-import { ChartDataContextProvider } from "../context/chartDataContext";
-import { ReportMainChartProps } from "../state/ReportMainChartProps";
 import { ReportChartProps } from "../state/ReportChartProps";
 import { ReportEventSettings } from "../state/ReportEventSettings";
-import { CartesianChartProps, LayoutType, Margin, TooltipEventType } from "../util/types";
-import { TooltipPayloadSearcher } from "../state/tooltipSlice";
+import { ReportMainChartProps } from "../state/ReportMainChartProps";
 import { UpdatableChartOptions } from "../state/rootPropsSlice";
+import { TooltipPayloadSearcher } from "../state/tooltipSlice";
+import {
+  CartesianChartProps,
+  LayoutType,
+  Margin,
+  TooltipEventType,
+} from "../util/types";
 import { CategoricalChart } from "./CategoricalChart";
-import { useIsPanorama } from "../context/PanoramaContext";
 
 const defaultMargin: Margin = { top: 5, right: 5, bottom: 5, left: 5 };
 
@@ -74,7 +80,10 @@ export const CartesianChart = (props: CartesianChartOptions): JSX.Element => {
   return (
     <RechartsStoreProvider preloadedState={{ options: options() }}>
       <ChartDataContextProvider chartData={cp().data} />
-      <ReportMainChartProps layout={layout()} margin={margin()} />
+      <ReportMainChartProps
+        layout={layout()}
+        margin={margin()}
+      />
       <ReportEventSettings
         throttleDelay={cp().throttleDelay}
         throttledEvents={cp().throttledEvents}
@@ -83,7 +92,10 @@ export const CartesianChart = (props: CartesianChartOptions): JSX.Element => {
       {/* Spread WITHOUT children (a `{...cp()}` spread eagerly evaluates the
           children getter here, before the provider sets context — running them
           outside the store); pass children as a lazy JSX child instead. */}
-      <CategoricalChart {...omit(cp(), "children")} ref={props.ref}>
+      <CategoricalChart
+        {...omit(cp(), "children")}
+        ref={props.ref}
+      >
         {cp().children}
       </CategoricalChart>
     </RechartsStoreProvider>

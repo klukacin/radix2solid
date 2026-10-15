@@ -1,8 +1,8 @@
+import { isWellFormedNumberDomain } from "../../../util/isDomainSpecifiedByUser";
+import { isWellBehavedNumber } from "../../../util/isWellBehavedNumber";
 // Ported from recharts 3.8.1 src/state/selectors/combiners/combineCheckedDomain.ts
 // (commit 7a23854).
 import { CategoricalDomain, NumberDomain } from "../../../util/types";
-import { isWellFormedNumberDomain } from "../../../util/isDomainSpecifiedByUser";
-import { isWellBehavedNumber } from "../../../util/isWellBehavedNumber";
 
 /**
  * Validates and transforms the axis domain so that it is safe to use in the

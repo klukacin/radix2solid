@@ -39,4 +39,5 @@ export const COLOR_PANEL = [
 export const DATA_ITEM_INDEX_ATTRIBUTE_NAME = "data-recharts-item-index";
 
 /** Identifies which graphical item owns the touched element (always unique). */
-export const DATA_ITEM_GRAPHICAL_ITEM_ID_ATTRIBUTE_NAME = "data-recharts-item-id";
+export const DATA_ITEM_GRAPHICAL_ITEM_ID_ATTRIBUTE_NAME =
+  "data-recharts-item-id";

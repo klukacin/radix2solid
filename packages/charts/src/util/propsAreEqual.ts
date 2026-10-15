@@ -79,7 +79,10 @@ export function propsAreEqual<T extends Record<string, unknown>>(
   prevProps: T,
   nextProps: T,
 ): boolean {
-  const allKeys = new Set<string>([...Object.keys(prevProps), ...Object.keys(nextProps)]);
+  const allKeys = new Set<string>([
+    ...Object.keys(prevProps),
+    ...Object.keys(nextProps),
+  ]);
   for (const key of allKeys) {
     /*
      * If a key is on a special allowlist, go one level deeper

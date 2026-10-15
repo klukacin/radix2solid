@@ -1,3 +1,13 @@
+import type { JSX } from "@solidjs/web";
+import type { Properties as CSSProperties } from "csstype";
+import { createMemo, For, merge, omit, Show } from "solid-js";
+
+import { isNullish, isNumber, isNumOrStr } from "../util/DataUtils";
+import { getStringSize } from "../util/DOMUtils";
+import { Global } from "../util/Global";
+import { isWellBehavedNumber } from "../util/isWellBehavedNumber";
+import { reduceCSSCalc } from "../util/ReduceCSSCalc";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 // Ported from recharts 3.8.1 src/component/Text.tsx (commit 7a23854).
 //
 // The word-measurement/wrapping helpers are pure (getStringSize/reduceCSSCalc/
@@ -8,15 +18,6 @@
 // SVG passthrough props go through svgPropertiesAndEvents like the shape ports;
 // `React.ReactNode` children → `RenderableText`.
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createMemo, For, merge, omit, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import type { Properties as CSSProperties } from "csstype";
-import { isNullish, isNumber, isNumOrStr } from "../util/DataUtils";
-import { Global } from "../util/Global";
-import { getStringSize } from "../util/DOMUtils";
-import { reduceCSSCalc } from "../util/ReduceCSSCalc";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
-import { isWellBehavedNumber } from "../util/isWellBehavedNumber";
 
 const BREAKING_SPACES = /[ \f\n\r\t\v\u2028\u2029]+/;
 
@@ -40,7 +41,10 @@ interface CalculatedWordWidths {
   spaceWidth: number;
 }
 
-type CalculateWordWidthsParam = Pick<TextProps, "children" | "breakAll" | "style">;
+type CalculateWordWidthsParam = Pick<
+  TextProps,
+  "children" | "breakAll" | "style"
+>;
 
 const calculateWordWidths = ({
   children,
@@ -72,8 +76,15 @@ const calculateWordWidths = ({
 
 export type TextAnchor = "start" | "middle" | "end" | "inherit";
 
-export function isValidTextAnchor(value: string | undefined): value is TextAnchor {
-  return value === "start" || value === "middle" || value === "end" || value === "inherit";
+export function isValidTextAnchor(
+  value: string | undefined,
+): value is TextAnchor {
+  return (
+    value === "start" ||
+    value === "middle" ||
+    value === "end" ||
+    value === "inherit"
+  );
 }
 
 export type TextVerticalAnchor = "start" | "middle" | "end";
@@ -82,7 +93,10 @@ export type RenderableText = string | number | boolean | null | undefined;
 
 export function isRenderableText(val: unknown): val is RenderableText {
   return (
-    isNullish(val) || typeof val === "string" || typeof val === "number" || typeof val === "boolean"
+    isNullish(val) ||
+    typeof val === "string" ||
+    typeof val === "number" ||
+    typeof val === "boolean"
   );
 }
 
@@ -112,7 +126,10 @@ export type Props = Omit<
 > &
   TextProps;
 
-type CalculateWordsByLinesProps = Pick<TextProps, "maxLines" | "children" | "style" | "breakAll">;
+type CalculateWordsByLinesProps = Pick<
+  TextProps,
+  "maxLines" | "children" | "style" | "breakAll"
+>;
 
 const calculate = (
   words: ReadonlyArray<WordWithComputedWidth>,
@@ -140,8 +157,12 @@ const calculate = (
     return result;
   }, []);
 
-const findLongestLine = (words: ReadonlyArray<WordsWithWidth>): WordsWithWidth =>
-  words.reduce((a: WordsWithWidth, b: WordsWithWidth) => (a.width > b.width ? a : b));
+const findLongestLine = (
+  words: ReadonlyArray<WordsWithWidth>,
+): WordsWithWidth =>
+  words.reduce((a: WordsWithWidth, b: WordsWithWidth) =>
+    a.width > b.width ? a : b,
+  );
 
 const suffix = "…";
 
@@ -157,16 +178,26 @@ const checkOverflow = (
 ): [boolean, ReadonlyArray<Words>] => {
   const tempText = text.slice(0, index);
 
-  const words = calculateWordWidths({ breakAll, style, children: tempText + suffix });
+  const words = calculateWordWidths({
+    breakAll,
+    style,
+    children: tempText + suffix,
+  });
 
   if (!words) {
     return [false, []];
   }
 
-  const result = calculate(words.wordsWithComputedWidth, lineWidth, spaceWidth, scaleToFit);
+  const result = calculate(
+    words.wordsWithComputedWidth,
+    lineWidth,
+    spaceWidth,
+    scaleToFit,
+  );
 
   const doesOverflow =
-    result.length > maxLines || findLongestLine(result).width > Number(lineWidth);
+    result.length > maxLines ||
+    findLongestLine(result).width > Number(lineWidth);
 
   return [doesOverflow, result];
 };
@@ -181,14 +212,20 @@ const calculateWordsByLines = (
   const shouldLimitLines = isNumber(maxLines);
   const text = String(children);
 
-  const originalResult = calculate(initialWordsWithComputedWith, lineWidth, spaceWidth, scaleToFit);
+  const originalResult = calculate(
+    initialWordsWithComputedWith,
+    lineWidth,
+    spaceWidth,
+    scaleToFit,
+  );
 
   if (!shouldLimitLines || scaleToFit) {
     return originalResult;
   }
 
   const overflows =
-    originalResult.length > maxLines || findLongestLine(originalResult).width > Number(lineWidth);
+    originalResult.length > maxLines ||
+    findLongestLine(originalResult).width > Number(lineWidth);
   if (!overflows) {
     return originalResult;
   }
@@ -244,7 +281,9 @@ const calculateWordsByLines = (
 };
 
 const getWordsWithoutCalculate = (children: RenderableText): Array<Words> => {
-  const words = !isNullish(children) ? children.toString().split(BREAKING_SPACES) : [];
+  const words = !isNullish(children)
+    ? children.toString().split(BREAKING_SPACES)
+    : [];
   return [{ words, width: undefined }];
 };
 
@@ -374,7 +413,9 @@ export const Text = (props: Props): JSX.Element => {
     if (merged.scaleToFit && firstLine != null) {
       const lineWidth = firstLine.width;
       const width = merged.width;
-      transforms.push(`scale(${isNumber(width) && isNumber(lineWidth) ? width / lineWidth : 1})`);
+      transforms.push(
+        `scale(${isNumber(width) && isNumber(lineWidth) ? width / lineWidth : 1})`,
+      );
     }
     if (merged.angle) {
       transforms.push(`rotate(${merged.angle}, ${x}, ${y})`);
@@ -398,7 +439,10 @@ export const Text = (props: Props): JSX.Element => {
       startDy,
       transform,
       textProps,
-      fill: merged.fill == null || merged.fill.includes("url") ? DEFAULT_FILL : merged.fill,
+      fill:
+        merged.fill == null || merged.fill.includes("url")
+          ? DEFAULT_FILL
+          : merged.fill,
       class: merged.class,
       textAnchor: merged.textAnchor,
       lineHeight: merged.lineHeight,
@@ -424,7 +468,10 @@ export const Text = (props: Props): JSX.Element => {
         >
           <For each={wordsByLines()}>
             {(line, index) => (
-              <tspan x={g().x} dy={index() === 0 ? g().startDy : g().lineHeight}>
+              <tspan
+                x={g().x}
+                dy={index() === 0 ? g().startDy : g().lineHeight}
+              >
                 {line.words.join(g().breakAll ? "" : " ")}
               </tspan>
             )}

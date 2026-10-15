@@ -1,6 +1,6 @@
+import type { AnimationHandle } from "./AnimationHandle";
 // Ported from recharts 3.9.0 src/animation/AnimationController.ts. Pure types.
 import type { CancelableTimeout, TimeoutController } from "./timeoutController";
-import type { AnimationHandle } from "./AnimationHandle";
 
 /**
  * JavaScript-based animations produce numbers, and CSS transition-based animations produce strings.

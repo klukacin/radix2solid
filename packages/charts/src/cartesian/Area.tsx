@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.9.0 src/cartesian/Area.tsx (commit 7a23854 base).
 //
 // A graphical item reusing the Line/axis spine: it computes points like a Line
@@ -12,52 +13,72 @@
 // React `useRef` prev-frame state → plain `{ current }` MutableRef objects driven
 // by AnimatedItems/useAnimationStartSnapshot.
 import { createMemo, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { useAppSelector, useAppStore } from "../state/hooks";
+
 import {
   AnimatedItems,
   useAnimationCallbacks,
   type AnimationInterpolateFn,
 } from "../animation/AnimatedItems";
+import type { EasingInput } from "../animation/easing";
 import {
   matchAnimationItems,
   matchByIndex,
   type AnimationItem,
   type AnimationMatchByProp,
 } from "../animation/matchBy";
-import { useAnimationStartSnapshot, type MutableRef } from "../animation/useAnimationStartSnapshot";
-import type { EasingInput } from "../animation/easing";
-import { noop } from "../util/DataUtils";
-import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
-import { TooltipPayloadConfiguration } from "../state/tooltipSlice";
-import { SetLegendPayload } from "../state/SetLegendPayload";
+import {
+  useAnimationStartSnapshot,
+  type MutableRef,
+} from "../animation/useAnimationStartSnapshot";
+import {
+  computeActivePointState,
+  renderActivePointsLayerFromState,
+} from "../component/ActivePoints";
 import { LegendPayload } from "../component/DefaultLegendContent";
 import type { Formatter } from "../component/DefaultTooltipContent";
-import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
-import { ZIndexLayer } from "../zIndex/ZIndexLayer";
-import { useIsPanorama } from "../context/PanoramaContext";
-import { useCartesianChartLayout } from "../context/chartLayoutContext";
-import { useUniqueId } from "../util/useUniqueId";
-import { Layer } from "../container/Layer";
-import { type CurveType, type CurveProps, type BaseLineType } from "../shape/Curve";
-import { Shape } from "../util/ActiveShapeUtils";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
-import { svgPropertiesNoEvents } from "../util/svgPropertiesNoEvents";
 import { Dots, isClipDot } from "../component/Dots";
-import { getRadiusAndStrokeWidthFromDot } from "../util/getRadiusAndStrokeWidthFromDot";
-import { GraphicalItemClipPath, useNeedsClip } from "./GraphicalItemClipPath";
-import { usePlotArea } from "../hooks";
 import {
   type CartesianLabelListEntry,
   CartesianLabelListContextProvider,
   type ImplicitLabelListType,
   LabelListFromLabelProp,
 } from "../component/LabelList";
-import type { ActiveShape, TrapezoidViewBox } from "../util/types";
-import { selectArea } from "../state/selectors/areaSelectors";
-import { AreaSettings } from "../state/types/AreaSettings";
+import { Layer } from "../container/Layer";
+import { useCartesianChartLayout } from "../context/chartLayoutContext";
+import { useIsPanorama } from "../context/PanoramaContext";
+import { usePlotArea } from "../hooks";
+import { useActiveTooltipDataPoints } from "../hooks";
+import {
+  type CurveType,
+  type CurveProps,
+  type BaseLineType,
+} from "../shape/Curve";
 import { AxisId } from "../state/cartesianAxisSlice";
 import { ChartData } from "../state/chartDataSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { registerInStore } from "../state/registerInStore";
+import { selectArea } from "../state/selectors/areaSelectors";
+import { BaseAxisWithScale } from "../state/selectors/axisSelectors";
+import { selectChartName } from "../state/selectors/rootPropsSelectors";
+import { selectActiveTooltipIndex } from "../state/selectors/tooltipSelectors";
+import { SetLegendPayload } from "../state/SetLegendPayload";
+import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
+import { TooltipPayloadConfiguration } from "../state/tooltipSlice";
+import { AreaSettings } from "../state/types/AreaSettings";
+import { Shape } from "../util/ActiveShapeUtils";
+import {
+  getCateCoordinateOfLine,
+  getTooltipNameProp,
+  getValueByDataKey,
+} from "../util/ChartUtils";
+import { StackId } from "../util/ChartUtils";
+import { noop } from "../util/DataUtils";
+import { interpolate, isNan, isNullish, isNumber } from "../util/DataUtils";
+import { getRadiusAndStrokeWidthFromDot } from "../util/getRadiusAndStrokeWidthFromDot";
+import { StackDataPoint } from "../util/stacks/stackTypes";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
+import { svgPropertiesNoEvents } from "../util/svgPropertiesNoEvents";
+import type { ActiveShape, TrapezoidViewBox } from "../util/types";
 import {
   ActiveDotType,
   AnimationDuration,
@@ -70,20 +91,11 @@ import {
   TickItem,
   TooltipType,
 } from "../util/types";
-import {
-  computeActivePointState,
-  renderActivePointsLayerFromState,
-} from "../component/ActivePoints";
-import { useActiveTooltipDataPoints } from "../hooks";
-import { selectActiveTooltipIndex } from "../state/selectors/tooltipSelectors";
-import { selectChartName } from "../state/selectors/rootPropsSelectors";
-import { getCateCoordinateOfLine, getTooltipNameProp, getValueByDataKey } from "../util/ChartUtils";
-import { interpolate, isNan, isNullish, isNumber } from "../util/DataUtils";
-import { BaseAxisWithScale } from "../state/selectors/axisSelectors";
-import { StackId } from "../util/ChartUtils";
-import { StackDataPoint } from "../util/stacks/stackTypes";
-import { registerInStore } from "../state/registerInStore";
+import { useUniqueId } from "../util/useUniqueId";
+import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
+import { ZIndexLayer } from "../zIndex/ZIndexLayer";
 import { AreaRevealShape, type AreaRevealShapeProps } from "./AreaRevealShape";
+import { GraphicalItemClipPath, useNeedsClip } from "./GraphicalItemClipPath";
 
 function getLegendItemColor(
   stroke: string | undefined,
@@ -179,45 +191,68 @@ export function computeArea({
   bandSize: number;
 }): ComputedArea {
   const hasStack = stackedData != null && stackedData.length > 0;
-  const baseValue = getBaseValue(layout, chartBaseValue, itemBaseValue, xAxis, yAxis);
+  const baseValue = getBaseValue(
+    layout,
+    chartBaseValue,
+    itemBaseValue,
+    xAxis,
+    yAxis,
+  );
   const isHorizontalLayout = layout === "horizontal";
 
   // Range areas: when the dataKey returns a [low, high] tuple, the band spans
   // those two values (rather than baseValue→value), so `isRange` flips on and the
   // lower bound feeds the per-point baseLine below (recharts computeArea L1034).
   let isRange = false;
-  const points: ReadonlyArray<AreaPointItem> = displayedData.map((entry, index): AreaPointItem => {
-    let valueAsArray: ReadonlyArray<unknown>;
-    if (hasStack) {
-      valueAsArray = stackedData?.[dataStartIndex + index] ?? [];
-    } else {
-      const rawValue = getValueByDataKey(entry, dataKey);
-      if (Array.isArray(rawValue)) {
-        valueAsArray = rawValue;
-        isRange = true;
+  const points: ReadonlyArray<AreaPointItem> = displayedData.map(
+    (entry, index): AreaPointItem => {
+      let valueAsArray: ReadonlyArray<unknown>;
+      if (hasStack) {
+        valueAsArray = stackedData?.[dataStartIndex + index] ?? [];
       } else {
-        valueAsArray = [baseValue, rawValue];
+        const rawValue = getValueByDataKey(entry, dataKey);
+        if (Array.isArray(rawValue)) {
+          valueAsArray = rawValue;
+          isRange = true;
+        } else {
+          valueAsArray = [baseValue, rawValue];
+        }
       }
-    }
-    const value1 = valueAsArray[1] ?? null;
-    const isBreakPoint =
-      value1 == null || (hasStack && !connectNulls && getValueByDataKey(entry, dataKey) == null);
+      const value1 = valueAsArray[1] ?? null;
+      const isBreakPoint =
+        value1 == null ||
+        (hasStack &&
+          !connectNulls &&
+          getValueByDataKey(entry, dataKey) == null);
 
-    if (isHorizontalLayout) {
+      if (isHorizontalLayout) {
+        return {
+          x: getCateCoordinateOfLine({
+            axis: xAxis,
+            ticks: xAxisTicks,
+            bandSize,
+            entry,
+            index,
+          }),
+          y: isBreakPoint ? null : (yAxis.scale.map(value1) ?? null),
+          value: valueAsArray,
+          payload: entry,
+        };
+      }
       return {
-        x: getCateCoordinateOfLine({ axis: xAxis, ticks: xAxisTicks, bandSize, entry, index }),
-        y: isBreakPoint ? null : (yAxis.scale.map(value1) ?? null),
+        x: isBreakPoint ? null : (xAxis.scale.map(value1) ?? null),
+        y: getCateCoordinateOfLine({
+          axis: yAxis,
+          ticks: yAxisTicks,
+          bandSize,
+          entry,
+          index,
+        }),
         value: valueAsArray,
         payload: entry,
       };
-    }
-    return {
-      x: isBreakPoint ? null : (xAxis.scale.map(value1) ?? null),
-      y: getCateCoordinateOfLine({ axis: yAxis, ticks: yAxisTicks, bandSize, entry, index }),
-      value: valueAsArray,
-      payload: entry,
-    };
-  });
+    },
+  );
 
   // Stacked areas get a per-point baseLine (the lower bound of each stack
   // segment); unstacked areas get a flat numeric baseline.
@@ -228,7 +263,10 @@ export function computeArea({
       if (isHorizontalLayout) {
         return {
           x: entry.x,
-          y: low != null && entry.y != null ? (yAxis.scale.map(low) ?? null) : null,
+          y:
+            low != null && entry.y != null
+              ? (yAxis.scale.map(low) ?? null)
+              : null,
           payload: entry.payload,
         };
       }
@@ -239,7 +277,10 @@ export function computeArea({
       };
     });
   } else {
-    baseLine = (isHorizontalLayout ? yAxis.scale.map(baseValue) : xAxis.scale.map(baseValue)) ?? 0;
+    baseLine =
+      (isHorizontalLayout
+        ? yAxis.scale.map(baseValue)
+        : xAxis.scale.map(baseValue)) ?? 0;
   }
 
   return { points, baseLine, isRange };
@@ -307,7 +348,10 @@ export interface AreaProps extends AreaSvgProps {
   animationDuration?: AnimationDuration;
   animationEasing?: EasingInput;
   /** Custom per-frame interpolation for the area points (v3.9). */
-  animationInterpolateFn?: AnimationInterpolateFn<AreaPointItem, CartesianLayout>;
+  animationInterpolateFn?: AnimationInterpolateFn<
+    AreaPointItem,
+    CartesianLayout
+  >;
   /** How prev/next points are matched across data updates (v3.9). @defaultValue matchByIndex */
   animationMatchBy?: AnimationMatchByProp<AreaPointItem>;
   /**
@@ -330,7 +374,8 @@ export interface AreaProps extends AreaSvgProps {
 
 // Typed so the `as const` defaults object carries `shape` as `ActiveShape` (not the
 // narrowed component signature) — mirrors Bar's `defaultBarShape`, avoids a cast.
-const defaultAreaShape: ActiveShape<AreaRevealShapeProps, SVGPathElement> = AreaRevealShape;
+const defaultAreaShape: ActiveShape<AreaRevealShapeProps, SVGPathElement> =
+  AreaRevealShape;
 
 export const areaDefaultProps = {
   activeDot: true,
@@ -364,16 +409,18 @@ type AreaBaseLine = number | ReadonlyArray<AreaPointItem>;
 // `defaultAreaAnimateItems`: matched points tween between prev/next; added points
 // snap to their final position (the clip-path reveal handles the entrance); removed
 // points are dropped. t=1 returns the target identity so settled renders match.
-const defaultAreaAnimateItems: AnimationInterpolateFn<AreaPointItem, CartesianLayout> = (
-  items,
-  animationElapsedTime,
-) => {
+const defaultAreaAnimateItems: AnimationInterpolateFn<
+  AreaPointItem,
+  CartesianLayout
+> = (items, animationElapsedTime) => {
   if (items == null) {
     // First render: clip-path animation handles the reveal.
     return [];
   }
   if (animationElapsedTime === 1) {
-    return items.flatMap((item) => (item.status === "removed" ? [] : [item.next]));
+    return items.flatMap((item) =>
+      item.status === "removed" ? [] : [item.next],
+    );
   }
   return items.flatMap((item): AreaPointItem[] => {
     if (item.status === "matched") {
@@ -404,11 +451,15 @@ function interpolateScalarBaseLine(
   animationElapsedTime: number,
 ): BaseLineType {
   if (isNumber(baseLine)) {
-    const previousNumberBaseLine = isNumber(prevBaseLine) ? prevBaseLine : undefined;
+    const previousNumberBaseLine = isNumber(prevBaseLine)
+      ? prevBaseLine
+      : undefined;
     return interpolate(previousNumberBaseLine, baseLine, animationElapsedTime);
   }
   if (isNullish(baseLine) || isNan(baseLine)) {
-    const previousNumberBaseLine = isNumber(prevBaseLine) ? prevBaseLine : undefined;
+    const previousNumberBaseLine = isNumber(prevBaseLine)
+      ? prevBaseLine
+      : undefined;
     return interpolate(previousNumberBaseLine, 0, animationElapsedTime);
   }
   return baseLine;
@@ -441,10 +492,15 @@ export const Area = (props: AreaProps): JSX.Element => {
         baseValue: merged.baseValue,
       }),
       {
-        add: (next) => store.actions.graphicalItems.addCartesianGraphicalItem(next),
+        add: (next) =>
+          store.actions.graphicalItems.addCartesianGraphicalItem(next),
         replace: (prev, next) =>
-          store.actions.graphicalItems.replaceCartesianGraphicalItem({ prev, next }),
-        remove: (prev) => store.actions.graphicalItems.removeCartesianGraphicalItem(prev),
+          store.actions.graphicalItems.replaceCartesianGraphicalItem({
+            prev,
+            next,
+          }),
+        remove: (prev) =>
+          store.actions.graphicalItems.removeCartesianGraphicalItem(prev),
       },
     );
   }
@@ -518,66 +574,87 @@ export const Area = (props: AreaProps): JSX.Element => {
   // an axis has allowDataOverflow (needClip); the clipPath id is the area's id.
   const { needClip } = useNeedsClip(merged.xAxisId, merged.yAxisId);
   const plotArea = usePlotArea();
-  const curveClipPath = createMemo(() => (needClip() ? `url(#clipPath-${id})` : undefined));
+  const curveClipPath = createMemo(() =>
+    needClip() ? `url(#clipPath-${id})` : undefined,
+  );
 
   // A Brush panorama shares its parent's store, but accepts its own Area series.
   // Outside that compact surface, retain Recharts' AreaChart / ComposedChart gate.
   const chartName = useAppSelector(selectChartName);
   const chartSupportsArea = createMemo(
-    () => isPanorama || chartName() === "AreaChart" || chartName() === "ComposedChart",
+    () =>
+      isPanorama ||
+      chartName() === "AreaChart" ||
+      chartName() === "ComposedChart",
   );
 
   // When dots are NOT clipped to their bounding box (clipDot false), recharts emits
   // a wider `clipPath-dots-` rect (plot area expanded by the dot size); clipDot true
   // reuses the graphical-item clip path.
   const dotsClip = (): { clipDot: boolean; dotSize: number } => {
-    const { r, strokeWidth } = getRadiusAndStrokeWidthFromDot(merged.dot ?? false);
-    return { clipDot: isClipDot(merged.dot ?? false), dotSize: r * 2 + strokeWidth };
+    const { r, strokeWidth } = getRadiusAndStrokeWidthFromDot(
+      merged.dot ?? false,
+    );
+    return {
+      clipDot: isClipDot(merged.dot ?? false),
+      dotSize: r * 2 + strokeWidth,
+    };
   };
 
   // One LabelList entry per data point: a zero-size viewBox at the point's (x, y).
-  const labelListEntries = createMemo<ReadonlyArray<CartesianLabelListEntry>>(() => {
-    const computed = area();
-    if (computed == null) {
-      return [];
-    }
-    return computed.points.map((point): CartesianLabelListEntry => {
-      const viewBox: TrapezoidViewBox = {
-        x: point.x ?? 0,
-        y: point.y ?? 0,
-        width: 0,
-        lowerWidth: 0,
-        upperWidth: 0,
-        height: 0,
-      };
-      return {
-        ...viewBox,
-        value: point.value,
-        payload: point.payload,
-        viewBox,
-        parentViewBox: undefined,
-        fill: undefined,
-      };
-    });
-  });
-  // Labels are hidden while the entrance/update animation runs, shown once it ends.
-  const { isAnimating, handleAnimationStart, handleAnimationEnd } = useAnimationCallbacks(
-    () => props.onAnimationStart?.(),
-    () => props.onAnimationEnd?.(),
+  const labelListEntries = createMemo<ReadonlyArray<CartesianLabelListEntry>>(
+    () => {
+      const computed = area();
+      if (computed == null) {
+        return [];
+      }
+      return computed.points.map((point): CartesianLabelListEntry => {
+        const viewBox: TrapezoidViewBox = {
+          x: point.x ?? 0,
+          y: point.y ?? 0,
+          width: 0,
+          lowerWidth: 0,
+          upperWidth: 0,
+          height: 0,
+        };
+        return {
+          ...viewBox,
+          value: point.value,
+          payload: point.payload,
+          viewBox,
+          parentViewBox: undefined,
+          fill: undefined,
+        };
+      });
+    },
   );
-  const labelContextEntries = createMemo(() => (isAnimating() ? undefined : labelListEntries()));
+  // Labels are hidden while the entrance/update animation runs, shown once it ends.
+  const { isAnimating, handleAnimationStart, handleAnimationEnd } =
+    useAnimationCallbacks(
+      () => props.onAnimationStart?.(),
+      () => props.onAnimationEnd?.(),
+    );
+  const labelContextEntries = createMemo(() =>
+    isAnimating() ? undefined : labelListEntries(),
+  );
 
   // Per-frame prev geometry (recharts' previousPointsRef / previousBaselineRef):
   // plain `{ current }` refs (NOT signals) driven by AnimatedItems +
   // useAnimationStartSnapshot — they survive the keyed remount that starts each
   // animation without themselves triggering renders.
-  const previousPointsRef: MutableRef<ReadonlyArray<AreaPointItem> | null> = { current: null };
-  const previousBaselineRef: MutableRef<AreaBaseLine | undefined> = { current: undefined };
+  const previousPointsRef: MutableRef<ReadonlyArray<AreaPointItem> | null> = {
+    current: null,
+  };
+  const previousBaselineRef: MutableRef<AreaBaseLine | undefined> = {
+    current: undefined,
+  };
 
   const cartesianLayout = (): CartesianLayout =>
     layout() === "vertical" ? "vertical" : "horizontal";
-  const interpolateFn = (): AnimationInterpolateFn<AreaPointItem, CartesianLayout> =>
-    merged.animationInterpolateFn ?? defaultAreaAnimateItems;
+  const interpolateFn = (): AnimationInterpolateFn<
+    AreaPointItem,
+    CartesianLayout
+  > => merged.animationInterpolateFn ?? defaultAreaAnimateItems;
 
   // Mirrors recharts' AreaWithAnimation: a separate snapshot tracks the baseLine
   // so an interrupted animation resumes its baseLine from the in-flight value.
@@ -648,14 +725,21 @@ export const Area = (props: AreaProps): JSX.Element => {
   return (
     <>
       <SetTooltipEntrySettings tooltipEntrySettings={tooltipConfig()} />
-      <SetLegendPayload id={id} legendPayload={legendPayload()} />
+      <SetLegendPayload
+        id={id}
+        legendPayload={legendPayload()}
+      />
       <Show when={chartSupportsArea() && !merged.hide && area()}>
         {(computed) => (
           // Wrapped in <ZIndexLayer> (default 100) so a `zIndex` prop relayers the
           // whole area (curve + dots + active points) into its portal — recharts
           // wraps the entire `.recharts-area` Layer + ActivePoints in ZIndexLayer.
           <ZIndexLayer zIndex={merged.zIndex}>
-            <Layer class={merged.class ? `recharts-area ${merged.class}` : "recharts-area"}>
+            <Layer
+              class={
+                merged.class ? `recharts-area ${merged.class}` : "recharts-area"
+              }
+            >
               <Show when={needClip()}>
                 <defs>
                   <GraphicalItemClipPath
@@ -706,8 +790,13 @@ export const Area = (props: AreaProps): JSX.Element => {
                     if (animationElapsedTime === 1) {
                       stepBaseLine = baseLine;
                     } else if (typeof baseLine !== "number") {
-                      let baseLineItems: ReadonlyArray<AnimationItem<AreaPointItem>> | null;
-                      if (typeof prevBaseLine !== "number" && prevBaseLine != null) {
+                      let baseLineItems: ReadonlyArray<
+                        AnimationItem<AreaPointItem>
+                      > | null;
+                      if (
+                        typeof prevBaseLine !== "number" &&
+                        prevBaseLine != null
+                      ) {
                         baseLineItems = matchAnimationItems(
                           prevBaseLine,
                           baseLine,
@@ -728,7 +817,11 @@ export const Area = (props: AreaProps): JSX.Element => {
                     } else {
                       stepBaseLine = isEntrance
                         ? baseLine
-                        : interpolateScalarBaseLine(baseLine, prevBaseLine, animationElapsedTime);
+                        : interpolateScalarBaseLine(
+                            baseLine,
+                            prevBaseLine,
+                            animationElapsedTime,
+                          );
                     }
                     baseLineSnapshot.syncStepValue(
                       stepBaseLine,
@@ -740,7 +833,8 @@ export const Area = (props: AreaProps): JSX.Element => {
                     // settled frame. Our snapshot memo doesn't refresh at t=1, so
                     // we mirror the observable result: the settled (t=1) frame is
                     // never an entrance (the reveal clip is gone there anyway).
-                    const effectiveIsEntrance = isEntrance && animationElapsedTime < 1;
+                    const effectiveIsEntrance =
+                      isEntrance && animationElapsedTime < 1;
                     return renderShape(
                       stepPoints,
                       stepBaseLine,
@@ -782,7 +876,9 @@ export const Area = (props: AreaProps): JSX.Element => {
                 return (
                   <>
                     {renderActiveLayer(computed().points)}
-                    {computed().isRange && Array.isArray(bl) ? renderActiveLayer(bl) : null}
+                    {computed().isRange && Array.isArray(bl)
+                      ? renderActiveLayer(bl)
+                      : null}
                   </>
                 );
               })()}

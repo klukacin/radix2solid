@@ -1,3 +1,6 @@
+import { NiceTicksAlgorithm } from "../../state/cartesianAxisSlice";
+import { NumberDomain } from "../types";
+import { getDigitCount, rangeStep } from "./util/arithmetic";
 // Ported from recharts 3.8.1 src/util/scale/getNiceTickValues.ts (commit 7a23854).
 // Pure math — no framework surface — so behavior is byte-identical to recharts.
 /**
@@ -6,9 +9,6 @@
  * @date 2015-09-17
  */
 import Decimal from "./util/DecimalLite";
-import { getDigitCount, rangeStep } from "./util/arithmetic";
-import { NumberDomain } from "../types";
-import { NiceTicksAlgorithm } from "../../state/cartesianAxisSlice";
 
 /**
  * Calculate a interval of a minimum value and a maximum value
@@ -17,7 +17,10 @@ import { NiceTicksAlgorithm } from "../../state/cartesianAxisSlice";
  * @param  {Number} max       The maximum value
  * @return {Array} An interval
  */
-export const getValidInterval = ([min, max]: [number, number]): [number, number] => {
+export const getValidInterval = ([min, max]: [number, number]): [
+  number,
+  number,
+] => {
   let [validMin, validMax] = [min, max];
 
   // exchange
@@ -52,7 +55,9 @@ export const getAdaptiveStep = (
   const stepRatio = roughStep.div(digitCountValue);
   // When an integer and a float multiplied, the accuracy of result may be wrong
   const stepRatioScale = digitCount !== 1 ? 0.05 : 0.1;
-  const amendStepRatio = new Decimal(Math.ceil(stepRatio.div(stepRatioScale).toNumber()))
+  const amendStepRatio = new Decimal(
+    Math.ceil(stepRatio.div(stepRatioScale).toNumber()),
+  )
     .add(correctionFactor)
     .mul(stepRatioScale);
 
@@ -118,7 +123,9 @@ export const getSnap125Step: StepFunction = (
   const niceStep = NICE_STEPS[niceIdx] ?? 1;
   const formatStep = new Decimal(niceStep).mul(magnitude);
 
-  return allowDecimals ? formatStep : new Decimal(Math.ceil(formatStep.toNumber()));
+  return allowDecimals
+    ? formatStep
+    : new Decimal(Math.ceil(formatStep.toNumber()));
 };
 
 /**
@@ -223,7 +230,14 @@ export const calculateStep = (
 
   if (scaleCount > tickCount) {
     // When more ticks need to cover the interval, step should be bigger.
-    return calculateStep(min, max, tickCount, allowDecimals, correctionFactor + 1, stepFn);
+    return calculateStep(
+      min,
+      max,
+      tickCount,
+      allowDecimals,
+      correctionFactor + 1,
+      stepFn,
+    );
   }
   if (scaleCount < tickCount) {
     // When less ticks can cover the interval, we should add some additional ticks
@@ -274,9 +288,20 @@ export const getNiceTickValues = (
   const stepFn = niceTicksMode === "snap125" ? getSnap125Step : getAdaptiveStep;
 
   // Get the step between two ticks
-  const { step, tickMin, tickMax } = calculateStep(cormin, cormax, count, allowDecimals, 0, stepFn);
+  const { step, tickMin, tickMax } = calculateStep(
+    cormin,
+    cormax,
+    count,
+    allowDecimals,
+    0,
+    stepFn,
+  );
 
-  const values = rangeStep(tickMin, tickMax.add(new Decimal(0.1).mul(step)), step);
+  const values = rangeStep(
+    tickMin,
+    tickMax.add(new Decimal(0.1).mul(step)),
+    step,
+  );
 
   return min > max ? values.reverse() : values;
 };
@@ -310,8 +335,15 @@ export const getTickValuesFixedDomain = (
 
   const stepFn = niceTicksMode === "snap125" ? getSnap125Step : getAdaptiveStep;
   const count = Math.max(tickCount, 2);
-  const step = stepFn(new Decimal(cormax).sub(cormin).div(count - 1), allowDecimals, 0);
-  let values = [...rangeStep(new Decimal(cormin), new Decimal(cormax), step), cormax];
+  const step = stepFn(
+    new Decimal(cormax).sub(cormin).div(count - 1),
+    allowDecimals,
+    0,
+  );
+  let values = [
+    ...rangeStep(new Decimal(cormin), new Decimal(cormax), step),
+    cormax,
+  ];
 
   if (allowDecimals === false) {
     /*

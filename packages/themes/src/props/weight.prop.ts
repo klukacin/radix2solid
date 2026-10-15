@@ -1,11 +1,11 @@
-import type { PropDef } from './prop-def.js';
+import type { PropDef } from "./prop-def.js";
 
-const weights = ['light', 'regular', 'medium', 'bold'] as const;
+const weights = ["light", "regular", "medium", "bold"] as const;
 
 const weightPropDef = {
   weight: {
-    type: 'enum',
-    className: 'rt-r-weight',
+    type: "enum",
+    className: "rt-r-weight",
     values: weights,
     responsive: true,
   },

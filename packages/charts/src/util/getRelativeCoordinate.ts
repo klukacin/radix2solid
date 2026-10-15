@@ -15,7 +15,10 @@ import {
 function isSvgPointer(
   pointer: MousePointer | TouchPointer,
 ): pointer is SVGMousePointer | SVGTouchPointer {
-  return "getBBox" in pointer.currentTarget && typeof pointer.currentTarget.getBBox === "function";
+  return (
+    "getBBox" in pointer.currentTarget &&
+    typeof pointer.currentTarget.getBBox === "function"
+  );
 }
 
 /**
@@ -41,7 +44,9 @@ function isSvgPointer(
  * @returns Coordinates relative to the top-left corner of the element. Single object for Mouse events, array of objects for Touch events.
  */
 export function getRelativeCoordinate(event: MousePointer): RelativePointer;
-export function getRelativeCoordinate(event: TouchPointer): Array<RelativePointer>;
+export function getRelativeCoordinate(
+  event: TouchPointer,
+): Array<RelativePointer>;
 export function getRelativeCoordinate(
   event: MousePointer | TouchPointer,
 ): RelativePointer | Array<RelativePointer> {
@@ -61,7 +66,10 @@ export function getRelativeCoordinate(
     scaleY = element.offsetHeight > 0 ? rect.height / element.offsetHeight : 1;
   }
 
-  const getCoordinates = (clientX: number, clientY: number): RelativePointer => ({
+  const getCoordinates = (
+    clientX: number,
+    clientY: number,
+  ): RelativePointer => ({
     /*
      * Here it's important to use:
      * - event.clientX and event.clientY to get the mouse position relative to the viewport, including scroll.
@@ -77,7 +85,9 @@ export function getRelativeCoordinate(
   });
 
   if ("touches" in event) {
-    return Array.from(event.touches).map((touch) => getCoordinates(touch.clientX, touch.clientY));
+    return Array.from(event.touches).map((touch) =>
+      getCoordinates(touch.clientX, touch.clientY),
+    );
   }
 
   return getCoordinates(event.clientX, event.clientY);

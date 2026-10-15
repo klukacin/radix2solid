@@ -1,9 +1,10 @@
 // Ported from recharts 3.8.1 src/util/stacks/stackTypes.ts (commit 7a23854).
 import { Series } from "d3-shape";
-import { StackId } from "../ChartUtils";
-import { DataKey } from "../types";
+
 import { GraphicalItemId } from "../../state/graphicalItemsSlice";
 import { MaybeStackedGraphicalItem } from "../../state/types/StackedGraphicalItem";
+import { StackId } from "../ChartUtils";
+import { DataKey } from "../types";
 
 /*
  * Chart stacks come in layers:

@@ -1,23 +1,3 @@
-/**
- * @fileOverview Curve
- *
- * Ported from recharts 3.8.1 src/shape/Curve.tsx (commit 7a23854).
- * Pure `getPath`/`getCurveFactory` helpers copied verbatim (modulo type
- * adjustments). Solid deviations:
- *   - `className` → `class` (Omit the wide SVG `class`); `clsx` → `class={[...]}`.
- *   - `resolveDefaultProps` → `merge()` defaults via per-prop `?? default`.
- *   - `React.forwardRef` → `ref?: SVGPathElement | ((el: SVGPathElement) => void)`.
- *   - `return null` → `<Show>`.
- *   - `useChartLayout()` returns `Accessor<LayoutType | undefined>` in Solid.
- *   - `svgPropertiesNoEvents(props)` (attributes) + `adaptEventHandlers(props)`
- *     (events, rewrapped props-first) — same split as recharts Curve.
- *   - `noUncheckedIndexedAccess`: `baseLine[index]` is `NullableCoordinate | undefined`
- *     but the `base?:` field in `NullableAreaPoint` already accepts `undefined`.
- *   - Two `@ts-expect-error` from recharts kept: d3's `defined()` changes the
- *     generic type internally but its typings don't reflect that.
- */
-import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { Show, omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import {
   area as shapeArea,
@@ -39,11 +19,32 @@ import {
   line as shapeLine,
   type Line as D3LineCurve,
 } from "d3-shape";
+import { Show, omit } from "solid-js";
+
+import { useChartLayout } from "../context/chartLayoutContext";
+import { adaptEventHandlers } from "../util/adaptEventHandlers";
 import { isNumber, upperFirst } from "../util/DataUtils";
 import { isWellBehavedNumber } from "../util/isWellBehavedNumber";
+/**
+ * @fileOverview Curve
+ *
+ * Ported from recharts 3.8.1 src/shape/Curve.tsx (commit 7a23854).
+ * Pure `getPath`/`getCurveFactory` helpers copied verbatim (modulo type
+ * adjustments). Solid deviations:
+ *   - `className` → `class` (Omit the wide SVG `class`); `clsx` → `class={[...]}`.
+ *   - `resolveDefaultProps` → `merge()` defaults via per-prop `?? default`.
+ *   - `React.forwardRef` → `ref?: SVGPathElement | ((el: SVGPathElement) => void)`.
+ *   - `return null` → `<Show>`.
+ *   - `useChartLayout()` returns `Accessor<LayoutType | undefined>` in Solid.
+ *   - `svgPropertiesNoEvents(props)` (attributes) + `adaptEventHandlers(props)`
+ *     (events, rewrapped props-first) — same split as recharts Curve.
+ *   - `noUncheckedIndexedAccess`: `baseLine[index]` is `NullableCoordinate | undefined`
+ *     but the `base?:` field in `NullableAreaPoint` already accepts `undefined`.
+ *   - Two `@ts-expect-error` from recharts kept: d3's `defined()` changes the
+ *     generic type internally but its typings don't reflect that.
+ */
+import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
 import { svgPropertiesNoEvents } from "../util/svgPropertiesNoEvents";
-import { adaptEventHandlers } from "../util/adaptEventHandlers";
-import { useChartLayout } from "../context/chartLayoutContext";
 import type { Coordinate, LayoutType, NullableCoordinate } from "../util/types";
 
 // ---------------------------------------------------------------------------
@@ -108,7 +109,10 @@ const areaDefined = (d: NullableAreaPoint): d is AreaPoint =>
 const getX = (p: Coordinate): number => p.x;
 const getY = (p: Coordinate): number => p.y;
 
-const getCurveFactory = (type: CurveType, layout: LayoutType | undefined): CurveFactory => {
+const getCurveFactory = (
+  type: CurveType,
+  layout: LayoutType | undefined,
+): CurveFactory => {
   if (typeof type === "function") {
     return type;
   }
@@ -116,7 +120,8 @@ const getCurveFactory = (type: CurveType, layout: LayoutType | undefined): Curve
   const name = `curve${upperFirst(type)}`;
 
   if ((name === "curveMonotone" || name === "curveBump") && layout) {
-    const factory = CURVE_FACTORIES[`${name}${layout === "vertical" ? "Y" : "X"}`];
+    const factory =
+      CURVE_FACTORIES[`${name}${layout === "vertical" ? "Y" : "X"}`];
     if (factory) {
       return factory;
     }
@@ -128,7 +133,10 @@ const getCurveFactory = (type: CurveType, layout: LayoutType | undefined): Curve
 // getPath — exported pure helper
 // ---------------------------------------------------------------------------
 
-type GetPathProps = Pick<CurveOwnProps, "type" | "points" | "baseLine" | "layout" | "connectNulls">;
+type GetPathProps = Pick<
+  CurveOwnProps,
+  "type" | "points" | "baseLine" | "layout" | "connectNulls"
+>;
 
 export const defaultCurveProps = {
   connectNulls: false,
@@ -164,10 +172,12 @@ export const getPath = ({
 
     // noUncheckedIndexedAccess: baseLine[index] is NullableCoordinate | undefined,
     // which is compatible with `base?: NullableCoordinate` in NullableAreaPoint.
-    const areaPoints: ReadonlyArray<NullableAreaPoint> = points.map((entry, index) => ({
-      ...entry,
-      base: baseLine[index],
-    }));
+    const areaPoints: ReadonlyArray<NullableAreaPoint> = points.map(
+      (entry, index) => ({
+        ...entry,
+        base: baseLine[index],
+      }),
+    );
 
     if (layout === "vertical") {
       lineFunction = shapeArea<AreaPoint>()
@@ -267,7 +277,10 @@ interface CurveOwnProps {
   strokeDasharray?: string | number;
 }
 
-export type CurveProps = Omit<CamelSvgProps<JSX.PathSVGAttributes<SVGPathElement>>, "class"> &
+export type CurveProps = Omit<
+  CamelSvgProps<JSX.PathSVGAttributes<SVGPathElement>>,
+  "class"
+> &
   CurveOwnProps;
 
 // ---------------------------------------------------------------------------
@@ -277,7 +290,8 @@ export type CurveProps = Omit<CamelSvgProps<JSX.PathSVGAttributes<SVGPathElement
 export const Curve = (props: CurveProps): JSX.Element => {
   const layoutFromContext = useChartLayout();
 
-  const hasPoints = (): boolean => props.points != null && props.points.length > 0;
+  const hasPoints = (): boolean =>
+    props.points != null && props.points.length > 0;
   const hasPath = (): boolean => props.path != null && props.path.length > 0;
 
   const realPath = (): string | null | undefined => {

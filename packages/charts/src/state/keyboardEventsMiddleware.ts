@@ -1,9 +1,7 @@
-// Ported from recharts 3.8.1 src/state/keyboardEventsMiddleware.ts (commit 7a23854).
-//
-// Solid rewrite: redux listener middleware → dispatchKeyDown / handleFocusEvent /
-// handleBlurEvent. Throttling via eventSettings matches reference.
-import { RechartsStore } from "./store";
-import { TooltipInteractionState } from "./tooltipSlice";
+import { isEventThrottled } from "./isEventThrottled";
+import { selectChartDirection } from "./selectors/axisSelectors";
+import { combineActiveTooltipIndex } from "./selectors/combiners/combineActiveTooltipIndex";
+import { selectTooltipEventType } from "./selectors/selectTooltipEventType";
 import {
   selectTooltipAxisDataKey,
   selectTooltipAxisDomain,
@@ -11,10 +9,12 @@ import {
   selectTooltipDisplayedData,
   selectCoordinateForDefaultIndex,
 } from "./selectors/tooltipSelectors";
-import { selectChartDirection } from "./selectors/axisSelectors";
-import { combineActiveTooltipIndex } from "./selectors/combiners/combineActiveTooltipIndex";
-import { selectTooltipEventType } from "./selectors/selectTooltipEventType";
-import { isEventThrottled } from "./isEventThrottled";
+// Ported from recharts 3.8.1 src/state/keyboardEventsMiddleware.ts (commit 7a23854).
+//
+// Solid rewrite: redux listener middleware → dispatchKeyDown / handleFocusEvent /
+// handleBlurEvent. Throttling via eventSettings matches reference.
+import { RechartsStore } from "./store";
+import { TooltipInteractionState } from "./tooltipSlice";
 
 const mkInteraction = (index: number): TooltipInteractionState => ({
   active: false,
@@ -28,7 +28,10 @@ let rafId: number | null = null;
 let timeoutId: ReturnType<typeof setTimeout> | null = null;
 let latestKeyboardActionPayload: KeyboardEvent["key"] | null = null;
 
-export function dispatchKeyDown(store: RechartsStore, key: KeyboardEvent["key"]): void {
+export function dispatchKeyDown(
+  store: RechartsStore,
+  key: KeyboardEvent["key"],
+): void {
   latestKeyboardActionPayload = key;
 
   if (rafId !== null) {
@@ -40,7 +43,10 @@ export function dispatchKeyDown(store: RechartsStore, key: KeyboardEvent["key"])
   const { throttleDelay, throttledEvents } = state.eventSettings;
   const isThrottled = isEventThrottled(throttledEvents, "keydown");
 
-  if (timeoutId !== null && (typeof throttleDelay !== "number" || !isThrottled)) {
+  if (
+    timeoutId !== null &&
+    (typeof throttleDelay !== "number" || !isThrottled)
+  ) {
     clearTimeout(timeoutId);
     timeoutId = null;
   }
@@ -101,7 +107,10 @@ export function handleKeyboardEvent(store: RechartsStore, key: string): void {
   const isOutsideDomain = !Number.isFinite(currentIndex) || currentIndex < 0;
   const tooltipTicks = selectTooltipAxisTicks(state);
   const displayedData = selectTooltipDisplayedData(state);
-  const tooltipEventType = selectTooltipEventType(state, state.tooltip.settings.shared);
+  const tooltipEventType = selectTooltipEventType(
+    state,
+    state.tooltip.settings.shared,
+  );
 
   if (key === "Enter") {
     if (isOutsideDomain) {
@@ -133,7 +142,12 @@ export function handleKeyboardEvent(store: RechartsStore, key: string): void {
     if (effectiveMovement > 0) {
       for (let i = 0; i < displayedData.length; i++) {
         if (
-          combineActiveTooltipIndex(mkInteraction(i), displayedData, axisDataKey, domain) != null
+          combineActiveTooltipIndex(
+            mkInteraction(i),
+            displayedData,
+            axisDataKey,
+            domain,
+          ) != null
         ) {
           nextIndex = i;
           break;
@@ -142,7 +156,12 @@ export function handleKeyboardEvent(store: RechartsStore, key: string): void {
     } else {
       for (let i = displayedData.length - 1; i >= 0; i--) {
         if (
-          combineActiveTooltipIndex(mkInteraction(i), displayedData, axisDataKey, domain) != null
+          combineActiveTooltipIndex(
+            mkInteraction(i),
+            displayedData,
+            axisDataKey,
+            domain,
+          ) != null
         ) {
           nextIndex = i;
           break;
@@ -182,8 +201,16 @@ export function handleFocusEvent(store: RechartsStore): void {
     return;
   }
   const nextIndex = "0";
-  const tooltipEventType = selectTooltipEventType(state, state.tooltip.settings.shared);
-  const coordinate = selectCoordinateForDefaultIndex(state, tooltipEventType, "hover", nextIndex);
+  const tooltipEventType = selectTooltipEventType(
+    state,
+    state.tooltip.settings.shared,
+  );
+  const coordinate = selectCoordinateForDefaultIndex(
+    state,
+    tooltipEventType,
+    "hover",
+    nextIndex,
+  );
   store.actions.tooltip.setKeyboardInteraction({
     active: true,
     activeIndex: nextIndex,

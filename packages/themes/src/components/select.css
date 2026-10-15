@@ -52,7 +52,12 @@
   box-sizing: border-box;
   padding: var(--select-content-padding);
 
-  :where(.rt-SelectContent:has(.rt-ScrollAreaScrollbar[data-orientation='vertical'])) & {
+  :where(
+      .rt-SelectContent:has(
+        .rt-ScrollAreaScrollbar[data-orientation="vertical"]
+      )
+    )
+    & {
     padding-right: var(--space-3);
   }
 }
@@ -126,7 +131,8 @@
   &:where(.rt-variant-ghost) {
     box-sizing: content-box;
     height: fit-content;
-    padding: var(--select-trigger-ghost-padding-y) var(--select-trigger-ghost-padding-x);
+    padding: var(--select-trigger-ghost-padding-y)
+      var(--select-trigger-ghost-padding-x);
 
     /* We reset the defined margin variables to avoid inheriting them from a higher component */
     /* If a margin IS defined on the component itself, the utility class will win and reset it */
@@ -136,10 +142,18 @@
     --margin-left: 0px;
 
     /* Define the overrides to incorporate the negative margins */
-    --margin-top-override: calc(var(--margin-top) - var(--select-trigger-ghost-padding-y));
-    --margin-right-override: calc(var(--margin-right) - var(--select-trigger-ghost-padding-x));
-    --margin-bottom-override: calc(var(--margin-bottom) - var(--select-trigger-ghost-padding-y));
-    --margin-left-override: calc(var(--margin-left) - var(--select-trigger-ghost-padding-x));
+    --margin-top-override: calc(
+      var(--margin-top) - var(--select-trigger-ghost-padding-y)
+    );
+    --margin-right-override: calc(
+      var(--margin-right) - var(--select-trigger-ghost-padding-x)
+    );
+    --margin-bottom-override: calc(
+      var(--margin-bottom) - var(--select-trigger-ghost-padding-y)
+    );
+    --margin-left-override: calc(
+      var(--margin-left) - var(--select-trigger-ghost-padding-x)
+    );
 
     /* Reset the overrides on direct children */
     :where(&) > * {
@@ -149,8 +163,8 @@
       --margin-left-override: initial;
     }
 
-    margin: var(--margin-top-override) var(--margin-right-override) var(--margin-bottom-override)
-      var(--margin-left-override);
+    margin: var(--margin-top-override) var(--margin-right-override)
+      var(--margin-bottom-override) var(--margin-left-override);
   }
 }
 
@@ -303,7 +317,7 @@
       box-shadow: inset 0 0 0 1px var(--gray-a8);
     }
   }
-  &:where([data-state='open']) {
+  &:where([data-state="open"]) {
     box-shadow: inset 0 0 0 1px var(--gray-a8);
   }
   &:where(:disabled) {
@@ -347,7 +361,7 @@
   z-index: 0;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     z-index: -1;
     inset: 0;
@@ -368,19 +382,27 @@
 
       &::before {
         background-image:
-          linear-gradient(var(--black-a1) -15%, transparent, var(--white-a1) 120%),
+          linear-gradient(
+            var(--black-a1) -15%,
+            transparent,
+            var(--white-a1) 120%
+          ),
           linear-gradient(var(--gray-2), var(--gray-1));
       }
     }
   }
-  &:where([data-state='open']) {
+  &:where([data-state="open"]) {
     box-shadow:
       inset 0 0 0 1px var(--gray-a3),
       var(--select-trigger-classic-box-shadow);
 
     &::before {
       background-image:
-        linear-gradient(var(--black-a1) -15%, transparent, var(--white-a1) 120%),
+        linear-gradient(
+          var(--black-a1) -15%,
+          transparent,
+          var(--white-a1) 120%
+        ),
         linear-gradient(var(--gray-2), var(--gray-1));
     }
   }
@@ -392,7 +414,11 @@
     box-shadow: var(--base-button-classic-disabled-box-shadow);
     &::before {
       background-color: var(--gray-a2);
-      background-image: linear-gradient(var(--black-a1) -20%, transparent, var(--white-a1));
+      background-image: linear-gradient(
+        var(--black-a1) -20%,
+        transparent,
+        var(--white-a1)
+      );
     }
   }
   &:where([data-placeholder]) {
@@ -424,7 +450,7 @@
       background-color: var(--accent-a4);
     }
   }
-  &:where([data-state='open']) {
+  &:where([data-state="open"]) {
     background-color: var(--accent-a4);
   }
   &:where(:focus-visible) {
@@ -444,7 +470,7 @@
       background-color: var(--accent-a3);
     }
   }
-  &:where([data-state='open']) {
+  &:where([data-state="open"]) {
     background-color: var(--accent-a3);
   }
   &:where(:disabled) {

@@ -5,10 +5,13 @@
 // (`animationControllerImpl`), so `useContext` returns it without throwing
 // outside a provider, and the hook runs once per component (no `useMemo`).
 import { createContext, useContext } from "solid-js";
+
 import type { AnimationController } from "./AnimationController";
 import { animationControllerImpl } from "./AnimationControllerImpl";
 
-const AnimationControllerContext = createContext<AnimationController>(animationControllerImpl);
+const AnimationControllerContext = createContext<AnimationController>(
+  animationControllerImpl,
+);
 
 /**
  * Allows overriding the default AnimationController that Recharts uses internally to drive animations.

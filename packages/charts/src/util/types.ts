@@ -1,8 +1,9 @@
 import type { JSX } from "@solidjs/web";
-import type { Element } from "solid-js";
 import type * as d3Scales from "d3-scale";
-import type { DotProps } from "../shape/Dot";
+import type { Element } from "solid-js";
+
 import type { ExternalMouseEvents } from "../chart/types";
+import type { DotProps } from "../shape/Dot";
 
 // Minimal seed of recharts 3.8.1 src/util/types.ts (commit 7a23854).
 //
@@ -94,7 +95,9 @@ export type PolarCoordinate = Coordinate & {
   radius: number;
 };
 
-export const isPolarCoordinate = (c: Coordinate | PolarCoordinate): c is PolarCoordinate => {
+export const isPolarCoordinate = (
+  c: Coordinate | PolarCoordinate,
+): c is PolarCoordinate => {
   return "radius" in c && "startAngle" in c && "endAngle" in c;
 };
 
@@ -104,7 +107,14 @@ export type Percent = `${number}%`;
 
 export type NonEmptyArray<T> = readonly [T, ...T[]];
 
-export type SymbolType = "circle" | "cross" | "diamond" | "square" | "star" | "triangle" | "wye";
+export type SymbolType =
+  | "circle"
+  | "cross"
+  | "diamond"
+  | "square"
+  | "star"
+  | "triangle"
+  | "wye";
 
 export type AnimationDuration = number;
 
@@ -122,7 +132,13 @@ export interface Padding {
   right: number;
 }
 
-export type StackOffsetType = "sign" | "expand" | "none" | "wiggle" | "silhouette" | "positive";
+export type StackOffsetType =
+  | "sign"
+  | "expand"
+  | "none"
+  | "wiggle"
+  | "silhouette"
+  | "positive";
 
 export interface EventThrottlingProps {
   /** Time interval to throttle events: ms, or 'raf' to use requestAnimationFrame. @defaultValue 'raf' */
@@ -160,7 +176,9 @@ export type LegendType =
  * props the chart-container scaffold currently reads. `className` → `class`
  * (the sanctioned deviation). Grows as the chart surface expands.
  */
-export interface CartesianChartProps<DataPointType = unknown> extends ExternalMouseEvents {
+export interface CartesianChartProps<
+  DataPointType = unknown,
+> extends ExternalMouseEvents {
   width?: number | Percent;
   height?: number | Percent;
   data?: ReadonlyArray<DataPointType>;
@@ -204,7 +222,9 @@ export interface CartesianChartProps<DataPointType = unknown> extends ExternalMo
  * (cx/cy/innerRadius/outerRadius/startAngle/endAngle). `className` → `class`.
  * Grows as the polar surface expands.
  */
-export interface PolarChartProps<DataPointType = unknown> extends ExternalMouseEvents {
+export interface PolarChartProps<
+  DataPointType = unknown,
+> extends ExternalMouseEvents {
   width?: number | Percent;
   height?: number | Percent;
   data?: ReadonlyArray<DataPointType>;
@@ -351,7 +371,10 @@ type HTMLElementTarget = Pick<
   HTMLElement,
   "getBoundingClientRect" | "offsetWidth" | "offsetHeight"
 >;
-type SVGElementTarget = Pick<SVGGraphicsElement, "getBoundingClientRect" | "getBBox">;
+type SVGElementTarget = Pick<
+  SVGGraphicsElement,
+  "getBoundingClientRect" | "getBBox"
+>;
 
 /**
  * Simplified version of the MouseEvent so that we don't have to mock the whole thing in tests.
@@ -421,7 +444,12 @@ export type NumberDomain = readonly [min: number, max: number];
 export type AxisDomainItem =
   // `string & {}` keeps the literal suggestions ("auto"/…) visible in autocomplete
   // without them being redundant constituents of a bare `string`.
-  (string & {}) | number | ((d: number) => string | number) | "auto" | "dataMin" | "dataMax";
+  | (string & {})
+  | number
+  | ((d: number) => string | number)
+  | "auto"
+  | "dataMin"
+  | "dataMax";
 
 /**
  * The domain of axis.
@@ -443,7 +471,10 @@ export type AxisDomain =
   | ReadonlyArray<string>
   | ReadonlyArray<number>
   | Readonly<[AxisDomainItem, AxisDomainItem]>
-  | (([dataMin, dataMax]: NumberDomain, allowDataOverflow: boolean) => NumberDomain);
+  | ((
+      [dataMin, dataMax]: NumberDomain,
+      allowDataOverflow: boolean,
+    ) => NumberDomain);
 
 type DataKeyFunction<DataPointType, DataValueType> = {
   bivarianceHack(obj: DataPointType): DataValueType;
@@ -484,10 +515,10 @@ export type TypedDataKey<
             : never)
         | DataKeyFunction<DataPointType, DataValueType>;
 
-export type DataKey<DataPointType = unknown, DataValueType = unknown> = TypedDataKey<
-  DataPointType,
-  DataValueType
->;
+export type DataKey<
+  DataPointType = unknown,
+  DataValueType = unknown,
+> = TypedDataKey<DataPointType, DataValueType>;
 
 // ---------------------------------------------------------------------------
 // Axis foundation types (grown from recharts 3.8.1 util/types.ts as the axis
@@ -582,7 +613,9 @@ export interface CartesianTickContentProps {
   orientation: "top" | "bottom" | "left" | "right";
   height: number;
   width: number;
-  padding: { top?: number; bottom?: number; left?: number; right?: number } | string;
+  padding:
+    | { top?: number; bottom?: number; left?: number; right?: number }
+    | string;
   name: string | undefined;
   tickFormatter: ((value: unknown, index: number) => string) | undefined;
   angle: number;
@@ -594,7 +627,10 @@ export interface CartesianTickContentProps {
  * {@link CartesianTickContentProps}; these aliases re-expose the upstream names
  * (with the X/Y orientation narrowing) for migration-friendly imports.
  */
-export type BaseTickContentProps = Omit<CartesianTickContentProps, "orientation" | "padding">;
+export type BaseTickContentProps = Omit<
+  CartesianTickContentProps,
+  "orientation" | "padding"
+>;
 
 /** recharts parity name — {@link CartesianTickContentProps} narrowed to an X axis. */
 export type XAxisTickContentProps = BaseTickContentProps & {
@@ -677,7 +713,10 @@ export type ActiveDotProps = DotProps & {
 // broad renderable union (it subsumes `boolean` and muddies narrowing), so the
 // raw-element constituent is dropped — `boolean | render-fn | props-object` is
 // cleanly discriminable by `typeof`.
-export type DotType = boolean | ((props: DotItemDotProps) => Element) | Partial<DotProps>;
+export type DotType =
+  | boolean
+  | ((props: DotItemDotProps) => Element)
+  | Partial<DotProps>;
 
 /**
  * Animation metadata forwarded to custom chart shapes (v3.9).
@@ -716,7 +755,10 @@ export type ActiveShape<
   PropsType = Record<string, unknown>,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   ElementType = SVGElement,
-> = ((props: PropsType, index?: string | number) => Element) | Partial<PropsType> | boolean;
+> =
+  | ((props: PropsType, index?: string | number) => Element)
+  | Partial<PropsType>
+  | boolean;
 
 export type ActiveDotType =
   | boolean

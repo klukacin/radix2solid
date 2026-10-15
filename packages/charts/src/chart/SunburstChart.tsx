@@ -1,3 +1,5 @@
+import type { JSX } from "@solidjs/web";
+import { scaleLinear } from "d3-scale";
 // Ported from recharts 3.8.1 src/chart/SunburstChart.tsx (commit 7a23854).
 //
 // A hierarchical radial chart: recursively draws nested rings of <Sector>s sized
@@ -13,26 +15,27 @@
 // ResponsiveContainer sizing flows via the wrapper context.
 // DEFERRED: event throttling nuances.
 import { createMemo, For, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { scaleLinear } from "d3-scale";
-import { Surface } from "../container/Surface";
+
 import { Layer } from "../container/Layer";
+import { Surface } from "../container/Surface";
+import {
+  useChartHeight,
+  useChartWidth,
+  ReportChartMargin,
+} from "../context/chartLayoutContext";
 import { Sector } from "../shape/Sector";
-import { polarToCartesian } from "../util/PolarUtils";
-import { useChartHeight, useChartWidth, ReportChartMargin } from "../context/chartLayoutContext";
-import { RechartsWrapper } from "./RechartsWrapper";
+import { useAppStore } from "../state/hooks";
+import type { ChartOptions } from "../state/optionsSlice";
 import { RechartsStoreProvider } from "../state/RechartsStoreProvider";
 import { ReportEventSettings } from "../state/ReportEventSettings";
 import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
-import { useAppStore } from "../state/hooks";
-import { useUniqueId } from "../util/useUniqueId";
-import type { ChartOptions } from "../state/optionsSlice";
+import type { RechartsRootState } from "../state/store";
 import type {
   TooltipIndex,
   TooltipPayloadConfiguration,
   TooltipPayloadSearcher,
 } from "../state/tooltipSlice";
-import type { RechartsRootState } from "../state/store";
+import { polarToCartesian } from "../util/PolarUtils";
 import type {
   ChartCoordinate,
   DataKey,
@@ -40,6 +43,8 @@ import type {
   Margin,
   Percent,
 } from "../util/types";
+import { useUniqueId } from "../util/useUniqueId";
+import { RechartsWrapper } from "./RechartsWrapper";
 
 export interface SunburstData {
   name: string;
@@ -105,7 +110,8 @@ export const sunburstDefaultProps = {
   responsive: false,
 } as const satisfies Partial<SunburstChartProps>;
 
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v != null;
+const isObj = (v: unknown): v is Record<string, unknown> =>
+  typeof v === "object" && v != null;
 const isArr = (v: unknown): v is ReadonlyArray<unknown> => Array.isArray(v);
 
 // Resolves a Sunburst tooltipIndex path (e.g. "[0]children[1]") against the
@@ -135,7 +141,8 @@ export const sunburstPayloadSearcher: TooltipPayloadSearcher = (
   return cur;
 };
 
-const addToSunburstNodeIndex = (i: number, soFar = ""): TooltipIndex => `${soFar}children[${i}]`;
+const addToSunburstNodeIndex = (i: number, soFar = ""): TooltipIndex =>
+  `${soFar}children[${i}]`;
 
 const getMaxDepthOf = (node: SunburstData): number =>
   !node.children || node.children.length === 0
@@ -163,7 +170,8 @@ interface SunburstArc {
 }
 
 const SunburstChartImpl = (
-  props: Required<Pick<SunburstChartProps, "data">> & SunburstChartProps & { id: string },
+  props: Required<Pick<SunburstChartProps, "data">> &
+    SunburstChartProps & { id: string },
 ): JSX.Element => {
   const store = useAppStore();
   const merged = merge(sunburstDefaultProps, props);
@@ -175,94 +183,108 @@ const SunburstChartImpl = (
     const h = height();
     return w != null && h != null ? { width: w, height: h } : undefined;
   };
-  const outerRadius = (): number => merged.outerRadius ?? Math.min(width() ?? 0, height() ?? 0) / 2;
+  const outerRadius = (): number =>
+    merged.outerRadius ?? Math.min(width() ?? 0, height() ?? 0) / 2;
   const cx = (): number => merged.cx ?? (width() ?? 0) / 2;
   const cy = (): number => merged.cy ?? (height() ?? 0) / 2;
 
   // The arcs + a name→coordinate map, recomputed on size/data change.
-  const computed = createMemo<{ arcs: SunburstArc[]; positions: Map<string, ChartCoordinate> }>(
-    () => {
-      const data = merged.data;
-      const dataKey = merged.dataKey;
-      const rootValue = typeof data[dataKey] === "number" ? data[dataKey] : 0;
-      const rScale = scaleLinear([0, rootValue], [0, merged.endAngle]);
-      const treeDepth = getMaxDepthOf(data);
-      const thickness = (outerRadius() - merged.innerRadius) / treeDepth;
-      const arcs: SunburstArc[] = [];
-      const positions = new Map<string, ChartCoordinate>();
-      const centerX = cx();
-      const centerY = cy();
-      const stroke = merged.stroke;
-      const strokeWidth = merged.padding;
-      const textOptions = merged.textOptions;
+  const computed = createMemo<{
+    arcs: SunburstArc[];
+    positions: Map<string, ChartCoordinate>;
+  }>(() => {
+    const data = merged.data;
+    const dataKey = merged.dataKey;
+    const rootValue = typeof data[dataKey] === "number" ? data[dataKey] : 0;
+    const rScale = scaleLinear([0, rootValue], [0, merged.endAngle]);
+    const treeDepth = getMaxDepthOf(data);
+    const thickness = (outerRadius() - merged.innerRadius) / treeDepth;
+    const arcs: SunburstArc[] = [];
+    const positions = new Map<string, ChartCoordinate>();
+    const centerX = cx();
+    const centerY = cy();
+    const stroke = merged.stroke;
+    const strokeWidth = merged.padding;
+    const textOptions = merged.textOptions;
 
-      const drawArcs = (
-        childNodes: SunburstData[] | undefined,
-        radius: number,
-        innerR: number,
-        initialAngle: number,
-        childColor: string | undefined,
-        depth: number,
-        parentIndex: TooltipIndex | undefined,
-      ): void => {
-        if (!childNodes) {
-          return;
-        }
-        let currentAngle = initialAngle;
-        childNodes.forEach((d, i) => {
-          const tooltipIndex: TooltipIndex =
-            depth === 1 ? `[${i}]` : addToSunburstNodeIndex(i, parentIndex ?? "");
-          const value = typeof d[dataKey] === "number" ? d[dataKey] : 0;
-          const arcLength = rScale(value);
-          const start = currentAngle;
-          const fillColor = d.fill ?? childColor ?? merged.fill;
-          const mid = polarToCartesian(0, 0, innerR + radius / 2, -(start + arcLength / 2));
-          currentAngle += arcLength;
-          arcs.push({
-            key: `sunburst-sector-${d.name}-${i}`,
-            fill: fillColor,
-            startAngle: start,
-            endAngle: start + arcLength,
-            innerRadius: innerR,
-            outerRadius: innerR + radius,
-            cx: centerX,
-            cy: centerY,
-            stroke,
-            strokeWidth,
-            textOptions,
-            textX: mid.x + centerX,
-            textY: centerY - mid.y,
-            label:
-              typeof d[dataKey] === "number" || typeof d[dataKey] === "string" ? d[dataKey] : "",
-            node: { ...d, tooltipIndex },
-          });
-          const pos = polarToCartesian(centerX, centerY, innerR + radius / 2, start);
-          positions.set(d.name, { x: pos.x, y: pos.y });
-          positions.set(String(tooltipIndex), { x: pos.x, y: pos.y });
-          drawArcs(
-            d.children,
-            radius,
-            innerR + radius + merged.ringPadding,
-            start,
-            fillColor,
-            depth + 1,
-            tooltipIndex,
-          );
+    const drawArcs = (
+      childNodes: SunburstData[] | undefined,
+      radius: number,
+      innerR: number,
+      initialAngle: number,
+      childColor: string | undefined,
+      depth: number,
+      parentIndex: TooltipIndex | undefined,
+    ): void => {
+      if (!childNodes) {
+        return;
+      }
+      let currentAngle = initialAngle;
+      childNodes.forEach((d, i) => {
+        const tooltipIndex: TooltipIndex =
+          depth === 1 ? `[${i}]` : addToSunburstNodeIndex(i, parentIndex ?? "");
+        const value = typeof d[dataKey] === "number" ? d[dataKey] : 0;
+        const arcLength = rScale(value);
+        const start = currentAngle;
+        const fillColor = d.fill ?? childColor ?? merged.fill;
+        const mid = polarToCartesian(
+          0,
+          0,
+          innerR + radius / 2,
+          -(start + arcLength / 2),
+        );
+        currentAngle += arcLength;
+        arcs.push({
+          key: `sunburst-sector-${d.name}-${i}`,
+          fill: fillColor,
+          startAngle: start,
+          endAngle: start + arcLength,
+          innerRadius: innerR,
+          outerRadius: innerR + radius,
+          cx: centerX,
+          cy: centerY,
+          stroke,
+          strokeWidth,
+          textOptions,
+          textX: mid.x + centerX,
+          textY: centerY - mid.y,
+          label:
+            typeof d[dataKey] === "number" || typeof d[dataKey] === "string"
+              ? d[dataKey]
+              : "",
+          node: { ...d, tooltipIndex },
         });
-      };
+        const pos = polarToCartesian(
+          centerX,
+          centerY,
+          innerR + radius / 2,
+          start,
+        );
+        positions.set(d.name, { x: pos.x, y: pos.y });
+        positions.set(String(tooltipIndex), { x: pos.x, y: pos.y });
+        drawArcs(
+          d.children,
+          radius,
+          innerR + radius + merged.ringPadding,
+          start,
+          fillColor,
+          depth + 1,
+          tooltipIndex,
+        );
+      });
+    };
 
-      drawArcs(
-        data.children,
-        thickness,
-        merged.innerRadius,
-        merged.startAngle,
-        undefined,
-        1,
-        undefined,
-      );
-      return { arcs, positions };
-    },
-  );
+    drawArcs(
+      data.children,
+      thickness,
+      merged.innerRadius,
+      merged.startAngle,
+      undefined,
+      1,
+      undefined,
+    );
+    return { arcs, positions };
+  });
 
   const handleEnter = (arc: SunburstArc, e: MouseEvent): void => {
     merged.onMouseEnter?.(arc.node, e);
@@ -313,12 +335,17 @@ const SunburstChartImpl = (
   }));
 
   const layerClass = (): string =>
-    ["recharts-sunburst", merged.class].filter((c): c is string => Boolean(c)).join(" ");
+    ["recharts-sunburst", merged.class]
+      .filter((c): c is string => Boolean(c))
+      .join(" ");
 
   return (
     <Show when={dims()}>
       {(d) => (
-        <Surface width={d().width} height={d().height}>
+        <Surface
+          width={d().width}
+          height={d().height}
+        >
           <Layer class={layerClass()}>
             <For each={computed().arcs}>
               {(arc) => (
@@ -340,7 +367,12 @@ const SunburstChartImpl = (
                   {/* Raw <text> (not the <Text> component, whose word-wrap geometry
                       memo trips STRICT_READ in this For nesting): short value labels
                       don't need wrapping. textOptions are kebab SVG attrs. */}
-                  <text {...arc.textOptions} text-anchor="middle" x={arc.textX} y={arc.textY}>
+                  <text
+                    {...arc.textOptions}
+                    text-anchor="middle"
+                    x={arc.textX}
+                    y={arc.textY}
+                  >
                     {arc.label}
                   </text>
                 </g>
@@ -387,7 +419,10 @@ export const SunburstChart = (props: SunburstChartProps): JSX.Element => {
         responsive={props.responsive ?? false}
         style={props.style}
       >
-        <SunburstChartImpl {...props} id={id} />
+        <SunburstChartImpl
+          {...props}
+          id={id}
+        />
       </RechartsWrapper>
     </RechartsStoreProvider>
   );

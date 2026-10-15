@@ -4,7 +4,10 @@
 // a bare value. Consumers call `useXAxisScale()()` (the accessor, then the scale
 // fn).
 import { type Accessor, createMemo } from "solid-js";
+
+import { useIsPanorama } from "./context/PanoramaContext";
 import { type AxisId, defaultAxisId } from "./state/cartesianAxisSlice";
+import { useAppSelector } from "./state/hooks";
 import {
   type BaseAxisWithScale,
   selectAllAppliedValues,
@@ -20,21 +23,22 @@ import {
   selectRenderedTicksOfAxis,
 } from "./state/selectors/axisSelectors";
 import { combineConfiguredScale } from "./state/selectors/combiners/combineConfiguredScale";
-import { createCategoricalInverse } from "./util/scale/createCategoricalInverse";
-import type { RechartsRootState } from "./state/store";
-import type { CustomScaleDefinition } from "./util/scale/CustomScaleDefinition";
-import { useAppSelector } from "./state/hooks";
-import { useIsPanorama } from "./context/PanoramaContext";
 import { selectChartOffset } from "./state/selectors/selectChartOffset";
-import { selectPlotArea, type PlotArea } from "./state/selectors/selectPlotArea";
+import {
+  selectPlotArea,
+  type PlotArea,
+} from "./state/selectors/selectPlotArea";
 import {
   selectActiveTooltipCoordinate,
   selectActiveTooltipDataPoints,
   selectActiveTooltipLabel,
   selectTooltipIsActive,
 } from "./state/selectors/tooltipSelectors";
+import type { RechartsRootState } from "./state/store";
 import type { ActiveLabel } from "./synchronisation/types";
 import type { ChartOffset } from "./types";
+import { createCategoricalInverse } from "./util/scale/createCategoricalInverse";
+import type { CustomScaleDefinition } from "./util/scale/CustomScaleDefinition";
 import type { BandPosition } from "./util/scale/RechartsScale";
 import type {
   CategoricalDomain,
@@ -56,14 +60,22 @@ export type ScaleFunction = (
 /** Converts a pixel coordinate back to a data value. */
 export type InverseScaleFunction = (pixelValue: number) => unknown;
 
-export const useXAxis = (xAxisId: AxisId): Accessor<BaseAxisWithScale | undefined> => {
+export const useXAxis = (
+  xAxisId: AxisId,
+): Accessor<BaseAxisWithScale | undefined> => {
   const isPanorama = useIsPanorama();
-  return useAppSelector((state) => selectAxisWithScale(state, "xAxis", xAxisId, isPanorama));
+  return useAppSelector((state) =>
+    selectAxisWithScale(state, "xAxis", xAxisId, isPanorama),
+  );
 };
 
-export const useYAxis = (yAxisId: AxisId): Accessor<BaseAxisWithScale | undefined> => {
+export const useYAxis = (
+  yAxisId: AxisId,
+): Accessor<BaseAxisWithScale | undefined> => {
   const isPanorama = useIsPanorama();
-  return useAppSelector((state) => selectAxisWithScale(state, "yAxis", yAxisId, isPanorama));
+  return useAppSelector((state) =>
+    selectAxisWithScale(state, "yAxis", yAxisId, isPanorama),
+  );
 };
 
 /** Maps data values to pixel coordinates for an XAxis. @since 3.8 */
@@ -71,7 +83,9 @@ export const useXAxisScale = (
   xAxisId: AxisId = defaultAxisId,
 ): Accessor<ScaleFunction | undefined> => {
   const isPanorama = useIsPanorama();
-  const scale = useAppSelector((state) => selectAxisScale(state, "xAxis", xAxisId, isPanorama));
+  const scale = useAppSelector((state) =>
+    selectAxisScale(state, "xAxis", xAxisId, isPanorama),
+  );
   // Wrap (not `scale()?.map`) so we don't reference an unbound method — and the
   // returned function stays stable while the scale is unchanged.
   return createMemo<ScaleFunction | undefined>(() => {
@@ -85,7 +99,9 @@ export const useYAxisScale = (
   yAxisId: AxisId = defaultAxisId,
 ): Accessor<ScaleFunction | undefined> => {
   const isPanorama = useIsPanorama();
-  const scale = useAppSelector((state) => selectAxisScale(state, "yAxis", yAxisId, isPanorama));
+  const scale = useAppSelector((state) =>
+    selectAxisScale(state, "yAxis", yAxisId, isPanorama),
+  );
   return createMemo<ScaleFunction | undefined>(() => {
     const s = scale();
     return s == null ? undefined : (value, options) => s.map(value, options);
@@ -97,7 +113,9 @@ export const useXAxisInverseScale = (
   xAxisId: AxisId = defaultAxisId,
 ): Accessor<InverseScaleFunction | undefined> => {
   const isPanorama = useIsPanorama();
-  return useAppSelector((state) => selectAxisInverseScale(state, "xAxis", xAxisId, isPanorama));
+  return useAppSelector((state) =>
+    selectAxisInverseScale(state, "xAxis", xAxisId, isPanorama),
+  );
 };
 
 /** Maps pixel coordinates back to data values for a YAxis. @since 3.8 */
@@ -105,7 +123,9 @@ export const useYAxisInverseScale = (
   yAxisId: AxisId = defaultAxisId,
 ): Accessor<InverseScaleFunction | undefined> => {
   const isPanorama = useIsPanorama();
-  return useAppSelector((state) => selectAxisInverseScale(state, "yAxis", yAxisId, isPanorama));
+  return useAppSelector((state) =>
+    selectAxisInverseScale(state, "yAxis", yAxisId, isPanorama),
+  );
 };
 
 // ----- Inverse data-snap scales ---------------------------------------------
@@ -144,7 +164,11 @@ const sortDataPoints = (a: unknown, b: unknown): number => {
 };
 
 function toComparableNumber(val: unknown): number | undefined {
-  if (typeof val === "number" || typeof val === "string" || val instanceof Date) {
+  if (
+    typeof val === "number" ||
+    typeof val === "string" ||
+    val instanceof Date
+  ) {
     const n = Number(val);
     if (Number.isFinite(n)) {
       return n;
@@ -207,13 +231,17 @@ export const useYAxisInverseDataSnapScale = (
 export const useXAxisInverseTickSnapScale = (
   xAxisId: AxisId = defaultAxisId,
 ): Accessor<InverseScaleFunction | undefined> =>
-  useAppSelector((state) => selectAxisInverseTickSnapScale(state, "xAxis", xAxisId));
+  useAppSelector((state) =>
+    selectAxisInverseTickSnapScale(state, "xAxis", xAxisId),
+  );
 
 /** Inverse YAxis scale that snaps to the nearest rendered tick value. @since 3.8 */
 export const useYAxisInverseTickSnapScale = (
   yAxisId: AxisId = defaultAxisId,
 ): Accessor<InverseScaleFunction | undefined> =>
-  useAppSelector((state) => selectAxisInverseTickSnapScale(state, "yAxis", yAxisId));
+  useAppSelector((state) =>
+    selectAxisInverseTickSnapScale(state, "yAxis", yAxisId),
+  );
 
 /** The ticks an XAxis rendered. @since 3.8 */
 export const useXAxisTicks = (
@@ -232,7 +260,9 @@ export const useXAxisDomain = (
   xAxisId: AxisId = defaultAxisId,
 ): Accessor<NumberDomain | CategoricalDomain | undefined> => {
   const isPanorama = useIsPanorama();
-  return useAppSelector((state) => selectAxisDomain(state, "xAxis", xAxisId, isPanorama));
+  return useAppSelector((state) =>
+    selectAxisDomain(state, "xAxis", xAxisId, isPanorama),
+  );
 };
 
 /** The domain of a YAxis. @since 3.8 */
@@ -240,7 +270,9 @@ export const useYAxisDomain = (
   yAxisId: AxisId = defaultAxisId,
 ): Accessor<NumberDomain | CategoricalDomain | undefined> => {
   const isPanorama = useIsPanorama();
-  return useAppSelector((state) => selectAxisDomain(state, "yAxis", yAxisId, isPanorama));
+  return useAppSelector((state) =>
+    selectAxisDomain(state, "yAxis", yAxisId, isPanorama),
+  );
 };
 
 /** A data point with x and y values in data coordinates. */
@@ -279,17 +311,20 @@ export const useCartesianScale = (
  * The chart offset in pixels (the blank space around the plot area occupied by
  * axes, legend, and brush). @since 3.1
  */
-export const useOffset = (): Accessor<ChartOffset | undefined> => useAppSelector(selectChartOffset);
+export const useOffset = (): Accessor<ChartOffset | undefined> =>
+  useAppSelector(selectChartOffset);
 
 /**
  * The plot area — the inner region where graphical items render (chart minus
  * margin, axes, and legend). @since 3.1
  */
-export const usePlotArea = (): Accessor<PlotArea | undefined> => useAppSelector(selectPlotArea);
+export const usePlotArea = (): Accessor<PlotArea | undefined> =>
+  useAppSelector(selectPlotArea);
 
 /** Data points currently visible in the tooltip. @since 3.1 */
-export const useActiveTooltipDataPoints = (): Accessor<ReadonlyArray<unknown> | undefined> =>
-  useAppSelector(selectActiveTooltipDataPoints);
+export const useActiveTooltipDataPoints = (): Accessor<
+  ReadonlyArray<unknown> | undefined
+> => useAppSelector(selectActiveTooltipDataPoints);
 
 /**
  * The active tooltip label — one of the chart-data values, used as the tooltip
@@ -308,5 +343,6 @@ export const useIsTooltipActive = (): Accessor<boolean> => {
  * The active tooltip's cartesian `{ x, y }` coordinate, or `undefined` when
  * there is no active interaction (or used outside a chart context). @since 3.7
  */
-export const useActiveTooltipCoordinate = (): Accessor<Coordinate | undefined> =>
-  useAppSelector(selectActiveTooltipCoordinate);
+export const useActiveTooltipCoordinate = (): Accessor<
+  Coordinate | undefined
+> => useAppSelector(selectActiveTooltipCoordinate);

@@ -1,9 +1,9 @@
+import { getValueByDataKey } from "../util/ChartUtils";
 // Ported from recharts 3.9.0 src/animation/matchBy.ts.
 // Pure logic — no framework surface. Deviation from the reference is limited to
 // this repo's type discipline (no non-null `!`): the index-bounded `nextItems[i]`
 // access is narrowed with an explicit guard instead of an assertion.
 import type { DataKey } from "../util/types";
-import { getValueByDataKey } from "../util/ChartUtils";
 
 /**
  * A tagged union describing the status of an item during animation.
@@ -26,7 +26,10 @@ export type AnimationItem<T> =
  *
  * @since 3.9
  */
-export type AnimationMatchBy<T> = (item: T, index: number) => string | number | null;
+export type AnimationMatchBy<T> = (
+  item: T,
+  index: number,
+) => string | number | null;
 
 /**
  * The union of all accepted `animationMatchBy` prop values:
@@ -116,7 +119,9 @@ function matchByIndexImpl<T>(
   nextItems: ReadonlyArray<T>,
 ): ReadonlyArray<AnimationItem<T>> {
   const factor = prevItems.length / nextItems.length;
-  const alignedPrevItems = nextItems.map((_, i) => prevItems[Math.floor(i * factor)]);
+  const alignedPrevItems = nextItems.map(
+    (_, i) => prevItems[Math.floor(i * factor)],
+  );
   return tagAlignedItems(alignedPrevItems, nextItems);
 }
 

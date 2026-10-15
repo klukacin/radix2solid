@@ -1,9 +1,9 @@
+import { BarPositionPosition } from "../../../util/ChartUtils";
 // Ported from recharts 3.8.1 src/state/selectors/combiners/combineAllBarPositions.ts
 // (commit 7a23854).
 import { getPercentValue, isNullish } from "../../../util/DataUtils";
-import { BarWithPosition, SizeList } from "../barSelectors";
 import { isWellBehavedNumber } from "../../../util/isWellBehavedNumber";
-import { BarPositionPosition } from "../../../util/ChartUtils";
+import { BarWithPosition, SizeList } from "../barSelectors";
 import { BarCategory } from "./combineBarSizeList";
 
 function getBarPositions(
@@ -45,7 +45,10 @@ function getBarPositions(
     let prev: BarPositionPosition = { offset: offset - realBarGap, size: 0 };
 
     result = sizeList.reduce(
-      (res: ReadonlyArray<BarWithPosition>, entry: BarCategory): ReadonlyArray<BarWithPosition> => {
+      (
+        res: ReadonlyArray<BarWithPosition>,
+        entry: BarCategory,
+      ): ReadonlyArray<BarWithPosition> => {
         const newPosition: BarWithPosition = {
           stackId: entry.stackId,
           dataKeys: entry.dataKeys,
@@ -87,7 +90,10 @@ function getBarPositions(
           stackId: entry.stackId,
           dataKeys: entry.dataKeys,
           position: {
-            offset: offset + (originalSize + realBarGap) * i + (originalSize - size) / 2,
+            offset:
+              offset +
+              (originalSize + realBarGap) * i +
+              (originalSize - size) / 2,
             size,
           },
         },
@@ -112,18 +118,22 @@ export const combineAllBarPositions = (
     ? globalMaxBarSize
     : childMaxBarSize;
 
-  let allBarPositions: ReadonlyArray<BarWithPosition> | undefined = getBarPositions(
-    barGap,
-    barCategoryGap,
-    barBandSize !== bandSize ? barBandSize : bandSize,
-    sizeList,
-    maxBarSize,
-  );
+  let allBarPositions: ReadonlyArray<BarWithPosition> | undefined =
+    getBarPositions(
+      barGap,
+      barCategoryGap,
+      barBandSize !== bandSize ? barBandSize : bandSize,
+      sizeList,
+      maxBarSize,
+    );
 
   if (barBandSize !== bandSize && allBarPositions != null) {
     allBarPositions = allBarPositions.map((pos) => ({
       ...pos,
-      position: { ...pos.position, offset: pos.position.offset - barBandSize / 2 },
+      position: {
+        ...pos.position,
+        offset: pos.position.offset - barBandSize / 2,
+      },
     }));
   }
 

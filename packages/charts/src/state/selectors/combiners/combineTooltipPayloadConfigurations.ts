@@ -1,8 +1,12 @@
-// Ported from recharts 3.8.1 src/state/selectors/combiners/combineTooltipPayloadConfigurations.ts.
-import { TooltipIndex, TooltipPayloadConfiguration, TooltipState } from "../../tooltipSlice";
-import { TooltipEventType } from "../../../util/types";
 import { TooltipTrigger } from "../../../chart/types";
+import { TooltipEventType } from "../../../util/types";
 import { GraphicalItemId } from "../../graphicalItemsSlice";
+// Ported from recharts 3.8.1 src/state/selectors/combiners/combineTooltipPayloadConfigurations.ts.
+import {
+  TooltipIndex,
+  TooltipPayloadConfiguration,
+  TooltipState,
+} from "../../tooltipSlice";
 
 export const combineTooltipPayloadConfigurations = (
   tooltipState: TooltipState,
@@ -20,9 +24,11 @@ export const combineTooltipPayloadConfigurations = (
   }
   let filterByGraphicalItemId: GraphicalItemId | undefined;
   if (trigger === "hover") {
-    filterByGraphicalItemId = tooltipState.itemInteraction.hover.graphicalItemId;
+    filterByGraphicalItemId =
+      tooltipState.itemInteraction.hover.graphicalItemId;
   } else {
-    filterByGraphicalItemId = tooltipState.itemInteraction.click.graphicalItemId;
+    filterByGraphicalItemId =
+      tooltipState.itemInteraction.click.graphicalItemId;
   }
   if (tooltipState.syncInteraction.active && filterByGraphicalItemId == null) {
     // Synchronised from another chart: show all items at the synced index.

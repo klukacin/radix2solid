@@ -1,15 +1,16 @@
+import { selectChartLayout } from "../../context/chartLayoutContext";
+import { CustomScaleDefinition } from "../../util/scale/CustomScaleDefinition";
+import {
+  RechartsScale,
+  rechartsScaleFactory,
+} from "../../util/scale/RechartsScale";
+import { CartesianTickItem, TickItem } from "../../util/types";
+import { AxisId } from "../cartesianAxisSlice";
 // Ported from recharts 3.8.1 src/state/selectors/polarScaleSelectors.ts (commit 7a23854).
 //
 // FULL SOLID-NATIVE REWRITE: reselect `createSelector` → plain functions. Reuses
 // the cartesian scale/tick combiners keyed by the polar axis type+id.
 import { RechartsRootState } from "../store";
-import { AxisId } from "../cartesianAxisSlice";
-import { CartesianTickItem, TickItem } from "../../util/types";
-import { selectChartLayout } from "../../context/chartLayoutContext";
-import { RechartsScale, rechartsScaleFactory } from "../../util/scale/RechartsScale";
-import { CustomScaleDefinition } from "../../util/scale/CustomScaleDefinition";
-import { pickAxisType } from "./pickAxisType";
-import { combineConfiguredScale } from "./combiners/combineConfiguredScale";
 import {
   combineAxisTicks,
   combineCategoricalDomain,
@@ -18,6 +19,8 @@ import {
   selectRealScaleType,
   selectRenderableAxisSettings,
 } from "./axisSelectors";
+import { combineConfiguredScale } from "./combiners/combineConfiguredScale";
+import { pickAxisType } from "./pickAxisType";
 import {
   selectAngleAxis,
   selectAngleAxisRangeWithReversed,
@@ -78,7 +81,9 @@ export const selectPolarAxisScale = (
   axisType: PolarAxisType,
   polarAxisId: AxisId,
 ): RechartsScale | undefined =>
-  rechartsScaleFactory(selectPolarConfiguredScale(state, axisType, polarAxisId));
+  rechartsScaleFactory(
+    selectPolarConfiguredScale(state, axisType, polarAxisId),
+  );
 
 export const selectPolarCategoricalDomain = (
   state: RechartsRootState,

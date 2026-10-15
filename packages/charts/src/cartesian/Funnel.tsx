@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/cartesian/Funnel.tsx (commit 7a23854).
 //
 // MINIMAL PORT — a stack of trapezoids whose widths track the dataKey value
@@ -18,36 +19,45 @@
 // No legend registration and no ZIndexLayer — matching recharts (upstream Funnel
 // registers no legend payload and renders inline without a zIndex portal).
 import { createMemo, For, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { useAppSelector } from "../state/hooks";
-import { useUniqueId } from "../util/useUniqueId";
+
 import {
   AnimatedItems,
   useAnimationCallbacks,
   type AnimationInterpolateFn,
 } from "../animation/AnimatedItems";
+import type { EasingInput } from "../animation/easing";
 import { matchAppend, type AnimationMatchByProp } from "../animation/matchBy";
 import type { MutableRef } from "../animation/useAnimationStartSnapshot";
-import { useCartesianChartLayout } from "../context/chartLayoutContext";
-import type { EasingInput } from "../animation/easing";
-import { Layer } from "../container/Layer";
-import { FunnelTrapezoid } from "../util/FunnelUtils";
 import { createCellReader } from "../component/Cell";
+import type { Formatter } from "../component/DefaultTooltipContent";
 import {
   CartesianLabelListContextProvider,
   LabelListFromLabelProp,
   type CartesianLabelListEntry,
   type ImplicitLabelListType,
 } from "../component/LabelList";
-import { selectActiveIndex } from "../state/selectors/tooltipSelectors";
-import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
-import type { Formatter } from "../component/DefaultTooltipContent";
-import { TooltipPayload, TooltipPayloadConfiguration } from "../state/tooltipSlice";
+import { Layer } from "../container/Layer";
+import { useCartesianChartLayout } from "../context/chartLayoutContext";
 import {
   useMouseClickItemDispatch,
   useMouseEnterItemDispatch,
   useMouseLeaveItemDispatch,
 } from "../context/tooltipContext";
+import { ChartData } from "../state/chartDataSlice";
+import { useAppSelector } from "../state/hooks";
+import {
+  type ResolvedFunnelSettings,
+  selectFunnelTrapezoids,
+} from "../state/selectors/funnelSelectors";
+import { selectActiveIndex } from "../state/selectors/tooltipSelectors";
+import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
+import {
+  TooltipPayload,
+  TooltipPayloadConfiguration,
+} from "../state/tooltipSlice";
+import { getValueByDataKey } from "../util/ChartUtils";
+import { getPercentValue, interpolate } from "../util/DataUtils";
+import { FunnelTrapezoid } from "../util/FunnelUtils";
 import {
   ActiveShape,
   AnimationDuration,
@@ -61,13 +71,7 @@ import {
   TooltipType,
   TrapezoidViewBox,
 } from "../util/types";
-import { getPercentValue, interpolate } from "../util/DataUtils";
-import { getValueByDataKey } from "../util/ChartUtils";
-import { ChartData } from "../state/chartDataSlice";
-import {
-  type ResolvedFunnelSettings,
-  selectFunnelTrapezoids,
-} from "../state/selectors/funnelSelectors";
+import { useUniqueId } from "../util/useUniqueId";
 
 export type FunnelTrapezoidItem = TrapezoidViewBox & {
   value?: number | string;
@@ -88,7 +92,12 @@ export type FunnelTrapezoidItem = TrapezoidViewBox & {
 const getRealWidthHeight = (
   customWidth: number | string | undefined,
   offset: ChartOffsetInternal,
-): { realWidth: number; realHeight: number; offsetX: number; offsetY: number } => {
+): {
+  realWidth: number;
+  realHeight: number;
+  offsetX: number;
+  offsetY: number;
+} => {
   const { width, height, left, top } = offset;
   return {
     realWidth: getPercentValue(customWidth, width, width),
@@ -98,7 +107,8 @@ const getRealWidthHeight = (
   };
 };
 
-const asNumber = (value: unknown): number => (typeof value === "number" ? value : 0);
+const asNumber = (value: unknown): number =>
+  typeof value === "number" ? value : 0;
 
 export function computeFunnelTrapezoids({
   dataKey,
@@ -121,8 +131,13 @@ export function computeFunnelTrapezoids({
   customWidth: number | string | undefined;
   graphicalItemId: string;
 }): ReadonlyArray<FunnelTrapezoidItem> {
-  const { realHeight, realWidth, offsetX, offsetY } = getRealWidthHeight(customWidth, offset);
-  const values = displayedData.map((entry) => asNumber(getValueByDataKey(entry, dataKey, 0)));
+  const { realHeight, realWidth, offsetX, offsetY } = getRealWidthHeight(
+    customWidth,
+    offset,
+  );
+  const values = displayedData.map((entry) =>
+    asNumber(getValueByDataKey(entry, dataKey, 0)),
+  );
   const maxValue = Math.max(...values);
   const len = displayedData.length;
   const rowHeight = realHeight / len;
@@ -141,7 +156,11 @@ export function computeFunnelTrapezoids({
       let nextVal: number;
 
       if (i !== len - 1) {
-        const nextDataValue: unknown = getValueByDataKey(displayedData[i + 1], dataKey, 0);
+        const nextDataValue: unknown = getValueByDataKey(
+          displayedData[i + 1],
+          dataKey,
+          0,
+        );
         if (typeof nextDataValue === "number") {
           nextVal = nextDataValue;
         } else if (Array.isArray(nextDataValue)) {
@@ -160,15 +179,27 @@ export function computeFunnelTrapezoids({
       }
 
       const x =
-        maxValue === 0 ? offsetX : ((maxValue - val) * realWidth) / (2 * maxValue) + offsetX;
+        maxValue === 0
+          ? offsetX
+          : ((maxValue - val) * realWidth) / (2 * maxValue) + offsetX;
       const y = rowHeight * i + offsetY;
       const upperWidth = maxValue === 0 ? 0 : (val / maxValue) * realWidth;
       const lowerWidth = maxValue === 0 ? 0 : (nextVal / maxValue) * realWidth;
 
       const tooltipPayload: TooltipPayload = [
-        { name, value: val, payload: entry, dataKey, type: tooltipType, graphicalItemId },
+        {
+          name,
+          value: val,
+          payload: entry,
+          dataKey,
+          type: tooltipType,
+          graphicalItemId,
+        },
       ];
-      const tooltipPosition: Coordinate = { x: x + upperWidth / 2, y: y + rowHeight / 2 };
+      const tooltipPosition: Coordinate = {
+        x: x + upperWidth / 2,
+        y: y + rowHeight / 2,
+      };
       const trapezoidViewBox: TrapezoidViewBox = {
         x,
         y,
@@ -210,7 +241,11 @@ export function computeFunnelTrapezoids({
         ...reversedViewBox,
         tooltipPosition: {
           ...entry.tooltipPosition,
-          y: entry.y - index * rowHeight + (len - 1 - index) * rowHeight + rowHeight / 2,
+          y:
+            entry.y -
+            index * rowHeight +
+            (len - 1 - index) * rowHeight +
+            rowHeight / 2,
         },
         labelViewBox: reversedViewBox,
       };
@@ -229,7 +264,10 @@ export type FunnelMouseEvent = (
   event: FunnelPointerEvent,
 ) => void;
 
-export interface FunnelProps<DataPointType = Record<string, unknown>, DataValueType = unknown> {
+export interface FunnelProps<
+  DataPointType = Record<string, unknown>,
+  DataValueType = unknown,
+> {
   dataKey?: DataKey<DataPointType, DataValueType>;
   nameKey?: DataKey<DataPointType>;
   data?: ChartData;
@@ -250,7 +288,10 @@ export interface FunnelProps<DataPointType = Record<string, unknown>, DataValueT
   animationDuration?: AnimationDuration;
   animationEasing?: EasingInput;
   /** Custom per-frame interpolation for the trapezoids (v3.9). */
-  animationInterpolateFn?: AnimationInterpolateFn<FunnelTrapezoidItem, CartesianLayout>;
+  animationInterpolateFn?: AnimationInterpolateFn<
+    FunnelTrapezoidItem,
+    CartesianLayout
+  >;
   /** How prev/next trapezoids are matched across data updates (v3.9). @defaultValue matchAppend */
   animationMatchBy?: AnimationMatchByProp<FunnelTrapezoidItem>;
   onAnimationStart?: () => void;
@@ -262,9 +303,15 @@ export interface FunnelProps<DataPointType = Record<string, unknown>, DataValueT
    * item also carries `animationElapsedTime`, `isAnimating`, and `isEntrance`
    * (v3.9 ShapeAnimationProps). (Element form is N/A — Solid has no cloneElement.)
    */
-  shape?: ActiveShape<FunnelTrapezoidItem & ShapeAnimationProps, SVGPathElement>;
+  shape?: ActiveShape<
+    FunnelTrapezoidItem & ShapeAnimationProps,
+    SVGPathElement
+  >;
   /** Custom renderer for the active (hovered) trapezoid; same forms as `shape`. */
-  activeShape?: ActiveShape<FunnelTrapezoidItem & ShapeAnimationProps, SVGPathElement>;
+  activeShape?: ActiveShape<
+    FunnelTrapezoidItem & ShapeAnimationProps,
+    SVGPathElement
+  >;
   /** Labels rendered from a `label` prop (in addition to <LabelList> children). */
   label?: ImplicitLabelListType;
   id?: string;
@@ -290,13 +337,15 @@ export interface FunnelProps<DataPointType = Record<string, unknown>, DataValueT
 // 3.9 `defaultFunnelAnimateItems`: matched trapezoids tween between prev/next;
 // added trapezoids grow from a collapsed center point; removed ones vanish
 // immediately (no shrink-out for Funnel).
-const defaultFunnelAnimateItems: AnimationInterpolateFn<FunnelTrapezoidItem, CartesianLayout> = (
-  items,
-  t,
-) => {
+const defaultFunnelAnimateItems: AnimationInterpolateFn<
+  FunnelTrapezoidItem,
+  CartesianLayout
+> = (items, t) => {
   if (items == null) return [];
   if (t === 1) {
-    return items.flatMap((item) => (item.status === "removed" ? [] : [item.next]));
+    return items.flatMap((item) =>
+      item.status === "removed" ? [] : [item.next],
+    );
   }
   return items.flatMap((item): FunnelTrapezoidItem[] => {
     if (item.status === "removed") return [];
@@ -306,8 +355,16 @@ const defaultFunnelAnimateItems: AnimationInterpolateFn<FunnelTrapezoidItem, Car
           ...item.next,
           x: interpolate(item.prev.x, item.next.x, t),
           y: interpolate(item.prev.y, item.next.y, t),
-          upperWidth: interpolate(item.prev.upperWidth, item.next.upperWidth, t),
-          lowerWidth: interpolate(item.prev.lowerWidth, item.next.lowerWidth, t),
+          upperWidth: interpolate(
+            item.prev.upperWidth,
+            item.next.upperWidth,
+            t,
+          ),
+          lowerWidth: interpolate(
+            item.prev.lowerWidth,
+            item.next.lowerWidth,
+            t,
+          ),
           height: interpolate(item.prev.height, item.next.height, t),
         },
       ];
@@ -343,9 +400,10 @@ export const funnelDefaultProps = {
   reversed: false,
 } as const satisfies Partial<FunnelProps>;
 
-export function Funnel<DataPointType = Record<string, unknown>, DataValueType = unknown>(
-  props: FunnelProps<DataPointType, DataValueType>,
-): JSX.Element {
+export function Funnel<
+  DataPointType = Record<string, unknown>,
+  DataValueType = unknown,
+>(props: FunnelProps<DataPointType, DataValueType>): JSX.Element {
   const merged = merge(funnelDefaultProps, props);
   const id = useUniqueId("recharts-funnel", props.id);
 
@@ -358,20 +416,25 @@ export function Funnel<DataPointType = Record<string, unknown>, DataValueType = 
     strokeWidth: merged.strokeWidth,
   }));
 
-  const funnelSettings = createMemo<ResolvedFunnelSettings>(() => ({
-    dataKey: merged.dataKey,
-    nameKey: merged.nameKey,
-    data: merged.data,
-    tooltipType: merged.tooltipType,
-    lastShapeType: merged.lastShapeType,
-    reversed: merged.reversed,
-    customWidth: merged.width,
-    cells: cells(),
-    presentationProps: presentationProps(),
-    id,
-  }), { lazy: true });
+  const funnelSettings = createMemo<ResolvedFunnelSettings>(
+    () => ({
+      dataKey: merged.dataKey,
+      nameKey: merged.nameKey,
+      data: merged.data,
+      tooltipType: merged.tooltipType,
+      lastShapeType: merged.lastShapeType,
+      reversed: merged.reversed,
+      customWidth: merged.width,
+      cells: cells(),
+      presentationProps: presentationProps(),
+      id,
+    }),
+    { lazy: true },
+  );
 
-  const trapezoids = useAppSelector((state) => selectFunnelTrapezoids(state, funnelSettings()));
+  const trapezoids = useAppSelector((state) =>
+    selectFunnelTrapezoids(state, funnelSettings()),
+  );
 
   // Item-type tooltip: the trapezoids carry their own payload; hovering one
   // activates the tooltip for that row.
@@ -425,18 +488,19 @@ export function Funnel<DataPointType = Record<string, unknown>, DataValueType = 
 
   // One LabelList entry per trapezoid (its labelViewBox + name/payload), provided
   // to <LabelList> children and the `label` prop via context.
-  const labelListEntries = createMemo<ReadonlyArray<CartesianLabelListEntry>>(() =>
-    (trapezoids() ?? []).map((entry) => {
-      const viewBox: TrapezoidViewBox = entry.labelViewBox;
-      return {
-        ...viewBox,
-        value: entry.name,
-        payload: entry.payload,
-        parentViewBox: entry.parentViewBox,
-        viewBox,
-        fill: entry.fill,
-      };
-    }),
+  const labelListEntries = createMemo<ReadonlyArray<CartesianLabelListEntry>>(
+    () =>
+      (trapezoids() ?? []).map((entry) => {
+        const viewBox: TrapezoidViewBox = entry.labelViewBox;
+        return {
+          ...viewBox,
+          value: entry.name,
+          payload: entry.payload,
+          parentViewBox: entry.parentViewBox,
+          viewBox,
+          fill: entry.fill,
+        };
+      }),
     { lazy: true },
   );
 
@@ -453,29 +517,42 @@ export function Funnel<DataPointType = Record<string, unknown>, DataValueType = 
   // Holds the latest visible trapezoid frame so a re-animation (data change) tweens
   // from where the trapezoids currently are. Managed by AnimatedItems via
   // useAnimationStartSnapshot.
-  const previousTrapezoidsRef: MutableRef<ReadonlyArray<FunnelTrapezoidItem> | null | undefined> = {
+  const previousTrapezoidsRef: MutableRef<
+    ReadonlyArray<FunnelTrapezoidItem> | null | undefined
+  > = {
     current: null,
   };
 
-  const { isAnimating, handleAnimationStart, handleAnimationEnd } = useAnimationCallbacks(
-    () => props.onAnimationStart?.(),
-    () => props.onAnimationEnd?.(),
+  const { isAnimating, handleAnimationStart, handleAnimationEnd } =
+    useAnimationCallbacks(
+      () => props.onAnimationStart?.(),
+      () => props.onAnimationEnd?.(),
+    );
+  const labelContextEntries = createMemo(
+    () => (isAnimating() ? undefined : labelListEntries()),
+    { lazy: true },
   );
-  const labelContextEntries = createMemo(() => (isAnimating() ? undefined : labelListEntries()), { lazy: true });
 
   const layerClass = (): string =>
-    ["recharts-trapezoids", merged.class].filter((c): c is string => Boolean(c)).join(" ");
+    ["recharts-trapezoids", merged.class]
+      .filter((c): c is string => Boolean(c))
+      .join(" ");
 
   // Gate: render only in a (defined) cartesian layout AND when there are trapezoids
   // to draw. The animated subtree is created ONCE under this Show and its inner
   // reactive reads update in place (the same NO_OWNER-safe shape Bar uses).
-  const renderableTrapezoids = createMemo<ReadonlyArray<FunnelTrapezoidItem> | undefined>(() => {
-    if (merged.hide || layout() == null) {
-      return undefined;
-    }
-    const items = trapezoids();
-    return items != null && items.length > 0 ? items : undefined;
-  }, { lazy: true });
+  const renderableTrapezoids = createMemo<
+    ReadonlyArray<FunnelTrapezoidItem> | undefined
+  >(
+    () => {
+      if (merged.hide || layout() == null) {
+        return undefined;
+      }
+      const items = trapezoids();
+      return items != null && items.length > 0 ? items : undefined;
+    },
+    { lazy: true },
+  );
 
   const renderedChildren = resolveChildren(() => (
     <CartesianLabelListContextProvider value={labelContextEntries}>
@@ -517,16 +594,19 @@ export function Funnel<DataPointType = Record<string, unknown>, DataValueType = 
                         // Layer and the default <Trapezoid> when the option is a
                         // boolean/undefined.
                         const isActive = (): boolean =>
-                          Boolean(activeShape) && activeItemIndex() === String(i());
+                          Boolean(activeShape) &&
+                          activeItemIndex() === String(i());
                         // v3.9 ShapeAnimationProps forwarded into the custom-shape
                         // invocation, mirroring upstream FunnelTrapezoids. Combine
                         // `< 1` like upstream so the shape sees `isAnimating` through
                         // the whole entrance frame.
-                        const shapeAnimationProps = (): ShapeAnimationProps => ({
-                          animationElapsedTime,
-                          isAnimating: isAnimating() || animationElapsedTime < 1,
-                          isEntrance,
-                        });
+                        const shapeAnimationProps =
+                          (): ShapeAnimationProps => ({
+                            animationElapsedTime,
+                            isAnimating:
+                              isAnimating() || animationElapsedTime < 1,
+                            isEntrance,
+                          });
                         return (
                           <Layer
                             class="recharts-funnel-trapezoid"
@@ -535,7 +615,8 @@ export function Funnel<DataPointType = Record<string, unknown>, DataValueType = 
                             onClick={onItemClick(entry, i())}
                             onMouseDown={
                               onMouseDownHandler != null
-                                ? (event) => onMouseDownHandler(entry, i(), event)
+                                ? (event) =>
+                                    onMouseDownHandler(entry, i(), event)
                                 : undefined
                             }
                             onMouseUp={
@@ -545,32 +626,38 @@ export function Funnel<DataPointType = Record<string, unknown>, DataValueType = 
                             }
                             onMouseMove={
                               onMouseMoveHandler != null
-                                ? (event) => onMouseMoveHandler(entry, i(), event)
+                                ? (event) =>
+                                    onMouseMoveHandler(entry, i(), event)
                                 : undefined
                             }
                             onMouseOver={
                               onMouseOverHandler != null
-                                ? (event) => onMouseOverHandler(entry, i(), event)
+                                ? (event) =>
+                                    onMouseOverHandler(entry, i(), event)
                                 : undefined
                             }
                             onMouseOut={
                               onMouseOutHandler != null
-                                ? (event) => onMouseOutHandler(entry, i(), event)
+                                ? (event) =>
+                                    onMouseOutHandler(entry, i(), event)
                                 : undefined
                             }
                             onTouchStart={
                               onTouchStartHandler != null
-                                ? (event) => onTouchStartHandler(entry, i(), event)
+                                ? (event) =>
+                                    onTouchStartHandler(entry, i(), event)
                                 : undefined
                             }
                             onTouchMove={
                               onTouchMoveHandler != null
-                                ? (event) => onTouchMoveHandler(entry, i(), event)
+                                ? (event) =>
+                                    onTouchMoveHandler(entry, i(), event)
                                 : undefined
                             }
                             onTouchEnd={
                               onTouchEndHandler != null
-                                ? (event) => onTouchEndHandler(entry, i(), event)
+                                ? (event) =>
+                                    onTouchEndHandler(entry, i(), event)
                                 : undefined
                             }
                           >

@@ -29,26 +29,36 @@ export interface PolarOptionsSlice {
   readonly actions: PolarOptionsActions;
 }
 
-export function createPolarOptionsSlice(initialState: PolarChartState=null,createState: ChartStateInitializer): PolarOptionsSlice {
-  const [state,setState]=createState<{ current: PolarChartState }>({ current: initialState });
+export function createPolarOptionsSlice(
+  initialState: PolarChartState = null,
+  createState: ChartStateInitializer,
+): PolarOptionsSlice {
+  const [state, setState] = createState<{ current: PolarChartState }>({
+    current: initialState,
+  });
 
-  const actions: PolarOptionsActions={
+  const actions: PolarOptionsActions = {
     updatePolarOptions(payload) {
       setState((s) => {
-        const prev=s.current;
-        if(prev===null) {
-          s.current=payload;
+        const prev = s.current;
+        if (prev === null) {
+          s.current = payload;
           return;
         }
-        prev.startAngle=payload.startAngle;
-        prev.endAngle=payload.endAngle;
-        prev.cx=payload.cx;
-        prev.cy=payload.cy;
-        prev.innerRadius=payload.innerRadius;
-        prev.outerRadius=payload.outerRadius;
+        prev.startAngle = payload.startAngle;
+        prev.endAngle = payload.endAngle;
+        prev.cx = payload.cx;
+        prev.cy = payload.cy;
+        prev.innerRadius = payload.innerRadius;
+        prev.outerRadius = payload.outerRadius;
       });
     },
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

@@ -1,3 +1,5 @@
+import { useAppStore } from "../state/hooks";
+import { TooltipPayload } from "../state/tooltipSlice";
 // Ported from recharts 3.8.1 src/context/tooltipContext.tsx (commit 7a23854).
 //
 // These are the graphical-item ("item"-type tooltip) mouse-dispatch hooks: a
@@ -14,8 +16,6 @@
 // (e.g. a signal-driven `dataKey`) is an untracked stale read (STRICT_READ).
 // Reading them inside the returned event closure is fresh at dispatch time.
 import { Coordinate, DataKey } from "../util/types";
-import { useAppStore } from "../state/hooks";
-import { TooltipPayload } from "../state/tooltipSlice";
 
 /**
  * Some graphical items provide extra information to the tooltip; some do not.
@@ -25,7 +25,11 @@ export type TooltipTriggerInfo = {
   tooltipPosition?: Coordinate;
 };
 
-export type MouseEnterLeaveEvent<T> = (data: T, index: number, event: MouseEvent) => void;
+export type MouseEnterLeaveEvent<T> = (
+  data: T,
+  index: number,
+  event: MouseEvent,
+) => void;
 
 export const useMouseEnterItemDispatch = <T extends TooltipTriggerInfo>(
   onMouseEnterFromProps: () => MouseEnterLeaveEvent<T> | undefined,

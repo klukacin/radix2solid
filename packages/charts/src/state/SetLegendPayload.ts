@@ -6,9 +6,10 @@
 // proxy-safe (recharts matches the array by reference, which Solid stores break).
 // `SetPolarLegendPayload` lands with the polar vertical. Returns nothing.
 import type { JSX } from "@solidjs/web";
-import { useAppStore } from "./hooks";
-import { useIsPanorama } from "../context/PanoramaContext";
+
 import { LegendPayload } from "../component/DefaultLegendContent";
+import { useIsPanorama } from "../context/PanoramaContext";
+import { useAppStore } from "./hooks";
 import { registerInStore } from "./registerInStore";
 
 interface LegendPayloadEntry {
@@ -27,15 +28,19 @@ export function SetLegendPayload(props: {
   // (recharts matches the array by reference, which Solid stores break), so
   // replace/remove rebuild the `{ id, items: [] }` lookup key from prev.
   if (store != null && !isPanorama) {
-    registerInStore<LegendPayloadEntry>(() => ({ id: props.id, items: props.legendPayload }), {
-      add: (next) => store.actions.legend.addLegendPayload(next),
-      replace: (prev, next) =>
-        store.actions.legend.replaceLegendPayload({
-          prev: { id: prev.id, items: [] },
-          next,
-        }),
-      remove: (prev) => store.actions.legend.removeLegendPayload({ id: prev.id, items: [] }),
-    });
+    registerInStore<LegendPayloadEntry>(
+      () => ({ id: props.id, items: props.legendPayload }),
+      {
+        add: (next) => store.actions.legend.addLegendPayload(next),
+        replace: (prev, next) =>
+          store.actions.legend.replaceLegendPayload({
+            prev: { id: prev.id, items: [] },
+            next,
+          }),
+        remove: (prev) =>
+          store.actions.legend.removeLegendPayload({ id: prev.id, items: [] }),
+      },
+    );
   }
 
   return null;

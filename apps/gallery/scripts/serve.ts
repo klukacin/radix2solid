@@ -1,29 +1,53 @@
-import { createServer as createHttpServer } from 'node:http';
-import { randomBytes } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
-import { resolve } from 'node:path';
-import { pathToFileURL } from 'node:url';
-import { createServer } from 'vite';
+import { randomBytes } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import { createServer as createHttpServer } from "node:http";
+import { resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
-type Renderer = { renderPage: (nonce: string, entry?: string, mode?: 'ssr' | 'csr', stylesheets?: readonly string[]) => string };
-const production = process.argv.includes('--production');
-const root = resolve(import.meta.dirname, '..');
-const vite = production ? undefined : await createServer({ root, server: { middlewareMode: true } });
+import { createServer } from "vite";
+
+type Renderer = {
+  renderPage: (
+    nonce: string,
+    entry?: string,
+    mode?: "ssr" | "csr",
+    stylesheets?: readonly string[],
+  ) => string;
+};
+const production = process.argv.includes("--production");
+const root = resolve(import.meta.dirname, "..");
+const vite = production
+  ? undefined
+  : await createServer({ root, server: { middlewareMode: true } });
 const server = createHttpServer(async (request, response) => {
-  if (request.url === '/favicon.ico') { response.writeHead(204); response.end(); return; }
-  if (request.url !== '/' && request.url !== '/csr') {
-    if (vite) { vite.middlewares(request, response); return; }
-    const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
-    const assets = resolve(root, 'dist/client');
+  if (request.url === "/favicon.ico") {
+    response.writeHead(204);
+    response.end();
+    return;
+  }
+  if (request.url !== "/" && request.url !== "/csr") {
+    if (vite) {
+      vite.middlewares(request, response);
+      return;
+    }
+    const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
+    const assets = resolve(root, "dist/client");
     const file = resolve(assets, `.${pathname}`);
-    if (!pathname.startsWith('/assets/') || !file.startsWith(`${assets}/`)) {
-      response.writeHead(404); response.end(); return;
+    if (!pathname.startsWith("/assets/") || !file.startsWith(`${assets}/`)) {
+      response.writeHead(404);
+      response.end();
+      return;
     }
     try {
       const content = await readFile(file);
-      response.writeHead(200, { 'Content-Type': file.endsWith('.css') ? 'text/css' : 'text/javascript' });
+      response.writeHead(200, {
+        "Content-Type": file.endsWith(".css") ? "text/css" : "text/javascript",
+      });
       response.end(content);
-    } catch { response.writeHead(404); response.end(); }
+    } catch {
+      response.writeHead(404);
+      response.end();
+    }
     return;
   }
   try {
@@ -32,33 +56,67 @@ const server = createHttpServer(async (request, response) => {
     let stylesheets: string[] | undefined;
     if (production) {
       // Built output does not exist in dev; load it only in the post-build production fixture.
-      renderer = await import(pathToFileURL(resolve(root, 'dist/server/entry-server.js')).href);
-      const manifest: unknown = JSON.parse(await readFile(resolve(root, 'dist/client/.vite/manifest.json'), 'utf8'));
-      if (!manifest || typeof manifest !== 'object' || !('src/entry-client.tsx' in manifest)) throw new Error('Missing gallery client manifest entry.');
-      const asset = manifest['src/entry-client.tsx'];
-      if (!asset || typeof asset !== 'object' || !('file' in asset) || typeof asset.file !== 'string') throw new Error('Invalid gallery client asset.');
+      renderer = await import(
+        pathToFileURL(resolve(root, "dist/server/entry-server.js")).href
+      );
+      const manifest: unknown = JSON.parse(
+        await readFile(
+          resolve(root, "dist/client/.vite/manifest.json"),
+          "utf8",
+        ),
+      );
+      if (
+        !manifest ||
+        typeof manifest !== "object" ||
+        !("src/entry-client.tsx" in manifest)
+      )
+        throw new Error("Missing gallery client manifest entry.");
+      const asset = manifest["src/entry-client.tsx"];
+      if (
+        !asset ||
+        typeof asset !== "object" ||
+        !("file" in asset) ||
+        typeof asset.file !== "string"
+      )
+        throw new Error("Invalid gallery client asset.");
       entry = `/${asset.file}`;
-      if ('css' in asset) {
-        if (!Array.isArray(asset.css) || asset.css.some(path => typeof path !== 'string')) throw new Error('Invalid gallery stylesheet assets.');
-        stylesheets = asset.css.map(path => `/${path}`);
+      if ("css" in asset) {
+        if (
+          !Array.isArray(asset.css) ||
+          asset.css.some((path) => typeof path !== "string")
+        )
+          throw new Error("Invalid gallery stylesheet assets.");
+        stylesheets = asset.css.map((path) => `/${path}`);
       }
     } else {
-      if (!vite) throw new Error('Missing development renderer.');
+      if (!vite) throw new Error("Missing development renderer.");
       // Vite owns JSX compilation and the development module-loading boundary.
-      renderer = await vite.ssrLoadModule('/src/entry-server.tsx') as Renderer;
+      renderer = (await vite.ssrLoadModule(
+        "/src/entry-server.tsx",
+      )) as Renderer;
     }
-    const nonce = randomBytes(24).toString('base64');
-    const html = renderer.renderPage(nonce, entry, request.url === '/csr' ? 'csr' : 'ssr', stylesheets);
+    const nonce = randomBytes(24).toString("base64");
+    const html = renderer.renderPage(
+      nonce,
+      entry,
+      request.url === "/csr" ? "csr" : "ssr",
+      stylesheets,
+    );
     response.writeHead(200, {
-      'Content-Type': 'text/html; charset=utf-8',
-      'Content-Security-Policy': `script-src 'nonce-${nonce}' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'`
+      "Content-Type": "text/html; charset=utf-8",
+      "Content-Security-Policy": `script-src 'nonce-${nonce}' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'`,
     });
     response.end(html);
   } catch (error) {
     console.error(error);
-    response.writeHead(500, { 'Content-Type': 'text/plain' });
-    response.end('Gallery rendering failed.');
+    response.writeHead(500, { "Content-Type": "text/plain" });
+    response.end("Gallery rendering failed.");
   }
 });
-server.listen(4147, '127.0.0.1', () => console.log('Gallery ready http://127.0.0.1:4147'));
-process.on('SIGTERM', () => { server.close(); void vite?.close(); });
+server.listen(4147, "127.0.0.1", () =>
+  console.log("Gallery ready http://127.0.0.1:4147"),
+);
+process.on("SIGTERM", () => {
+  server.close();
+  void vite?.close();
+});

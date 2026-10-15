@@ -1,3 +1,30 @@
+import { isServer, type JSX } from "@solidjs/web";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  merge,
+  Show,
+} from "solid-js";
+
+import {
+  CartesianLabelContextProvider,
+  CartesianLabelFromLabelProp,
+  type ImplicitLabelType,
+} from "../component/Label";
+import {
+  Text,
+  TextAnchor,
+  TextVerticalAnchor,
+  type Props as TextProps,
+} from "../component/Text";
+import { Layer } from "../container/Layer";
+import {
+  XAxisOrientation,
+  YAxisOrientation,
+} from "../state/cartesianAxisSlice";
+import { isNullish, isNumber } from "../util/DataUtils";
 // Ported from recharts 3.8.1 src/cartesian/CartesianAxis.tsx (commit 7a23854).
 //
 // Draws the axis line + tick lines + tick labels + the axis `label` (title) via
@@ -17,17 +44,7 @@
 // auto-width. Solid deviations:
 // forwardRef dropped; React CSSProperties n/a; `className`→`class`.
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createEffect, createMemo, createSignal, For, merge, Show } from "solid-js";
-import { isServer, type JSX } from "@solidjs/web";
-import { getTicks } from "./getTicks";
-import { Layer } from "../container/Layer";
-import {
-  CartesianLabelContextProvider,
-  CartesianLabelFromLabelProp,
-  type ImplicitLabelType,
-} from "../component/Label";
-import { Text, TextAnchor, TextVerticalAnchor, type Props as TextProps } from "../component/Text";
-import { isNullish, isNumber } from "../util/DataUtils";
+import { svgPropertiesNoEvents } from "../util/svgPropertiesNoEvents";
 import {
   type AxisInterval,
   type CartesianTickContentProps,
@@ -38,13 +55,14 @@ import {
   RectangleCoordinate,
   type TickProp,
 } from "../util/types";
-import { svgPropertiesNoEvents } from "../util/svgPropertiesNoEvents";
-import { XAxisOrientation, YAxisOrientation } from "../state/cartesianAxisSlice";
 import { ZIndexLayer } from "../zIndex/ZIndexLayer";
+import { getTicks } from "./getTicks";
 
 export type Orientation = XAxisOrientation | YAxisOrientation;
 
-type AxisLabelPadding = { top?: number; bottom?: number; left?: number; right?: number } | string;
+type AxisLabelPadding =
+  | { top?: number; bottom?: number; left?: number; right?: number }
+  | string;
 
 function getTickLineCoord(
   data: CartesianTickItem,
@@ -96,7 +114,10 @@ function getTickLineCoord(
   return { line: { x1, y1, x2, y2 }, tick: { x: tx, y: ty } };
 }
 
-function getTickTextAnchor(orientation: Orientation, mirror: boolean): TextAnchor {
+function getTickTextAnchor(
+  orientation: Orientation,
+  mirror: boolean,
+): TextAnchor {
   switch (orientation) {
     case "left":
       return mirror ? "start" : "end";
@@ -107,7 +128,10 @@ function getTickTextAnchor(orientation: Orientation, mirror: boolean): TextAncho
   }
 }
 
-function getTickVerticalAnchor(orientation: Orientation, mirror: boolean): TextVerticalAnchor {
+function getTickVerticalAnchor(
+  orientation: Orientation,
+  mirror: boolean,
+): TextVerticalAnchor {
   switch (orientation) {
     case "left":
     case "right":
@@ -255,10 +279,23 @@ const AxisLine = (props: {
         (orientation === "top" && !mirror) ||
         (orientation === "bottom" && mirror)
       );
-      return { x1: x, y1: y + needHeight * height, x2: x + width, y2: y + needHeight * height };
+      return {
+        x1: x,
+        y1: y + needHeight * height,
+        x2: x + width,
+        y2: y + needHeight * height,
+      };
     }
-    const needWidth = +((orientation === "left" && !mirror) || (orientation === "right" && mirror));
-    return { x1: x + needWidth * width, y1: y, x2: x + needWidth * width, y2: y + height };
+    const needWidth = +(
+      (orientation === "left" && !mirror) ||
+      (orientation === "right" && mirror)
+    );
+    return {
+      x1: x + needWidth * width,
+      y1: y,
+      x2: x + needWidth * width,
+      y2: y + height,
+    };
   };
   return (
     <line
@@ -285,22 +322,33 @@ export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
   const [canMeasureTicks, setCanMeasureTicks] = createSignal(false);
   // Claim the server's tick list before browser measurement changes its length.
   if (!isServer) {
-    createEffect(() => undefined, () => { setCanMeasureTicks(true); }, { transparent: true });
+    createEffect(
+      () => undefined,
+      () => {
+        setCanMeasureTicks(true);
+      },
+      { transparent: true },
+    );
   }
 
   // merge() keeps an explicit `stroke={undefined}` (e.g. forwarded from a
   // strokeless <YAxis/>) as undefined; resolve the default at use sites.
-  const strokeColor = (): string => merged.stroke ?? cartesianAxisDefaults.stroke;
+  const strokeColor = (): string =>
+    merged.stroke ?? cartesianAxisDefaults.stroke;
 
-  const textAnchor = (): TextAnchor => getTickTextAnchor(merged.orientation, merged.mirror);
+  const textAnchor = (): TextAnchor =>
+    getTickTextAnchor(merged.orientation, merged.mirror);
   // A user-provided `textAnchor` prop overrides the orientation-derived default.
-  const resolvedTextAnchor = (): TextAnchor => merged.textAnchor ?? textAnchor();
+  const resolvedTextAnchor = (): TextAnchor =>
+    merged.textAnchor ?? textAnchor();
   const verticalAnchor = (): TextVerticalAnchor =>
     getTickVerticalAnchor(merged.orientation, merged.mirror);
 
   // The settings-object form of `tick` (e.g. `{ class: "custom" }`): not a
   // function, not a boolean, not an already-rendered element/array.
-  const isTickSettings = (t: CartesianAxisProps["tick"]): t is CartesianTickSettings =>
+  const isTickSettings = (
+    t: CartesianAxisProps["tick"],
+  ): t is CartesianTickSettings =>
     t != null &&
     typeof t === "object" &&
     !Array.isArray(t) &&
@@ -317,7 +365,12 @@ export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
     if (vb != null && isNumber(vb.width) && isNumber(vb.height)) {
       return { x: vb.x ?? 0, y: vb.y ?? 0, width: vb.width, height: vb.height };
     }
-    return { x: merged.x, y: merged.y, width: merged.width, height: merged.height };
+    return {
+      x: merged.x,
+      y: merged.y,
+      width: merged.width,
+      height: merged.height,
+    };
   };
 
   // getStringSize expects computed-style strings (e.g. "14px"); coerce the numeric
@@ -339,7 +392,8 @@ export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
     getTicks(
       {
         angle: merged.angle,
-        interval: canMeasureTicks() || isNumber(merged.interval) ? merged.interval : 0,
+        interval:
+          canMeasureTicks() || isNumber(merged.interval) ? merged.interval : 0,
         minTickGap: merged.minTickGap,
         orientation: merged.orientation,
         // getTicks early-returns [] when `tick` is falsy; tick-label and tick-line
@@ -455,10 +509,16 @@ export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
               mirror={merged.mirror}
               stroke={strokeColor()}
               strokeOpacity={merged.strokeOpacity}
-              extra={typeof merged.axisLine === "object" ? merged.axisLine : undefined}
+              extra={
+                typeof merged.axisLine === "object"
+                  ? merged.axisLine
+                  : undefined
+              }
             />
           </Show>
-          <g class={`recharts-cartesian-axis-ticks recharts-${merged.axisType}-ticks`}>
+          <g
+            class={`recharts-cartesian-axis-ticks recharts-${merged.axisType}-ticks`}
+          >
             <For each={tickCoords()}>
               {(item) => (
                 <Layer class="recharts-cartesian-axis-tick">
@@ -480,17 +540,39 @@ export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
                       called props-first `(tickItem, index, event)`). */}
                     <Layer
                       class="recharts-cartesian-axis-tick-label"
-                      onClick={(e) => merged.onClick?.(item.entry, item.index, e)}
-                      onMouseEnter={(e) => merged.onMouseEnter?.(item.entry, item.index, e)}
-                      onMouseLeave={(e) => merged.onMouseLeave?.(item.entry, item.index, e)}
-                      onMouseOver={(e) => merged.onMouseOver?.(item.entry, item.index, e)}
-                      onMouseOut={(e) => merged.onMouseOut?.(item.entry, item.index, e)}
-                      onMouseMove={(e) => merged.onMouseMove?.(item.entry, item.index, e)}
-                      onMouseDown={(e) => merged.onMouseDown?.(item.entry, item.index, e)}
-                      onMouseUp={(e) => merged.onMouseUp?.(item.entry, item.index, e)}
-                      onTouchStart={(e) => merged.onTouchStart?.(item.entry, item.index, e)}
-                      onTouchMove={(e) => merged.onTouchMove?.(item.entry, item.index, e)}
-                      onTouchEnd={(e) => merged.onTouchEnd?.(item.entry, item.index, e)}
+                      onClick={(e) =>
+                        merged.onClick?.(item.entry, item.index, e)
+                      }
+                      onMouseEnter={(e) =>
+                        merged.onMouseEnter?.(item.entry, item.index, e)
+                      }
+                      onMouseLeave={(e) =>
+                        merged.onMouseLeave?.(item.entry, item.index, e)
+                      }
+                      onMouseOver={(e) =>
+                        merged.onMouseOver?.(item.entry, item.index, e)
+                      }
+                      onMouseOut={(e) =>
+                        merged.onMouseOut?.(item.entry, item.index, e)
+                      }
+                      onMouseMove={(e) =>
+                        merged.onMouseMove?.(item.entry, item.index, e)
+                      }
+                      onMouseDown={(e) =>
+                        merged.onMouseDown?.(item.entry, item.index, e)
+                      }
+                      onMouseUp={(e) =>
+                        merged.onMouseUp?.(item.entry, item.index, e)
+                      }
+                      onTouchStart={(e) =>
+                        merged.onTouchStart?.(item.entry, item.index, e)
+                      }
+                      onTouchMove={(e) =>
+                        merged.onTouchMove?.(item.entry, item.index, e)
+                      }
+                      onTouchEnd={(e) =>
+                        merged.onTouchEnd?.(item.entry, item.index, e)
+                      }
                     >
                       {/* Function-form tick: invoke with recharts' tick-content props.
                       Object-form tick (`{ class: "custom" }`): default <Text> with
@@ -513,7 +595,10 @@ export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
                           // (recharts spreads it last); the tick-value class stays
                           // fixed after it, matching recharts' explicit className.
                           {...(merged.tickTextProps ?? {})}
-                          class={["recharts-cartesian-axis-tick-value", tickSettings()?.class]
+                          class={[
+                            "recharts-cartesian-axis-tick-value",
+                            tickSettings()?.class,
+                          ]
                             .filter(Boolean)
                             .join(" ")}
                         >

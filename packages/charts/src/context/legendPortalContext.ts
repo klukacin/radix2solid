@@ -6,6 +6,9 @@
 // accessor returns null (outside a provider).
 import { Accessor, createContext, useContext } from "solid-js";
 
-export const LegendPortalContext = createContext<Accessor<HTMLElement | null>>(() => null);
+export const LegendPortalContext = createContext<Accessor<HTMLElement | null>>(
+  () => null,
+);
 
-export const useLegendPortal = (): Accessor<HTMLElement | null> => useContext(LegendPortalContext);
+export const useLegendPortal = (): Accessor<HTMLElement | null> =>
+  useContext(LegendPortalContext);

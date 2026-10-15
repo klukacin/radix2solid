@@ -17,7 +17,8 @@
     outline-offset: 2px;
   }
 
-  :where([data-accent-color]:not(.radix-themes, .rt-high-contrast)) &:where([data-accent-color='']) {
+  :where([data-accent-color]:not(.radix-themes, .rt-high-contrast))
+    &:where([data-accent-color=""]) {
     color: var(--accent-12);
   }
 }
@@ -38,12 +39,16 @@
 
     /* Enhancement for bright colors */
     @supports (color: color-mix(in oklab, white, black)) {
-      text-decoration-color: color-mix(in oklab, var(--accent-a5), var(--gray-a6));
+      text-decoration-color: color-mix(
+        in oklab,
+        var(--accent-a5),
+        var(--gray-a6)
+      );
     }
 
     @media (pointer: coarse) {
       /* Better -webkit-tap-highlight-color */
-      &:where(:active:not(:focus-visible, [data-state='open'])) {
+      &:where(:active:not(:focus-visible, [data-state="open"])) {
         outline: 0.75em solid var(--accent-a4);
         outline-offset: -0.6em;
       }
@@ -57,13 +62,18 @@
       }
 
       &:where(.rt-high-contrast),
-      :where([data-accent-color]:not(.radix-themes, .rt-high-contrast)) &:where([data-accent-color='']) {
+      :where([data-accent-color]:not(.radix-themes, .rt-high-contrast))
+        &:where([data-accent-color=""]) {
         text-decoration-line: underline;
         text-decoration-color: var(--accent-a6);
 
         /* Enhancement for bright colors */
         @supports (color: color-mix(in oklab, white, black)) {
-          text-decoration-color: color-mix(in oklab, var(--accent-a6), var(--gray-a6));
+          text-decoration-color: color-mix(
+            in oklab,
+            var(--accent-a6),
+            var(--gray-a6)
+          );
         }
       }
     }

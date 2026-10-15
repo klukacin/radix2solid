@@ -7,7 +7,9 @@ function isCallable(value: unknown): value is (...args: unknown[]) => unknown {
   return typeof value === "function";
 }
 
-export function createEventProxy<E extends { currentTarget: unknown }>(event: E): E {
+export function createEventProxy<E extends { currentTarget: unknown }>(
+  event: E,
+): E {
   const { currentTarget } = event;
   return new Proxy(event, {
     get(target, prop) {

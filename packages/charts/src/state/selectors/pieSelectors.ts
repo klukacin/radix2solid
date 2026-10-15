@@ -1,3 +1,13 @@
+import type { CellProps } from "../../component/Cell";
+import type { LegendPayload } from "../../component/DefaultLegendContent";
+import { computePieSectors, PieSectorDataItem } from "../../polar/Pie";
+import { getTooltipNameProp, getValueByDataKey } from "../../util/ChartUtils";
+import { ChartOffsetInternal } from "../../util/types";
+import { ChartData } from "../chartDataSlice";
+import {
+  GraphicalItemId,
+  PolarGraphicalItemSettings,
+} from "../graphicalItemsSlice";
 // Ported from recharts 3.8.1 src/state/selectors/pieSelectors.ts (commit 7a23854).
 //
 // FULL SOLID-NATIVE REWRITE: reselect `createSelector` → plain functions
@@ -7,16 +17,9 @@
 // displayedData (no Cells), and `selectPieLegend` (legend wiring is a follow-up).
 // `selectUnfilteredPolarItems` is inlined here (polarSelectors not ported yet).
 import { RechartsRootState } from "../store";
-import { GraphicalItemId, PolarGraphicalItemSettings } from "../graphicalItemsSlice";
-import { selectChartDataAndAlwaysIgnoreIndexes } from "./dataSelectors";
-import { ChartData } from "../chartDataSlice";
-import { ChartOffsetInternal } from "../../util/types";
-import { selectChartOffsetInternal } from "./selectChartOffsetInternal";
 import { PieSettings } from "../types/PieSettings";
-import { computePieSectors, PieSectorDataItem } from "../../polar/Pie";
-import type { CellProps } from "../../component/Cell";
-import type { LegendPayload } from "../../component/DefaultLegendContent";
-import { getTooltipNameProp, getValueByDataKey } from "../../util/ChartUtils";
+import { selectChartDataAndAlwaysIgnoreIndexes } from "./dataSelectors";
+import { selectChartOffsetInternal } from "./selectChartOffsetInternal";
 
 const selectUnfilteredPolarItems = (
   state: RechartsRootState,
@@ -77,7 +80,11 @@ export const selectPieLegend = (
     const rowFill = typeof row.fill === "string" ? row.fill : undefined;
     // recharts: name defaults to pieSettings.name (NOT the row index), then
     // getTooltipNameProp falls back to the dataKey string when name is nullish.
-    const nameRaw: unknown = getValueByDataKey(entry, pieSettings.nameKey, pieSettings.name);
+    const nameRaw: unknown = getValueByDataKey(
+      entry,
+      pieSettings.nameKey,
+      pieSettings.name,
+    );
     return {
       value: getTooltipNameProp(nameRaw, pieSettings.dataKey),
       color: cellFill ?? rowFill ?? pieSettings.fill,

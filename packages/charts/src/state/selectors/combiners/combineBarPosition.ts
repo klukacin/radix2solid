@@ -1,7 +1,7 @@
+import { BarPositionPosition } from "../../../util/ChartUtils";
 // Ported from recharts 3.8.1 src/state/selectors/combiners/combineBarPosition.ts
 // (commit 7a23854).
 import { MaybeStackedGraphicalItem } from "../../types/StackedGraphicalItem";
-import { BarPositionPosition } from "../../../util/ChartUtils";
 import { BarWithPosition } from "../barSelectors";
 
 export const combineBarPosition = (

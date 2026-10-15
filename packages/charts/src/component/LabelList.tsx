@@ -1,3 +1,18 @@
+import type { JSX } from "@solidjs/web";
+import {
+  createContext,
+  createMemo,
+  For,
+  omit,
+  Show,
+  useContext,
+} from "solid-js";
+import type { Accessor } from "solid-js";
+
+import { Layer } from "../container/Layer";
+import { getValueByDataKey } from "../util/ChartUtils";
+import { isNullish, isNumOrStr } from "../util/DataUtils";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 // Ported from recharts 3.8.1 src/component/LabelList.tsx (commit 7a23854).
 //
 // CARTESIAN path: renders one <Label> per data point from a context that the
@@ -14,9 +29,12 @@
 //  - element `content` (React.cloneElement) DROPPED; function `content` kept.
 //  - ZIndexLayer / `fill`-passthrough deferred (Label forwards no per-label fill).
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createContext, createMemo, For, omit, Show, useContext } from "solid-js";
-import type { Accessor } from "solid-js";
-import type { JSX } from "@solidjs/web";
+import {
+  CartesianViewBoxRequired,
+  DataKey,
+  PolarViewBoxRequired,
+  TrapezoidViewBox,
+} from "../util/types";
 import {
   type LabelContentType,
   type LabelFormatter,
@@ -24,16 +42,6 @@ import {
   Label,
   isLabelContentAFunction,
 } from "./Label";
-import { Layer } from "../container/Layer";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
-import { getValueByDataKey } from "../util/ChartUtils";
-import {
-  CartesianViewBoxRequired,
-  DataKey,
-  PolarViewBoxRequired,
-  TrapezoidViewBox,
-} from "../util/types";
-import { isNullish, isNumOrStr } from "../util/DataUtils";
 import { isRenderableText, type RenderableText } from "./Text";
 
 export interface LabelListEntry {
@@ -48,7 +56,8 @@ export interface LabelListEntry {
  * The viewBox properties are repeated as root props of the entry, so reading
  * `entry.x` or `entry.viewBox.x` is equivalent (kept for backward compatibility).
  */
-export interface CartesianLabelListEntry extends LabelListEntry, TrapezoidViewBox {
+export interface CartesianLabelListEntry
+  extends LabelListEntry, TrapezoidViewBox {
   /** The bounding box of the graphical element this label attaches to (e.g. one Bar). */
   viewBox: TrapezoidViewBox;
   parentViewBox?: CartesianViewBoxRequired;
@@ -114,7 +123,9 @@ export type ImplicitLabelListType = boolean | LabelContentType | Props;
  * LabelList props with the `position` key made explicit — recharts parity name.
  * (Upstream homes this in polar/Pie; the port homes it next to the Props it derives from.)
  */
-export type LabelListPropsWithPosition = Props & { position: Props["position"] };
+export type LabelListPropsWithPosition = Props & {
+  position: Props["position"];
+};
 
 const defaultAccessor = (entry: LabelListEntry): RenderableText => {
   const raw = entry.value;
@@ -135,7 +146,9 @@ export function CartesianLabelListContextProvider(props: {
   children: JSX.Element;
 }): JSX.Element {
   return (
-    <CartesianLabelListContext value={props.value}>{props.children}</CartesianLabelListContext>
+    <CartesianLabelListContext value={props.value}>
+      {props.children}
+    </CartesianLabelListContext>
   );
 }
 
@@ -147,7 +160,11 @@ export function PolarLabelListContextProvider(props: {
   value: Accessor<ReadonlyArray<PolarLabelListEntry> | undefined>;
   children: JSX.Element;
 }): JSX.Element {
-  return <PolarLabelListContext value={props.value}>{props.children}</PolarLabelListContext>;
+  return (
+    <PolarLabelListContext value={props.value}>
+      {props.children}
+    </PolarLabelListContext>
+  );
 }
 
 /**
@@ -205,12 +222,20 @@ export function LabelList(props: Props): JSX.Element {
                   : {})}
                 parentViewBox={entry.parentViewBox}
                 value={valueOf(entry, index())}
-                {...(isNullish(props.position) ? {} : { position: props.position })}
+                {...(isNullish(props.position)
+                  ? {}
+                  : { position: props.position })}
                 {...(isNullish(props.offset) ? {} : { offset: props.offset })}
                 {...(isNullish(props.angle) ? {} : { angle: props.angle })}
-                {...(isNullish(props.formatter) ? {} : { formatter: props.formatter })}
-                {...(isNullish(props.content) ? {} : { content: props.content })}
-                {...(isNullish(props.textBreakAll) ? {} : { textBreakAll: props.textBreakAll })}
+                {...(isNullish(props.formatter)
+                  ? {}
+                  : { formatter: props.formatter })}
+                {...(isNullish(props.content)
+                  ? {}
+                  : { content: props.content })}
+                {...(isNullish(props.textBreakAll)
+                  ? {}
+                  : { textBreakAll: props.textBreakAll })}
                 viewBox={entry.viewBox}
                 index={index()}
                 zIndex={0}
@@ -228,7 +253,11 @@ LabelList.displayName = "LabelList";
 function isLabelPropsObject(
   label: ImplicitLabelListType,
 ): label is Props & { dataKey?: DataKey<unknown> } {
-  if (typeof label !== "object" || label === null || isLabelContentAFunction(label)) {
+  if (
+    typeof label !== "object" ||
+    label === null ||
+    isLabelContentAFunction(label)
+  ) {
     return false;
   }
   return (
@@ -245,7 +274,9 @@ function isLabelPropsObject(
 /**
  * Renders a LabelList from the implicit `label` prop of a graphical item.
  */
-export function LabelListFromLabelProp(props: { label?: ImplicitLabelListType }): JSX.Element {
+export function LabelListFromLabelProp(props: {
+  label?: ImplicitLabelListType;
+}): JSX.Element {
   // Resolve the implicit `label` prop to the LabelList props it implies (DATA, not
   // JSX): `true` → no extra props; a render function → `content`; a props object →
   // itself. Anything else → undefined (render nothing). The <Show> below renders it.
@@ -260,7 +291,11 @@ export function LabelListFromLabelProp(props: { label?: ImplicitLabelListType })
     if (isLabelContentAFunction(labelValue)) {
       return { content: labelValue };
     }
-    if (typeof labelValue === "object" && labelValue !== null && isLabelPropsObject(labelValue)) {
+    if (
+      typeof labelValue === "object" &&
+      labelValue !== null &&
+      isLabelPropsObject(labelValue)
+    ) {
       return labelValue;
     }
     return undefined;

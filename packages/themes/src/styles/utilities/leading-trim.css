@@ -10,7 +10,7 @@
   .rt-r-lt-both::before,
   .rt-r-lt-end::after,
   .rt-r-lt-both::after {
-    content: '';
+    content: "";
     display: table;
   }
 

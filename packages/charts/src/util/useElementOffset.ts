@@ -117,7 +117,8 @@ export function useElementOffset(
   void extraDependencies; // parity with the recharts signature; no effect in the Solid port (see module note)
 
   const initialOffset: ElementOffset = { height: 0, left: 0, top: 0, width: 0 };
-  const [lastBoundingBox, setLastBoundingBox] = createSignal<ElementOffset>(initialOffset);
+  const [lastBoundingBox, setLastBoundingBox] =
+    createSignal<ElementOffset>(initialOffset);
 
   // Plain mirror of the signal's current value: the ref/ResizeObserver callbacks
   // below diff against THIS (a non-reactive read) instead of reading the signal,

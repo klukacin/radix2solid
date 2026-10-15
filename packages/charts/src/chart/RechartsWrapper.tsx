@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/chart/RechartsWrapper.tsx (commit 7a23854).
 //
 // FULLY WIRED (the original render-only scaffold has since grown the real
@@ -6,38 +7,41 @@
 // Renders the `recharts-wrapper` div + `ReportChartSize` (which drives the
 // Surface dimensions) + children.
 import { createMemo, createSignal, flush, onCleanup, untrack } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { ReportChartSize } from "../context/chartLayoutContext";
-import { TooltipPortalContext } from "../context/tooltipPortalContext";
-import { LegendPortalContext } from "../context/legendPortalContext";
+
 import { useResponsiveContainerContext } from "../component/ResponsiveContainer";
+import { ReportChartSize } from "../context/chartLayoutContext";
+import { LegendPortalContext } from "../context/legendPortalContext";
+import { TooltipPortalContext } from "../context/tooltipPortalContext";
+import { dispatchExternalEvent } from "../state/externalEventsMiddleware";
+import type { ExternalEventActionPayload } from "../state/externalEventsMiddleware";
 import { useAppStore } from "../state/hooks";
-import { getRelativeCoordinate } from "../util/getRelativeCoordinate";
+import {
+  dispatchKeyDown,
+  handleBlurEvent,
+  handleFocusEvent,
+} from "../state/keyboardEventsMiddleware";
+import {
+  dispatchMouseClick,
+  dispatchMouseMove,
+} from "../state/mouseEventsMiddleware";
+import { selectTooltipEventType } from "../state/selectors/selectTooltipEventType";
 import {
   selectActivePropsFromChartPointer,
   selectAllGraphicalItemsSettings,
 } from "../state/selectors/tooltipSelectors";
 import { selectTooltipCoordinate } from "../state/selectors/touchSelectors";
 import {
-  DATA_ITEM_GRAPHICAL_ITEM_ID_ATTRIBUTE_NAME,
-  DATA_ITEM_INDEX_ATTRIBUTE_NAME,
-} from "../util/Constants";
-import { selectTooltipEventType } from "../state/selectors/selectTooltipEventType";
-import {
-  dispatchKeyDown,
-  handleBlurEvent,
-  handleFocusEvent,
-} from "../state/keyboardEventsMiddleware";
-import { dispatchExternalEvent } from "../state/externalEventsMiddleware";
-import { dispatchMouseClick, dispatchMouseMove } from "../state/mouseEventsMiddleware";
-import { isWellBehavedNumber } from "../util/isWellBehavedNumber";
-import type { ExternalMouseEvents } from "./types";
-import type { ChartStyle, Percent } from "../util/types";
-import type { ExternalEventActionPayload } from "../state/externalEventsMiddleware";
-import {
   useBrushChartSynchronisation,
   useSynchronisedEventsFromOtherCharts,
 } from "../synchronisation/useChartSynchronisation";
+import {
+  DATA_ITEM_GRAPHICAL_ITEM_ID_ATTRIBUTE_NAME,
+  DATA_ITEM_INDEX_ATTRIBUTE_NAME,
+} from "../util/Constants";
+import { getRelativeCoordinate } from "../util/getRelativeCoordinate";
+import { isWellBehavedNumber } from "../util/isWellBehavedNumber";
+import type { ChartStyle, Percent } from "../util/types";
+import type { ExternalMouseEvents } from "./types";
 
 export interface RechartsWrapperProps extends ExternalMouseEvents {
   children: JSX.Element;
@@ -50,8 +54,12 @@ export interface RechartsWrapperProps extends ExternalMouseEvents {
   dispatchTouchEvents?: boolean;
 }
 
-function styleDimension(value: ChartStyle[keyof ChartStyle]): number | string | undefined {
-  return typeof value === "number" || typeof value === "string" ? value : undefined;
+function styleDimension(
+  value: ChartStyle[keyof ChartStyle],
+): number | string | undefined {
+  return typeof value === "number" || typeof value === "string"
+    ? value
+    : undefined;
 }
 
 function kebabCaseStyleName(name: string): string {
@@ -81,26 +89,39 @@ function styleObjectToString(style: ChartStyle | undefined): string {
     .join("; ");
 }
 
-function styleEntry(key: string, value: string | number | undefined): string | undefined {
+function styleEntry(
+  key: string,
+  value: string | number | undefined,
+): string | undefined {
   const formatted = cssValue(value);
   return formatted == null ? undefined : `${key}: ${formatted}`;
 }
 
 function joinStyle(parts: ReadonlyArray<string | undefined>): string {
-  return parts.filter((part): part is string => part != null && part.length > 0).join("; ");
+  return parts
+    .filter((part): part is string => part != null && part.length > 0)
+    .join("; ");
 }
 
 export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
   // The wrapper div doubles as the Tooltip's portal target (as in recharts, where
   // the same node is passed to setTooltipPortal). The ref sets a signal that the
   // TooltipPortalContext exposes reactively, then forwards to the caller's ref.
-  const [tooltipPortal, setTooltipPortal] = createSignal<HTMLElement | null>(null);
-  const [measuredWidth, setMeasuredWidth] = createSignal<number | undefined>(undefined, {
-    ownedWrite: true,
-  });
-  const [measuredHeight, setMeasuredHeight] = createSignal<number | undefined>(undefined, {
-    ownedWrite: true,
-  });
+  const [tooltipPortal, setTooltipPortal] = createSignal<HTMLElement | null>(
+    null,
+  );
+  const [measuredWidth, setMeasuredWidth] = createSignal<number | undefined>(
+    undefined,
+    {
+      ownedWrite: true,
+    },
+  );
+  const [measuredHeight, setMeasuredHeight] = createSignal<number | undefined>(
+    undefined,
+    {
+      ownedWrite: true,
+    },
+  );
   let wrapperEl: HTMLDivElement | null = null;
   let resizeObserver: ResizeObserver | null = null;
 
@@ -113,12 +134,14 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
   useBrushChartSynchronisation();
 
   const width = (): number | Percent | undefined =>
-    responsiveContainerCalculations != null && responsiveContainerCalculations.width > 0
+    responsiveContainerCalculations != null &&
+    responsiveContainerCalculations.width > 0
       ? responsiveContainerCalculations.width
       : props.width;
 
   const height = (): number | Percent | undefined =>
-    responsiveContainerCalculations != null && responsiveContainerCalculations.height > 0
+    responsiveContainerCalculations != null &&
+    responsiveContainerCalculations.height > 0
       ? responsiveContainerCalculations.height
       : props.height;
 
@@ -131,14 +154,18 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
       styleEntry("height", height()),
     ]);
 
-  const divWidth = (): number | string | undefined => width() ?? styleDimension(props.style?.width);
+  const divWidth = (): number | string | undefined =>
+    width() ?? styleDimension(props.style?.width);
   const divHeight = (): number | string | undefined =>
     height() ?? styleDimension(props.style?.height);
 
   const setContainerSize = (newWidth: number, newHeight: number): void => {
     const roundedWidth = Math.round(newWidth);
     const roundedHeight = Math.round(newHeight);
-    if (untrack(measuredWidth) === roundedWidth && untrack(measuredHeight) === roundedHeight) {
+    if (
+      untrack(measuredWidth) === roundedWidth &&
+      untrack(measuredHeight) === roundedHeight
+    ) {
       return;
     }
     setMeasuredWidth(roundedWidth);
@@ -147,7 +174,8 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
   };
 
   const measureOnce = (el: HTMLDivElement): void => {
-    const { width: containerWidth, height: containerHeight } = el.getBoundingClientRect();
+    const { width: containerWidth, height: containerHeight } =
+      el.getBoundingClientRect();
     setContainerSize(containerWidth, containerHeight);
   };
 
@@ -171,7 +199,10 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
   const setWrapperRef = (el: HTMLDivElement) => {
     wrapperEl = el;
     setTooltipPortal(el);
-    const scale = el.offsetWidth === 0 ? 1 : el.getBoundingClientRect().width / el.offsetWidth;
+    const scale =
+      el.offsetWidth === 0
+        ? 1
+        : el.getBoundingClientRect().width / el.offsetWidth;
     if (isWellBehavedNumber(scale)) {
       store?.actions.layout.setScale(scale);
     }
@@ -233,7 +264,10 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
     event: MouseEvent,
   ): void => {
     if (store != null) {
-      const payload: ExternalEventActionPayload<MouseEvent> = { handler, reactEvent: event };
+      const payload: ExternalEventActionPayload<MouseEvent> = {
+        handler,
+        reactEvent: event,
+      };
       dispatchExternalEvent(store, payload);
     }
   };
@@ -246,12 +280,17 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
     event: TouchEvent,
   ): void => {
     if (store != null) {
-      const payload: ExternalEventActionPayload<TouchEvent> = { handler, reactEvent: event };
+      const payload: ExternalEventActionPayload<TouchEvent> = {
+        handler,
+        reactEvent: event,
+      };
       dispatchExternalEvent(store, payload);
     }
   };
 
-  const handleMouseMove = (event: MouseEvent & { currentTarget: HTMLDivElement }): void => {
+  const handleMouseMove = (
+    event: MouseEvent & { currentTarget: HTMLDivElement },
+  ): void => {
     if (store == null) {
       return;
     }
@@ -263,7 +302,9 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
     dispatchExternalMouseHandler(props.onMouseMove, event);
   };
 
-  const handleMouseEnter = (event: MouseEvent & { currentTarget: HTMLDivElement }): void => {
+  const handleMouseEnter = (
+    event: MouseEvent & { currentTarget: HTMLDivElement },
+  ): void => {
     if (store == null) {
       return;
     }
@@ -275,7 +316,9 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
     dispatchExternalMouseHandler(props.onMouseEnter, event);
   };
 
-  const handleMouseLeave = (event: MouseEvent & { currentTarget: HTMLDivElement }): void => {
+  const handleMouseLeave = (
+    event: MouseEvent & { currentTarget: HTMLDivElement },
+  ): void => {
     store?.actions.tooltip.mouseLeaveChart();
     flush();
     if (store != null) {
@@ -285,9 +328,15 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
 
   // mouseout bubbles from chart children; jsdom visibility specs dismiss via
   // fireEvent.mouseOut on the trigger element (recharts reference: Tooltip.visibility).
-  const handleMouseOut = (event: MouseEvent & { currentTarget: HTMLDivElement }): void => {
+  const handleMouseOut = (
+    event: MouseEvent & { currentTarget: HTMLDivElement },
+  ): void => {
     const related = event.relatedTarget;
-    if (related == null || !(related instanceof Node) || !event.currentTarget.contains(related)) {
+    if (
+      related == null ||
+      !(related instanceof Node) ||
+      !event.currentTarget.contains(related)
+    ) {
       handleMouseLeave(event);
     }
   };
@@ -298,7 +347,11 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
       return;
     }
     const related = event.relatedTarget;
-    if (related == null || !(related instanceof Node) || !el.contains(related)) {
+    if (
+      related == null ||
+      !(related instanceof Node) ||
+      !el.contains(related)
+    ) {
       store?.actions.tooltip.mouseLeaveChart();
       flush();
     }
@@ -330,7 +383,9 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
     dispatchExternalMouseHandler(handler, event);
   };
 
-  const handleClick = (event: MouseEvent & { currentTarget: HTMLDivElement }): void => {
+  const handleClick = (
+    event: MouseEvent & { currentTarget: HTMLDivElement },
+  ): void => {
     if (store == null) {
       return;
     }
@@ -363,11 +418,16 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
   };
 
   // Touch — Solid replacement for touchEventsMiddleware (axis + item paths).
-  const handleTouchMove = (event: TouchEvent & { currentTarget: HTMLDivElement }): void => {
+  const handleTouchMove = (
+    event: TouchEvent & { currentTarget: HTMLDivElement },
+  ): void => {
     if (store == null || event.touches.length === 0) {
       return;
     }
-    const eventType = selectTooltipEventType(store.state, store.state.tooltip.settings.shared);
+    const eventType = selectTooltipEventType(
+      store.state,
+      store.state.tooltip.settings.shared,
+    );
     const touch = event.touches[0];
     if (touch == null) {
       return;
@@ -378,7 +438,10 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
         clientY: touch.clientY,
         currentTarget: event.currentTarget,
       });
-      const activeProps = selectActivePropsFromChartPointer(store.state, pointer);
+      const activeProps = selectActivePropsFromChartPointer(
+        store.state,
+        pointer,
+      );
       if (activeProps?.activeIndex != null) {
         store.actions.tooltip.setMouseOverAxisIndex({
           activeIndex: activeProps.activeIndex,
@@ -402,14 +465,19 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
       }
       const itemIndex = target.getAttribute(DATA_ITEM_INDEX_ATTRIBUTE_NAME);
       const graphicalItemId =
-        target.getAttribute(DATA_ITEM_GRAPHICAL_ITEM_ID_ATTRIBUTE_NAME) ?? undefined;
+        target.getAttribute(DATA_ITEM_GRAPHICAL_ITEM_ID_ATTRIBUTE_NAME) ??
+        undefined;
       const settings = selectAllGraphicalItemsSettings(store.state).find(
         (item) => item.id === graphicalItemId,
       );
       if (itemIndex == null || settings == null || graphicalItemId == null) {
         return;
       }
-      const coordinate = selectTooltipCoordinate(store.state, itemIndex, graphicalItemId);
+      const coordinate = selectTooltipCoordinate(
+        store.state,
+        itemIndex,
+        graphicalItemId,
+      );
       store.actions.tooltip.setActiveMouseOverItemIndex({
         activeDataKey: settings.dataKey,
         activeIndex: itemIndex,
@@ -453,7 +521,10 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
   return (
     <TooltipPortalContext value={tooltipPortal}>
       <LegendPortalContext value={tooltipPortal}>
-        <ReportChartSize width={reportedWidth()} height={reportedHeight()} />
+        <ReportChartSize
+          width={reportedWidth()}
+          height={reportedHeight()}
+        />
         <div
           class={["recharts-wrapper", props.class]}
           style={wrapperStyle()}

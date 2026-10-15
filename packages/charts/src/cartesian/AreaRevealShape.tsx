@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.9.0 src/cartesian/AreaRevealShape.tsx.
 //
 // The default `shape` for <Area>: it renders the complete Area visual (filled
@@ -12,13 +13,17 @@
 // reveal clip is gated with a TERNARY, not `<Show when={const}>` (the entrance
 // flags are read once per frame, not reactive — STRICT_READ discipline).
 import { createMemo, createUniqueId, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { isNumber } from "../util/DataUtils";
-import { Curve, type BaseLineType, type CurveProps } from "../shape/Curve";
-import type { CartesianLayout, LayoutType, ShapeAnimationProps } from "../util/types";
-import { isWellBehavedNumber } from "../util/isWellBehavedNumber";
+
 import { Layer } from "../container/Layer";
+import { Curve, type BaseLineType, type CurveProps } from "../shape/Curve";
+import { isNumber } from "../util/DataUtils";
+import { isWellBehavedNumber } from "../util/isWellBehavedNumber";
 import { svgPropertiesNoEvents } from "../util/svgPropertiesNoEvents";
+import type {
+  CartesianLayout,
+  LayoutType,
+  ShapeAnimationProps,
+} from "../util/types";
 
 interface ClipRectProps {
   alpha: number;
@@ -54,12 +59,21 @@ function HorizontalClipRect(props: ClipRectProps): JSX.Element {
       x: startX < endX ? startX : startX - width,
       y: 0,
       width,
-      height: Math.floor(maxY + (props.strokeWidth ? parseInt(`${props.strokeWidth}`, 10) : 1)),
+      height: Math.floor(
+        maxY + (props.strokeWidth ? parseInt(`${props.strokeWidth}`, 10) : 1),
+      ),
     };
   });
   return (
     <Show when={geom()}>
-      {(g) => <rect x={g().x} y={g().y} width={g().width} height={g().height} />}
+      {(g) => (
+        <rect
+          x={g().x}
+          y={g().y}
+          width={g().width}
+          height={g().height}
+        />
+      )}
     </Show>
   );
 }
@@ -85,18 +99,28 @@ function VerticalClipRect(props: ClipRectProps): JSX.Element {
     return {
       x: 0,
       y: startY < endY ? startY : startY - height,
-      width: maxX + (props.strokeWidth ? parseInt(`${props.strokeWidth}`, 10) : 1),
+      width:
+        maxX + (props.strokeWidth ? parseInt(`${props.strokeWidth}`, 10) : 1),
       height: Math.floor(height),
     };
   });
   return (
     <Show when={geom()}>
-      {(g) => <rect x={g().x} y={g().y} width={g().width} height={g().height} />}
+      {(g) => (
+        <rect
+          x={g().x}
+          y={g().y}
+          width={g().width}
+          height={g().height}
+        />
+      )}
     </Show>
   );
 }
 
-function RevealClipRect(props: ClipRectProps & { layout: CartesianLayout }): JSX.Element {
+function RevealClipRect(
+  props: ClipRectProps & { layout: CartesianLayout },
+): JSX.Element {
   return (
     <Show
       when={props.layout === "vertical"}
@@ -136,7 +160,8 @@ export type AreaRevealShapeProps = CurveProps &
 export function AreaRevealShape(props: AreaRevealShapeProps): JSX.Element {
   const clipId = createUniqueId();
 
-  const layout = (): CartesianLayout => (props.layout === "vertical" ? "vertical" : "horizontal");
+  const layout = (): CartesianLayout =>
+    props.layout === "vertical" ? "vertical" : "horizontal";
   const finalConnectNulls = (): boolean => props.connectNulls ?? false;
 
   // recharts spreads `{...restProps}` (everything except the animation flags and

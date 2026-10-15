@@ -1,15 +1,27 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/cartesian/BarStack.tsx (commit 7a23854).
 // Solid deviations: `resolveDefaultProps`→`merge`; React context → Solid `createContext`;
 // `useMemo`→plain object; `React.memo`/`propsAreEqual` omitted (Solid comp granularity).
-import { createContext, createMemo, For, merge, Show, useContext } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { getNormalizedStackId, type NormalizedStackId, type StackId } from "../util/ChartUtils";
-import { useUniqueId } from "../util/useUniqueId";
+import {
+  createContext,
+  createMemo,
+  For,
+  merge,
+  Show,
+  useContext,
+} from "solid-js";
+
+import { Layer, type LayerProps } from "../container/Layer";
+import { useIsPanorama } from "../context/PanoramaContext";
+import { Rectangle, type RectRadius } from "../shape/Rectangle";
 import { useAppSelector } from "../state/hooks";
 import { selectStackRects } from "../state/selectors/barStackSelectors";
-import { useIsPanorama } from "../context/PanoramaContext";
-import { Layer, type LayerProps } from "../container/Layer";
-import { Rectangle, type RectRadius } from "../shape/Rectangle";
+import {
+  getNormalizedStackId,
+  type NormalizedStackId,
+  type StackId,
+} from "../util/ChartUtils";
+import { useUniqueId } from "../util/useUniqueId";
 
 export type BarStackProps = {
   /**
@@ -44,7 +56,9 @@ const BarStackContext = createContext<BarStackSettings | null>(null);
  * Otherwise, this will read stack ID from BarStack context if available.
  * If both are undefined, it returns undefined.
  */
-export const useStackId = (childStackId: StackId | undefined): NormalizedStackId | undefined => {
+export const useStackId = (
+  childStackId: StackId | undefined,
+): NormalizedStackId | undefined => {
   const stackSettings = useContext(BarStackContext);
   if (stackSettings != null) {
     return stackSettings.stackId;
@@ -72,14 +86,18 @@ export const useBarStackClipPathUrl = (index: number): string | undefined => {
   return `url(#${getClipPathId(stackId, index)})`;
 };
 
-export const BarStackClipLayer = (props: LayerProps & { index: number }): JSX.Element => {
+export const BarStackClipLayer = (
+  props: LayerProps & { index: number },
+): JSX.Element => {
   // Memoized so `props.index` is read in a tracking scope: when an index-keyed
   // <For> feeds a reactive `entry.originalDataIndex` here, a bare hook call would
   // read it untracked (STRICT_READ_UNTRACKED) and never update.
   const clipPathUrl = createMemo(() => useBarStackClipPathUrl(props.index));
   return (
     <Layer
-      class={["recharts-bar-stack-layer", props.class].filter(Boolean).join(" ")}
+      class={["recharts-bar-stack-layer", props.class]
+        .filter(Boolean)
+        .join(" ")}
       clipPath={clipPathUrl()}
       onMouseEnter={props.onMouseEnter}
       onMouseLeave={props.onMouseLeave}
@@ -104,7 +122,9 @@ const BarStackClipPath = (props: {
   radius: RectRadius;
 }): JSX.Element => {
   const isPanorama = useIsPanorama();
-  const positions = useAppSelector((state) => selectStackRects(state, props.stackId, isPanorama));
+  const positions = useAppSelector((state) =>
+    selectStackRects(state, props.stackId, isPanorama),
+  );
   const hasPositions = createMemo(() => {
     const pos = positions();
     return pos != null && pos.length > 0;
@@ -137,14 +157,20 @@ const BarStackClipPath = (props: {
 
 export const BarStack = (props: BarStackProps): JSX.Element => {
   const merged = merge(defaultBarStackProps, props);
-  const resolvedStackId = useUniqueId("recharts-bar-stack", getNormalizedStackId(merged.stackId));
+  const resolvedStackId = useUniqueId(
+    "recharts-bar-stack",
+    getNormalizedStackId(merged.stackId),
+  );
   const context: BarStackSettings = {
     stackId: resolvedStackId,
     radius: merged.radius,
   };
   return (
     <BarStackContext value={context}>
-      <BarStackClipPath stackId={resolvedStackId} radius={merged.radius} />
+      <BarStackClipPath
+        stackId={resolvedStackId}
+        radius={merged.radius}
+      />
       {props.children}
     </BarStackContext>
   );

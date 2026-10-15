@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.9.0 src/animation/AnimatedItems.tsx.
 //
 // Solid 2.0 port of the reusable array-data animation wrapper shared by all the
@@ -13,19 +14,22 @@
 //   - A keyed `<Show when={animationId()}>` wraps the driver so a new animation
 //     cycle remounts it cleanly (same NO_OWNER-safe shape Bar already used).
 import { createMemo, createSignal, untrack, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { useAnimationId } from "../util/useAnimationId";
+
 import { noop } from "../util/DataUtils";
-import { useAnimationStartSnapshot, type MutableRef } from "./useAnimationStartSnapshot";
+import type { CartesianLayout, PolarLayout } from "../util/types";
+import { useAnimationId } from "../util/useAnimationId";
+import type { EasingInput } from "./easing";
+import { JavascriptAnimate } from "./JavascriptAnimate";
 import {
   matchAnimationItems,
   matchByIndex,
   type AnimationItem,
   type AnimationMatchByProp,
 } from "./matchBy";
-import type { CartesianLayout, PolarLayout } from "../util/types";
-import type { EasingInput } from "./easing";
-import { JavascriptAnimate } from "./JavascriptAnimate";
+import {
+  useAnimationStartSnapshot,
+  type MutableRef,
+} from "./useAnimationStartSnapshot";
 
 /**
  * Tracks animation start/end and exposes an `isAnimating` accessor.
@@ -40,7 +44,9 @@ export function useAnimationCallbacks(
 } {
   // ownedWrite: handleAnimationEnd can fire from the driver's effect-cleanup when
   // a mid-animation chart is disposed (route/soft navigation) — a legal teardown.
-  const [isAnimating, setIsAnimating] = createSignal(false, { ownedWrite: true });
+  const [isAnimating, setIsAnimating] = createSignal(false, {
+    ownedWrite: true,
+  });
 
   const handleAnimationStart = (): void => {
     onAnimationStart?.();
@@ -61,13 +67,19 @@ export function useAnimationCallbacks(
  *
  * @since 3.9
  */
-export type AnimationInterpolateFn<ItemType, LayoutType extends CartesianLayout | PolarLayout> = (
+export type AnimationInterpolateFn<
+  ItemType,
+  LayoutType extends CartesianLayout | PolarLayout,
+> = (
   items: ReadonlyArray<AnimationItem<ItemType>> | null,
   animationElapsedTime: number,
   layout: LayoutType,
 ) => ReadonlyArray<ItemType>;
 
-export type AnimatedItemsProps<ItemType, LayoutType extends CartesianLayout | PolarLayout> = {
+export type AnimatedItemsProps<
+  ItemType,
+  LayoutType extends CartesianLayout | PolarLayout,
+> = {
   /** Opaque input to detect when a new animation should start (changes by reference → new cycle). */
   animationInput: unknown;
   /** Prefix for the generated animation ID. */
@@ -108,24 +120,36 @@ export type AnimatedItemsProps<ItemType, LayoutType extends CartesianLayout | Po
  *
  * @since 3.9
  */
-export function AnimatedItems<ItemType, LayoutType extends CartesianLayout | PolarLayout>(
-  props: AnimatedItemsProps<ItemType, LayoutType>,
-): JSX.Element {
-  const animationId = useAnimationId(() => props.animationInput, props.animationIdPrefix);
-  const snapshot = useAnimationStartSnapshot<ReadonlyArray<ItemType> | null | undefined>(
-    animationId,
-    props.previousItemsRef,
+export function AnimatedItems<
+  ItemType,
+  LayoutType extends CartesianLayout | PolarLayout,
+>(props: AnimatedItemsProps<ItemType, LayoutType>): JSX.Element {
+  const animationId = useAnimationId(
+    () => props.animationInput,
+    props.animationIdPrefix,
   );
+  const snapshot = useAnimationStartSnapshot<
+    ReadonlyArray<ItemType> | null | undefined
+  >(animationId, props.previousItemsRef);
 
   const rawPrevItems = createMemo<ReadonlyArray<ItemType> | null>(
     () => snapshot.startValue() ?? null,
   );
-  const animationItems = createMemo<ReadonlyArray<AnimationItem<ItemType>> | null>(() =>
-    matchAnimationItems(rawPrevItems(), props.items, props.animationMatchBy ?? matchByIndex),
+  const animationItems = createMemo<ReadonlyArray<
+    AnimationItem<ItemType>
+  > | null>(() =>
+    matchAnimationItems(
+      rawPrevItems(),
+      props.items,
+      props.animationMatchBy ?? matchByIndex,
+    ),
   );
 
   return (
-    <Show when={animationId()} keyed>
+    <Show
+      when={animationId()}
+      keyed
+    >
       {(keyedAnimationId) => (
         <JavascriptAnimate
           animationId={keyedAnimationId}
@@ -144,7 +168,8 @@ export function AnimatedItems<ItemType, LayoutType extends CartesianLayout | Pol
             // frame; our memo-based snapshot can't, so we encode that result here with
             // `< 1` instead — keeping every consumer (and future ones) in parity without
             // a per-consumer `&& t < 1` guard. (See useAnimationStartSnapshot.)
-            const isEntrance = rawPrevItems() == null && animationElapsedTime < 1;
+            const isEntrance =
+              rawPrevItems() == null && animationElapsedTime < 1;
             const stepData =
               items == null
                 ? items

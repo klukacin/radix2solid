@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/component/Cursor.tsx (commit 7a23854).
 //
 // Draws the default cursor highlight: a Curve (line) for Line/Area/Composed
@@ -11,7 +12,22 @@
 // rendered standalone in tests; all reactive reads live in a tracking memo that
 // returns plain shape DATA, so the <Show> children read only plain properties.
 import { createMemo, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
+
+import {
+  useChartLayout,
+  useOffsetInternal,
+} from "../context/chartLayoutContext";
+import { useTooltipAxisBandSize } from "../context/useTooltipAxis";
+import { Cross } from "../shape/Cross";
+import { Curve } from "../shape/Curve";
+import { Rectangle } from "../shape/Rectangle";
+import { Sector } from "../shape/Sector";
+import { useAppSelector } from "../state/hooks";
+import { selectChartName } from "../state/selectors/rootPropsSelectors";
+import { TooltipIndex, TooltipPayload } from "../state/tooltipSlice";
+import { getCursorPoints } from "../util/cursor/getCursorPoints";
+import { getCursorRectangle } from "../util/cursor/getCursorRectangle";
+import { getRadialCursorPoints } from "../util/cursor/getRadialCursorPoints";
 import {
   ChartOffsetInternal,
   Coordinate,
@@ -21,20 +37,8 @@ import {
   RectanglePosition,
   TooltipEventType,
 } from "../util/types";
-import { Curve } from "../shape/Curve";
-import { Cross } from "../shape/Cross";
-import { Rectangle } from "../shape/Rectangle";
-import { Sector } from "../shape/Sector";
-import { getCursorPoints } from "../util/cursor/getCursorPoints";
-import { getCursorRectangle } from "../util/cursor/getCursorRectangle";
-import { getRadialCursorPoints } from "../util/cursor/getRadialCursorPoints";
-import { useChartLayout, useOffsetInternal } from "../context/chartLayoutContext";
-import { useTooltipAxisBandSize } from "../context/useTooltipAxis";
-import { useAppSelector } from "../state/hooks";
-import { selectChartName } from "../state/selectors/rootPropsSelectors";
-import { TooltipIndex, TooltipPayload } from "../state/tooltipSlice";
-import { ZIndexLayer, type ZIndexable } from "../zIndex/ZIndexLayer";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
+import { ZIndexLayer, type ZIndexable } from "../zIndex/ZIndexLayer";
 
 /**
  * `false` hides the cursor; the default (`true`) draws the shape below. A
@@ -80,7 +84,11 @@ type CursorShape =
  * is joined rather than passed as a `class={[...]}` array).
  */
 function cursorClass(cursor: CursorDefinition): string {
-  if (typeof cursor === "object" && cursor != null && typeof cursor.className === "string") {
+  if (
+    typeof cursor === "object" &&
+    cursor != null &&
+    typeof cursor.className === "string"
+  ) {
     return `recharts-tooltip-cursor ${cursor.className}`;
   }
   return "recharts-tooltip-cursor";
@@ -109,11 +117,17 @@ export function CursorInternal(props: CursorConnectedProps): JSX.Element {
     if (props.chartName === "BarChart") {
       return {
         kind: "rect",
-        rect: getCursorRectangle(props.layout, coordinate, props.offset, props.tooltipAxisBandSize),
+        rect: getCursorRectangle(
+          props.layout,
+          coordinate,
+          props.offset,
+          props.tooltipAxisBandSize,
+        ),
       };
     }
     if (props.layout === "radial" && isPolarCoordinate(coordinate)) {
-      const { cx, cy, radius, startAngle, endAngle } = getRadialCursorPoints(coordinate);
+      const { cx, cy, radius, startAngle, endAngle } =
+        getRadialCursorPoints(coordinate);
       return {
         kind: "sector",
         cx: cx ?? 0,
@@ -154,7 +168,9 @@ export function CursorInternal(props: CursorConnectedProps): JSX.Element {
   // rectangle below bars, the line/cross/sector above the series) unless the
   // caller provides an explicit zIndex.
   const preferredZIndex = (): number =>
-    cursorShape()?.kind === "rect" ? DefaultZIndexes.cursorRectangle : DefaultZIndexes.cursorLine;
+    cursorShape()?.kind === "rect"
+      ? DefaultZIndexes.cursorRectangle
+      : DefaultZIndexes.cursorLine;
 
   return (
     <Show when={cursorShape()}>
@@ -173,7 +189,14 @@ export function CursorInternal(props: CursorConnectedProps): JSX.Element {
           )}
         </Show>
         <Show when={curvePoints()}>
-          {(pts) => <Curve class={cls()} points={pts()} stroke="#ccc" fill="none" />}
+          {(pts) => (
+            <Curve
+              class={cls()}
+              points={pts()}
+              stroke="#ccc"
+              fill="none"
+            />
+          )}
         </Show>
         <Show when={cross()}>
           {(c) => (

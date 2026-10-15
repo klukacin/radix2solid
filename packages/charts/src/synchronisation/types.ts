@@ -1,8 +1,8 @@
+import { TooltipIndex } from "../state/tooltipSlice";
 // Ported from recharts 3.8.1 src/synchronisation/types.ts (commit 7a23854).
 // Canonical home for SyncMethod (util/types re-exports it; the earlier seed there
 // is now re-homed here). Deviation: `DataKey<any>` → `DataKey<unknown>` (no any).
 import { Coordinate, DataKey, TickItem } from "../util/types";
-import { TooltipIndex } from "../state/tooltipSlice";
 
 export type ActiveLabel = string | number | undefined;
 

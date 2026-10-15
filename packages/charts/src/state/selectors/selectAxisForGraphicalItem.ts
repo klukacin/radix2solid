@@ -1,3 +1,5 @@
+import type { TickItem } from "../../util/types";
+import { GraphicalItemId } from "../graphicalItemsSlice";
 // Resolves the scaled axis / ticks a cartesian graphical item is bound to, from
 // the item's id. Area and Bar each declared these four wrappers privately (and
 // Bar carried a dead `axisId == null` guard — selectX/YAxisIdFromGraphicalItemId
@@ -7,7 +9,6 @@
 // A leaf module (like areaSelectors/barSelectors): it imports from both
 // axisSelectors and graphicalItemSelectors, so it introduces no import cycle.
 import { RechartsRootState } from "../store";
-import { GraphicalItemId } from "../graphicalItemsSlice";
 import {
   selectAxisWithScale,
   selectTicksOfGraphicalItem,
@@ -17,7 +18,6 @@ import {
   selectXAxisIdFromGraphicalItemId,
   selectYAxisIdFromGraphicalItemId,
 } from "./graphicalItemSelectors";
-import type { TickItem } from "../../util/types";
 
 type CartesianAxisType = "xAxis" | "yAxis";
 
@@ -36,7 +36,12 @@ export const selectAxisWithScaleForGraphicalItem = (
   id: GraphicalItemId,
   isPanorama: boolean,
 ): BaseAxisWithScale | undefined =>
-  selectAxisWithScale(state, axisType, axisIdForGraphicalItem(state, axisType, id), isPanorama);
+  selectAxisWithScale(
+    state,
+    axisType,
+    axisIdForGraphicalItem(state, axisType, id),
+    isPanorama,
+  );
 
 export const selectTicksForGraphicalItem = (
   state: RechartsRootState,

@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.9.0 src/animation/CSSTransitionAnimate.tsx.
 //
 // Solid 2.0 port of the CSS-transition render-prop driver, on the v3.9 engine
@@ -13,16 +14,16 @@
 //     `[attributeName]` key can't be typed against Solid's stricter `JSX.CSSProperties`,
 //     so consumers read the known keys (e.g. `transform`/`transition`) into their style.
 import { createEffect, createMemo, createSignal, untrack } from "solid-js";
-import type { JSX } from "@solidjs/web";
+
 import { noop } from "../util/DataUtils";
-import { getTransitionVal } from "./util";
 import { Global } from "../util/Global";
 import { usePrefersReducedMotion } from "../util/usePrefersReducedMotion";
+import type { AnimationController } from "./AnimationController";
 import { CSSTransitionAnimation } from "./AnimationHandle";
 import type { EasingInput, NamedBezier } from "./easing";
 import { RequestAnimationFrameTimeoutController } from "./timeoutController";
-import type { AnimationController } from "./AnimationController";
 import { useAnimationController } from "./useAnimationController";
+import { getTransitionVal } from "./util";
 
 /** The style object handed to the render-prop child (dynamic `[attributeName]` key). */
 export type CSSTransitionStyle = Record<string, string | undefined>;
@@ -54,20 +55,25 @@ interface CSSTransitionAnimateProps {
   children: (style: CSSTransitionStyle) => JSX.Element;
 }
 
-export function CSSTransitionAnimate(props: CSSTransitionAnimateProps): JSX.Element {
+export function CSSTransitionAnimate(
+  props: CSSTransitionAnimateProps,
+): JSX.Element {
   const duration = (): number => props.duration ?? 1000;
   const easing = (): NamedBezier => extractCssEasing(props.easing ?? "ease");
   const begin = (): number => props.begin ?? 0;
   const canBegin = (): boolean => props.canBegin ?? true;
   const isActiveProp = (): boolean | "auto" => props.isActive ?? true;
-  const onAnimationStartProp = (): (() => void) => props.onAnimationStart ?? noop;
+  const onAnimationStartProp = (): (() => void) =>
+    props.onAnimationStart ?? noop;
   const onAnimationEnd = (): (() => void) => props.onAnimationEnd ?? noop;
 
   const prefersReducedMotion = usePrefersReducedMotion();
 
   const isActive = (): boolean => {
     const active = isActiveProp();
-    return active === "auto" ? !Global.isSsr && !prefersReducedMotion() : active;
+    return active === "auto"
+      ? !Global.isSsr && !prefersReducedMotion()
+      : active;
   };
 
   const animationController = useAnimationController(props.animationController);
@@ -115,7 +121,9 @@ export function CSSTransitionAnimate(props: CSSTransitionAnimateProps): JSX.Elem
         from: deps.from,
         to: deps.to,
       });
-      return deps.controller(timeoutController, animation, (next) => setStyle(String(next)));
+      return deps.controller(timeoutController, animation, (next) =>
+        setStyle(String(next)),
+      );
     },
   );
 
@@ -131,7 +139,11 @@ export function CSSTransitionAnimate(props: CSSTransitionAnimateProps): JSX.Elem
     }
     if (initialized()) {
       return {
-        transition: getTransitionVal([props.attributeName], duration(), easing()),
+        transition: getTransitionVal(
+          [props.attributeName],
+          duration(),
+          easing(),
+        ),
         [props.attributeName]: style(),
       };
     }

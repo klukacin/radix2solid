@@ -11,7 +11,8 @@ const readKey = (object: unknown, key: string): unknown =>
   isIndexable(object) ? object[key] : undefined;
 
 /** lodash `toKey` for numbers: `-0` stringifies to `"-0"`, not `"0"`. */
-const numberToKey = (value: number): string => (Object.is(value, -0) ? "-0" : String(value));
+const numberToKey = (value: number): string =>
+  Object.is(value, -0) ? "-0" : String(value);
 
 const isDeepKey = (key: string): boolean =>
   key.includes(".") || key.includes("[") || key.includes("]");
@@ -78,7 +79,11 @@ export function toPath(deepKey: string): string[] {
   return result;
 }
 
-function getWithPath(object: unknown, path: readonly string[], defaultValue: unknown): unknown {
+function getWithPath(
+  object: unknown,
+  path: readonly string[],
+  defaultValue: unknown,
+): unknown {
   if (path.length === 0) {
     return defaultValue;
   }
@@ -106,8 +111,16 @@ function getWithPath(object: unknown, path: readonly string[], defaultValue: unk
  * type, so the caller's expected type is taken on faith. The implementation
  * works in honest `unknown`.
  */
-export function get<T>(object: unknown, path: string | number, defaultValue?: T): T | undefined;
-export function get(object: unknown, path: string | number, defaultValue?: unknown): unknown {
+export function get<T>(
+  object: unknown,
+  path: string | number,
+  defaultValue?: T,
+): T | undefined;
+export function get(
+  object: unknown,
+  path: string | number,
+  defaultValue?: unknown,
+): unknown {
   if (object == null) {
     return defaultValue;
   }

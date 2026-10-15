@@ -3,6 +3,7 @@
 // `satisfies Partial<Props>` on the defaults is dropped (the ResponsiveContainer
 // component is deferred) — kept as `as const`.
 import type { JSX } from "@solidjs/web";
+
 import { isPercent } from "../util/DataUtils";
 import type { Percent } from "../util/types";
 
@@ -26,7 +27,10 @@ export const calculateChartDimensions = (
     aspect: number | undefined;
     maxHeight: number | undefined;
   },
-): { calculatedWidth: number | undefined; calculatedHeight: number | undefined } => {
+): {
+  calculatedWidth: number | undefined;
+  calculatedHeight: number | undefined;
+} => {
   const {
     width = defaultResponsiveContainerProps.width,
     height = defaultResponsiveContainerProps.height,
@@ -36,8 +40,12 @@ export const calculateChartDimensions = (
 
   // containerWidth/Height are already percentage-based (set as that percentage in
   // CSS), so no percentage math is needed here.
-  let calculatedWidth: number | undefined = isPercent(width) ? containerWidth : Number(width);
-  let calculatedHeight: number | undefined = isPercent(height) ? containerHeight : Number(height);
+  let calculatedWidth: number | undefined = isPercent(width)
+    ? containerWidth
+    : Number(width);
+  let calculatedHeight: number | undefined = isPercent(height)
+    ? containerHeight
+    : Number(height);
 
   if (aspect && aspect > 0) {
     // Preserve the desired aspect ratio (default to width).
@@ -111,7 +119,10 @@ export function getDefaultWidthAndHeight({
   width: Percent | number | undefined;
   height: Percent | number | undefined;
   aspect: number | undefined;
-}): { width: Percent | number | undefined; height: Percent | number | undefined } {
+}): {
+  width: Percent | number | undefined;
+  height: Percent | number | undefined;
+} {
   let calculatedWidth = width;
   let calculatedHeight = height;
 
@@ -119,9 +130,11 @@ export function getDefaultWidthAndHeight({
     calculatedWidth = defaultResponsiveContainerProps.width;
     calculatedHeight = defaultResponsiveContainerProps.height;
   } else if (calculatedWidth === undefined) {
-    calculatedWidth = aspect && aspect > 0 ? undefined : defaultResponsiveContainerProps.width;
+    calculatedWidth =
+      aspect && aspect > 0 ? undefined : defaultResponsiveContainerProps.width;
   } else if (calculatedHeight === undefined) {
-    calculatedHeight = aspect && aspect > 0 ? undefined : defaultResponsiveContainerProps.height;
+    calculatedHeight =
+      aspect && aspect > 0 ? undefined : defaultResponsiveContainerProps.height;
   }
 
   return { width: calculatedWidth, height: calculatedHeight };

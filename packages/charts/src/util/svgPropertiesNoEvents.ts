@@ -407,12 +407,14 @@ export const SVG_ATTRIBUTE_RENAMES = {
 } as const satisfies Readonly<Record<string, string>>;
 
 // Widened view for string-keyed lookup (the literal type above has no index signature).
-const SVG_ATTRIBUTE_RENAMES_LOOKUP: Readonly<Record<string, string>> = SVG_ATTRIBUTE_RENAMES;
+const SVG_ATTRIBUTE_RENAMES_LOOKUP: Readonly<Record<string, string>> =
+  SVG_ATTRIBUTE_RENAMES;
 
 /** The camelCase prop names that rename to a different DOM attribute name. */
 type SvgCamelRenameKey = keyof typeof SVG_ATTRIBUTE_RENAMES;
 /** The kebab/namespaced DOM attribute names produced by the rename map. */
-export type SvgKebabRenameTarget = (typeof SVG_ATTRIBUTE_RENAMES)[SvgCamelRenameKey];
+export type SvgKebabRenameTarget =
+  (typeof SVG_ATTRIBUTE_RENAMES)[SvgCamelRenameKey];
 
 /**
  * SINGLE-CONVENTION PUBLIC SURFACE: every SVG passthrough prop has exactly ONE
@@ -428,7 +430,10 @@ export type SvgKebabRenameTarget = (typeof SVG_ATTRIBUTE_RENAMES)[SvgCamelRename
 export type CamelSvgAttributes = {
   [K in Exclude<SvgCamelRenameKey, "className">]?: string | number;
 };
-export type CamelSvgProps<Base> = Omit<Base, Exclude<SvgKebabRenameTarget, "class">> &
+export type CamelSvgProps<Base> = Omit<
+  Base,
+  Exclude<SvgKebabRenameTarget, "class">
+> &
   CamelSvgAttributes;
 
 /** The DOM attribute name for a (possibly camelCase) SVG prop key. */
@@ -448,7 +453,9 @@ export function isSvgElementPropKey(key: string): boolean {
 
 // Returns a DOM-ready attribute record (kebab/namespaced names) — NOT keyed by the
 // camelCase input keys, hence `Record<string, unknown>` rather than `Partial<T>`.
-export function svgPropertiesNoEvents(obj: Record<string, unknown>): Record<string, unknown> {
+export function svgPropertiesNoEvents(
+  obj: Record<string, unknown>,
+): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   for (const key in obj) {
     if (
@@ -509,7 +516,9 @@ export function svgPropertiesNoEventsFromUnknownKeepCase(
  * until the Tier-2 "shape can be an element or a props object" pattern is
  * designed (ActiveShapeUtils). Element inputs currently fall through to `null`.
  */
-export function svgPropertiesNoEventsFromUnknown(input: unknown): Record<string, unknown> | null {
+export function svgPropertiesNoEventsFromUnknown(
+  input: unknown,
+): Record<string, unknown> | null {
   if (input == null) {
     return null;
   }

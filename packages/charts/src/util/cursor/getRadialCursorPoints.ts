@@ -18,7 +18,9 @@ export type RadialCursorPoints = {
  * @param {Object} activeCoordinate ChartCoordinate
  * @returns {Object} RadialCursorPoints
  */
-export function getRadialCursorPoints(activeCoordinate: PolarCoordinate): RadialCursorPoints {
+export function getRadialCursorPoints(
+  activeCoordinate: PolarCoordinate,
+): RadialCursorPoints {
   const { cx, cy, radius, startAngle, endAngle } = activeCoordinate;
   const startPoint = polarToCartesian(cx, cy, radius, startAngle);
   const endPoint = polarToCartesian(cx, cy, radius, endAngle);

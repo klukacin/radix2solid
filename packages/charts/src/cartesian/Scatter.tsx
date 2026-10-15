@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/cartesian/Scatter.tsx (commit 7a23854).
 //
 // MINIMAL PORT — a point cloud: one <Symbols> per data point at (cx, cy), sized
@@ -11,56 +12,69 @@
 // resolveDefaultProps→merge; effect-dispatch registration → createEffect/onCleanup;
 // the `@ts-expect-error`-laden value plumbing is replaced with typed coercion.
 import { createMemo, For, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import { useIsPanorama } from "../context/PanoramaContext";
-import { useUniqueId } from "../util/useUniqueId";
-import { useCartesianChartLayout } from "../context/chartLayoutContext";
+
 import {
   AnimatedItems,
   type AnimationInterpolateFn,
   useAnimationCallbacks,
 } from "../animation/AnimatedItems";
+import type { EasingInput } from "../animation/easing";
 import { matchAppend, type AnimationMatchByProp } from "../animation/matchBy";
 import type { MutableRef } from "../animation/useAnimationStartSnapshot";
-import type { EasingInput } from "../animation/easing";
-import { Layer } from "../container/Layer";
-import { Symbols } from "../shape/Symbols";
-import { Curve, type CurveProps, type CurveType } from "../shape/Curve";
-import { svgPropertiesNoEventsFromUnknown } from "../util/svgPropertiesNoEvents";
-import { GraphicalItemClipPath, useNeedsClip } from "./GraphicalItemClipPath";
-import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
-import { ZIndexLayer } from "../zIndex/ZIndexLayer";
 import { type CellProps, createCellReader } from "../component/Cell";
+import { LegendPayload } from "../component/DefaultLegendContent";
+import type { Formatter, ValueType } from "../component/DefaultTooltipContent";
 import {
   type CartesianLabelListEntry,
   CartesianLabelListContextProvider,
   type ImplicitLabelListType,
   LabelListFromLabelProp,
 } from "../component/LabelList";
-import { selectScatterPoints } from "../state/selectors/scatterSelectors";
-import { selectActiveTooltipIndex } from "../state/selectors/tooltipSelectors";
-import { Shape } from "../util/ActiveShapeUtils";
-import { RegisterGraphicalItemId } from "../context/RegisterGraphicalItemId";
+import { Layer } from "../container/Layer";
+import { useCartesianChartLayout } from "../context/chartLayoutContext";
 import { SetErrorBarContext } from "../context/ErrorBarContext";
-import type { ErrorBarDataItem, ErrorBarDataPointFormatter, ErrorBarDirection } from "./ErrorBar";
-import { ScatterSettings } from "../state/types/ScatterSettings";
-import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
-import {
-  TooltipPayload,
-  TooltipPayloadConfiguration,
-  TooltipPayloadEntry,
-} from "../state/tooltipSlice";
-import { SetLegendPayload } from "../state/SetLegendPayload";
-import { LegendPayload } from "../component/DefaultLegendContent";
+import { useIsPanorama } from "../context/PanoramaContext";
+import { RegisterGraphicalItemId } from "../context/RegisterGraphicalItemId";
 import {
   type MouseEnterLeaveEvent,
   useMouseClickItemDispatch,
   useMouseEnterItemDispatch,
   useMouseLeaveItemDispatch,
 } from "../context/tooltipContext";
+import { Curve, type CurveProps, type CurveType } from "../shape/Curve";
+import { Symbols } from "../shape/Symbols";
 import { AxisId } from "../state/cartesianAxisSlice";
 import { ChartData } from "../state/chartDataSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { registerInStore } from "../state/registerInStore";
+import {
+  BaseAxisWithScale,
+  implicitZAxis,
+  ZAxisWithScale,
+} from "../state/selectors/axisSelectors";
+import { selectScatterPoints } from "../state/selectors/scatterSelectors";
+import { selectActiveTooltipIndex } from "../state/selectors/tooltipSelectors";
+import { SetLegendPayload } from "../state/SetLegendPayload";
+import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
+import {
+  TooltipPayload,
+  TooltipPayloadConfiguration,
+  TooltipPayloadEntry,
+} from "../state/tooltipSlice";
+import { ScatterSettings } from "../state/types/ScatterSettings";
+import { Shape } from "../util/ActiveShapeUtils";
+import {
+  getCateCoordinateOfLine,
+  getTooltipNameProp,
+  getValueByDataKey,
+} from "../util/ChartUtils";
+import {
+  getLinearRegression,
+  interpolate,
+  isNullish,
+  isNumOrStr,
+} from "../util/DataUtils";
+import { svgPropertiesNoEventsFromUnknown } from "../util/svgPropertiesNoEvents";
 import {
   AnimationDuration,
   CartesianLayout,
@@ -75,11 +89,15 @@ import {
   TooltipType,
   TrapezoidViewBox,
 } from "../util/types";
-import { getCateCoordinateOfLine, getTooltipNameProp, getValueByDataKey } from "../util/ChartUtils";
-import { getLinearRegression, interpolate, isNullish, isNumOrStr } from "../util/DataUtils";
-import { BaseAxisWithScale, implicitZAxis, ZAxisWithScale } from "../state/selectors/axisSelectors";
-import type { Formatter, ValueType } from "../component/DefaultTooltipContent";
-import { registerInStore } from "../state/registerInStore";
+import { useUniqueId } from "../util/useUniqueId";
+import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
+import { ZIndexLayer } from "../zIndex/ZIndexLayer";
+import type {
+  ErrorBarDataItem,
+  ErrorBarDataPointFormatter,
+  ErrorBarDirection,
+} from "./ErrorBar";
+import { GraphicalItemClipPath, useNeedsClip } from "./GraphicalItemClipPath";
 
 export interface ScatterPointNode {
   x?: number | string;
@@ -150,8 +168,12 @@ export function computeScatterPoints({
   /** Per-point <Cell> presentation props, indexed by displayed-data position. */
   cells?: ReadonlyArray<CellProps> | undefined;
 }): ReadonlyArray<ScatterPointItem> {
-  const xAxisDataKey = isNullish(xAxis.dataKey) ? scatterSettings.dataKey : xAxis.dataKey;
-  const yAxisDataKey = isNullish(yAxis.dataKey) ? scatterSettings.dataKey : yAxis.dataKey;
+  const xAxisDataKey = isNullish(xAxis.dataKey)
+    ? scatterSettings.dataKey
+    : xAxis.dataKey;
+  const yAxisDataKey = isNullish(yAxis.dataKey)
+    ? scatterSettings.dataKey
+    : yAxis.dataKey;
   const zAxisDataKey = zAxis && zAxis.dataKey;
   const defaultRangeZ = zAxis ? zAxis.range : implicitZAxis.range;
   const defaultZ = defaultRangeZ && defaultRangeZ[0];
@@ -161,7 +183,9 @@ export function computeScatterPoints({
   return displayedData.map((entry: unknown, index): ScatterPointItem => {
     const x: unknown = getValueByDataKey(entry, xAxisDataKey);
     const y: unknown = getValueByDataKey(entry, yAxisDataKey);
-    const z: unknown = (!isNullish(zAxisDataKey) && getValueByDataKey(entry, zAxisDataKey)) || "-";
+    const z: unknown =
+      (!isNullish(zAxisDataKey) && getValueByDataKey(entry, zAxisDataKey)) ||
+      "-";
 
     const tooltipPayload: Array<TooltipPayloadEntry> = [
       {
@@ -189,7 +213,9 @@ export function computeScatterPoints({
     ];
     if (z !== "-" && zAxis != null) {
       tooltipPayload.push({
-        name: zAxis.name ?? (typeof zAxis.dataKey === "string" ? zAxis.dataKey : undefined),
+        name:
+          zAxis.name ??
+          (typeof zAxis.dataKey === "string" ? zAxis.dataKey : undefined),
         unit: zAxis.unit ?? "",
         value: tooltipValue(z),
         payload: entry,
@@ -215,7 +241,8 @@ export function computeScatterPoints({
       index,
       dataKey: yAxisDataKey,
     });
-    const size = z !== "-" && zAxis != null ? (zAxis.scale.map(z) ?? defaultZ) : defaultZ;
+    const size =
+      z !== "-" && zAxis != null ? (zAxis.scale.map(z) ?? defaultZ) : defaultZ;
     const radius = size == null ? 0 : Math.sqrt(Math.max(size, 0) / Math.PI);
 
     return {
@@ -250,13 +277,15 @@ export function computeScatterPoints({
 // `defaultScatterAnimateItems`: matched points tween cx/cy/size between prev/next;
 // added points grow their size from 0; removed points are dropped immediately
 // (no exit animation). At t=1 every non-removed point lands on its final geometry.
-const defaultScatterAnimateItems: AnimationInterpolateFn<ScatterPointItem, CartesianLayout> = (
-  items,
-  t,
-) => {
+const defaultScatterAnimateItems: AnimationInterpolateFn<
+  ScatterPointItem,
+  CartesianLayout
+> = (items, t) => {
   if (items == null) return [];
   if (t === 1) {
-    return items.flatMap((item) => (item.status === "removed" ? [] : [item.next]));
+    return items.flatMap((item) =>
+      item.status === "removed" ? [] : [item.next],
+    );
   }
   return items.flatMap((item): ScatterPointItem[] => {
     if (item.status === "removed") return [];
@@ -264,8 +293,14 @@ const defaultScatterAnimateItems: AnimationInterpolateFn<ScatterPointItem, Carte
       return [
         {
           ...item.next,
-          cx: item.next.cx == null ? undefined : interpolate(item.prev.cx, item.next.cx, t),
-          cy: item.next.cy == null ? undefined : interpolate(item.prev.cy, item.next.cy, t),
+          cx:
+            item.next.cx == null
+              ? undefined
+              : interpolate(item.prev.cx, item.next.cx, t),
+          cy:
+            item.next.cy == null
+              ? undefined
+              : interpolate(item.prev.cy, item.next.cy, t),
           size: interpolate(item.prev.size, item.next.size, t),
         },
       ];
@@ -286,7 +321,10 @@ export interface ScatterProps {
   fillOpacity?: number | string;
   stroke?: string;
   strokeWidth?: number | string;
-  line?: boolean | CurveProps | ((points: ReadonlyArray<ScatterPointItem>) => JSX.Element);
+  line?:
+    | boolean
+    | CurveProps
+    | ((points: ReadonlyArray<ScatterPointItem>) => JSX.Element);
   /** How the connecting line is computed: through every point ("joint") or a linear regression ("fitting"). */
   lineType?: "fitting" | "joint";
   /** Curve interpolation for the joint line. Has no effect for lineType="fitting". */
@@ -300,7 +338,9 @@ export interface ScatterProps {
    * (recharts also accepts an element — element form is N/A by design — no
    * cloneElement.)
    */
-  shape?: SymbolType | ((item: ScatterPointItem & ShapeAnimationProps) => JSX.Element);
+  shape?:
+    | SymbolType
+    | ((item: ScatterPointItem & ShapeAnimationProps) => JSX.Element);
   /** Highlighted shape for the active (hovered) point — object/function/boolean forms. */
   activeShape?: ActiveShape<ScatterShapeProps, SVGElement>;
   legendType?: LegendType;
@@ -313,7 +353,10 @@ export interface ScatterProps {
   animationDuration?: AnimationDuration;
   animationEasing?: EasingInput;
   /** Custom per-frame interpolation for the scatter points (v3.9). */
-  animationInterpolateFn?: AnimationInterpolateFn<ScatterPointItem, CartesianLayout>;
+  animationInterpolateFn?: AnimationInterpolateFn<
+    ScatterPointItem,
+    CartesianLayout
+  >;
   /** How prev/next points are matched across data updates (v3.9). @defaultValue matchAppend */
   animationMatchBy?: AnimationMatchByProp<ScatterPointItem>;
   /**
@@ -387,8 +430,10 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
   const isPanorama = useIsPanorama();
   const id = useUniqueId("recharts-scatter", props.id);
   // `shape` is either a built-in symbol type or a custom render fn; resolve once.
-  const customShape = typeof merged.shape === "function" ? merged.shape : undefined;
-  const symbolType = typeof merged.shape === "function" ? "circle" : merged.shape;
+  const customShape =
+    typeof merged.shape === "function" ? merged.shape : undefined;
+  const symbolType =
+    typeof merged.shape === "function" ? "circle" : merged.shape;
   const { needClip } = useNeedsClip(merged.xAxisId, merged.yAxisId);
 
   // Active-shape highlight on the hovered point (recharts ScatterSymbols): the
@@ -400,7 +445,9 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
     return a != null && a !== false;
   };
   // The default shape a (possibly partial-object) activeShape falls back to.
-  const defaultSymbolShape = (p: ScatterShapeProps): JSX.Element => <Symbols {...p} />;
+  const defaultSymbolShape = (p: ScatterShapeProps): JSX.Element => (
+    <Symbols {...p} />
+  );
 
   if (store != null) {
     registerInStore<ScatterSettings>(
@@ -418,10 +465,15 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
         name: merged.name,
       }),
       {
-        add: (next) => store.actions.graphicalItems.addCartesianGraphicalItem(next),
+        add: (next) =>
+          store.actions.graphicalItems.addCartesianGraphicalItem(next),
         replace: (prev, next) =>
-          store.actions.graphicalItems.replaceCartesianGraphicalItem({ prev, next }),
-        remove: (prev) => store.actions.graphicalItems.removeCartesianGraphicalItem(prev),
+          store.actions.graphicalItems.replaceCartesianGraphicalItem({
+            prev,
+            next,
+          }),
+        remove: (prev) =>
+          store.actions.graphicalItems.removeCartesianGraphicalItem(prev),
       },
     );
   }
@@ -440,58 +492,70 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
     ),
   );
 
-  const labelListEntries = createMemo<ReadonlyArray<CartesianLabelListEntry>>(() => {
-    const pts = points();
-    if (!pts) {
-      return [];
-    }
-    return pts.map((point): CartesianLabelListEntry => {
-      const viewBox: TrapezoidViewBox = {
-        x: point.x ?? 0,
-        y: point.y ?? 0,
-        width: point.width,
-        height: point.height,
-        lowerWidth: point.width,
-        upperWidth: point.width,
-      };
-      return {
-        ...viewBox,
-        value: undefined,
-        payload: point.payload,
-        viewBox,
-        fill: undefined,
-      };
-    });
-  }, { lazy: true });
+  const labelListEntries = createMemo<ReadonlyArray<CartesianLabelListEntry>>(
+    () => {
+      const pts = points();
+      if (!pts) {
+        return [];
+      }
+      return pts.map((point): CartesianLabelListEntry => {
+        const viewBox: TrapezoidViewBox = {
+          x: point.x ?? 0,
+          y: point.y ?? 0,
+          width: point.width,
+          height: point.height,
+          lowerWidth: point.width,
+          upperWidth: point.width,
+        };
+        return {
+          ...viewBox,
+          value: undefined,
+          payload: point.payload,
+          viewBox,
+          fill: undefined,
+        };
+      });
+    },
+    { lazy: true },
+  );
 
   // Animation start/end tracking: labels are hidden while the symbols animate
   // (recharts `showLabels={!isAnimating}`), revealed once the animation settles.
-  const { isAnimating, handleAnimationStart, handleAnimationEnd } = useAnimationCallbacks();
-  const labelContextEntries = createMemo(() => (isAnimating() ? undefined : labelListEntries()), { lazy: true });
+  const { isAnimating, handleAnimationStart, handleAnimationEnd } =
+    useAnimationCallbacks();
+  const labelContextEntries = createMemo(
+    () => (isAnimating() ? undefined : labelListEntries()),
+    { lazy: true },
+  );
 
   const nameOf = (): string | undefined =>
-    merged.name == null ? getTooltipNameProp(undefined, merged.dataKey) : String(merged.name);
+    merged.name == null
+      ? getTooltipNameProp(undefined, merged.dataKey)
+      : String(merged.name);
 
-  const tooltipConfig = createMemo<TooltipPayloadConfiguration>(() => ({
-    dataDefinedOnItem: points()?.map((p) => p.tooltipPayload),
-    getPosition: (index) => points()?.[Number(index)]?.tooltipPosition,
-    settings: {
-      // recharts reads the RAW prop fill/stroke (no defaults applied) for the
-      // tooltip entry — the #808080 default fill is render-only. Mirror that.
-      stroke: props.stroke,
-      strokeWidth: props.strokeWidth,
-      fill: props.fill,
-      dataKey: merged.dataKey,
-      nameKey: undefined,
-      name: nameOf(),
-      hide: merged.hide,
-      type: merged.tooltipType,
-      color: props.fill,
-      unit: "",
-      formatter: merged.formatter,
-      graphicalItemId: id,
-    },
-  }), { lazy: true });
+  const tooltipConfig = createMemo<TooltipPayloadConfiguration>(
+    () => ({
+      dataDefinedOnItem: points()?.map((p) => p.tooltipPayload),
+      getPosition: (index) => points()?.[Number(index)]?.tooltipPosition,
+      settings: {
+        // recharts reads the RAW prop fill/stroke (no defaults applied) for the
+        // tooltip entry — the #808080 default fill is render-only. Mirror that.
+        stroke: props.stroke,
+        strokeWidth: props.strokeWidth,
+        fill: props.fill,
+        dataKey: merged.dataKey,
+        nameKey: undefined,
+        name: nameOf(),
+        hide: merged.hide,
+        type: merged.tooltipType,
+        color: props.fill,
+        unit: "",
+        formatter: merged.formatter,
+        graphicalItemId: id,
+      },
+    }),
+    { lazy: true },
+  );
 
   const legendPayload = createMemo<ReadonlyArray<LegendPayload>>(() => [
     {
@@ -520,14 +584,18 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
   // Holds the latest visible points frame so a re-animation (data change) tweens
   // from where the dots currently are. Managed by AnimatedItems via
   // useAnimationStartSnapshot.
-  const previousPointsRef: MutableRef<ReadonlyArray<ScatterPointItem> | null | undefined> = {
+  const previousPointsRef: MutableRef<
+    ReadonlyArray<ScatterPointItem> | null | undefined
+  > = {
     current: null,
   };
   const layout = useCartesianChartLayout();
   // The optional connecting line through the points (recharts ScatterLine):
   // lineType "joint" links every point; "fitting" draws a linear regression. The
   // Curve renders fill=none, stroke=scatter fill, carrying the scatter's `name`.
-  const renderScatterLine = (frame: ReadonlyArray<ScatterPointItem>): JSX.Element => {
+  const renderScatterLine = (
+    frame: ReadonlyArray<ScatterPointItem>,
+  ): JSX.Element => {
     const line = merged.line;
     const head = frame[0];
     if (!line || head == null) {
@@ -535,17 +603,25 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
     }
     let linePoints: ReadonlyArray<NullableCoordinate>;
     if (merged.lineType === "fitting") {
-      const { xmin, xmax, a, b } = getLinearRegression([head, ...frame.slice(1)]);
+      const { xmin, xmax, a, b } = getLinearRegression([
+        head,
+        ...frame.slice(1),
+      ]);
       const linearExp = (x: number): number => a * x + b;
       linePoints = [
         { x: xmin, y: linearExp(xmin) },
         { x: xmax, y: linearExp(xmax) },
       ];
     } else {
-      linePoints = frame.map((entry) => ({ x: entry.cx ?? null, y: entry.cy ?? null }));
+      linePoints = frame.map((entry) => ({
+        x: entry.cx ?? null,
+        y: entry.cy ?? null,
+      }));
     }
     const customLineProps =
-      typeof line === "object" ? (svgPropertiesNoEventsFromUnknown(line) ?? undefined) : undefined;
+      typeof line === "object"
+        ? (svgPropertiesNoEventsFromUnknown(line) ?? undefined)
+        : undefined;
     // `name` renders on the path (recharts spreads the scatter's name onto the
     // line) but isn't in the typed SVG path attributes — widen the local.
     const lineProps: CurveProps & { name?: string } = {
@@ -560,7 +636,10 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
         {typeof line === "function" ? (
           line(frame)
         ) : (
-          <Curve {...lineProps} type={merged.lineJointType} />
+          <Curve
+            {...lineProps}
+            type={merged.lineJointType}
+          />
         )}
       </Layer>
     );
@@ -633,7 +712,10 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
   );
 
   const renderedChildren = resolveChildren(() => (
-    <RegisterGraphicalItemId type="scatter" id={id}>
+    <RegisterGraphicalItemId
+      type="scatter"
+      id={id}
+    >
       {() => (
         <SetErrorBarContext
           xAxisId={merged.xAxisId}
@@ -654,7 +736,10 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
     <>
       {renderedChildren()}
       <SetTooltipEntrySettings tooltipEntrySettings={tooltipConfig()} />
-      <SetLegendPayload id={id} legendPayload={legendPayload()} />
+      <SetLegendPayload
+        id={id}
+        legendPayload={legendPayload()}
+      />
       <Show when={!merged.hide && points()}>
         {(pts) => (
           // Wrapped in <ZIndexLayer> (default 600) so a `zIndex` prop relayers the
@@ -665,7 +750,10 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
             when={needClip()}
             fallback={
               <ZIndexLayer zIndex={merged.zIndex}>
-                <Layer class="recharts-scatter" id={id}>
+                <Layer
+                  class="recharts-scatter"
+                  id={id}
+                >
                   <AnimatedItems
                     animationInput={pts()}
                     animationIdPrefix="recharts-scatter-"
@@ -682,7 +770,13 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
                     layout={layout() ?? "horizontal"}
                   >
                     {(frame, animationElapsedTime, isEntrance) => (
-                      <Layer>{renderScatterBody(frame, animationElapsedTime, isEntrance)}</Layer>
+                      <Layer>
+                        {renderScatterBody(
+                          frame,
+                          animationElapsedTime,
+                          isEntrance,
+                        )}
+                      </Layer>
                     )}
                   </AnimatedItems>
                 </Layer>
@@ -690,7 +784,11 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
             }
           >
             <ZIndexLayer zIndex={merged.zIndex}>
-              <Layer class="recharts-scatter" id={id} clipPath={`url(#clipPath-${id})`}>
+              <Layer
+                class="recharts-scatter"
+                id={id}
+                clipPath={`url(#clipPath-${id})`}
+              >
                 <defs>
                   <GraphicalItemClipPath
                     clipPathId={id}
@@ -714,7 +812,13 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
                   layout={layout() ?? "horizontal"}
                 >
                   {(frame, animationElapsedTime, isEntrance) => (
-                    <Layer>{renderScatterBody(frame, animationElapsedTime, isEntrance)}</Layer>
+                    <Layer>
+                      {renderScatterBody(
+                        frame,
+                        animationElapsedTime,
+                        isEntrance,
+                      )}
+                    </Layer>
                   )}
                 </AnimatedItems>
               </Layer>

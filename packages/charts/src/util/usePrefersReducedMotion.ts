@@ -1,3 +1,4 @@
+import { isServer } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/util/usePrefersReducedMotion.ts (commit 7a23854).
 //
 // Solid 2.0 port of a React hook. Deviations:
@@ -8,7 +9,6 @@
 //     → the listener is registered once in the (run-once) hook body with
 //     `onCleanup` for teardown.
 import { createSignal, onCleanup, type Accessor } from "solid-js";
-import { isServer } from "@solidjs/web";
 
 import { Global } from "./Global";
 
@@ -28,7 +28,8 @@ export function usePrefersReducedMotion(): Accessor<boolean> {
     return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   };
 
-  const [prefersReducedMotion, setPrefersReducedMotion] = createSignal<boolean>(getInitial());
+  const [prefersReducedMotion, setPrefersReducedMotion] =
+    createSignal<boolean>(getInitial());
 
   if (!isServer && !Global.isSsr && window.matchMedia) {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");

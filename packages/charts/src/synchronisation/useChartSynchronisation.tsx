@@ -12,6 +12,10 @@
 // Emitters run in effect callbacks. Receiving store writes join that flush;
 // recursively flushing here is unnecessary and rejected by Solid.
 import { createEffect, untrack } from "solid-js";
+
+import { TooltipTrigger } from "../chart/types";
+import { BrushStartEndIndex } from "../context/brushUpdateContext";
+import { selectChartLayout, useViewBox } from "../context/chartLayoutContext";
 import { useAppStore } from "../state/hooks";
 import {
   selectEventEmitter,
@@ -23,14 +27,16 @@ import {
   selectTooltipAxisTicks,
   selectTooltipDataKey,
 } from "../state/selectors/tooltipSelectors";
-import { selectChartLayout, useViewBox } from "../context/chartLayoutContext";
-import { Coordinate, TickItem, TooltipEventType } from "../util/types";
-import { TooltipTrigger } from "../chart/types";
-import { TooltipIndex, TooltipSyncState } from "../state/tooltipSlice";
-import { ActiveLabel, MouseHandlerDataParam } from "./types";
-import { BrushStartEndIndex } from "../context/brushUpdateContext";
-import { BRUSH_SYNC_EVENT, SyncId, TOOLTIP_SYNC_EVENT, syncEventCenter } from "./syncRegistry";
 import type { RechartsStore } from "../state/store";
+import { TooltipIndex, TooltipSyncState } from "../state/tooltipSlice";
+import { Coordinate, TickItem, TooltipEventType } from "../util/types";
+import {
+  BRUSH_SYNC_EVENT,
+  SyncId,
+  TOOLTIP_SYNC_EVENT,
+  syncEventCenter,
+} from "./syncRegistry";
+import { ActiveLabel, MouseHandlerDataParam } from "./types";
 
 const inactiveSyncState: TooltipSyncState = {
   active: false,
@@ -58,7 +64,14 @@ function useTooltipSyncEventsListener(store: RechartsStore): void {
       const tooltipTicks = selectTooltipAxisTicks(store.state);
       const layout = selectChartLayout(store.state);
       const box = viewBox();
-      return { mySyncId, myEventEmitter, syncMethod, tooltipTicks, layout, box };
+      return {
+        mySyncId,
+        myEventEmitter,
+        syncMethod,
+        tooltipTicks,
+        layout,
+        box,
+      };
     },
     ({ mySyncId, myEventEmitter, syncMethod, tooltipTicks, layout, box }) => {
       if (mySyncId == null) {
@@ -99,8 +112,12 @@ function useTooltipSyncEventsListener(store: RechartsStore): void {
             } = payload.sourceViewBox;
             const scaledCoordinate: Coordinate = {
               ...coordinate,
-              x: box.x + (sourceWidth ? (x - sourceX) / sourceWidth : 0) * box.width,
-              y: box.y + (sourceHeight ? (y - sourceY) / sourceHeight : 0) * box.height,
+              x:
+                box.x +
+                (sourceWidth ? (x - sourceX) / sourceWidth : 0) * box.width,
+              y:
+                box.y +
+                (sourceHeight ? (y - sourceY) / sourceHeight : 0) * box.height,
             };
             store.actions.tooltip.setSyncInteraction({
               ...payload,
@@ -120,9 +137,11 @@ function useTooltipSyncEventsListener(store: RechartsStore): void {
         let activeTick: TickItem | undefined;
         if (typeof syncMethod === "function") {
           const syncMethodParam: MouseHandlerDataParam = {
-            activeTooltipIndex: payload.index == null ? undefined : Number(payload.index),
+            activeTooltipIndex:
+              payload.index == null ? undefined : Number(payload.index),
             isTooltipActive: payload.active,
-            activeIndex: payload.index == null ? undefined : Number(payload.index),
+            activeIndex:
+              payload.index == null ? undefined : Number(payload.index),
             activeLabel: payload.label,
             activeDataKey: payload.dataKey,
             activeCoordinate: payload.coordinate,
@@ -130,7 +149,9 @@ function useTooltipSyncEventsListener(store: RechartsStore): void {
           const activeTooltipIndex = syncMethod(tooltipTicks, syncMethodParam);
           activeTick = tooltipTicks[activeTooltipIndex];
         } else if (syncMethod === "value") {
-          activeTick = tooltipTicks.find((tick) => String(tick.value) === payload.label);
+          activeTick = tooltipTicks.find(
+            (tick) => String(tick.value) === payload.label,
+          );
         }
 
         const { coordinate } = payload;
@@ -287,13 +308,22 @@ export function useTooltipChartSynchronisation(
       const payload: TooltipSyncState = {
         active: isTooltipActive(),
         coordinate: rawCoordinate == null ? undefined : { ...rawCoordinate },
-        dataKey: selectTooltipDataKey(store.state, tooltipEventType(), trigger()),
+        dataKey: selectTooltipDataKey(
+          store.state,
+          tooltipEventType(),
+          trigger(),
+        ),
         index: activeIndex() ?? null,
         label: typeof rawLabel === "number" ? String(rawLabel) : rawLabel,
         sourceViewBox: box == null ? undefined : { ...box },
         graphicalItemId: selectActiveTooltipGraphicalItemId(store.state),
       };
-      return { eventEmitterSymbol, syncId, isReceivingSynchronisation, payload };
+      return {
+        eventEmitterSymbol,
+        syncId,
+        isReceivingSynchronisation,
+        payload,
+      };
     },
     ({ eventEmitterSymbol, syncId, isReceivingSynchronisation, payload }) => {
       if (isReceivingSynchronisation) {
@@ -315,7 +345,12 @@ export function useTooltipChartSynchronisation(
         return;
       }
       lastEmitted = fingerprint;
-      syncEventCenter.emit(TOOLTIP_SYNC_EVENT, syncId, payload, eventEmitterSymbol);
+      syncEventCenter.emit(
+        TOOLTIP_SYNC_EVENT,
+        syncId,
+        payload,
+        eventEmitterSymbol,
+      );
     },
   );
 }
@@ -351,7 +386,12 @@ export function useBrushChartSynchronisation(): void {
         endIndex: brushEndIndex,
       };
       untrack(() => {
-        syncEventCenter.emit(BRUSH_SYNC_EVENT, syncId, payload, eventEmitterSymbol);
+        syncEventCenter.emit(
+          BRUSH_SYNC_EVENT,
+          syncId,
+          payload,
+          eventEmitterSymbol,
+        );
       });
     },
   );

@@ -4,10 +4,11 @@
 // Mounting a child component that subscribes to tooltip selectors trips STRICT_READ.
 // ZIndexLayer deferred.
 import type { JSX } from "@solidjs/web";
-import { isNullish } from "../util/DataUtils";
-import type { ActiveDotProps, ActiveDotType, DataKey } from "../util/types";
-import { svgPropertiesNoEventsFromUnknownKeepCase } from "../util/svgPropertiesNoEvents";
+
 import type { TooltipIndex } from "../state/tooltipSlice";
+import { isNullish } from "../util/DataUtils";
+import { svgPropertiesNoEventsFromUnknownKeepCase } from "../util/svgPropertiesNoEvents";
+import type { ActiveDotProps, ActiveDotType, DataKey } from "../util/types";
 
 export interface PointType {
   readonly x: number | null;
@@ -54,14 +55,26 @@ export function findActivePointByIndex(
 }
 
 /** Resolve the active point from plain inputs (safe inside a parent createMemo). */
-export function computeActivePointState(args: ActivePointsLayerArgs): ActivePointState | null {
-  if (args.points == null || args.activeDataPoints == null || args.activeDot === false) {
+export function computeActivePointState(
+  args: ActivePointsLayerArgs,
+): ActivePointState | null {
+  if (
+    args.points == null ||
+    args.activeDataPoints == null ||
+    args.activeDot === false
+  ) {
     return null;
   }
 
   const activeDataPoints = args.activeDataPoints;
-  const activePoint = args.points.find((p) => activeDataPoints.includes(p.payload));
-  if (isNullish(activePoint) || activePoint.x == null || activePoint.y == null) {
+  const activePoint = args.points.find((p) =>
+    activeDataPoints.includes(p.payload),
+  );
+  if (
+    isNullish(activePoint) ||
+    activePoint.x == null ||
+    activePoint.y == null
+  ) {
     return null;
   }
 
@@ -73,11 +86,18 @@ export function computeActivePointState(args: ActivePointsLayerArgs): ActivePoin
   };
 }
 
-function renderActiveDot(activeDot: ActiveDotType, dotProps: ActiveDotProps): JSX.Element {
+function renderActiveDot(
+  activeDot: ActiveDotType,
+  dotProps: ActiveDotProps,
+): JSX.Element {
   if (typeof activeDot === "function") {
     return activeDot(dotProps);
   }
-  if (typeof activeDot === "object" && activeDot != null && "type" in activeDot) {
+  if (
+    typeof activeDot === "object" &&
+    activeDot != null &&
+    "type" in activeDot
+  ) {
     return activeDot;
   }
   // Default <Dot> uses <Show> internally, which trips STRICT_READ when this
@@ -120,7 +140,10 @@ export function renderActivePointsLayerFromState(
     ...svgPropertiesNoEventsFromUnknownKeepCase(args.activeDot),
   };
   return (
-    <g class={["recharts-layer", "recharts-active-dot"]} clip-path={args.clipPath}>
+    <g
+      class={["recharts-layer", "recharts-active-dot"]}
+      clip-path={args.clipPath}
+    >
       {renderActiveDot(args.activeDot, dotProps)}
     </g>
   );

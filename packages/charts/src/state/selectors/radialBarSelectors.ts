@@ -1,3 +1,22 @@
+import type { CellProps } from "../../component/Cell";
+import { LegendPayload } from "../../component/DefaultLegendContent";
+import { selectChartLayout } from "../../context/chartLayoutContext";
+import {
+  computeRadialBarDataItems,
+  RadialBarDataItem,
+} from "../../polar/RadialBar";
+import {
+  getBandSizeOfAxis,
+  getBaseValueOfBar,
+  getValueByDataKey,
+  isCategoricalAxis,
+} from "../../util/ChartUtils";
+import { BarPositionPosition } from "../../util/ChartUtils";
+import { isNullish, isNumOrStr } from "../../util/DataUtils";
+import { LayoutType, LegendType, TickItem } from "../../util/types";
+import { AxisId } from "../cartesianAxisSlice";
+import { ChartData } from "../chartDataSlice";
+import { PolarGraphicalItemSettings } from "../graphicalItemsSlice";
 // Ported from recharts 3.8.1 src/state/selectors/radialBarSelectors.ts (commit 7a23854).
 //
 // FULL SOLID-NATIVE REWRITE: reselect `createSelector` → plain functions. Reuses
@@ -9,44 +28,35 @@
 // stacked RadialBars sharing a stackId render adjacent arcs from the shared d3 stack
 // series. `selectRadialBarLegendPayload` (per-row legend) IS wired here.
 import { RechartsRootState } from "../store";
-import { AxisId } from "../cartesianAxisSlice";
-import { ChartData } from "../chartDataSlice";
-import { LayoutType, LegendType, TickItem } from "../../util/types";
-import { LegendPayload } from "../../component/DefaultLegendContent";
+import { RadialBarSettings } from "../types/RadialBarSettings";
+import { BaseAxisWithScale } from "./axisSelectors";
+import { BarWithPosition, SizeList } from "./barSelectors";
+import { combineAllBarPositions } from "./combiners/combineAllBarPositions";
+import { combineBarPosition } from "./combiners/combineBarPosition";
+import { combineBarSizeList } from "./combiners/combineBarSizeList";
+import { combineStackedData } from "./combiners/combineStackedData";
 import { selectChartDataAndAlwaysIgnoreIndexes } from "./dataSelectors";
+import { selectChartDataWithIndexes } from "./dataSelectors";
+import {
+  selectAngleAxis,
+  selectPolarViewBox,
+  selectRadiusAxis,
+} from "./polarAxisSelectors";
 import {
   selectPolarAxisScale,
   selectPolarAxisTicks,
   selectPolarGraphicalItemAxisTicks,
 } from "./polarScaleSelectors";
-import { selectAngleAxis, selectPolarViewBox, selectRadiusAxis } from "./polarAxisSelectors";
-import { selectChartDataWithIndexes } from "./dataSelectors";
-import { BaseAxisWithScale } from "./axisSelectors";
-import { selectChartLayout } from "../../context/chartLayoutContext";
 import {
-  getBandSizeOfAxis,
-  getBaseValueOfBar,
-  getValueByDataKey,
-  isCategoricalAxis,
-} from "../../util/ChartUtils";
-import { BarWithPosition, SizeList } from "./barSelectors";
+  selectPolarStackGroups,
+  selectUnfilteredPolarItems,
+} from "./polarSelectors";
 import {
   selectBarCategoryGap,
   selectBarGap,
   selectRootBarSize,
   selectRootMaxBarSize,
 } from "./rootPropsSelectors";
-import { PolarGraphicalItemSettings } from "../graphicalItemsSlice";
-import { selectPolarStackGroups, selectUnfilteredPolarItems } from "./polarSelectors";
-import { combineStackedData } from "./combiners/combineStackedData";
-import { isNullish, isNumOrStr } from "../../util/DataUtils";
-import { combineBarSizeList } from "./combiners/combineBarSizeList";
-import { combineAllBarPositions } from "./combiners/combineAllBarPositions";
-import { combineBarPosition } from "./combiners/combineBarPosition";
-import { BarPositionPosition } from "../../util/ChartUtils";
-import { RadialBarSettings } from "../types/RadialBarSettings";
-import { computeRadialBarDataItems, RadialBarDataItem } from "../../polar/RadialBar";
-import type { CellProps } from "../../component/Cell";
 
 export const selectRadiusAxisWithScale = (
   state: RechartsRootState,
@@ -84,8 +94,9 @@ const selectAngleAxisTicks = (
 ): ReadonlyArray<TickItem> | undefined =>
   selectPolarAxisTicks(state, "angleAxis", angleAxisId, false);
 
-const isRadialBar = (item: PolarGraphicalItemSettings): item is RadialBarSettings =>
-  item.type === "radialBar";
+const isRadialBar = (
+  item: PolarGraphicalItemSettings,
+): item is RadialBarSettings => item.type === "radialBar";
 
 const selectSynchronisedRadialBarSettings = (
   state: RechartsRootState,
@@ -149,7 +160,9 @@ const selectAllVisibleRadialBars = (
   const layout = selectChartLayout(state);
   return selectUnfilteredPolarItems(state)
     .filter((i) =>
-      layout === "centric" ? i.angleAxisId === angleAxisId : i.radiusAxisId === radiusAxisId,
+      layout === "centric"
+        ? i.angleAxisId === angleAxisId
+        : i.radiusAxisId === radiusAxisId,
     )
     .filter((i) => i.hide === false)
     .filter(isRadialBar);
@@ -179,7 +192,9 @@ export const selectPolarBarBandSize = (
   const layout = selectChartLayout(state);
   const globalMaxBarSize = selectRootMaxBarSize(state);
   const childMaxBarSize = radialBarSettings.maxBarSize;
-  const maxBarSize = isNullish(childMaxBarSize) ? globalMaxBarSize : childMaxBarSize;
+  const maxBarSize = isNullish(childMaxBarSize)
+    ? globalMaxBarSize
+    : childMaxBarSize;
   if (layout === "centric") {
     return (
       getBandSizeOfAxis(
@@ -225,7 +240,12 @@ export const selectPolarBarPosition = (
   radialBarSettings: RadialBarSettings,
 ): BarPositionPosition | undefined =>
   combineBarPosition(
-    selectAllPolarBarPositions(state, radiusAxisId, angleAxisId, radialBarSettings),
+    selectAllPolarBarPositions(
+      state,
+      radiusAxisId,
+      angleAxisId,
+      radialBarSettings,
+    ),
     selectSynchronisedRadialBarSettings(state, radialBarSettings),
   );
 
@@ -240,13 +260,22 @@ export const selectRadialBarSectors = (
   const angleAxisTicks = selectAngleAxisTicks(state, angleAxisId);
   const radiusAxis = selectRadiusAxisWithScale(state, radiusAxisId);
   const radiusAxisTicks = selectRadiusAxisTicks(state, radiusAxisId);
-  const { chartData, dataStartIndex, dataEndIndex } = selectChartDataWithIndexes(state);
-  const settings = selectSynchronisedRadialBarSettings(state, radialBarSettings);
+  const { chartData, dataStartIndex, dataEndIndex } =
+    selectChartDataWithIndexes(state);
+  const settings = selectSynchronisedRadialBarSettings(
+    state,
+    radialBarSettings,
+  );
   const bandSize = selectBandSizeOfPolarAxis(state, radiusAxisId, angleAxisId);
   const layout: LayoutType = selectChartLayout(state);
   const baseValue = selectBaseValue(state, radiusAxisId, angleAxisId);
   const polarViewBox = selectPolarViewBox(state);
-  const pos = selectPolarBarPosition(state, radiusAxisId, angleAxisId, radialBarSettings);
+  const pos = selectPolarBarPosition(
+    state,
+    radiusAxisId,
+    angleAxisId,
+    radialBarSettings,
+  );
 
   if (
     settings == null ||
@@ -264,7 +293,8 @@ export const selectRadialBarSectors = (
   // Stack chain (reference selectPolarStackedData): the polar stack groups on the
   // numeric axis (radius axis in centric layout, angle axis in radial layout) →
   // this item's stack series.
-  const stackAxisType = layout === "centric" ? ("radiusAxis" as const) : ("angleAxis" as const);
+  const stackAxisType =
+    layout === "centric" ? ("radiusAxis" as const) : ("angleAxis" as const);
   const stackAxisId = layout === "centric" ? radiusAxisId : angleAxisId;
   const stackedData = combineStackedData(
     selectPolarStackGroups(state, stackAxisType, stackAxisId),
@@ -276,7 +306,10 @@ export const selectRadialBarSectors = (
 
   const { dataKey, minPointSize } = settings;
   const { cx, cy, startAngle, endAngle } = polarViewBox;
-  const displayedData: ChartData = chartData.slice(dataStartIndex, dataEndIndex + 1);
+  const displayedData: ChartData = chartData.slice(
+    dataStartIndex,
+    dataEndIndex + 1,
+  );
   return computeRadialBarDataItems({
     angleAxis,
     angleAxisTicks,
@@ -307,7 +340,8 @@ export const selectRadialBarLegendPayload = (
   state: RechartsRootState,
   legendType: LegendType | undefined,
 ): ReadonlyArray<LegendPayload> => {
-  const { chartData, dataStartIndex, dataEndIndex } = selectChartDataAndAlwaysIgnoreIndexes(state);
+  const { chartData, dataStartIndex, dataEndIndex } =
+    selectChartDataAndAlwaysIgnoreIndexes(state);
   if (chartData == null) {
     return [];
   }

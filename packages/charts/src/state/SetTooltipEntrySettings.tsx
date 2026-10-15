@@ -5,10 +5,11 @@
 // use for their graphical-item registration. Returns null (renders nothing) — it
 // exists purely to register the item's tooltip payload entry in the store.
 import type { JSX } from "@solidjs/web";
-import { useAppStore } from "./hooks";
-import { TooltipPayloadConfiguration } from "./tooltipSlice";
+
 import { useIsPanorama } from "../context/PanoramaContext";
+import { useAppStore } from "./hooks";
 import { registerInStore } from "./registerInStore";
+import { TooltipPayloadConfiguration } from "./tooltipSlice";
 
 export function SetTooltipEntrySettings(props: {
   tooltipEntrySettings: TooltipPayloadConfiguration;
@@ -18,11 +19,16 @@ export function SetTooltipEntrySettings(props: {
 
   // Panorama graphical items never contribute to the Tooltip payload.
   if (store != null && !isPanorama) {
-    registerInStore<TooltipPayloadConfiguration>(() => props.tooltipEntrySettings, {
-      add: (next) => store.actions.tooltip.addTooltipEntrySettings(next),
-      replace: (prev, next) => store.actions.tooltip.replaceTooltipEntrySettings({ prev, next }),
-      remove: (prev) => store.actions.tooltip.removeTooltipEntrySettings(prev),
-    });
+    registerInStore<TooltipPayloadConfiguration>(
+      () => props.tooltipEntrySettings,
+      {
+        add: (next) => store.actions.tooltip.addTooltipEntrySettings(next),
+        replace: (prev, next) =>
+          store.actions.tooltip.replaceTooltipEntrySettings({ prev, next }),
+        remove: (prev) =>
+          store.actions.tooltip.removeTooltipEntrySettings(prev),
+      },
+    );
   }
 
   return null;

@@ -1,3 +1,27 @@
+import type { JSX } from "@solidjs/web";
+import {
+  createContext,
+  createMemo,
+  merge,
+  omit,
+  Show,
+  useContext,
+} from "solid-js";
+import type { Accessor } from "solid-js";
+
+import {
+  type CartesianLabelPosition,
+  getCartesianPosition,
+} from "../cartesian/getCartesianPosition";
+import {
+  cartesianViewBoxToTrapezoid,
+  useViewBox,
+} from "../context/chartLayoutContext";
+import { useAppSelector } from "../state/hooks";
+import { selectPolarViewBox } from "../state/selectors/polarAxisSelectors";
+import { isNullish, isNumber, isNumOrStr } from "../util/DataUtils";
+import { polarToCartesian } from "../util/PolarUtils";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 // Ported from recharts 3.8.1 src/component/Label.tsx (commit 7a23854).
 //
 // Cartesian + polar label positioning. Solid deviations / DEFERRALS (documented):
@@ -16,12 +40,6 @@
 //  - context value carries an `Accessor<TrapezoidViewBox>` (Solid context is fixed
 //    at provide-time; the accessor keeps the box reactive).
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createContext, createMemo, merge, omit, Show, useContext } from "solid-js";
-import type { Accessor } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { type RenderableText, Text } from "./Text";
-import { useUniqueId } from "../util/useUniqueId";
-import { isNullish, isNumber, isNumOrStr } from "../util/DataUtils";
 import {
   CartesianViewBoxRequired,
   DataKey,
@@ -29,17 +47,10 @@ import {
   TrapezoidViewBox,
   ViewBox,
 } from "../util/types";
-import { cartesianViewBoxToTrapezoid, useViewBox } from "../context/chartLayoutContext";
-import { useAppSelector } from "../state/hooks";
-import { selectPolarViewBox } from "../state/selectors/polarAxisSelectors";
-import { polarToCartesian } from "../util/PolarUtils";
-import {
-  type CartesianLabelPosition,
-  getCartesianPosition,
-} from "../cartesian/getCartesianPosition";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
+import { useUniqueId } from "../util/useUniqueId";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 import { ZIndexLayer } from "../zIndex/ZIndexLayer";
+import { type RenderableText, Text } from "./Text";
 
 /** @inline */
 export type LabelContentType = (props: Props) => RenderableText | JSX.Element;
@@ -96,7 +107,9 @@ export type ImplicitLabelType =
 
 // ---- Cartesian label context ------------------------------------------------
 
-const CartesianLabelContext = createContext<Accessor<TrapezoidViewBox> | null>(null);
+const CartesianLabelContext = createContext<Accessor<TrapezoidViewBox> | null>(
+  null,
+);
 
 export function CartesianLabelContextProvider(
   props: TrapezoidViewBox & { children: JSX.Element },
@@ -109,10 +122,16 @@ export function CartesianLabelContextProvider(
     width: props.width,
     height: props.height,
   }));
-  return <CartesianLabelContext value={viewBox}>{props.children}</CartesianLabelContext>;
+  return (
+    <CartesianLabelContext value={viewBox}>
+      {props.children}
+    </CartesianLabelContext>
+  );
 }
 
-export function useCartesianLabelContext(): Accessor<TrapezoidViewBox | undefined> {
+export function useCartesianLabelContext(): Accessor<
+  TrapezoidViewBox | undefined
+> {
   const labelChildContext = useContext(CartesianLabelContext);
   const chartViewBox = useViewBox();
   return () => {
@@ -127,7 +146,9 @@ export function useCartesianLabelContext(): Accessor<TrapezoidViewBox | undefine
 
 // ---- Polar label context ----------------------------------------------------
 
-const PolarLabelContext = createContext<Accessor<PolarViewBoxRequired> | null>(null);
+const PolarLabelContext = createContext<Accessor<PolarViewBoxRequired> | null>(
+  null,
+);
 
 export function PolarLabelContextProvider(
   props: PolarViewBoxRequired & { children: JSX.Element },
@@ -141,10 +162,14 @@ export function PolarLabelContextProvider(
     endAngle: props.endAngle,
     clockWise: props.clockWise,
   }));
-  return <PolarLabelContext value={viewBox}>{props.children}</PolarLabelContext>;
+  return (
+    <PolarLabelContext value={viewBox}>{props.children}</PolarLabelContext>
+  );
 }
 
-export function usePolarLabelContext(): Accessor<PolarViewBoxRequired | undefined> {
+export function usePolarLabelContext(): Accessor<
+  PolarViewBoxRequired | undefined
+> {
   const labelChildContext = useContext(PolarLabelContext);
   const chartPolarViewBox = useAppSelector(selectPolarViewBox);
   return () => labelChildContext?.() ?? chartPolarViewBox();
@@ -152,7 +177,8 @@ export function usePolarLabelContext(): Accessor<PolarViewBoxRequired | undefine
 
 const isPolarViewBox = (
   viewBox: ViewBox | TrapezoidViewBox | undefined,
-): viewBox is PolarViewBoxRequired => viewBox != null && "cx" in viewBox && isNumber(viewBox.cx);
+): viewBox is PolarViewBoxRequired =>
+  viewBox != null && "cx" in viewBox && isNumber(viewBox.cx);
 
 type PolarLabelAttrs = {
   x: number;
@@ -172,7 +198,12 @@ const getAttrsOfPolarLabel = (
 
   if (position === "outside") {
     const { x, y } = polarToCartesian(cx, cy, outerRadius + offset, midAngle);
-    return { x, y, textAnchor: x >= cx ? "start" : "end", verticalAnchor: "middle" };
+    return {
+      x,
+      y,
+      textAnchor: x >= cx ? "start" : "end",
+      verticalAnchor: "middle",
+    };
   }
   if (position === "center") {
     return { x: cx, y: cy, textAnchor: "middle", verticalAnchor: "middle" };
@@ -191,14 +222,18 @@ const getAttrsOfPolarLabel = (
 // ---- helpers ----------------------------------------------------------------
 
 const getLabel = (props: Props): RenderableText => {
-  const label: RenderableText = isNullish(props.children) ? props.value : props.children;
+  const label: RenderableText = isNullish(props.children)
+    ? props.value
+    : props.children;
   if (typeof props.formatter === "function") {
     return props.formatter(label);
   }
   return label;
 };
 
-export const isLabelContentAFunction = (content: unknown): content is LabelContentType =>
+export const isLabelContentAFunction = (
+  content: unknown,
+): content is LabelContentType =>
   content != null && typeof content === "function";
 
 export const defaultLabelProps = {
@@ -247,7 +282,9 @@ export function Label(outerProps: Props): JSX.Element {
     if (fromProps == null) {
       return cartesianViewBox();
     }
-    return isPolarViewBox(fromProps) ? cartesianViewBox() : cartesianViewBoxToTrapezoid(fromProps);
+    return isPolarViewBox(fromProps)
+      ? cartesianViewBox()
+      : cartesianViewBoxToTrapezoid(fromProps);
   });
 
   const textSvgProps = createMemo(() =>
@@ -285,7 +322,9 @@ export function Label(outerProps: Props): JSX.Element {
     // The Cartesian position helper only uses a Cartesian parentViewBox; a polar
     // entry's parentViewBox (carrying `cx`) is irrelevant in this branch.
     const parentViewBox =
-      props.parentViewBox != null && "cx" in props.parentViewBox ? undefined : props.parentViewBox;
+      props.parentViewBox != null && "cx" in props.parentViewBox
+        ? undefined
+        : props.parentViewBox;
     const pos = getCartesianPosition({
       viewBox: vb,
       position: props.position,
@@ -302,7 +341,10 @@ export function Label(outerProps: Props): JSX.Element {
     return {
       label: getLabel(props),
       pos,
-      class: props.class != null && props.class !== "" ? props.class : "recharts-label",
+      class:
+        props.class != null && props.class !== ""
+          ? props.class
+          : "recharts-label",
       angle: props.angle,
       breakAll: props.textBreakAll,
       svgProps,
@@ -321,7 +363,10 @@ export function Label(outerProps: Props): JSX.Element {
     return {
       label: getLabel(props),
       attrs: getAttrsOfPolarLabel(pvb, props.offset, props.position),
-      class: props.class != null && props.class !== "" ? props.class : "recharts-label",
+      class:
+        props.class != null && props.class !== ""
+          ? props.class
+          : "recharts-label",
       angle: props.angle,
       breakAll: props.textBreakAll,
     };
@@ -444,7 +489,10 @@ export function Label(outerProps: Props): JSX.Element {
               class={["recharts-radial-bar-label", props.class]}
             >
               <defs>
-                <path id={radialPathId()} d={d().path} />
+                <path
+                  id={radialPathId()}
+                  d={d().path}
+                />
               </defs>
               <textPath href={`#${radialPathId()}`}>{d().label}</textPath>
             </text>
@@ -471,13 +519,28 @@ function parseLabel(
     return <Label viewBox={viewBox} />;
   }
   if (isNumOrStr(label)) {
-    return <Label value={label} viewBox={viewBox} />;
+    return (
+      <Label
+        value={label}
+        viewBox={viewBox}
+      />
+    );
   }
   if (isLabelContentAFunction(label)) {
-    return <Label content={label} viewBox={viewBox} />;
+    return (
+      <Label
+        content={label}
+        viewBox={viewBox}
+      />
+    );
   }
   if (typeof label === "object") {
-    return <Label {...label} viewBox={viewBox} />;
+    return (
+      <Label
+        {...label}
+        viewBox={viewBox}
+      />
+    );
   }
   return null;
 }

@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/chart/PieChart.tsx (commit 7a23854).
 // `forwardRef` → `ref` prop; the user-facing convenience wrapper over PolarChart.
 // `resolveDefaultProps` → Solid `merge` (lazy proxy — does NOT eagerly evaluate
@@ -6,10 +7,10 @@
 // defaults. `ref` is omitted from categoricalChartProps and passed separately,
 // mirroring the reference's forwardRef split.
 import { merge, omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
+
 import { arrayTooltipSearcher } from "../state/optionsSlice";
-import { PolarChart } from "./PolarChart";
 import { PolarChartProps, TooltipEventType } from "../util/types";
+import { PolarChart } from "./PolarChart";
 
 const allowedTooltipTypes: ReadonlyArray<TooltipEventType> = ["item"];
 
@@ -19,7 +20,9 @@ const defaultPieChartProps = {
   endAngle: 360,
 } as const satisfies Partial<PolarChartProps>;
 
-export interface PieChartProps<DataPointType = unknown> extends PolarChartProps<DataPointType> {
+export interface PieChartProps<
+  DataPointType = unknown,
+> extends PolarChartProps<DataPointType> {
   ref?: SVGSVGElement | ((el: SVGSVGElement) => void);
 }
 

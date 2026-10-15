@@ -32,7 +32,7 @@
   }
 
   /* Stop Chrome back/forward two-finger swipe when there is a horizontal scrollbar */
-  &:where(:has(.rt-ScrollAreaScrollbar[data-orientation='horizontal'])) {
+  &:where(:has(.rt-ScrollAreaScrollbar[data-orientation="horizontal"])) {
     overscroll-behavior-x: contain;
   }
 }
@@ -50,11 +50,11 @@
   /* Disable browser handling of all panning and zooming gestures on touch devices */
   touch-action: none;
 
-  &:where([data-orientation='vertical']) {
+  &:where([data-orientation="vertical"]) {
     flex-direction: column;
     width: var(--scrollarea-scrollbar-size);
   }
-  &:where([data-orientation='horizontal']) {
+  &:where([data-orientation="horizontal"]) {
     flex-direction: row;
     height: var(--scrollarea-scrollbar-size);
   }
@@ -64,7 +64,7 @@
   position: relative;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     top: 50%;
     left: 50%;
@@ -86,15 +86,24 @@
   .rt-ScrollAreaScrollbar {
     &:where(.rt-r-size-1) {
       --scrollarea-scrollbar-size: var(--space-1);
-      --scrollarea-scrollbar-border-radius: max(var(--radius-1), var(--radius-full));
+      --scrollarea-scrollbar-border-radius: max(
+        var(--radius-1),
+        var(--radius-full)
+      );
     }
     &:where(.rt-r-size-2) {
       --scrollarea-scrollbar-size: var(--space-2);
-      --scrollarea-scrollbar-border-radius: max(var(--radius-1), var(--radius-full));
+      --scrollarea-scrollbar-border-radius: max(
+        var(--radius-1),
+        var(--radius-full)
+      );
     }
     &:where(.rt-r-size-3) {
       --scrollarea-scrollbar-size: var(--space-3);
-      --scrollarea-scrollbar-border-radius: max(var(--radius-1), var(--radius-full));
+      --scrollarea-scrollbar-border-radius: max(
+        var(--radius-1),
+        var(--radius-full)
+      );
     }
   }
 }
@@ -112,19 +121,19 @@
   animation-duration: 120ms;
   animation-timing-function: ease-out;
 
-  &:where([data-state='visible']) {
+  &:where([data-state="visible"]) {
     animation-name: rt-fade-in;
   }
-  &:where([data-state='hidden']) {
+  &:where([data-state="hidden"]) {
     animation-name: rt-fade-out;
   }
-  &:where([data-orientation='horizontal']) {
+  &:where([data-orientation="horizontal"]) {
     margin-top: var(--scrollarea-scrollbar-horizontal-margin-top);
     margin-bottom: var(--scrollarea-scrollbar-horizontal-margin-bottom);
     margin-left: var(--scrollarea-scrollbar-horizontal-margin-left);
     margin-right: var(--scrollarea-scrollbar-horizontal-margin-right);
   }
-  &:where([data-orientation='vertical']) {
+  &:where([data-orientation="vertical"]) {
     margin-top: var(--scrollarea-scrollbar-vertical-margin-top);
     margin-bottom: var(--scrollarea-scrollbar-vertical-margin-bottom);
     margin-left: var(--scrollarea-scrollbar-vertical-margin-left);

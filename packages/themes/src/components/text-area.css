@@ -80,8 +80,12 @@
 
       & :where(.rt-TextAreaInput) {
         /* Clip text to border */
-        --text-area-padding-y: calc(var(--space-1) - var(--text-area-border-width));
-        --text-area-padding-x: calc(var(--space-1) * 1.5 - var(--text-area-border-width));
+        --text-area-padding-y: calc(
+          var(--space-1) - var(--text-area-border-width)
+        );
+        --text-area-padding-x: calc(
+          var(--space-1) * 1.5 - var(--text-area-border-width)
+        );
         font-size: var(--font-size-1);
         line-height: var(--line-height-1);
         letter-spacing: var(--letter-spacing-1);
@@ -93,8 +97,12 @@
 
       & :where(.rt-TextAreaInput) {
         /* Clip text to border */
-        --text-area-padding-y: calc(var(--space-1) * 1.5 - var(--text-area-border-width));
-        --text-area-padding-x: calc(var(--space-2) - var(--text-area-border-width));
+        --text-area-padding-y: calc(
+          var(--space-1) * 1.5 - var(--text-area-border-width)
+        );
+        --text-area-padding-x: calc(
+          var(--space-2) - var(--text-area-border-width)
+        );
         font-size: var(--font-size-2);
         line-height: var(--line-height-2);
         letter-spacing: var(--letter-spacing-2);
@@ -106,8 +114,12 @@
 
       & :where(.rt-TextAreaInput) {
         /* Clip text to border */
-        --text-area-padding-y: calc(var(--space-2) - var(--text-area-border-width));
-        --text-area-padding-x: calc(var(--space-3) - var(--text-area-border-width));
+        --text-area-padding-y: calc(
+          var(--space-2) - var(--text-area-border-width)
+        );
+        --text-area-padding-x: calc(
+          var(--space-3) - var(--text-area-border-width)
+        );
         font-size: var(--font-size-3);
         line-height: var(--line-height-3);
         letter-spacing: var(--letter-spacing-3);

@@ -1,3 +1,10 @@
+import {
+  HorizontalAlignmentType,
+  LegendItemSorter,
+  LegendPayload,
+  VerticalAlignmentType,
+} from "../component/DefaultLegendContent";
+import { LayoutType, Size } from "../util/types";
 // Ported from recharts 3.8.1 src/state/legendSlice.ts (commit 7a23854).
 // FULL SOLID-NATIVE REWRITE (no Redux/immer): createStore + draft-first setters.
 //
@@ -10,13 +17,6 @@
 import type { ChartStateInitializer } from "./createChartState";
 import { createCollectionActions } from "./createCollectionActions";
 import { patched } from "./patched";
-import { LayoutType, Size } from "../util/types";
-import {
-  HorizontalAlignmentType,
-  LegendItemSorter,
-  LegendPayload,
-  VerticalAlignmentType,
-} from "../component/DefaultLegendContent";
 
 export type LegendSettings = {
   layout: LayoutType;
@@ -52,7 +52,10 @@ export interface LegendActions {
   setLegendSize(payload: Size): void;
   setLegendSettings(payload: LegendSettings): void;
   addLegendPayload(payload: LegendPayloadEntry): void;
-  replaceLegendPayload(payload: { prev: LegendPayloadEntry; next: LegendPayloadEntry }): void;
+  replaceLegendPayload(payload: {
+    prev: LegendPayloadEntry;
+    next: LegendPayloadEntry;
+  }): void;
   removeLegendPayload(payload: LegendPayloadEntry): void;
 }
 
@@ -61,34 +64,40 @@ export interface LegendSlice {
   readonly actions: LegendActions;
 }
 
-export function createLegendSlice(initialState: LegendState=initialLegendState,createState: ChartStateInitializer): LegendSlice {
-  const [state,setState]=createState<LegendState>({
+export function createLegendSlice(
+  initialState: LegendState = initialLegendState,
+  createState: ChartStateInitializer,
+): LegendSlice {
+  const [state, setState] = createState<LegendState>({
     settings: { ...initialState.settings },
     size: { ...initialState.size },
     payload: [...initialState.payload],
   });
 
-  const payload=createCollectionActions<LegendPayloadEntry>(
+  const payload = createCollectionActions<LegendPayloadEntry>(
     (updater) =>
       setState((s) => {
-        const next=updater(s.payload);
-        if(next!==s.payload) {
-          s.payload=next;
+        const next = updater(s.payload);
+        if (next !== s.payload) {
+          s.payload = next;
         }
       }),
     (e) => e.id,
   );
 
-  const actions: LegendActions={
+  const actions: LegendActions = {
     setLegendSize(payload) {
       // Slice immutability contract (ADR-0002): replace the node, not leaves.
       setState((s) => {
-        s.size=patched(s.size,{ width: payload.width,height: payload.height });
+        s.size = patched(s.size, {
+          width: payload.width,
+          height: payload.height,
+        });
       });
     },
     setLegendSettings(payload) {
       setState((s) => {
-        s.settings=patched(s.settings,{
+        s.settings = patched(s.settings, {
           align: payload.align,
           layout: payload.layout,
           verticalAlign: payload.verticalAlign,
@@ -101,5 +110,10 @@ export function createLegendSlice(initialState: LegendState=initialLegendState,c
     removeLegendPayload: payload.remove,
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

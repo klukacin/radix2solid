@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/context/chartDataContext.tsx (commit 7a23854).
 //
 // Solid deviations: `useAppDispatch` + action creators → `useAppStore()` + slice
@@ -6,12 +7,12 @@
 // Accessors (since `useAppSelector` does). `SetComputedData` and the BrushStartEndIndex
 // type are kept local; the latter re-homes to brushUpdateContext when ported.
 import { type Accessor } from "solid-js";
-import { createChartEffect } from "../state/createChartState";
-import type { JSX } from "@solidjs/web";
+
 import { ChartData } from "../state/chartDataSlice";
+import { createChartEffect } from "../state/createChartState";
 import { useAppSelector, useAppStore } from "../state/hooks";
-import { unregisterCleanup } from "../state/unregisterOnCleanup";
 import { RechartsRootState } from "../state/store";
+import { unregisterCleanup } from "../state/unregisterOnCleanup";
 import { useIsPanorama } from "./PanoramaContext";
 
 interface BrushStartEndIndex {
@@ -42,7 +43,9 @@ export const ChartDataContextProvider = (props: {
   return null;
 };
 
-export const SetComputedData = (props: { computedData: unknown }): JSX.Element => {
+export const SetComputedData = (props: {
+  computedData: unknown;
+}): JSX.Element => {
   const store = useAppStore();
 
   createChartEffect(
@@ -65,7 +68,8 @@ const selectChartData = (state: RechartsRootState): ChartData | undefined =>
  * Returns the chart's `data` array (set on the chart root), or `undefined`.
  * @deprecated use a more specific selector depending on how the graphical item identifies its data.
  */
-export const useChartData = (): Accessor<ChartData | undefined> => useAppSelector(selectChartData);
+export const useChartData = (): Accessor<ChartData | undefined> =>
+  useAppSelector(selectChartData);
 
 const selectDataIndex = (state: RechartsRootState): BrushStartEndIndex => {
   const { dataStartIndex, dataEndIndex } = state.chartData;

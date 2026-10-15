@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Partial port of recharts 3.8.1 src/component/DefaultLegendContent.tsx (commit 7a23854).
 //
 // TYPES + component. The legend slice/selectors need these types; the component
@@ -8,17 +9,21 @@
 // without depending on the Legend component. `adaptEventsOfChild` events deferred.
 import { For, Show, merge } from "solid-js";
 import type { Element } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { DataKey, LegendType, MousePointer } from "../util/types";
+
 import { Surface } from "../container/Surface";
 import { Symbols } from "../shape/Symbols";
+import { DataKey, LegendType, MousePointer } from "../util/types";
 
 const SIZE = 32;
 
 export type HorizontalAlignmentType = "center" | "left" | "right";
 export type VerticalAlignmentType = "top" | "bottom" | "middle";
 
-export type Formatter = (value: string | undefined, entry: LegendPayload, index: number) => Element;
+export type Formatter = (
+  value: string | undefined,
+  entry: LegendPayload,
+  index: number,
+) => Element;
 
 export interface LegendPayload {
   value: string | undefined;
@@ -30,7 +35,10 @@ export interface LegendPayload {
   dataKey?: DataKey<unknown>;
 }
 
-export type LegendItemSorter = "value" | "dataKey" | ((item: LegendPayload) => number | string);
+export type LegendItemSorter =
+  | "value"
+  | "dataKey"
+  | ((item: LegendPayload) => number | string);
 
 export type ContentType = JSX.Element | ((props: Props) => JSX.Element);
 
@@ -70,7 +78,8 @@ const LegendIcon = (props: {
 }): JSX.Element => {
   const color = (): string | undefined =>
     props.data.inactive ? props.inactiveColor : props.data.color;
-  const preferredIcon = (): LegendType | undefined => props.iconType ?? props.data.type;
+  const preferredIcon = (): LegendType | undefined =>
+    props.iconType ?? props.data.type;
   const halfSize = SIZE / 2;
   const thirdSize = SIZE / 3;
   const sixthSize = SIZE / 6;
@@ -153,18 +162,25 @@ export const DefaultLegendContent = (props: Props): JSX.Element => {
 
   const valueOf = (entry: LegendPayload, index: number): Element => {
     const finalFormatter = entry.formatter ?? merged.formatter;
-    return finalFormatter ? finalFormatter(entry.value, entry, index) : entry.value;
+    return finalFormatter
+      ? finalFormatter(entry.value, entry, index)
+      : entry.value;
   };
 
   const labelStyleOf = (entry: LegendPayload): JSX.CSSProperties => ({
     ...merged.labelStyle,
     // recharts parity: an explicit labelStyle.color wins over the entry color.
-    color: entry.inactive ? merged.inactiveColor : (merged.labelStyle?.color ?? entry.color),
+    color: entry.inactive
+      ? merged.inactiveColor
+      : (merged.labelStyle?.color ?? entry.color),
   });
 
   return (
     <Show when={merged.payload && merged.payload.length}>
-      <ul class="recharts-default-legend" style={listStyle()}>
+      <ul
+        class="recharts-default-legend"
+        style={listStyle()}
+      >
         <For each={merged.payload}>
           {(entry, i) => (
             <Show when={entry.type !== "none"}>
@@ -176,15 +192,23 @@ export const DefaultLegendContent = (props: Props): JSX.Element => {
                 ]}
                 style={itemStyle()}
                 onClick={(event) => merged.onClick?.(entry, i(), event)}
-                onMouseEnter={(event) => merged.onMouseEnter?.(entry, i(), event)}
-                onMouseLeave={(event) => merged.onMouseLeave?.(entry, i(), event)}
+                onMouseEnter={(event) =>
+                  merged.onMouseEnter?.(entry, i(), event)
+                }
+                onMouseLeave={(event) =>
+                  merged.onMouseLeave?.(entry, i(), event)
+                }
               >
                 <Surface
                   width={merged.iconSize}
                   height={merged.iconSize}
                   viewBox={{ x: 0, y: 0, width: SIZE, height: SIZE }}
                   style={svgStyle}
-                  aria-label={entry.value == null ? "legend icon" : `${entry.value} legend icon`}
+                  aria-label={
+                    entry.value == null
+                      ? "legend icon"
+                      : `${entry.value} legend icon`
+                  }
                 >
                   <LegendIcon
                     data={entry}
@@ -192,7 +216,10 @@ export const DefaultLegendContent = (props: Props): JSX.Element => {
                     inactiveColor={merged.inactiveColor}
                   />
                 </Surface>
-                <span class="recharts-legend-item-text" style={labelStyleOf(entry)}>
+                <span
+                  class="recharts-legend-item-text"
+                  style={labelStyleOf(entry)}
+                >
                   {valueOf(entry, i())}
                 </span>
               </li>

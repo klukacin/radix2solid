@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/cartesian/GraphicalItemClipPath.tsx (commit 7a23854).
 //
 // Solid deviations: `useAppSelector` returns accessors, so `useNeedsClip` returns
@@ -6,7 +7,8 @@
 // through `<Show>`. Not yet wired into <Line> (clip is a deferred Line feature);
 // this is the shared clip-path primitive for graphical items.
 import { createMemo, Show, type Accessor } from "solid-js";
-import type { JSX } from "@solidjs/web";
+
+import { usePlotArea } from "../hooks";
 import { AxisId } from "../state/cartesianAxisSlice";
 import { useAppSelector } from "../state/hooks";
 import {
@@ -17,7 +19,6 @@ import {
   selectYAxisRange,
   selectYAxisSettings,
 } from "../state/selectors/axisSelectors";
-import { usePlotArea } from "../hooks";
 
 export interface GraphicalItemClipPathProps {
   xAxisId: AxisId;
@@ -35,18 +36,31 @@ export function useNeedsClip(xAxisId: AxisId, yAxisId: AxisId): NeedsClip {
   const xAxis = useAppSelector((state) => selectXAxisSettings(state, xAxisId));
   const yAxis = useAppSelector((state) => selectYAxisSettings(state, yAxisId));
 
-  const needClipX = createMemo(() => xAxis()?.allowDataOverflow ?? implicitXAxis.allowDataOverflow);
-  const needClipY = createMemo(() => yAxis()?.allowDataOverflow ?? implicitYAxis.allowDataOverflow);
+  const needClipX = createMemo(
+    () => xAxis()?.allowDataOverflow ?? implicitXAxis.allowDataOverflow,
+  );
+  const needClipY = createMemo(
+    () => yAxis()?.allowDataOverflow ?? implicitYAxis.allowDataOverflow,
+  );
   const needClip = createMemo(() => needClipX() || needClipY());
 
   return { needClip, needClipX, needClipY };
 }
 
-export function GraphicalItemClipPath(props: GraphicalItemClipPathProps): JSX.Element {
+export function GraphicalItemClipPath(
+  props: GraphicalItemClipPathProps,
+): JSX.Element {
   const plotArea = usePlotArea();
-  const { needClip, needClipX, needClipY } = useNeedsClip(props.xAxisId, props.yAxisId);
-  const xAxisRange = useAppSelector((state) => selectXAxisRange(state, props.xAxisId, false));
-  const yAxisRange = useAppSelector((state) => selectYAxisRange(state, props.yAxisId, false));
+  const { needClip, needClipX, needClipY } = useNeedsClip(
+    props.xAxisId,
+    props.yAxisId,
+  );
+  const xAxisRange = useAppSelector((state) =>
+    selectXAxisRange(state, props.xAxisId, false),
+  );
+  const yAxisRange = useAppSelector((state) =>
+    selectYAxisRange(state, props.yAxisId, false),
+  );
 
   const rect = createMemo(() => {
     const pa = plotArea();
@@ -67,7 +81,12 @@ export function GraphicalItemClipPath(props: GraphicalItemClipPathProps): JSX.El
     <Show when={rect()}>
       {(r) => (
         <clipPath id={`clipPath-${props.clipPathId}`}>
-          <rect x={r().x} y={r().y} width={r().width} height={r().height} />
+          <rect
+            x={r().x}
+            y={r().y}
+            width={r().width}
+            height={r().height}
+          />
         </clipPath>
       )}
     </Show>

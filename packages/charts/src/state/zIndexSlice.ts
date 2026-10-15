@@ -1,9 +1,9 @@
+import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 // Ported from recharts 3.8.1 src/state/zIndexSlice.ts (commit 7a23854).
 // FULL SOLID-NATIVE REWRITE (no Redux/immer). Registry of z-index -> element refs
 // used to portal components at each z-index. Z-index layering is wired into the
 // store so chart items can render through ZIndexLayer.
 import type { ChartStateInitializer } from "./createChartState";
-import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 
 type ZIndexEntry = {
   /**
@@ -48,7 +48,10 @@ export interface ZIndexActions {
     element: Element;
     isPanorama: boolean;
   }): void;
-  unregisterZIndexPortalElement(payload: { zIndex: number; isPanorama: boolean }): void;
+  unregisterZIndexPortalElement(payload: {
+    zIndex: number;
+    isPanorama: boolean;
+  }): void;
 }
 
 export interface ZIndexSlice {
@@ -56,72 +59,88 @@ export interface ZIndexSlice {
   readonly actions: ZIndexActions;
 }
 
-export function createZIndexSlice(initialState: ZIndexState=initialZIndexState,createState: ChartStateInitializer): ZIndexSlice { // Deep-copy the entries: a shallow `{ ...initialState.zIndexMap }` would make
+export function createZIndexSlice(
+  initialState: ZIndexState = initialZIndexState,
+  createState: ChartStateInitializer,
+): ZIndexSlice {
+  // Deep-copy the entries: a shallow `{ ...initialState.zIndexMap }` would make
   // every chart's store wrap the SAME module-level ZIndexEntry objects from
   // `initialZIndexState`, so one chart registering its portal <g> would
   // overwrite every other chart's portal element (graphical items then portal
   // into a different chart's svg).
-  const [state,setState]=createState<ZIndexState>({
+  const [state, setState] = createState<ZIndexState>({
     zIndexMap: Object.fromEntries(
-      Object.entries(initialState.zIndexMap).map(([z,entry]) => [z,{ ...entry }]),
+      Object.entries(initialState.zIndexMap).map(([z, entry]) => [
+        z,
+        { ...entry },
+      ]),
     ),
   });
 
-  const actions: ZIndexActions={
+  const actions: ZIndexActions = {
     registerZIndexPortal({ zIndex }) {
       setState((s) => {
-        const entry=s.zIndexMap[zIndex];
-        if(entry) {
-          entry.consumers+=1;
+        const entry = s.zIndexMap[zIndex];
+        if (entry) {
+          entry.consumers += 1;
         } else {
-          s.zIndexMap[zIndex]={ consumers: 1,element: undefined,panoramaElement: undefined };
+          s.zIndexMap[zIndex] = {
+            consumers: 1,
+            element: undefined,
+            panoramaElement: undefined,
+          };
         }
       });
     },
     unregisterZIndexPortal({ zIndex }) {
       setState((s) => {
-        const entry=s.zIndexMap[zIndex];
-        if(entry) {
-          entry.consumers-=1;
+        const entry = s.zIndexMap[zIndex];
+        if (entry) {
+          entry.consumers -= 1;
           // Garbage-collect unused entries, except default z-indexes (always
           // rendered, so their portal provider stays mounted and won't re-register).
-          if(entry.consumers<=0&&!isDefaultZIndex(zIndex)) {
+          if (entry.consumers <= 0 && !isDefaultZIndex(zIndex)) {
             delete s.zIndexMap[zIndex];
           }
         }
       });
     },
-    registerZIndexPortalElement({ zIndex,element,isPanorama }) {
+    registerZIndexPortalElement({ zIndex, element, isPanorama }) {
       setState((s) => {
-        const entry=s.zIndexMap[zIndex];
-        if(entry) {
-          if(isPanorama) {
-            entry.panoramaElement=element;
+        const entry = s.zIndexMap[zIndex];
+        if (entry) {
+          if (isPanorama) {
+            entry.panoramaElement = element;
           } else {
-            entry.element=element;
+            entry.element = element;
           }
         } else {
-          s.zIndexMap[zIndex]={
+          s.zIndexMap[zIndex] = {
             consumers: 0,
-            element: isPanorama? undefined:element,
-            panoramaElement: isPanorama? element:undefined,
+            element: isPanorama ? undefined : element,
+            panoramaElement: isPanorama ? element : undefined,
           };
         }
       });
     },
-    unregisterZIndexPortalElement({ zIndex,isPanorama }) {
+    unregisterZIndexPortalElement({ zIndex, isPanorama }) {
       setState((s) => {
-        const entry=s.zIndexMap[zIndex];
-        if(entry) {
-          if(isPanorama) {
-            entry.panoramaElement=undefined;
+        const entry = s.zIndexMap[zIndex];
+        if (entry) {
+          if (isPanorama) {
+            entry.panoramaElement = undefined;
           } else {
-            entry.element=undefined;
+            entry.element = undefined;
           }
         }
       });
     },
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

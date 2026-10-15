@@ -5,6 +5,7 @@
 //   - `CSSProperties` from 'react' → `JSX.CSSProperties` from '@solidjs/web'
 
 import type { JSX } from "@solidjs/web";
+
 import { isNumber } from "../DataUtils";
 import type { Coordinate, CartesianViewBox, AllowInDimension } from "../types";
 
@@ -24,16 +25,36 @@ export function getTooltipCSSClassName({
   coordinate: Partial<Coordinate> | undefined;
 }): string {
   const classes: Array<string> = [CSS_CLASS_PREFIX];
-  if (isNumber(translateX) && coordinate && isNumber(coordinate.x) && translateX >= coordinate.x) {
+  if (
+    isNumber(translateX) &&
+    coordinate &&
+    isNumber(coordinate.x) &&
+    translateX >= coordinate.x
+  ) {
     classes.push(`${CSS_CLASS_PREFIX}-right`);
   }
-  if (isNumber(translateX) && coordinate && isNumber(coordinate.x) && translateX < coordinate.x) {
+  if (
+    isNumber(translateX) &&
+    coordinate &&
+    isNumber(coordinate.x) &&
+    translateX < coordinate.x
+  ) {
     classes.push(`${CSS_CLASS_PREFIX}-left`);
   }
-  if (isNumber(translateY) && coordinate && isNumber(coordinate.y) && translateY >= coordinate.y) {
+  if (
+    isNumber(translateY) &&
+    coordinate &&
+    isNumber(coordinate.y) &&
+    translateY >= coordinate.y
+  ) {
     classes.push(`${CSS_CLASS_PREFIX}-bottom`);
   }
-  if (isNumber(translateY) && coordinate && isNumber(coordinate.y) && translateY < coordinate.y) {
+  if (
+    isNumber(translateY) &&
+    coordinate &&
+    isNumber(coordinate.y) &&
+    translateY < coordinate.y
+  ) {
     classes.push(`${CSS_CLASS_PREFIX}-top`);
   }
   return classes.join(" ");
@@ -64,7 +85,8 @@ export function getTooltipTranslateXY({
     return position[key];
   }
 
-  const negative = coordinate[key] - tooltipDimension - (offset > 0 ? offset : 0);
+  const negative =
+    coordinate[key] - tooltipDimension - (offset > 0 ? offset : 0);
   const positive = coordinate[key] + offset;
 
   if (allowEscapeViewBox[key]) {

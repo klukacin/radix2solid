@@ -1,6 +1,17 @@
-import type { GetPropDefTypes, PropDef } from './prop-def.js';
+import type { GetPropDefTypes, PropDef } from "./prop-def.js";
 
-const paddingValues = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'] as const;
+const paddingValues = [
+  "0",
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+] as const;
 
 const paddingPropDefs = {
   /**
@@ -16,9 +27,9 @@ const paddingPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/padding
    */
   p: {
-    type: 'enum | string',
-    className: 'rt-r-p',
-    customProperties: ['--p'],
+    type: "enum | string",
+    className: "rt-r-p",
+    customProperties: ["--p"],
     values: paddingValues,
     responsive: true,
   },
@@ -36,9 +47,9 @@ const paddingPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/padding-right
    */
   px: {
-    type: 'enum | string',
-    className: 'rt-r-px',
-    customProperties: ['--pl', '--pr'],
+    type: "enum | string",
+    className: "rt-r-px",
+    customProperties: ["--pl", "--pr"],
     values: paddingValues,
     responsive: true,
   },
@@ -56,9 +67,9 @@ const paddingPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/padding-bottom
    */
   py: {
-    type: 'enum | string',
-    className: 'rt-r-py',
-    customProperties: ['--pt', '--pb'],
+    type: "enum | string",
+    className: "rt-r-py",
+    customProperties: ["--pt", "--pb"],
     values: paddingValues,
     responsive: true,
   },
@@ -75,9 +86,9 @@ const paddingPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/padding-top
    */
   pt: {
-    type: 'enum | string',
-    className: 'rt-r-pt',
-    customProperties: ['--pt'],
+    type: "enum | string",
+    className: "rt-r-pt",
+    customProperties: ["--pt"],
     values: paddingValues,
     responsive: true,
   },
@@ -94,9 +105,9 @@ const paddingPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/padding-right
    */
   pr: {
-    type: 'enum | string',
-    className: 'rt-r-pr',
-    customProperties: ['--pr'],
+    type: "enum | string",
+    className: "rt-r-pr",
+    customProperties: ["--pr"],
     values: paddingValues,
     responsive: true,
   },
@@ -113,9 +124,9 @@ const paddingPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/padding-bottom
    */
   pb: {
-    type: 'enum | string',
-    className: 'rt-r-pb',
-    customProperties: ['--pb'],
+    type: "enum | string",
+    className: "rt-r-pb",
+    customProperties: ["--pb"],
     values: paddingValues,
     responsive: true,
   },
@@ -132,9 +143,9 @@ const paddingPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/padding-left
    */
   pl: {
-    type: 'enum | string',
-    className: 'rt-r-pl',
-    customProperties: ['--pl'],
+    type: "enum | string",
+    className: "rt-r-pl",
+    customProperties: ["--pl"],
     values: paddingValues,
     responsive: true,
   },

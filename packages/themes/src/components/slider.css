@@ -16,11 +16,11 @@
   /* disable browser handling of all panning and zooming gestures on touch devices */
   touch-action: none;
 
-  &:where([data-orientation='horizontal']) {
+  &:where([data-orientation="horizontal"]) {
     width: stretch;
     height: var(--slider-track-size);
   }
-  &:where([data-orientation='vertical']) {
+  &:where([data-orientation="vertical"]) {
     height: stretch;
     flex-direction: column;
     width: var(--slider-track-size);
@@ -34,10 +34,10 @@
 
   border-radius: inherit;
 
-  &:where([data-orientation='horizontal']) {
+  &:where([data-orientation="horizontal"]) {
     height: var(--slider-track-size);
   }
-  &:where([data-orientation='vertical']) {
+  &:where([data-orientation="vertical"]) {
     width: var(--slider-track-size);
   }
 }
@@ -46,11 +46,11 @@
   position: absolute;
   border-radius: inherit;
 
-  &:where([data-orientation='horizontal']) {
+  &:where([data-orientation="horizontal"]) {
     height: 100%;
   }
 
-  &:where([data-orientation='vertical']) {
+  &:where([data-orientation="vertical"]) {
     width: 100%;
   }
 }
@@ -64,7 +64,7 @@
   outline: 0;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     z-index: -1;
     width: calc(var(--slider-thumb-size) * 3);
@@ -76,7 +76,7 @@
 
   /* Larger visible thumb so that it slightly overshoots the range */
   &::after {
-    content: '';
+    content: "";
     position: absolute;
     inset: calc(-0.25 * var(--slider-track-size));
     background-color: white;
@@ -159,7 +159,7 @@
     position: relative;
 
     &::before {
-      content: '';
+      content: "";
       inset: 0;
       position: absolute;
       border-radius: inherit;
@@ -217,13 +217,15 @@
 
   & :where(.rt-SliderRange) {
     background-image:
-      linear-gradient(var(--accent-a5), var(--accent-a5)), var(--slider-range-high-contrast-background-image);
+      linear-gradient(var(--accent-a5), var(--accent-a5)),
+      var(--slider-range-high-contrast-background-image);
     background-color: var(--accent-6);
   }
 
   & :where(.rt-SliderThumb) {
     --slider-thumb-box-shadow:
-      0 0 0 1px var(--black-a3), 0 0 0 1px var(--gray-a2), 0 0 0 1px var(--accent-a2), 0 1px 2px var(--gray-a4),
+      0 0 0 1px var(--black-a3), 0 0 0 1px var(--gray-a2),
+      0 0 0 1px var(--accent-a2), 0 1px 2px var(--gray-a4),
       0 1px 3px -0.5px var(--gray-a3);
 
     &:where([data-disabled])::after {
@@ -236,7 +238,10 @@
 /* all high-contrast */
 
 :where(.radix-themes) {
-  --slider-range-high-contrast-background-image: linear-gradient(var(--black-a8), var(--black-a8));
+  --slider-range-high-contrast-background-image: linear-gradient(
+    var(--black-a8),
+    var(--black-a8)
+  );
 }
 :is(.dark, .dark-theme),
 :is(.dark, .dark-theme) :where(.radix-themes:not(.light, .light-theme)) {

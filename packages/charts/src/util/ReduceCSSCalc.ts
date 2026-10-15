@@ -3,9 +3,12 @@
 
 import { isNan } from "./DataUtils";
 
-const MULTIPLY_OR_DIVIDE_REGEX = /(-?\d+(?:\.\d+)?[a-zA-Z%]*)([*/])(-?\d+(?:\.\d+)?[a-zA-Z%]*)/;
-const ADD_OR_SUBTRACT_REGEX = /(-?\d+(?:\.\d+)?[a-zA-Z%]*)([+-])(-?\d+(?:\.\d+)?[a-zA-Z%]*)/;
-const CSS_LENGTH_UNIT_REGEX = /^(px|cm|vh|vw|em|rem|%|mm|in|pt|pc|ex|ch|vmin|vmax|Q)$/;
+const MULTIPLY_OR_DIVIDE_REGEX =
+  /(-?\d+(?:\.\d+)?[a-zA-Z%]*)([*/])(-?\d+(?:\.\d+)?[a-zA-Z%]*)/;
+const ADD_OR_SUBTRACT_REGEX =
+  /(-?\d+(?:\.\d+)?[a-zA-Z%]*)([+-])(-?\d+(?:\.\d+)?[a-zA-Z%]*)/;
+const CSS_LENGTH_UNIT_REGEX =
+  /^(px|cm|vh|vw|em|rem|%|mm|in|pt|pc|ex|ch|vmin|vmax|Q)$/;
 const NUM_SPLIT_REGEX = /(-?\d+(?:\.\d+)?)([a-zA-Z%]+)?/;
 
 type SupportedUnits = "cm" | "mm" | "pt" | "pc" | "in" | "Q" | "px";
@@ -121,7 +124,8 @@ function calculateArithmetic(expr: string | undefined): string {
 
   let newExpr = expr;
   while (newExpr.includes("*") || newExpr.includes("/")) {
-    const [, leftOperand, operator, rightOperand] = MULTIPLY_OR_DIVIDE_REGEX.exec(newExpr) ?? [];
+    const [, leftOperand, operator, rightOperand] =
+      MULTIPLY_OR_DIVIDE_REGEX.exec(newExpr) ?? [];
     const lTs = DecimalCSS.parse(leftOperand ?? "");
     const rTs = DecimalCSS.parse(rightOperand ?? "");
     const result = operator === "*" ? lTs.multiply(rTs) : lTs.divide(rTs);
@@ -132,7 +136,8 @@ function calculateArithmetic(expr: string | undefined): string {
   }
 
   while (newExpr.includes("+") || /.-\d+(?:\.\d+)?/.test(newExpr)) {
-    const [, leftOperand, operator, rightOperand] = ADD_OR_SUBTRACT_REGEX.exec(newExpr) ?? [];
+    const [, leftOperand, operator, rightOperand] =
+      ADD_OR_SUBTRACT_REGEX.exec(newExpr) ?? [];
     const lTs = DecimalCSS.parse(leftOperand ?? "");
     const rTs = DecimalCSS.parse(rightOperand ?? "");
     const result = operator === "+" ? lTs.add(rTs) : lTs.subtract(rTs);
@@ -153,7 +158,10 @@ function calculateParentheses(expr: string): string {
   // eslint-disable-next-line no-cond-assign
   while ((match = PARENTHESES_REGEX.exec(newExpr)) != null) {
     const [, parentheticalExpression] = match;
-    newExpr = newExpr.replace(PARENTHESES_REGEX, calculateArithmetic(parentheticalExpression));
+    newExpr = newExpr.replace(
+      PARENTHESES_REGEX,
+      calculateArithmetic(parentheticalExpression),
+    );
   }
 
   return newExpr;

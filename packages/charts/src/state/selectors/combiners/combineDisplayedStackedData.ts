@@ -1,12 +1,12 @@
+import { getValueByDataKey } from "../../../util/ChartUtils";
+import { getStackSeriesIdentifier } from "../../../util/stacks/getStackSeriesIdentifier";
+import { StackSeriesIdentifier } from "../../../util/stacks/stackTypes";
+import { BaseCartesianAxis } from "../../cartesianAxisSlice";
 // Ported from recharts 3.8.1
 // src/state/selectors/combiners/combineDisplayedStackedData.ts (commit 7a23854).
 // Deviation: the reference's `knownItemsByDataKey.get(...)!` non-null assertion
 // is banned here — replaced with a `?? {}` fallback (identical behavior).
 import { ChartDataState } from "../../chartDataSlice";
-import { BaseCartesianAxis } from "../../cartesianAxisSlice";
-import { getStackSeriesIdentifier } from "../../../util/stacks/getStackSeriesIdentifier";
-import { getValueByDataKey } from "../../../util/ChartUtils";
-import { StackSeriesIdentifier } from "../../../util/stacks/stackTypes";
 import { DefinitelyStackedGraphicalItem } from "../../types/StackedGraphicalItem";
 
 /**
@@ -24,9 +24,13 @@ export function combineDisplayedStackedData(
   { chartData = [] }: ChartDataState,
   tooltipAxisSettings: BaseCartesianAxis,
 ): DisplayedStackedData {
-  const { allowDuplicatedCategory, dataKey: tooltipDataKey } = tooltipAxisSettings;
+  const { allowDuplicatedCategory, dataKey: tooltipDataKey } =
+    tooltipAxisSettings;
 
-  const knownItemsByDataKey = new Map<string | number, DisplayedStackedDataPoint>();
+  const knownItemsByDataKey = new Map<
+    string | number,
+    DisplayedStackedDataPoint
+  >();
 
   stackedGraphicalItems.forEach((item) => {
     // If the item has no own data, use the root chart data; if neither, skip.

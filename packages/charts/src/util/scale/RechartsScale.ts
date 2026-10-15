@@ -1,6 +1,6 @@
+import { CategoricalDomainItem } from "../types";
 // Ported from recharts 3.8.1 src/util/scale/RechartsScale.ts (commit 7a23854).
 import { CustomScaleDefinition } from "./CustomScaleDefinition";
-import { CategoricalDomainItem } from "../types";
 
 /**
  * This is internal representation of scale used in Recharts.
@@ -9,7 +9,9 @@ import { CategoricalDomainItem } from "../types";
  * This is important for React integration - if the scale changes, we want to trigger re-renders.
  * Mutating the scale in place would not trigger re-renders, leading to stale UI.
  */
-export interface RechartsScale<Domain extends CategoricalDomainItem = CategoricalDomainItem> {
+export interface RechartsScale<
+  Domain extends CategoricalDomainItem = CategoricalDomainItem,
+> {
   /**
    * Returns the scale's current domain.
    * The domain could be:
@@ -67,7 +69,10 @@ export interface RechartsScale<Domain extends CategoricalDomainItem = Categorica
    * Given an arbitrary input, returns the corresponding point derived from the output range if the input is in the scale's domain.
    * If the input is not included in the domain, returns undefined.
    */
-  map(input: unknown, options?: { position?: BandPosition }): number | undefined;
+  map(
+    input: unknown,
+    options?: { position?: BandPosition },
+  ): number | undefined;
 }
 
 /**
@@ -78,13 +83,17 @@ export interface RechartsScale<Domain extends CategoricalDomainItem = Categorica
  */
 export type BandPosition = "start" | "middle" | "end";
 
-export function rechartsScaleFactory<Domain extends CategoricalDomainItem = CategoricalDomainItem>(
-  d3Scale: CustomScaleDefinition<Domain>,
-): RechartsScale<Domain>;
-export function rechartsScaleFactory<Domain extends CategoricalDomainItem = CategoricalDomainItem>(
+export function rechartsScaleFactory<
+  Domain extends CategoricalDomainItem = CategoricalDomainItem,
+>(d3Scale: CustomScaleDefinition<Domain>): RechartsScale<Domain>;
+export function rechartsScaleFactory<
+  Domain extends CategoricalDomainItem = CategoricalDomainItem,
+>(
   d3Scale: CustomScaleDefinition<Domain> | undefined,
 ): RechartsScale<Domain> | undefined;
-export function rechartsScaleFactory<Domain extends CategoricalDomainItem = CategoricalDomainItem>(
+export function rechartsScaleFactory<
+  Domain extends CategoricalDomainItem = CategoricalDomainItem,
+>(
   d3Scale: CustomScaleDefinition<Domain> | undefined,
 ): RechartsScale<Domain> | undefined {
   if (d3Scale == null) {
@@ -102,10 +111,14 @@ export function rechartsScaleFactory<Domain extends CategoricalDomainItem = Cate
     isInRange(value: number): boolean {
       const first = range[0];
       const last = range[1];
-      return first <= last ? value >= first && value <= last : value >= last && value <= first;
+      return first <= last
+        ? value >= first && value <= last
+        : value >= last && value <= first;
     },
     bandwidth: bandwidthFn ? () => bandwidthFn.call(d3Scale) : undefined,
-    ticks: ticksFn ? (count: number | undefined) => ticksFn.call(d3Scale, count) : undefined,
+    ticks: ticksFn
+      ? (count: number | undefined) => ticksFn.call(d3Scale, count)
+      : undefined,
     map: (input: Domain, options?: { position?: BandPosition }) => {
       let baseValue = d3Scale(input);
       if (baseValue == null) {

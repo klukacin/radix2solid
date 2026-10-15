@@ -46,6 +46,7 @@ export function createCollectionActions<T>(
         nextItems[index] = next;
         return nextItems;
       }),
-    remove: (item) => update((arr) => arr.filter((it) => keyOf(it) !== keyOf(item))),
+    remove: (item) =>
+      update((arr) => arr.filter((it) => keyOf(it) !== keyOf(item))),
   };
 }

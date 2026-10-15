@@ -1,3 +1,5 @@
+import type { ErrorBarDirection } from "../cartesian/ErrorBar";
+import { DataKey } from "../util/types";
 // Ported from recharts 3.8.1 src/state/errorBarSlice.ts (commit 7a23854).
 //
 // FULL SOLID-NATIVE REWRITE (no Redux/immer). Keyed by the graphical item's id;
@@ -5,8 +7,6 @@
 // replace/remove by (dataKey, direction) — kept verbatim (these are the error
 // bar's identity within an item).
 import type { ChartStateInitializer } from "./createChartState";
-import type { ErrorBarDirection } from "../cartesian/ErrorBar";
-import { DataKey } from "../util/types";
 import { GraphicalItemId } from "./graphicalItemsSlice";
 
 /**
@@ -23,7 +23,10 @@ export type ErrorBarsSettings = {
   dataKey: DataKey<unknown>;
 };
 
-export type ErrorBarsState = Record<GraphicalItemId, ReadonlyArray<ErrorBarsSettings>>;
+export type ErrorBarsState = Record<
+  GraphicalItemId,
+  ReadonlyArray<ErrorBarsSettings>
+>;
 
 export const initialErrorBarsState: ErrorBarsState = {};
 
@@ -51,32 +54,40 @@ export interface ErrorBarsSlice {
 const sameErrorBar = (a: ErrorBarsSettings, b: ErrorBarsSettings): boolean =>
   a.dataKey === b.dataKey && a.direction === b.direction;
 
-export function createErrorBarSlice(initialState: ErrorBarsState=initialErrorBarsState,createState: ChartStateInitializer): ErrorBarsSlice {
-  const [state,setState]=createState<ErrorBarsState>({ ...initialState });
+export function createErrorBarSlice(
+  initialState: ErrorBarsState = initialErrorBarsState,
+  createState: ChartStateInitializer,
+): ErrorBarsSlice {
+  const [state, setState] = createState<ErrorBarsState>({ ...initialState });
 
-  const actions: ErrorBarsActions={
-    addErrorBar({ itemId,errorBar }) {
+  const actions: ErrorBarsActions = {
+    addErrorBar({ itemId, errorBar }) {
       setState((s) => {
-        s[itemId]=[...(s[itemId]??[]),errorBar];
+        s[itemId] = [...(s[itemId] ?? []), errorBar];
       });
     },
-    replaceErrorBar({ itemId,prev,next }) {
+    replaceErrorBar({ itemId, prev, next }) {
       setState((s) => {
-        const list=s[itemId];
-        if(list) {
-          s[itemId]=list.map((e) => (sameErrorBar(e,prev)? next:e));
+        const list = s[itemId];
+        if (list) {
+          s[itemId] = list.map((e) => (sameErrorBar(e, prev) ? next : e));
         }
       });
     },
-    removeErrorBar({ itemId,errorBar }) {
+    removeErrorBar({ itemId, errorBar }) {
       setState((s) => {
-        const list=s[itemId];
-        if(list) {
-          s[itemId]=list.filter((e) => !sameErrorBar(e,errorBar));
+        const list = s[itemId];
+        if (list) {
+          s[itemId] = list.filter((e) => !sameErrorBar(e, errorBar));
         }
       });
     },
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

@@ -4,18 +4,26 @@
 // attribute LAST, so the bound layout wins over any passed value; the public
 // type omits `layout` so TS rejects it too.
 import type { JSX } from "@solidjs/web";
+
 import { AreaChart as OriginalAreaChart } from "../chart/AreaChart";
 import { BarChart as OriginalBarChart } from "../chart/BarChart";
-import { LineChart as OriginalLineChart } from "../chart/LineChart";
 import { ComposedChart as OriginalComposedChart } from "../chart/ComposedChart";
-import { ScatterChart as OriginalScatterChart } from "../chart/ScatterChart";
 import { FunnelChart as OriginalFunnelChart } from "../chart/FunnelChart";
+import { LineChart as OriginalLineChart } from "../chart/LineChart";
+import { ScatterChart as OriginalScatterChart } from "../chart/ScatterChart";
 import type { CartesianChartProps } from "./types";
 
 type Component<P> = (props: P) => JSX.Element;
-type ChartComponent<TData> = Component<Omit<CartesianChartProps<TData>, "layout">>;
+type ChartComponent<TData> = Component<
+  Omit<CartesianChartProps<TData>, "layout">
+>;
 
-export type TypedHorizontalChartContext<TData, _TCategorical, _TNumerical, TComponents> = {
+export type TypedHorizontalChartContext<
+  TData,
+  _TCategorical,
+  _TNumerical,
+  TComponents,
+> = {
   AreaChart: ChartComponent<TData>;
   BarChart: ChartComponent<TData>;
   LineChart: ChartComponent<TData>;
@@ -23,7 +31,12 @@ export type TypedHorizontalChartContext<TData, _TCategorical, _TNumerical, TComp
   ScatterChart: ChartComponent<TData>;
 } & Omit<TComponents, "Funnel" | "FunnelChart">;
 
-export type TypedVerticalChartContext<TData, _TCategorical, _TNumerical, TComponents> = {
+export type TypedVerticalChartContext<
+  TData,
+  _TCategorical,
+  _TNumerical,
+  TComponents,
+> = {
   AreaChart: ChartComponent<TData>;
   BarChart: ChartComponent<TData>;
   LineChart: ChartComponent<TData>;
@@ -41,11 +54,36 @@ const createCartesianCharts = <TData,>(
   ComposedChart: ChartComponent<TData>;
   ScatterChart: ChartComponent<TData>;
 } => ({
-  AreaChart: (props) => <OriginalAreaChart {...props} layout={layout} />,
-  BarChart: (props) => <OriginalBarChart {...props} layout={layout} />,
-  LineChart: (props) => <OriginalLineChart {...props} layout={layout} />,
-  ComposedChart: (props) => <OriginalComposedChart {...props} layout={layout} />,
-  ScatterChart: (props) => <OriginalScatterChart {...props} layout={layout} />,
+  AreaChart: (props) => (
+    <OriginalAreaChart
+      {...props}
+      layout={layout}
+    />
+  ),
+  BarChart: (props) => (
+    <OriginalBarChart
+      {...props}
+      layout={layout}
+    />
+  ),
+  LineChart: (props) => (
+    <OriginalLineChart
+      {...props}
+      layout={layout}
+    />
+  ),
+  ComposedChart: (props) => (
+    <OriginalComposedChart
+      {...props}
+      layout={layout}
+    />
+  ),
+  ScatterChart: (props) => (
+    <OriginalScatterChart
+      {...props}
+      layout={layout}
+    />
+  ),
 });
 
 export type NoFunnel<T> = "Funnel" extends keyof T
@@ -61,7 +99,11 @@ export type NoFunnel<T> = "Funnel" extends keyof T
  *
  * @since 3.8
  */
-export function createHorizontalChart<TData, TCategorical = string, TNumerical = number>() {
+export function createHorizontalChart<
+  TData,
+  TCategorical = string,
+  TNumerical = number,
+>() {
   return function withComponents<TComponents extends Record<string, unknown>>(
     components: NoFunnel<TComponents>,
   ): TypedHorizontalChartContext<TData, TCategorical, TNumerical, TComponents> {
@@ -73,7 +115,12 @@ export function createHorizontalChart<TData, TCategorical = string, TNumerical =
       ...createCartesianCharts<TData>("horizontal"),
       // eslint-disable-next-line typescript/consistent-type-assertions -- NoFunnel<T> narrows to T at runtime
       ...(components as TComponents),
-    } as unknown as TypedHorizontalChartContext<TData, TCategorical, TNumerical, TComponents>;
+    } as unknown as TypedHorizontalChartContext<
+      TData,
+      TCategorical,
+      TNumerical,
+      TComponents
+    >;
   };
 }
 
@@ -84,18 +131,30 @@ export function createHorizontalChart<TData, TCategorical = string, TNumerical =
  *
  * @since 3.8
  */
-export function createVerticalChart<TData, TCategorical = string, TNumerical = number>() {
+export function createVerticalChart<
+  TData,
+  TCategorical = string,
+  TNumerical = number,
+>() {
   return function withComponents<TComponents extends Record<string, unknown>>(
     components: TComponents,
   ): TypedVerticalChartContext<TData, TCategorical, TNumerical, TComponents> {
     const FunnelChart: ChartComponent<TData> = (props) => (
-      <OriginalFunnelChart {...props} layout="vertical" />
+      <OriginalFunnelChart
+        {...props}
+        layout="vertical"
+      />
     );
     // eslint-disable-next-line typescript/consistent-type-assertions -- runtime identity preserved; type is a remap
     return {
       ...createCartesianCharts<TData>("vertical"),
       FunnelChart,
       ...components,
-    } as unknown as TypedVerticalChartContext<TData, TCategorical, TNumerical, TComponents>;
+    } as unknown as TypedVerticalChartContext<
+      TData,
+      TCategorical,
+      TNumerical,
+      TComponents
+    >;
   };
 }

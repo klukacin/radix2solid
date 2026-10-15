@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/chart/PolarChart.tsx (commit 7a23854).
 //
 // Solid deviations: `forwardRef` → `ref` prop; `resolveDefaultProps` → per-field
@@ -8,18 +9,23 @@
 // pass through to CategoricalChart exactly as in the reference — svgPropertiesNoEvents
 // forwards cx/cy onto the root <svg> (faithful) and drops the rest.
 import { omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { ChartOptions } from "../state/optionsSlice";
-import { RechartsStoreProvider } from "../state/RechartsStoreProvider";
+
 import { ChartDataContextProvider } from "../context/chartDataContext";
-import { ReportMainChartProps } from "../state/ReportMainChartProps";
+import { ChartOptions } from "../state/optionsSlice";
+import { PolarChartOptions as PolarOptionsPayload } from "../state/polarOptionsSlice";
+import { RechartsStoreProvider } from "../state/RechartsStoreProvider";
 import { ReportChartProps } from "../state/ReportChartProps";
 import { ReportEventSettings } from "../state/ReportEventSettings";
+import { ReportMainChartProps } from "../state/ReportMainChartProps";
 import { ReportPolarOptions } from "../state/ReportPolarOptions";
-import { Margin, PolarChartProps, PolarLayout, TooltipEventType } from "../util/types";
-import { TooltipPayloadSearcher } from "../state/tooltipSlice";
 import { UpdatableChartOptions } from "../state/rootPropsSlice";
-import { PolarChartOptions as PolarOptionsPayload } from "../state/polarOptionsSlice";
+import { TooltipPayloadSearcher } from "../state/tooltipSlice";
+import {
+  Margin,
+  PolarChartProps,
+  PolarLayout,
+  TooltipEventType,
+} from "../util/types";
 import { CategoricalChart } from "./CategoricalChart";
 
 const defaultMargin: Margin = { top: 5, right: 5, bottom: 5, left: 5 };
@@ -79,7 +85,10 @@ export const PolarChart = (props: PolarChartOptions): JSX.Element => {
   return (
     <RechartsStoreProvider preloadedState={{ options: options() }}>
       <ChartDataContextProvider chartData={cp().data} />
-      <ReportMainChartProps layout={layout()} margin={margin()} />
+      <ReportMainChartProps
+        layout={layout()}
+        margin={margin()}
+      />
       <ReportEventSettings
         throttleDelay={cp().throttleDelay}
         throttledEvents={cp().throttledEvents}
@@ -89,7 +98,10 @@ export const PolarChart = (props: PolarChartOptions): JSX.Element => {
       {/* Spread WITHOUT children (a `{...cp()}` spread eagerly evaluates the
           children getter here, before the provider sets context — running them
           outside the store); pass children as a lazy JSX child instead. */}
-      <CategoricalChart {...omit(cp(), "children")} ref={props.ref}>
+      <CategoricalChart
+        {...omit(cp(), "children")}
+        ref={props.ref}
+      >
         {cp().children}
       </CategoricalChart>
     </RechartsStoreProvider>

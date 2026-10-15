@@ -3,14 +3,17 @@
 // PROPS (not a graphical-items slice) and passed in directly — the only store reads
 // are the chart offset and chart-level data. Cells + per-row presentation merge here,
 // mirroring the reference (cell props win over data, which wins over presentation).
-import { computeFunnelTrapezoids, FunnelTrapezoidItem } from "../../cartesian/Funnel";
-import { ChartData } from "../chartDataSlice";
-import { RechartsRootState } from "../store";
-import { selectChartOffsetInternal } from "./selectChartOffsetInternal";
-import { selectChartDataAndAlwaysIgnoreIndexes } from "./dataSelectors";
-import { DataKey, TooltipType } from "../../util/types";
+import {
+  computeFunnelTrapezoids,
+  FunnelTrapezoidItem,
+} from "../../cartesian/Funnel";
 import type { CellProps } from "../../component/Cell";
+import { DataKey, TooltipType } from "../../util/types";
+import { ChartData } from "../chartDataSlice";
 import { GraphicalItemId } from "../graphicalItemsSlice";
+import { RechartsRootState } from "../store";
+import { selectChartDataAndAlwaysIgnoreIndexes } from "./dataSelectors";
+import { selectChartOffsetInternal } from "./selectChartOffsetInternal";
 
 export type ResolvedFunnelSettings = {
   dataKey: DataKey<unknown> | undefined;
@@ -64,7 +67,10 @@ export const selectFunnelTrapezoids = (
       ...toRecord(cells[index]),
     }));
   } else if (cells.length > 0) {
-    displayedData = cells.map((cell) => ({ ...presentationProps, ...toRecord(cell) }));
+    displayedData = cells.map((cell) => ({
+      ...presentationProps,
+      ...toRecord(cell),
+    }));
   } else {
     return [];
   }

@@ -1,3 +1,6 @@
+import { DataKey } from "../util/types";
+import { AxisId } from "./cartesianAxisSlice";
+import { ChartData } from "./chartDataSlice";
 // Ported from recharts 3.8.1 src/state/graphicalItemsSlice.ts (commit 7a23854).
 //
 // FULL SOLID-NATIVE REWRITE (no Redux/immer — see the state-architecture
@@ -12,16 +15,13 @@
 // ordering/replacement semantics.
 import type { ChartStateInitializer } from "./createChartState";
 import { createCollectionActions } from "./createCollectionActions";
-import { ChartData } from "./chartDataSlice";
-import { AxisId } from "./cartesianAxisSlice";
-import { DataKey } from "../util/types";
-import { LineSettings } from "./types/LineSettings";
 import { AreaSettings } from "./types/AreaSettings";
 import { BarSettings } from "./types/BarSettings";
-import { ScatterSettings } from "./types/ScatterSettings";
+import { LineSettings } from "./types/LineSettings";
 import { PieSettings } from "./types/PieSettings";
 import { RadarSettings } from "./types/RadarSettings";
 import { RadialBarSettings } from "./types/RadialBarSettings";
+import { ScatterSettings } from "./types/ScatterSettings";
 
 /**
  * Unique ID of a graphical item — provided by the user or generated. Used to
@@ -67,7 +67,10 @@ export interface BasePolarGraphicalItemSettings extends GraphicalItemSettings {
   radiusAxisId: AxisId;
 }
 
-export type PolarGraphicalItemSettings = PieSettings | RadarSettings | RadialBarSettings;
+export type PolarGraphicalItemSettings =
+  | PieSettings
+  | RadarSettings
+  | RadialBarSettings;
 
 export type GraphicalItemsState = {
   /**
@@ -93,10 +96,14 @@ interface ReplacePayload<T> {
 
 export interface GraphicalItemsActions {
   addCartesianGraphicalItem(item: CartesianGraphicalItemSettings): void;
-  replaceCartesianGraphicalItem(payload: ReplacePayload<CartesianGraphicalItemSettings>): void;
+  replaceCartesianGraphicalItem(
+    payload: ReplacePayload<CartesianGraphicalItemSettings>,
+  ): void;
   removeCartesianGraphicalItem(item: CartesianGraphicalItemSettings): void;
   addPolarGraphicalItem(item: PolarGraphicalItemSettings): void;
-  replacePolarGraphicalItem(payload: ReplacePayload<PolarGraphicalItemSettings>): void;
+  replacePolarGraphicalItem(
+    payload: ReplacePayload<PolarGraphicalItemSettings>,
+  ): void;
   removePolarGraphicalItem(item: PolarGraphicalItemSettings): void;
 }
 
@@ -105,36 +112,39 @@ export interface GraphicalItemsSlice {
   readonly actions: GraphicalItemsActions;
 }
 
-export function createGraphicalItemsSlice(initialState: GraphicalItemsState=initialGraphicalItemsState,createState: ChartStateInitializer): GraphicalItemsSlice {
-  const [state,setState]=createState<GraphicalItemsState>({
+export function createGraphicalItemsSlice(
+  initialState: GraphicalItemsState = initialGraphicalItemsState,
+  createState: ChartStateInitializer,
+): GraphicalItemsSlice {
+  const [state, setState] = createState<GraphicalItemsState>({
     cartesianItems: [...initialState.cartesianItems],
     polarItems: [...initialState.polarItems],
   });
 
   // State arrays are typed ReadonlyArray (immutable external API); the collection
   // actions reassign the whole array rather than mutate in place (see ADR-0002).
-  const cartesian=createCollectionActions<CartesianGraphicalItemSettings>(
+  const cartesian = createCollectionActions<CartesianGraphicalItemSettings>(
     (updater) =>
       setState((s) => {
-        const next=updater(s.cartesianItems);
-        if(next!==s.cartesianItems) {
-          s.cartesianItems=next;
+        const next = updater(s.cartesianItems);
+        if (next !== s.cartesianItems) {
+          s.cartesianItems = next;
         }
       }),
     (it) => it.id,
   );
-  const polar=createCollectionActions<PolarGraphicalItemSettings>(
+  const polar = createCollectionActions<PolarGraphicalItemSettings>(
     (updater) =>
       setState((s) => {
-        const next=updater(s.polarItems);
-        if(next!==s.polarItems) {
-          s.polarItems=next;
+        const next = updater(s.polarItems);
+        if (next !== s.polarItems) {
+          s.polarItems = next;
         }
       }),
     (it) => it.id,
   );
 
-  const actions: GraphicalItemsActions={
+  const actions: GraphicalItemsActions = {
     addCartesianGraphicalItem: cartesian.add,
     replaceCartesianGraphicalItem: cartesian.replace,
     removeCartesianGraphicalItem: cartesian.remove,
@@ -143,5 +153,10 @@ export function createGraphicalItemsSlice(initialState: GraphicalItemsState=init
     removePolarGraphicalItem: polar.remove,
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

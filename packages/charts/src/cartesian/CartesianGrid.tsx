@@ -1,3 +1,29 @@
+import { isServer, type JSX } from "@solidjs/web";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  merge,
+  Show,
+} from "solid-js";
+
+import {
+  useChartHeight,
+  useChartWidth,
+  useOffsetInternal,
+} from "../context/chartLayoutContext";
+import { useIsPanorama } from "../context/PanoramaContext";
+import { AxisId } from "../state/cartesianAxisSlice";
+import { useAppSelector } from "../state/hooks";
+import {
+  type AxisPropsForCartesianGridTicksGeneration,
+  selectAxisPropsNeededForCartesianGridTicksGenerator,
+} from "../state/selectors/axisSelectors";
+import { getTicksOfAxis } from "../util/ChartUtils";
+import { isNumber } from "../util/DataUtils";
+import { isPositiveNumber } from "../util/isWellBehavedNumber";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 // Ported from recharts 3.8.1 src/cartesian/CartesianGrid.tsx (commit 7a23854).
 //
 // Draws the horizontal + vertical grid lines, the alternating background
@@ -13,25 +39,11 @@
 // full GridLineTypeFunctionProps payload (matching recharts) including the
 // xAxis/yAxis/offset bundle.
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createEffect, createMemo, createSignal, For, merge, Show } from "solid-js";
-import { isServer, type JSX } from "@solidjs/web";
-import { useAppSelector } from "../state/hooks";
-import { useIsPanorama } from "../context/PanoramaContext";
-import { useChartHeight, useChartWidth, useOffsetInternal } from "../context/chartLayoutContext";
-import {
-  type AxisPropsForCartesianGridTicksGeneration,
-  selectAxisPropsNeededForCartesianGridTicksGenerator,
-} from "../state/selectors/axisSelectors";
-import { AxisId } from "../state/cartesianAxisSlice";
-import { isPositiveNumber } from "../util/isWellBehavedNumber";
-import { isNumber } from "../util/DataUtils";
-import { getTicksOfAxis } from "../util/ChartUtils";
-import { getTicks } from "./getTicks";
 import { svgPropertiesNoEvents } from "../util/svgPropertiesNoEvents";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
+import type { ChartOffsetInternal, TickItem } from "../util/types";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 import { ZIndexLayer } from "../zIndex/ZIndexLayer";
-import type { ChartOffsetInternal, TickItem } from "../util/types";
+import { getTicks } from "./getTicks";
 
 /**
  * The props passed to a custom horizontal/vertical render-prop function (and,
@@ -202,7 +214,10 @@ const defaultVerticalCoordinatesGenerator: VerticalCoordinatesGenerator = (
     getTicks({
       ...defaultCartesianAxisProps,
       ...xAxis,
-      ticks: getTicksOfAxis(xAxis == null ? undefined : { ...xAxis, scale: xAxis.scale }, true),
+      ticks: getTicksOfAxis(
+        xAxis == null ? undefined : { ...xAxis, scale: xAxis.scale },
+        true,
+      ),
       viewBox: { x: 0, y: 0, width, height },
     }),
     offset.left,
@@ -218,7 +233,10 @@ const defaultHorizontalCoordinatesGenerator: HorizontalCoordinatesGenerator = (
     getTicks({
       ...defaultCartesianAxisProps,
       ...yAxis,
-      ticks: getTicksOfAxis(yAxis == null ? undefined : { ...yAxis, scale: yAxis.scale }, true),
+      ticks: getTicksOfAxis(
+        yAxis == null ? undefined : { ...yAxis, scale: yAxis.scale },
+        true,
+      ),
       viewBox: { x: 0, y: 0, width, height },
     }),
     offset.top,
@@ -231,17 +249,33 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
   const [canMeasureTicks, setCanMeasureTicks] = createSignal(false);
   // Default grid generators must claim the same unmeasured ticks as the axes.
   if (!isServer) {
-    createEffect(() => undefined, () => { setCanMeasureTicks(true); }, { transparent: true });
+    createEffect(
+      () => undefined,
+      () => {
+        setCanMeasureTicks(true);
+      },
+      { transparent: true },
+    );
   }
   const isPanorama = useIsPanorama();
   const offset = useOffsetInternal();
   const chartWidth = useChartWidth();
   const chartHeight = useChartHeight();
   const xAxis = useAppSelector((state) =>
-    selectAxisPropsNeededForCartesianGridTicksGenerator(state, "xAxis", merged.xAxisId, isPanorama),
+    selectAxisPropsNeededForCartesianGridTicksGenerator(
+      state,
+      "xAxis",
+      merged.xAxisId,
+      isPanorama,
+    ),
   );
   const yAxis = useAppSelector((state) =>
-    selectAxisPropsNeededForCartesianGridTicksGenerator(state, "yAxis", merged.yAxisId, isPanorama),
+    selectAxisPropsNeededForCartesianGridTicksGenerator(
+      state,
+      "yAxis",
+      merged.yAxisId,
+      isPanorama,
+    ),
   );
 
   const geom = createMemo(() => {
@@ -260,7 +294,9 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
     // (default or custom) coordinate generator.
     let horizontalPoints: ReadonlyArray<number> = merged.horizontalPoints ?? [];
     if (horizontalPoints.length === 0) {
-      const gen = merged.horizontalCoordinatesGenerator ?? defaultHorizontalCoordinatesGenerator;
+      const gen =
+        merged.horizontalCoordinatesGenerator ??
+        defaultHorizontalCoordinatesGenerator;
       const hValues = merged.horizontalValues;
       const isHorizontalValues = hValues != null && hValues.length > 0;
       const ya = yAxis();
@@ -271,9 +307,12 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
               ? undefined
               : {
                   ...ya,
-                  interval: !merged.horizontalCoordinatesGenerator && !canMeasureTicks() && !isNumber(ya.interval)
-                    ? 0
-                    : ya.interval,
+                  interval:
+                    !merged.horizontalCoordinatesGenerator &&
+                    !canMeasureTicks() &&
+                    !isNumber(ya.interval)
+                      ? 0
+                      : ya.interval,
                   ticks: isHorizontalValues ? hValues : ya.ticks,
                 },
           width: cw,
@@ -287,7 +326,9 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
 
     let verticalPoints: ReadonlyArray<number> = merged.verticalPoints ?? [];
     if (verticalPoints.length === 0) {
-      const gen = merged.verticalCoordinatesGenerator ?? defaultVerticalCoordinatesGenerator;
+      const gen =
+        merged.verticalCoordinatesGenerator ??
+        defaultVerticalCoordinatesGenerator;
       const vValues = merged.verticalValues;
       const isVerticalValues = vValues != null && vValues.length > 0;
       const xa = xAxis();
@@ -298,9 +339,12 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
               ? undefined
               : {
                   ...xa,
-                  interval: !merged.verticalCoordinatesGenerator && !canMeasureTicks() && !isNumber(xa.interval)
-                    ? 0
-                    : xa.interval,
+                  interval:
+                    !merged.verticalCoordinatesGenerator &&
+                    !canMeasureTicks() &&
+                    !isNumber(xa.interval)
+                      ? 0
+                      : xa.interval,
                   ticks: isVerticalValues ? vValues : xa.ticks,
                 },
           width: cw,
@@ -330,7 +374,9 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
       return [];
     }
     const points = g.horizontalPoints;
-    const rounded = points.map((e) => Math.round(e + g.y - g.y)).sort((a, b) => a - b);
+    const rounded = points
+      .map((e) => Math.round(e + g.y - g.y))
+      .sort((a, b) => a - b);
     if (g.y !== rounded[0]) {
       rounded.unshift(0);
     }
@@ -339,7 +385,9 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
       .map((entry, i) => {
         const nextPoint = rounded[i + 1];
         const lastStripe = nextPoint == null;
-        const lineHeight = lastStripe ? g.y + g.height - entry : nextPoint - entry;
+        const lineHeight = lastStripe
+          ? g.y + g.height - entry
+          : nextPoint - entry;
         if (lineHeight <= 0) {
           return null;
         }
@@ -364,7 +412,9 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
       return [];
     }
     const points = g.verticalPoints;
-    const rounded = points.map((e) => Math.round(e + g.x - g.x)).sort((a, b) => a - b);
+    const rounded = points
+      .map((e) => Math.round(e + g.x - g.x))
+      .sort((a, b) => a - b);
     if (g.x !== rounded[0]) {
       rounded.unshift(0);
     }
@@ -373,7 +423,9 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
       .map((entry, i) => {
         const nextPoint = rounded[i + 1];
         const lastStripe = nextPoint == null;
-        const lineWidth = lastStripe ? g.x + g.width - entry : nextPoint - entry;
+        const lineWidth = lastStripe
+          ? g.x + g.width - entry
+          : nextPoint - entry;
         if (lineWidth <= 0) {
           return null;
         }
@@ -566,7 +618,8 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
                         width: d.width,
                         height: d.height,
                       })}
-                      {...(typeof merged.horizontal === "object" && merged.horizontal !== null
+                      {...(typeof merged.horizontal === "object" &&
+                      merged.horizontal !== null
                         ? svgPropertiesAndEvents({ ...merged.horizontal })
                         : {})}
                       x1={d.x1}
@@ -596,7 +649,8 @@ export const CartesianGrid = (props: CartesianGridProps): JSX.Element => {
                         width: d.width,
                         height: d.height,
                       })}
-                      {...(typeof merged.vertical === "object" && merged.vertical !== null
+                      {...(typeof merged.vertical === "object" &&
+                      merged.vertical !== null
                         ? svgPropertiesAndEvents({ ...merged.vertical })
                         : {})}
                       x1={d.x1}

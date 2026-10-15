@@ -1,23 +1,22 @@
-import { asChildPropDef } from '../props/as-child.prop.js';
+import { asChildPropDef } from "../props/as-child.prop.js";
+import type { PropDef } from "../props/prop-def.js";
 
-import type { PropDef } from '../props/prop-def.js';
-
-const sizes = ['1', '2', '3', '4', '5', '6', '7', '8', '9'] as const;
-const variants = ['classic', 'soft'] as const;
+const sizes = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
+const variants = ["classic", "soft"] as const;
 
 const kbdPropDefs = {
   ...asChildPropDef,
   size: {
-    type: 'enum',
-    className: 'rt-r-size',
+    type: "enum",
+    className: "rt-r-size",
     values: sizes,
     responsive: true,
   },
   variant: {
-    type: 'enum',
-    className: 'rt-variant',
+    type: "enum",
+    className: "rt-variant",
     values: variants,
-    default: 'classic',
+    default: "classic",
   },
 } satisfies {
   size: PropDef<(typeof sizes)[number]>;

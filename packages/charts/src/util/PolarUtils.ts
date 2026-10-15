@@ -13,7 +13,8 @@ export const RADIAN = Math.PI / 180;
 
 export const degreeToRadian = (angle: number) => (angle * Math.PI) / 180;
 
-export const radianToDegree = (angleInRadian: number) => (angleInRadian * 180) / Math.PI;
+export const radianToDegree = (angleInRadian: number) =>
+  (angleInRadian * 180) / Math.PI;
 
 export const polarToCartesian = (
   cx: number,
@@ -50,7 +51,10 @@ const distanceBetweenPoints = (point: Coordinate, anotherPoint: Coordinate) => {
   return Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
 };
 
-const getAngleOfPoint = ({ x, y }: Coordinate, { cx, cy }: PolarViewBoxRequired) => {
+const getAngleOfPoint = (
+  { x, y }: Coordinate,
+  { cx, cy }: PolarViewBoxRequired,
+) => {
   const radius = distanceBetweenPoints({ x, y }, { x: cx, y: cy });
 
   if (radius <= 0) {
@@ -67,7 +71,10 @@ const getAngleOfPoint = ({ x, y }: Coordinate, { cx, cy }: PolarViewBoxRequired)
   return { radius, angle: radianToDegree(angleInRadian), angleInRadian };
 };
 
-const formatAngleOfSector = ({ startAngle, endAngle }: PolarViewBoxRequired) => {
+const formatAngleOfSector = ({
+  startAngle,
+  endAngle,
+}: PolarViewBoxRequired) => {
   const startCnt = Math.floor(startAngle / 360);
   const endCnt = Math.floor(endAngle / 360);
   const min = Math.min(startCnt, endCnt);
@@ -127,7 +134,11 @@ export const inRangeOfSector = (
   }
 
   if (inRange) {
-    return { ...viewBox, radius, angle: reverseFormatAngleOfSector(formatAngle, viewBox) };
+    return {
+      ...viewBox,
+      radius,
+      angle: reverseFormatAngleOfSector(formatAngle, viewBox),
+    };
   }
 
   return null;

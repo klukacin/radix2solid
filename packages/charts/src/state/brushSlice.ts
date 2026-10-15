@@ -1,8 +1,8 @@
+import { Padding } from "../util/types";
 // Ported from recharts 3.8.1 src/state/brushSlice.ts (commit 7a23854).
 // FULL SOLID-NATIVE REWRITE (no Redux). Brush is a deferred vertical; this slice
 // is wired into the store so the offset can read `brush.height` (0 by default).
 import type { ChartStateInitializer } from "./createChartState";
-import { Padding } from "../util/types";
 
 /**
  * Of all Brush properties, only `height` has a default and is always defined.
@@ -35,26 +35,34 @@ export interface BrushSlice {
   readonly actions: BrushActions;
 }
 
-export function createBrushSlice(initialState: BrushSettings=initialBrushState,createState: ChartStateInitializer): BrushSlice {
-  const [state,setState]=createState<BrushSettings>({
+export function createBrushSlice(
+  initialState: BrushSettings = initialBrushState,
+  createState: ChartStateInitializer,
+): BrushSlice {
+  const [state, setState] = createState<BrushSettings>({
     ...initialState,
     padding: { ...initialState.padding },
   });
 
-  const actions: BrushActions={
+  const actions: BrushActions = {
     // The reducer replaces the whole settings object (or resets to initial when
     // null); draft-first assignment of every field applies the full replacement.
     setBrushSettings(payload) {
-      const next=payload??initialBrushState;
+      const next = payload ?? initialBrushState;
       setState((s) => {
-        s.x=next.x;
-        s.y=next.y;
-        s.width=next.width;
-        s.height=next.height;
-        s.padding={ ...next.padding };
+        s.x = next.x;
+        s.y = next.y;
+        s.width = next.width;
+        s.height = next.height;
+        s.padding = { ...next.padding };
       });
     },
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

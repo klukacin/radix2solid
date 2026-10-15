@@ -1,8 +1,8 @@
 // Ported from recharts 3.8.1 src/util/DataUtils.ts (grown incrementally as
 // consumers need more; the full 53-case spec ports when this is completed).
 import { get } from "./objectPath";
-import { NonEmptyArray, Percent } from "./types";
 import { round } from "./round";
+import { NonEmptyArray, Percent } from "./types";
 
 let idCounter = 0;
 
@@ -23,10 +23,12 @@ export const mathSign = (value: number): number => {
   return -1;
 };
 
-export const isNan = (value: unknown): boolean => typeof value === "number" && Number.isNaN(value);
+export const isNan = (value: unknown): boolean =>
+  typeof value === "number" && Number.isNaN(value);
 
 export const isNumber = (value: unknown): value is number =>
-  (typeof value === "number" || value instanceof Number) && !isNan(Number(value));
+  (typeof value === "number" || value instanceof Number) &&
+  !isNan(Number(value));
 
 export const isNumOrStr = (value: unknown): value is number | string =>
   isNumber(value) || typeof value === "string";
@@ -36,9 +38,21 @@ export const isNullish = (value: unknown): value is null | undefined =>
 
 export function noop(): undefined {}
 
-export function interpolate(start: number | null | undefined, end: number, t: number): number;
-export function interpolate(start: number | null | undefined, end: null, t: number): null;
-export function interpolate(start: number | null | undefined, end: undefined, t: number): undefined;
+export function interpolate(
+  start: number | null | undefined,
+  end: number,
+  t: number,
+): number;
+export function interpolate(
+  start: number | null | undefined,
+  end: null,
+  t: number,
+): null;
+export function interpolate(
+  start: number | null | undefined,
+  end: undefined,
+  t: number,
+): undefined;
 export function interpolate(
   start: number | null | undefined,
   end: number | null,
@@ -73,8 +87,12 @@ export const upperFirst = (value: string): string => {
   return `${value.charAt(0).toUpperCase()}${value.slice(1)}`;
 };
 
-export const isPercent = (value: string | number | undefined): value is Percent =>
-  typeof value === "string" && value.length > 1 && value.indexOf("%") === value.length - 1;
+export const isPercent = (
+  value: string | number | undefined,
+): value is Percent =>
+  typeof value === "string" &&
+  value.length > 1 &&
+  value.indexOf("%") === value.length - 1;
 
 export const hasDuplicate = (ary: ReadonlyArray<unknown>): boolean => {
   if (!Array.isArray(ary)) {
@@ -107,8 +125,9 @@ export function findEntryInArray<T>(
   return ary.find(
     (entry) =>
       entry &&
-      (typeof specifiedKey === "function" ? specifiedKey(entry) : get(entry, specifiedKey)) ===
-        specifiedValue,
+      (typeof specifiedKey === "function"
+        ? specifiedKey(entry)
+        : get(entry, specifiedKey)) === specifiedValue,
   );
 }
 
@@ -150,7 +169,9 @@ export const getLinearRegression = (
   }
 
   const a =
-    len * xxsum !== xsum * xsum ? (len * xysum - xsum * ysum) / (len * xxsum - xsum * xsum) : 0;
+    len * xxsum !== xsum * xsum
+      ? (len * xysum - xsum * ysum) / (len * xxsum - xsum * xsum)
+      : 0;
 
   return {
     xmin,

@@ -1,27 +1,30 @@
+import { computeArea, ComputedArea } from "../../cartesian/Area";
+import { selectChartLayout } from "../../context/chartLayoutContext";
+import { getBandSizeOfAxis, isCategoricalAxis } from "../../util/ChartUtils";
+import { AllStackGroups, StackDataPoint } from "../../util/stacks/stackTypes";
+import { ChartData } from "../chartDataSlice";
+import { GraphicalItemId } from "../graphicalItemsSlice";
 // Ported from recharts 3.8.1 src/state/selectors/areaSelectors.ts (commit 7a23854).
 // Solid-native plain selectors (no reselect). Stacked areas are wired:
 // `selectGraphicalItemStackedData` reads this area's stack series off the numeric
 // axis' stack groups, and computeArea turns it into a per-point baseLine.
 import { RechartsRootState } from "../store";
-import { selectStackGroups, selectUnfilteredCartesianItems } from "./axisSelectors";
-import { getBandSizeOfAxis, isCategoricalAxis } from "../../util/ChartUtils";
-import { ChartData } from "../chartDataSlice";
-import { selectChartLayout } from "../../context/chartLayoutContext";
+import { AreaSettings } from "../types/AreaSettings";
+import {
+  selectStackGroups,
+  selectUnfilteredCartesianItems,
+} from "./axisSelectors";
+import { combineStackedData } from "./combiners/combineStackedData";
 import { selectChartDataWithIndexesIfNotInPanoramaPosition3 } from "./dataSelectors";
-import { selectChartBaseValue } from "./rootPropsSelectors";
-import { GraphicalItemId } from "../graphicalItemsSlice";
 import {
   selectXAxisIdFromGraphicalItemId,
   selectYAxisIdFromGraphicalItemId,
 } from "./graphicalItemSelectors";
+import { selectChartBaseValue } from "./rootPropsSelectors";
 import {
   selectAxisWithScaleForGraphicalItem,
   selectTicksForGraphicalItem,
 } from "./selectAxisForGraphicalItem";
-import { AreaSettings } from "../types/AreaSettings";
-import { computeArea, ComputedArea } from "../../cartesian/Area";
-import { combineStackedData } from "./combiners/combineStackedData";
-import { AllStackGroups, StackDataPoint } from "../../util/stacks/stackTypes";
 
 const selectBandSize = (
   state: RechartsRootState,
@@ -67,7 +70,12 @@ const selectAreaStackGroups = (
       isPanorama,
     );
   }
-  return selectStackGroups(state, "xAxis", selectXAxisIdFromGraphicalItemId(state, id), isPanorama);
+  return selectStackGroups(
+    state,
+    "xAxis",
+    selectXAxisIdFromGraphicalItemId(state, id),
+    isPanorama,
+  );
 };
 
 // This area's stack series as plain [start, end] tuples (or undefined when the
@@ -93,10 +101,30 @@ export const selectArea = (
   isPanorama: boolean,
 ): ComputedArea | undefined => {
   const layout = selectChartLayout(state);
-  const xAxis = selectAxisWithScaleForGraphicalItem(state, "xAxis", id, isPanorama);
-  const yAxis = selectAxisWithScaleForGraphicalItem(state, "yAxis", id, isPanorama);
-  const xAxisTicks = selectTicksForGraphicalItem(state, "xAxis", id, isPanorama);
-  const yAxisTicks = selectTicksForGraphicalItem(state, "yAxis", id, isPanorama);
+  const xAxis = selectAxisWithScaleForGraphicalItem(
+    state,
+    "xAxis",
+    id,
+    isPanorama,
+  );
+  const yAxis = selectAxisWithScaleForGraphicalItem(
+    state,
+    "yAxis",
+    id,
+    isPanorama,
+  );
+  const xAxisTicks = selectTicksForGraphicalItem(
+    state,
+    "xAxis",
+    id,
+    isPanorama,
+  );
+  const yAxisTicks = selectTicksForGraphicalItem(
+    state,
+    "yAxis",
+    id,
+    isPanorama,
+  );
   const { chartData, dataStartIndex, dataEndIndex } =
     selectChartDataWithIndexesIfNotInPanoramaPosition3(state, id, isPanorama);
   const bandSize = selectBandSize(state, id, isPanorama);

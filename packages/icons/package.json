@@ -2,22 +2,49 @@
   "name": "@wsagency/radix2solid-icons",
   "version": "0.1.0-rc.2",
   "private": false,
-  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/", "tag": "next" },
-  "type": "module",
-  "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/wsagency/radix2solid.git", "directory": "packages/icons" },
   "homepage": "https://github.com/wsagency/radix2solid/tree/main/packages/icons#readme",
-  "bugs": { "url": "https://github.com/wsagency/radix2solid/issues" },
-  "files": ["dist", "icons", "LICENSE", "README.md", "CHANGELOG.md"],
+  "bugs": {
+    "url": "https://github.com/wsagency/radix2solid/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wsagency/radix2solid.git",
+    "directory": "packages/icons"
+  },
+  "files": [
+    "dist",
+    "icons",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": { "types": "./dist/types/index.d.ts", "browser": "./dist/client/index.js", "default": "./dist/server/index.js" },
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "browser": "./dist/client/index.js",
+      "default": "./dist/server/index.js"
+    },
     "./icons/*.svg": "./icons/*.svg",
-    "./*Icon": { "types": "./dist/types/*Icon.d.ts", "browser": "./dist/client/*Icon.js", "default": "./dist/server/*Icon.js" }
+    "./*Icon": {
+      "types": "./dist/types/*Icon.d.ts",
+      "browser": "./dist/client/*Icon.js",
+      "default": "./dist/server/*Icon.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "tag": "next"
   },
   "scripts": {
     "generate": "node scripts/generate.ts",
     "build": "pnpm generate && vite build && vite build --ssr && tsc -p tsconfig.json"
   },
-  "peerDependencies": { "solid-js": "2.0.0-rc.15", "@solidjs/web": "2.0.0-rc.15" }
+  "peerDependencies": {
+    "@solidjs/web": "2.0.0-rc.15",
+    "solid-js": "2.0.0-rc.15"
+  }
 }

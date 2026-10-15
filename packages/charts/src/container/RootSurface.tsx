@@ -1,18 +1,19 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/container/RootSurface.tsx (commit 7a23854).
 //
 // Solid deviations: `forwardRef` → `ref` prop; chart-dimension/accessibility
 // hooks return Accessors → call them; `return null` → keyed `<Show>` (which also
 // narrows width/height to numbers without a non-null `!`).
 import { Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { useChartHeight, useChartWidth } from "../context/chartLayoutContext";
+
 import { useAccessibilityLayer } from "../context/accessibilityContext";
+import { useChartHeight, useChartWidth } from "../context/chartLayoutContext";
 import { useIsPanorama } from "../context/PanoramaContext";
-import { Surface } from "./Surface";
 import { useAppSelector } from "../state/hooks";
 import { selectBrushDimensions } from "../state/selectors/brushSelectors";
 import { isPositiveNumber } from "../util/isWellBehavedNumber";
 import { AllZIndexPortals } from "../zIndex/ZIndexPortal";
+import { Surface } from "./Surface";
 
 interface RootSurfaceProps {
   children: JSX.Element;
@@ -38,7 +39,9 @@ const MainChartSurface = (props: RootSurfaceProps): JSX.Element => {
   const dims = (): { width: number; height: number } | undefined => {
     const w = width();
     const h = height();
-    return isPositiveNumber(w) && isPositiveNumber(h) ? { width: w, height: h } : undefined;
+    return isPositiveNumber(w) && isPositiveNumber(h)
+      ? { width: w, height: h }
+      : undefined;
   };
 
   const tabIndex = (): number | undefined => {
@@ -49,7 +52,11 @@ const MainChartSurface = (props: RootSurfaceProps): JSX.Element => {
     // The chart-prop record keeps recharts' camelCase keys (KeepCase filter);
     // Surface renames to DOM attribute names when it renders.
     const explicit = other.tabIndex;
-    return typeof explicit === "number" ? explicit : hasAccessibilityLayer() ? 0 : undefined;
+    return typeof explicit === "number"
+      ? explicit
+      : hasAccessibilityLayer()
+        ? 0
+        : undefined;
   };
   const role = (): string | undefined => {
     const other = props.otherAttributes;
@@ -92,13 +99,20 @@ const MainChartSurface = (props: RootSurfaceProps): JSX.Element => {
   );
 };
 
-const BrushPanoramaSurface = (props: { children: JSX.Element }): JSX.Element => {
+const BrushPanoramaSurface = (props: {
+  children: JSX.Element;
+}): JSX.Element => {
   const brushDimensions = useAppSelector(selectBrushDimensions);
 
   return (
     <Show when={brushDimensions()}>
       {(dims) => (
-        <Surface width={dims().width} height={dims().height} x={dims().x} y={dims().y}>
+        <Surface
+          width={dims().width}
+          height={dims().height}
+          x={dims().x}
+          y={dims().y}
+        >
           {props.children}
         </Surface>
       )}

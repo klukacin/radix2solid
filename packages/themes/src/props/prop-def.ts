@@ -1,38 +1,38 @@
-import type { Element } from 'solid-js';
+import type { Element } from "solid-js";
 
 // Creates a union type of string literals with strings, but retains intellisense for the literals.
 // Union<string, 'foo' | 'bar'> => string | Omit<string, 'foo' | 'bar'>
 type Union<S = string, T extends string | number = string> = T | Omit<S, T>;
 
-const breakpointsArray = ['initial', 'xs', 'sm', 'md', 'lg', 'xl'] as const;
+const breakpointsArray = ["initial", "xs", "sm", "md", "lg", "xl"] as const;
 const breakpoints = new Set(breakpointsArray);
 type Breakpoint = typeof breakpoints extends Set<infer B> ? B : never;
 type Responsive<T> = T | Partial<Record<Breakpoint, T>>;
 
 type BooleanPropDef = {
-  type: 'boolean';
+  type: "boolean";
   default?: boolean;
   required?: boolean;
   className?: string;
 };
 type StringPropDef = {
-  type: 'string';
+  type: "string";
   default?: string;
   required?: boolean;
 };
 type ElementPropDef = {
-  type: 'Element';
+  type: "Element";
   default?: Element;
   required?: boolean;
 };
 type EnumPropDef<T> = {
-  type: 'enum';
+  type: "enum";
   values: readonly T[];
   default?: T;
   required?: boolean;
 };
 type EnumOrStringPropDef<T> = {
-  type: 'enum | string';
+  type: "enum | string";
   values: readonly T[];
   default?: T | string;
   required?: boolean;

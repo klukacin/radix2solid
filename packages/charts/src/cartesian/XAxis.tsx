@@ -1,3 +1,25 @@
+import type { JSX } from "@solidjs/web";
+import { createMemo, Show } from "solid-js";
+
+import type { ImplicitLabelType } from "../component/Label";
+import { useCartesianChartLayout } from "../context/chartLayoutContext";
+import { useIsPanorama } from "../context/PanoramaContext";
+import {
+  NiceTicksAlgorithm,
+  XAxisOrientation,
+  XAxisPadding,
+  XAxisSettings,
+} from "../state/cartesianAxisSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { registerInStore } from "../state/registerInStore";
+import {
+  implicitXAxis,
+  selectTicksOfAxis,
+  selectXAxisPosition,
+  selectXAxisSize,
+} from "../state/selectors/axisSelectors";
+import { getAxisTypeBasedOnLayout } from "../util/getAxisTypeBasedOnLayout";
+import { CustomScaleDefinition } from "../util/scale/CustomScaleDefinition";
 // Ported from recharts 3.8.1 src/cartesian/XAxis.tsx (commit 7a23854).
 //
 // BOTH HALVES of the reference XAxis are ported: `SetXAxisSettings` (pushes axis
@@ -10,27 +32,6 @@
 // plus `onCleanup` for removal. Defaults are resolved field-by-field to match
 // recharts' `resolveDefaultProps`: explicit `undefined` falls back to defaults.
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createMemo, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import {
-  NiceTicksAlgorithm,
-  XAxisOrientation,
-  XAxisPadding,
-  XAxisSettings,
-} from "../state/cartesianAxisSlice";
-import {
-  implicitXAxis,
-  selectTicksOfAxis,
-  selectXAxisPosition,
-  selectXAxisSize,
-} from "../state/selectors/axisSelectors";
-import { CartesianAxis, type CartesianTickEventHandler } from "./CartesianAxis";
-import type { ImplicitLabelType } from "../component/Label";
-import { RenderedTicksReporter } from "./RenderedTicksReporter";
-import { useIsPanorama } from "../context/PanoramaContext";
-import { useCartesianChartLayout } from "../context/chartLayoutContext";
-import { getAxisTypeBasedOnLayout } from "../util/getAxisTypeBasedOnLayout";
 import {
   AxisDomain,
   AxisDomainTypeInput,
@@ -42,8 +43,8 @@ import {
   TickFormatter,
   TickProp,
 } from "../util/types";
-import { CustomScaleDefinition } from "../util/scale/CustomScaleDefinition";
-import { registerInStore } from "../state/registerInStore";
+import { CartesianAxis, type CartesianTickEventHandler } from "./CartesianAxis";
+import { RenderedTicksReporter } from "./RenderedTicksReporter";
 
 export interface XAxisProps<DataPointType = unknown, DataValueType = unknown> {
   xAxisId?: string | number;
@@ -145,15 +146,23 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
 ): JSX.Element {
   const store = useAppStore();
   const layout = useCartesianChartLayout();
-  const xAxisId = createMemo(() => withDefault(props.xAxisId, xAxisDefaultProps.xAxisId));
-  const hide = createMemo(() => withDefault(props.hide, xAxisDefaultProps.hide));
-  const tick = createMemo(() => withDefault(props.tick, xAxisDefaultProps.tick));
+  const xAxisId = createMemo(() =>
+    withDefault(props.xAxisId, xAxisDefaultProps.xAxisId),
+  );
+  const hide = createMemo(() =>
+    withDefault(props.hide, xAxisDefaultProps.hide),
+  );
+  const tick = createMemo(() =>
+    withDefault(props.tick, xAxisDefaultProps.tick),
+  );
   const tickFormatter = createMemo(() => props.tickFormatter);
   const orientation = createMemo(() =>
     withDefault(props.orientation, xAxisDefaultProps.orientation),
   );
   const unit = createMemo(() => props.unit);
-  const mirror = createMemo(() => withDefault(props.mirror, xAxisDefaultProps.mirror));
+  const mirror = createMemo(() =>
+    withDefault(props.mirror, xAxisDefaultProps.mirror),
+  );
 
   if (store != null) {
     registerInStore<XAxisSettings>(
@@ -182,16 +191,25 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
             xAxisDefaultProps.allowDataOverflow,
           ),
           reversed: withDefault(props.reversed, xAxisDefaultProps.reversed),
-          includeHidden: withDefault(props.includeHidden, xAxisDefaultProps.includeHidden),
+          includeHidden: withDefault(
+            props.includeHidden,
+            xAxisDefaultProps.includeHidden,
+          ),
           domain: props.domain,
-          allowDecimals: withDefault(props.allowDecimals, xAxisDefaultProps.allowDecimals),
+          allowDecimals: withDefault(
+            props.allowDecimals,
+            xAxisDefaultProps.allowDecimals,
+          ),
           tickCount: withDefault(props.tickCount, xAxisDefaultProps.tickCount),
           ticks: props.ticks,
           tick: tick(),
           niceTicks: withDefault(props.niceTicks, xAxisDefaultProps.niceTicks),
           interval: withDefault(props.interval, xAxisDefaultProps.interval),
           mirror: mirror(),
-          minTickGap: withDefault(props.minTickGap, xAxisDefaultProps.minTickGap),
+          minTickGap: withDefault(
+            props.minTickGap,
+            xAxisDefaultProps.minTickGap,
+          ),
           angle: withDefault(props.angle, xAxisDefaultProps.angle),
           hide: hide(),
           tickFormatter: tickFormatter(),
@@ -202,7 +220,8 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
       },
       {
         add: (next) => store.actions.cartesianAxis.addXAxis(next),
-        replace: (prev, next) => store.actions.cartesianAxis.replaceXAxis({ prev, next }),
+        replace: (prev, next) =>
+          store.actions.cartesianAxis.replaceXAxis({ prev, next }),
         remove: (prev) => store.actions.cartesianAxis.removeXAxis(prev),
       },
     );
@@ -211,9 +230,13 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
   // Visual: render the <CartesianAxis> (ticks + labels + axis line). Never inside
   // a Brush panorama.
   const isPanorama = useIsPanorama();
-  const position = useAppSelector((state) => selectXAxisPosition(state, xAxisId()));
+  const position = useAppSelector((state) =>
+    selectXAxisPosition(state, xAxisId()),
+  );
   const size = useAppSelector((state) => selectXAxisSize(state, xAxisId()));
-  const ticks = useAppSelector((state) => selectTicksOfAxis(state, "xAxis", xAxisId(), isPanorama));
+  const ticks = useAppSelector((state) =>
+    selectTicksOfAxis(state, "xAxis", xAxisId(), isPanorama),
+  );
   const axisRender = createMemo(() => {
     const p = position();
     const s = size();
@@ -230,7 +253,11 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
     <Show when={!isPanorama && !hide() && axisRender()}>
       {(ar) => (
         <>
-          <RenderedTicksReporter axisType="xAxis" axisId={xAxisId()} ticks={ar().ticks} />
+          <RenderedTicksReporter
+            axisType="xAxis"
+            axisId={xAxisId()}
+            ticks={ar().ticks}
+          />
           <CartesianAxis
             axisType="xAxis"
             x={ar().position.x}
@@ -242,7 +269,10 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
             tick={tick()}
             tickFormatter={tickFormatter()}
             interval={withDefault(props.interval, xAxisDefaultProps.interval)}
-            minTickGap={withDefault(props.minTickGap, xAxisDefaultProps.minTickGap)}
+            minTickGap={withDefault(
+              props.minTickGap,
+              xAxisDefaultProps.minTickGap,
+            )}
             unit={unit()}
             mirror={mirror()}
             class={props.class}

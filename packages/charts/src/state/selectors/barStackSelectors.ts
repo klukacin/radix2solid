@@ -1,6 +1,6 @@
+import type { NormalizedStackId } from "../../util/ChartUtils";
 // Ported from recharts 3.8.1 src/state/selectors/barStackSelectors.ts (commit 7a23854).
 import type { RechartsRootState } from "../store";
-import type { NormalizedStackId } from "../../util/ChartUtils";
 import type { BarSettings } from "../types/BarSettings";
 import { selectUnfilteredCartesianItems } from "./axisSelectors";
 import { selectBarRectangles } from "./barSelectors";
@@ -46,10 +46,30 @@ export const expandRectangle = (
   if (!rect2) {
     return rect1;
   }
-  const x = Math.min(rect1.x, rect1.x + rect1.width, rect2.x, rect2.x + rect2.width);
-  const y = Math.min(rect1.y, rect1.y + rect1.height, rect2.y, rect2.y + rect2.height);
-  const maxX = Math.max(rect1.x, rect1.x + rect1.width, rect2.x, rect2.x + rect2.width);
-  const maxY = Math.max(rect1.y, rect1.y + rect1.height, rect2.y, rect2.y + rect2.height);
+  const x = Math.min(
+    rect1.x,
+    rect1.x + rect1.width,
+    rect2.x,
+    rect2.x + rect2.width,
+  );
+  const y = Math.min(
+    rect1.y,
+    rect1.y + rect1.height,
+    rect2.y,
+    rect2.y + rect2.height,
+  );
+  const maxX = Math.max(
+    rect1.x,
+    rect1.x + rect1.width,
+    rect2.x,
+    rect2.x + rect2.width,
+  );
+  const maxY = Math.max(
+    rect1.y,
+    rect1.y + rect1.height,
+    rect2.y,
+    rect2.y + rect2.height,
+  );
   const width = maxX - x;
   const height = maxY - y;
   return { x, y, width, height };
@@ -76,4 +96,5 @@ export const selectStackRects = (
   state: RechartsRootState,
   stackId: NormalizedStackId,
   isPanorama: boolean,
-): ReadonlyArray<BarStackItem | undefined> => combineStackRects(state, stackId, isPanorama);
+): ReadonlyArray<BarStackItem | undefined> =>
+  combineStackRects(state, stackId, isPanorama);

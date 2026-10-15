@@ -10,6 +10,7 @@
 // deliberately returns `undefined` outside a chart (so a component works
 // standalone), so we default to `null` and the hooks map `null` → `undefined`.
 import { createContext } from "solid-js";
+
 import type { RechartsStore } from "./store";
 
 export const RechartsStoreContext = createContext<RechartsStore | null>(null);

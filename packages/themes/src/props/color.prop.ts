@@ -1,13 +1,21 @@
-import type { PropDef } from './prop-def.js';
+import type { PropDef } from "./prop-def.js";
 
 // prettier-ignore
 const accentColors = ['gray', 'gold', 'bronze', 'brown', 'yellow', 'amber', 'orange', 'tomato', 'red', 'ruby', 'crimson', 'pink', 'plum', 'purple', 'violet', 'iris', 'indigo', 'blue', 'cyan', 'teal', 'jade', 'green', 'grass', 'lime', 'mint', 'sky', 'custom'] as const;
 
-const grayColors = ['auto', 'gray', 'mauve', 'slate', 'sage', 'olive', 'sand'] as const;
+const grayColors = [
+  "auto",
+  "gray",
+  "mauve",
+  "slate",
+  "sage",
+  "olive",
+  "sand",
+] as const;
 
 const colorPropDef = {
   color: {
-    type: 'enum',
+    type: "enum",
     values: accentColors,
     default: undefined as (typeof accentColors)[number] | undefined,
   },
@@ -17,9 +25,9 @@ const colorPropDef = {
 
 const accentColorPropDef = {
   color: {
-    type: 'enum',
+    type: "enum",
     values: accentColors,
-    default: '' as (typeof accentColors)[number],
+    default: "" as (typeof accentColors)[number],
   },
 } satisfies {
   color: PropDef<(typeof accentColors)[number]>;

@@ -2,26 +2,51 @@
   "name": "@wsagency/radix2solid-charts",
   "version": "0.1.0-rc.2",
   "private": false,
-  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/", "tag": "next" },
-  "type": "module",
-  "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/wsagency/radix2solid.git", "directory": "packages/charts" },
   "homepage": "https://github.com/wsagency/radix2solid/tree/main/packages/charts#readme",
-  "bugs": { "url": "https://github.com/wsagency/radix2solid/issues" },
-  "files": ["dist", "LICENSE", "NOTICE", "README.md", "CHANGELOG.md", "UPSTREAM.md", "upstream.json"],
+  "bugs": {
+    "url": "https://github.com/wsagency/radix2solid/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wsagency/radix2solid.git",
+    "directory": "packages/charts"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md",
+    "CHANGELOG.md",
+    "UPSTREAM.md",
+    "upstream.json"
+  ],
+  "type": "module",
   "sideEffects": false,
   "exports": {
-    ".": { "types": "./dist/types/index.d.ts", "browser": "./dist/client/index.js", "default": "./dist/server/index.js" }
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "browser": "./dist/client/index.js",
+      "default": "./dist/server/index.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "tag": "next"
   },
   "scripts": {
     "build": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\" && vite build && vite build --ssr && tsc -p tsconfig.json"
   },
-  "peerDependencies": { "solid-js": "2.0.0-rc.15", "@solidjs/web": "2.0.0-rc.15" },
   "dependencies": {
+    "@types/d3-scale": "4.0.9",
+    "@types/d3-shape": "3.1.8",
     "csstype": "3.2.3",
     "d3-scale": "4.0.2",
-    "d3-shape": "3.2.0",
-    "@types/d3-scale": "4.0.9",
-    "@types/d3-shape": "3.1.8"
+    "d3-shape": "3.2.0"
+  },
+  "peerDependencies": {
+    "@solidjs/web": "2.0.0-rc.15",
+    "solid-js": "2.0.0-rc.15"
   }
 }

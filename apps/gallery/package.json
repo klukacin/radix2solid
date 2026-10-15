@@ -2,10 +2,18 @@
   "name": "@radix-solid/gallery",
   "private": true,
   "type": "module",
-  "dependencies": { "@wsagency/radix2solid-primitives": "workspace:*", "@wsagency/radix2solid-icons": "workspace:*", "@wsagency/radix2solid-themes": "workspace:*", "@wsagency/radix2solid-charts": "workspace:*", "@radix-ui/colors": "3.0.0", "solid-js": "2.0.0-rc.15", "@solidjs/web": "2.0.0-rc.15" },
   "scripts": {
     "dev": "node scripts/serve.ts",
     "build": "vite build && vite build --ssr",
     "preview": "node scripts/serve.ts --production"
+  },
+  "dependencies": {
+    "@radix-ui/colors": "3.0.0",
+    "@solidjs/web": "2.0.0-rc.15",
+    "@wsagency/radix2solid-charts": "workspace:*",
+    "@wsagency/radix2solid-icons": "workspace:*",
+    "@wsagency/radix2solid-primitives": "workspace:*",
+    "@wsagency/radix2solid-themes": "workspace:*",
+    "solid-js": "2.0.0-rc.15"
   }
 }

@@ -1,10 +1,9 @@
-import { asChildPropDef } from '../props/as-child.prop.js';
+import { asChildPropDef } from "../props/as-child.prop.js";
+import type { PropDef, GetPropDefTypes } from "../props/prop-def.js";
 
-import type { PropDef, GetPropDefTypes } from '../props/prop-def.js';
-
-const sizes = ['1', '2', '3', '4'] as const;
-const displayValues = ['none', 'initial'] as const;
-const alignValues = ['left', 'center', 'right'] as const;
+const sizes = ["1", "2", "3", "4"] as const;
+const displayValues = ["none", "initial"] as const;
+const alignValues = ["left", "center", "right"] as const;
 
 const containerPropDefs = {
   ...asChildPropDef,
@@ -28,10 +27,10 @@ const containerPropDefs = {
    * https://github.com/radix-ui/themes/blob/main/packages/radix-ui-themes/src/components/container.css
    */
   size: {
-    type: 'enum',
-    className: 'rt-r-size',
+    type: "enum",
+    className: "rt-r-size",
     values: sizes,
-    default: '4',
+    default: "4",
     responsive: true,
   },
   /**
@@ -43,8 +42,8 @@ const containerPropDefs = {
    * display={{ sm: 'none', lg: 'initial' }}
    */
   display: {
-    type: 'enum',
-    className: 'rt-r-display',
+    type: "enum",
+    className: "rt-r-display",
     values: displayValues,
     parseValue: parseDisplayValue,
     responsive: true,
@@ -57,8 +56,8 @@ const containerPropDefs = {
    * align={{ initial: 'left', lg: 'center' }}
    */
   align: {
-    type: 'enum',
-    className: 'rt-r-ai',
+    type: "enum",
+    className: "rt-r-ai",
     values: alignValues,
     parseValue: parseAlignValue,
     responsive: true,
@@ -70,15 +69,17 @@ const containerPropDefs = {
 };
 
 function parseDisplayValue(value: string) {
-  return value === 'initial' ? 'flex' : value;
+  return value === "initial" ? "flex" : value;
 }
 
 function parseAlignValue(value: string) {
-  return value === 'left' ? 'start' : value === 'right' ? 'end' : value;
+  return value === "left" ? "start" : value === "right" ? "end" : value;
 }
 
 // Use all of the imported prop defs to ensure that JSDoc works
-type ContainerOwnProps = GetPropDefTypes<typeof containerPropDefs & typeof asChildPropDef>;
+type ContainerOwnProps = GetPropDefTypes<
+  typeof containerPropDefs & typeof asChildPropDef
+>;
 
 export { containerPropDefs };
 export type { ContainerOwnProps };

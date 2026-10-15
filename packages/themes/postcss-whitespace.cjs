@@ -5,18 +5,18 @@
  * @returns {Plugin}
  */
 const plugin = () => ({
-  postcssPlugin: 'postcss-whitespace',
+  postcssPlugin: "postcss-whitespace",
   Comment(comment) {
     // Remove all comments
     comment.remove();
   },
   Declaration(decl) {
-    if (decl.value.includes('\n')) {
+    if (decl.value.includes("\n")) {
       // Remove line breaks and consequent spaces
-      decl.value = decl.value.replace(/\s+/g, ' ');
+      decl.value = decl.value.replace(/\s+/g, " ");
       // Collapse whitespace around round brackets
-      decl.value = decl.value.replace(/\(\s/g, '(');
-      decl.value = decl.value.replace(/\s\)/g, ')');
+      decl.value = decl.value.replace(/\(\s/g, "(");
+      decl.value = decl.value.replace(/\s\)/g, ")");
     }
   },
   AtRule(rule) {

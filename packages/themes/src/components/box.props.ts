@@ -1,9 +1,14 @@
-import { asChildPropDef } from '../props/as-child.prop.js';
+import { asChildPropDef } from "../props/as-child.prop.js";
+import type { PropDef, GetPropDefTypes } from "../props/prop-def.js";
 
-import type { PropDef, GetPropDefTypes } from '../props/prop-def.js';
-
-const as = ['div', 'span'] as const;
-const displayValues = ['none', 'inline', 'inline-block', 'block', 'contents'] as const;
+const as = ["div", "span"] as const;
+const displayValues = [
+  "none",
+  "inline",
+  "inline-block",
+  "block",
+  "contents",
+] as const;
 
 const boxPropDefs = {
   /**
@@ -13,7 +18,7 @@ const boxPropDefs = {
    * as="div"
    * as="span"
    */
-  as: { type: 'enum', values: as, default: 'div' },
+  as: { type: "enum", values: as, default: "div" },
   ...asChildPropDef,
   /**
    * Sets the CSS **display** property.
@@ -27,8 +32,8 @@ const boxPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/display
    */
   display: {
-    type: 'enum',
-    className: 'rt-r-display',
+    type: "enum",
+    className: "rt-r-display",
     values: displayValues,
     responsive: true,
   },

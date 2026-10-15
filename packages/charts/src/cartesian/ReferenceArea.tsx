@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/cartesian/ReferenceArea.tsx (commit 7a23854).
 //
 // Draws a rectangle spanning a DATA-coordinate range (x1..x2, y1..y2), mapped to
@@ -17,31 +18,31 @@
 //    (React.cloneElement — use the render-function form). <Label>
 //    CHILDREN are not rendered (the `label` prop is).
 import { createMemo, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { Layer } from "../container/Layer";
+
 import {
   CartesianLabelContextProvider,
   CartesianLabelFromLabelProp,
   type ImplicitLabelType,
 } from "../component/Label";
-import { rectWithPoints } from "../util/CartesianUtils";
-import { IfOverflow } from "../util/IfOverflow";
-import { isNumOrStr } from "../util/DataUtils";
-import { type RectangleProps, Rectangle } from "../shape/Rectangle";
-import type { ReferenceAreaSettings } from "../state/referenceElementsSlice";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import { selectAxisScale } from "../state/selectors/axisSelectors";
-import { useIsPanorama } from "../context/PanoramaContext";
 import { useClipPathId } from "../container/ClipPathProvider";
-import { svgPropertiesAndEventsKeepCase } from "../util/svgPropertiesAndEvents";
-import { useUniqueId } from "../util/useUniqueId";
-import { RectanglePosition } from "../util/types";
-import { RechartsScale } from "../util/scale/RechartsScale";
-import { CartesianScaleHelperImpl } from "../util/scale/CartesianScaleHelper";
+import { Layer } from "../container/Layer";
+import { useIsPanorama } from "../context/PanoramaContext";
+import { type RectangleProps, Rectangle } from "../shape/Rectangle";
 import type { AxisId } from "../state/cartesianAxisSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import type { ReferenceAreaSettings } from "../state/referenceElementsSlice";
+import { registerInStore } from "../state/registerInStore";
+import { selectAxisScale } from "../state/selectors/axisSelectors";
+import { rectWithPoints } from "../util/CartesianUtils";
+import { isNumOrStr } from "../util/DataUtils";
+import { IfOverflow } from "../util/IfOverflow";
+import { CartesianScaleHelperImpl } from "../util/scale/CartesianScaleHelper";
+import { RechartsScale } from "../util/scale/RechartsScale";
+import { svgPropertiesAndEventsKeepCase } from "../util/svgPropertiesAndEvents";
+import { RectanglePosition } from "../util/types";
+import { useUniqueId } from "../util/useUniqueId";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 import { ZIndexLayer } from "../zIndex/ZIndexLayer";
-import { registerInStore } from "../state/registerInStore";
 
 type ReferenceCoordinateValue = number | string;
 
@@ -86,7 +87,13 @@ const getRect = (
   hasY2: boolean,
   xAxisScale: RechartsScale,
   yAxisScale: RechartsScale,
-  props: { x1?: unknown; x2?: unknown; y1?: unknown; y2?: unknown; ifOverflow: IfOverflow },
+  props: {
+    x1?: unknown;
+    x2?: unknown;
+    y1?: unknown;
+    y2?: unknown;
+    ifOverflow: IfOverflow;
+  },
 ): RectanglePosition | null => {
   const scales = new CartesianScaleHelperImpl({ x: xAxisScale, y: yAxisScale });
 
@@ -105,21 +112,33 @@ const getRect = (
 
   if (
     props.ifOverflow === "discard" &&
-    (!scales.isInRange({ x: p1x, y: p1y }) || !scales.isInRange({ x: p2x, y: p2y }))
+    (!scales.isInRange({ x: p1x, y: p1y }) ||
+      !scales.isInRange({ x: p2x, y: p2y }))
   ) {
     return null;
   }
 
   // recharts passes NullableCoordinate here behind an `@ts-expect-error`; the
   // `?? 0` makes the JS null→0 arithmetic coercion (in rectWithPoints) explicit.
-  return rectWithPoints({ x: p1x ?? 0, y: p1y ?? 0 }, { x: p2x ?? 0, y: p2y ?? 0 });
+  return rectWithPoints(
+    { x: p1x ?? 0, y: p1y ?? 0 },
+    { x: p2x ?? 0, y: p2y ?? 0 },
+  );
 };
 
-const renderRect = (option: ReferenceAreaProps["shape"], props: RectangleProps): JSX.Element => {
+const renderRect = (
+  option: ReferenceAreaProps["shape"],
+  props: RectangleProps,
+): JSX.Element => {
   if (typeof option === "function") {
     return option(props);
   }
-  return <Rectangle {...props} class="recharts-reference-area-rect" />;
+  return (
+    <Rectangle
+      {...props}
+      class="recharts-reference-area-rect"
+    />
+  );
 };
 
 function ReportReferenceArea(props: ReferenceAreaSettings): JSX.Element {
@@ -167,8 +186,12 @@ function ReferenceAreaImpl(props: Props): JSX.Element {
   const merged = merge(referenceAreaDefaultProps, props);
   const clipPathId = useClipPathId();
   const isPanorama = useIsPanorama();
-  const xAxisScale = useAppSelector((s) => selectAxisScale(s, "xAxis", merged.xAxisId, isPanorama));
-  const yAxisScale = useAppSelector((s) => selectAxisScale(s, "yAxis", merged.yAxisId, isPanorama));
+  const xAxisScale = useAppSelector((s) =>
+    selectAxisScale(s, "xAxis", merged.xAxisId, isPanorama),
+  );
+  const yAxisScale = useAppSelector((s) =>
+    selectAxisScale(s, "yAxis", merged.yAxisId, isPanorama),
+  );
 
   const rect = createMemo<RectanglePosition | null>(() => {
     const xs = xAxisScale();
@@ -200,7 +223,8 @@ function ReferenceAreaImpl(props: Props): JSX.Element {
     if (r == null && merged.shape == null) {
       return null;
     }
-    const clipPath = merged.ifOverflow === "hidden" ? `url(#${clipPathId})` : undefined;
+    const clipPath =
+      merged.ifOverflow === "hidden" ? `url(#${clipPathId})` : undefined;
     return {
       clipPath,
       ...svgPropertiesAndEventsKeepCase({ ...merged }),

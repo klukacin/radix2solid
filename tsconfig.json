@@ -12,5 +12,15 @@
     "noEmit": true,
     "types": ["node", "vite/client"]
   },
-  "include": ["packages/*/src", "packages/*/vite.config.ts", "apps/*/src", "apps/*/scripts", "apps/*/vite.config.ts", "tests", "e2e", "playwright.config.ts", "oxlint.config.ts"]
+  "include": [
+    "packages/*/src",
+    "packages/*/vite.config.ts",
+    "apps/*/src",
+    "apps/*/scripts",
+    "apps/*/vite.config.ts",
+    "tests",
+    "e2e",
+    "playwright.config.ts",
+    "oxlint.config.ts"
+  ]
 }

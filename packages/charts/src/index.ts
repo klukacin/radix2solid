@@ -53,8 +53,14 @@ export { Trapezoid } from "./shape/Trapezoid";
 export type { TrapezoidProps } from "./shape/Trapezoid";
 export { Global } from "./util/Global";
 export { getRelativeCoordinate } from "./util/getRelativeCoordinate";
-export { createHorizontalChart, createVerticalChart } from "./util/createCartesianCharts";
-export { createCentricChart, createRadialChart } from "./util/createPolarCharts";
+export {
+  createHorizontalChart,
+  createVerticalChart,
+} from "./util/createCartesianCharts";
+export {
+  createCentricChart,
+  createRadialChart,
+} from "./util/createPolarCharts";
 export { DefaultZIndexes } from "./zIndex/DefaultZIndexes";
 export { Surface } from "./container/Surface";
 export type { SurfaceProps, CartesianViewBox } from "./container/Surface";
@@ -85,9 +91,15 @@ export type { BrushProps } from "./cartesian/Brush";
 export { Pie } from "./polar/Pie";
 export type { PieProps, PieShape } from "./polar/Pie";
 export { PolarAngleAxis } from "./polar/PolarAngleAxis";
-export type { PolarAngleAxisProps, PolarAngleTickContentProps } from "./polar/PolarAngleAxis";
+export type {
+  PolarAngleAxisProps,
+  PolarAngleTickContentProps,
+} from "./polar/PolarAngleAxis";
 export { PolarRadiusAxis } from "./polar/PolarRadiusAxis";
-export type { PolarRadiusAxisProps, PolarRadiusTickContentProps } from "./polar/PolarRadiusAxis";
+export type {
+  PolarRadiusAxisProps,
+  PolarRadiusTickContentProps,
+} from "./polar/PolarRadiusAxis";
 export { Radar } from "./polar/Radar";
 export type { RadarProps } from "./polar/Radar";
 export { PolarGrid } from "./polar/PolarGrid";
@@ -97,7 +109,10 @@ export type { RadialBarProps } from "./polar/RadialBar";
 export { ZAxis } from "./cartesian/ZAxis";
 export type { ZAxisProps } from "./cartesian/ZAxis";
 export { ReferenceLine } from "./cartesian/ReferenceLine";
-export type { ReferenceLineProps, ReferenceLineSegment } from "./cartesian/ReferenceLine";
+export type {
+  ReferenceLineProps,
+  ReferenceLineSegment,
+} from "./cartesian/ReferenceLine";
 export { ReferenceDot } from "./cartesian/ReferenceDot";
 export type {
   ReferenceDotProps,
@@ -120,7 +135,11 @@ export {
   PolarLabelContextProvider,
   PolarLabelFromLabelProp,
 } from "./component/Label";
-export type { Props as LabelProps, ImplicitLabelType, LabelPosition } from "./component/Label";
+export type {
+  Props as LabelProps,
+  ImplicitLabelType,
+  LabelPosition,
+} from "./component/Label";
 export { LabelList, LabelListFromLabelProp } from "./component/LabelList";
 export type {
   ImplicitLabelListType,
@@ -190,7 +209,11 @@ export {
   useOffset,
   usePlotArea,
 } from "./hooks";
-export type { ScaleFunction, InverseScaleFunction, CartesianDataPoint } from "./hooks";
+export type {
+  ScaleFunction,
+  InverseScaleFunction,
+  CartesianDataPoint,
+} from "./hooks";
 // Layout hooks + low-level building blocks recharts also exposes from the main entry.
 export {
   useChartLayout,
@@ -205,11 +228,24 @@ export { getNiceTickValues } from "./util/scale/getNiceTickValues";
 export { interpolate } from "./util/DataUtils";
 // Animation engine (v3.9) — matching, handles, controller injection.
 export { matchByIndex, matchByDataKey, matchAppend } from "./animation/matchBy";
-export type { AnimationItem, AnimationMatchBy, AnimationMatchByProp } from "./animation/matchBy";
-export { JavascriptAnimation, CSSTransitionAnimation } from "./animation/AnimationHandle";
+export type {
+  AnimationItem,
+  AnimationMatchBy,
+  AnimationMatchByProp,
+} from "./animation/matchBy";
+export {
+  JavascriptAnimation,
+  CSSTransitionAnimation,
+} from "./animation/AnimationHandle";
 export type { AnimationHandle } from "./animation/AnimationHandle";
-export type { AnimationController, OnAnimationStateUpdate } from "./animation/AnimationController";
-export type { TimeoutController, CancelableTimeout } from "./animation/timeoutController";
+export type {
+  AnimationController,
+  OnAnimationStateUpdate,
+} from "./animation/AnimationController";
+export type {
+  TimeoutController,
+  CancelableTimeout,
+} from "./animation/timeoutController";
 export { AnimationControllerProvider } from "./animation/useAnimationController";
 export type { AnimationInterpolateFn } from "./animation/AnimatedItems";
 export { DefaultTooltipContent } from "./component/DefaultTooltipContent";
@@ -218,7 +254,11 @@ export { DefaultTooltipContent } from "./component/DefaultTooltipContent";
 // Public type re-exports — match the recharts main-entry type surface.
 // ---------------------------------------------------------------------------
 export type { BarShapeProps } from "./cartesian/Bar";
-export type { ScatterPointItem, ScatterPointNode, ScatterShapeProps } from "./cartesian/Scatter";
+export type {
+  ScatterPointItem,
+  ScatterPointNode,
+  ScatterShapeProps,
+} from "./cartesian/Scatter";
 export type { LabelListEntry } from "./component/LabelList";
 export type {
   RenderableText,
@@ -244,8 +284,15 @@ export type {
   YAxisPadding,
 } from "./state/cartesianAxisSlice";
 export type { AxisRange } from "./state/selectors/axisSelectors";
-export type { TooltipIndex, TooltipPayload, TooltipPayloadEntry } from "./state/tooltipSlice";
-export type { ActiveLabel, MouseHandlerDataParam } from "./synchronisation/types";
+export type {
+  TooltipIndex,
+  TooltipPayload,
+  TooltipPayloadEntry,
+} from "./state/tooltipSlice";
+export type {
+  ActiveLabel,
+  MouseHandlerDataParam,
+} from "./synchronisation/types";
 export type { ChartOffset, PlotArea } from "./types";
 export type { RadialBarSectorProps } from "./util/RadialBarUtils";
 export type {

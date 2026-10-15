@@ -1,3 +1,5 @@
+import { TooltipTrigger } from "../../../chart/types";
+import { TooltipEventType } from "../../../util/types";
 // Ported from recharts 3.8.1 src/state/selectors/combiners/combineTooltipInteractionState.ts.
 import {
   noInteraction,
@@ -5,8 +7,6 @@ import {
   TooltipInteractionState,
   TooltipState,
 } from "../../tooltipSlice";
-import { TooltipEventType } from "../../../util/types";
-import { TooltipTrigger } from "../../../chart/types";
 
 function chooseAppropriateMouseInteraction(
   tooltipState: TooltipState,
@@ -25,7 +25,9 @@ function chooseAppropriateMouseInteraction(
   return tooltipState.itemInteraction.hover;
 }
 
-function hasBeenActivePreviously(tooltipInteractionState: TooltipInteractionState): boolean {
+function hasBeenActivePreviously(
+  tooltipInteractionState: TooltipInteractionState,
+): boolean {
   return tooltipInteractionState.index != null;
 }
 
@@ -56,7 +58,10 @@ export const combineTooltipInteractionState = (
     return tooltipState.keyboardInteraction;
   }
 
-  if (tooltipState.syncInteraction.active && tooltipState.syncInteraction.index != null) {
+  if (
+    tooltipState.syncInteraction.active &&
+    tooltipState.syncInteraction.index != null
+  ) {
     return tooltipState.syncInteraction;
   }
 

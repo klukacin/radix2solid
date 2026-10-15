@@ -67,7 +67,10 @@ function snapshot<L>(set: Set<L>): ReadonlyArray<L> {
 interface SyncEventCenter {
   on(eventName: typeof TOOLTIP_SYNC_EVENT, listener: TooltipSyncListener): void;
   on(eventName: typeof BRUSH_SYNC_EVENT, listener: BrushSyncListener): void;
-  off(eventName: typeof TOOLTIP_SYNC_EVENT, listener: TooltipSyncListener): void;
+  off(
+    eventName: typeof TOOLTIP_SYNC_EVENT,
+    listener: TooltipSyncListener,
+  ): void;
   off(eventName: typeof BRUSH_SYNC_EVENT, listener: BrushSyncListener): void;
   emit(
     eventName: typeof TOOLTIP_SYNC_EVENT,
@@ -115,7 +118,12 @@ export const syncEventCenter: SyncEventCenter = {
       brushListeners.delete(listener as BrushSyncListener);
     }
   },
-  emit(eventName: SyncEventName, syncId: SyncId, payload: AnyPayload, emitter: symbol): void {
+  emit(
+    eventName: SyncEventName,
+    syncId: SyncId,
+    payload: AnyPayload,
+    emitter: symbol,
+  ): void {
     if (eventName === TOOLTIP_SYNC_EVENT) {
       for (const listener of snapshot(tooltipListeners)) {
         // eslint-disable-next-line typescript/consistent-type-assertions -- narrowed by eventName

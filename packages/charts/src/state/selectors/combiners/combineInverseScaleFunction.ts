@@ -10,7 +10,10 @@ export function combineInverseScaleFunction(
   if (configuredScale == null) {
     return undefined;
   }
-  if ("invert" in configuredScale && typeof configuredScale.invert === "function") {
+  if (
+    "invert" in configuredScale &&
+    typeof configuredScale.invert === "function"
+  ) {
     return configuredScale.invert.bind(configuredScale);
   }
   return createCategoricalInverse(configuredScale, undefined);

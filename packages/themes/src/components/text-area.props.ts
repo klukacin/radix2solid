@@ -1,11 +1,10 @@
-import { colorPropDef } from '../props/color.prop.js';
-import { radiusPropDef } from '../props/radius.prop.js';
+import { colorPropDef } from "../props/color.prop.js";
+import type { PropDef } from "../props/prop-def.js";
+import { radiusPropDef } from "../props/radius.prop.js";
 
-import type { PropDef } from '../props/prop-def.js';
-
-const sizes = ['1', '2', '3'] as const;
-const variants = ['classic', 'surface', 'soft'] as const;
-const resizeValues = ['none', 'vertical', 'horizontal', 'both'] as const;
+const sizes = ["1", "2", "3"] as const;
+const variants = ["classic", "surface", "soft"] as const;
+const resizeValues = ["none", "vertical", "horizontal", "both"] as const;
 
 // prettier-ignore
 const textAreaPropDefs = {

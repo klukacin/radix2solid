@@ -16,7 +16,8 @@ export const selectTooltipCoordinate = (
   const allTooltipConfigurations: ReadonlyArray<TooltipPayloadConfiguration> =
     selectTooltipState(state).tooltipItemPayloads;
   const mostRelevantTooltipConfiguration = allTooltipConfigurations.find(
-    (tooltipConfiguration) => tooltipConfiguration.settings.graphicalItemId === graphicalItemId,
+    (tooltipConfiguration) =>
+      tooltipConfiguration.settings.graphicalItemId === graphicalItemId,
   );
   if (mostRelevantTooltipConfiguration == null) {
     return undefined;

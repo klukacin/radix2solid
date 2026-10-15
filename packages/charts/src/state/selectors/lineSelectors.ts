@@ -2,19 +2,22 @@
 // Solid-native: plain selector functions (memoization comes from useAppSelector's
 // createMemo at the consumer).
 import { computeLinePoints, LinePointItem } from "../../cartesian/Line";
-import { RechartsRootState } from "../store";
-import { AxisId } from "../cartesianAxisSlice";
-import { selectChartDataWithIndexesIfNotInPanoramaPosition4 } from "./dataSelectors";
 import { selectChartLayout } from "../../context/chartLayoutContext";
+import { getBandSizeOfAxis, isCategoricalAxis } from "../../util/ChartUtils";
+import { AxisId } from "../cartesianAxisSlice";
+import { ChartData } from "../chartDataSlice";
+import {
+  CartesianGraphicalItemSettings,
+  GraphicalItemId,
+} from "../graphicalItemsSlice";
+import { RechartsRootState } from "../store";
+import { LineSettings } from "../types/LineSettings";
 import {
   selectAxisWithScale,
   selectTicksOfGraphicalItem,
   selectUnfilteredCartesianItems,
 } from "./axisSelectors";
-import { getBandSizeOfAxis, isCategoricalAxis } from "../../util/ChartUtils";
-import { ChartData } from "../chartDataSlice";
-import { CartesianGraphicalItemSettings, GraphicalItemId } from "../graphicalItemsSlice";
-import { LineSettings } from "../types/LineSettings";
+import { selectChartDataWithIndexesIfNotInPanoramaPosition4 } from "./dataSelectors";
 
 const selectBandSize = (
   state: RechartsRootState,
@@ -37,7 +40,9 @@ const selectBandSize = (
   );
 };
 
-function isLineSettings(item: CartesianGraphicalItemSettings): item is LineSettings {
+function isLineSettings(
+  item: CartesianGraphicalItemSettings,
+): item is LineSettings {
   return item.type === "line";
 }
 
@@ -64,12 +69,27 @@ export const selectLinePoints = (
   const layout = selectChartLayout(state);
   const xAxis = selectAxisWithScale(state, "xAxis", xAxisId, isPanorama);
   const yAxis = selectAxisWithScale(state, "yAxis", yAxisId, isPanorama);
-  const xAxisTicks = selectTicksOfGraphicalItem(state, "xAxis", xAxisId, isPanorama);
-  const yAxisTicks = selectTicksOfGraphicalItem(state, "yAxis", yAxisId, isPanorama);
+  const xAxisTicks = selectTicksOfGraphicalItem(
+    state,
+    "xAxis",
+    xAxisId,
+    isPanorama,
+  );
+  const yAxisTicks = selectTicksOfGraphicalItem(
+    state,
+    "yAxis",
+    yAxisId,
+    isPanorama,
+  );
   const lineSettings = selectSynchronisedLineSettings(state, id);
   const bandSize = selectBandSize(state, xAxisId, yAxisId, isPanorama);
   const { chartData, dataStartIndex, dataEndIndex } =
-    selectChartDataWithIndexesIfNotInPanoramaPosition4(state, xAxisId, yAxisId, isPanorama);
+    selectChartDataWithIndexesIfNotInPanoramaPosition4(
+      state,
+      xAxisId,
+      yAxisId,
+      isPanorama,
+    );
 
   if (
     lineSettings == null ||

@@ -1,2 +1,21 @@
-export { Accordion, AccordionItem, AccordionHeader, AccordionTrigger, AccordionContent, Accordion as Root, AccordionItem as Item, AccordionHeader as Header, AccordionTrigger as Trigger, AccordionContent as Content, createAccordionScope } from './accordion.js';
-export type { AccordionSingleProps, AccordionMultipleProps, AccordionItemProps, AccordionHeaderProps, AccordionTriggerProps, AccordionContentProps } from './accordion.js';
+export {
+  Accordion,
+  AccordionItem,
+  AccordionHeader,
+  AccordionTrigger,
+  AccordionContent,
+  Accordion as Root,
+  AccordionItem as Item,
+  AccordionHeader as Header,
+  AccordionTrigger as Trigger,
+  AccordionContent as Content,
+  createAccordionScope,
+} from "./accordion.js";
+export type {
+  AccordionSingleProps,
+  AccordionMultipleProps,
+  AccordionItemProps,
+  AccordionHeaderProps,
+  AccordionTriggerProps,
+  AccordionContentProps,
+} from "./accordion.js";

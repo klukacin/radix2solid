@@ -1,3 +1,4 @@
+import { JSX, Portal } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/component/Tooltip.tsx (commit 7a23854).
 //
 // FIRST-LIGHT PORT — renders the floating tooltip box from the active payload.
@@ -10,7 +11,35 @@
 // useAppSelector accessors; `useElementOffset`'s dependency array is a no-op in
 // the Solid port (the ResizeObserver tracks the node directly).
 import { createEffect, createMemo, merge, Show } from "solid-js";
-import { JSX, Portal } from "@solidjs/web";
+
+import { TooltipTrigger } from "../chart/types";
+import { useAccessibilityLayer } from "../context/accessibilityContext";
+import { useViewBox } from "../context/chartLayoutContext";
+import { useTooltipPortal } from "../context/tooltipPortalContext";
+import { AxisId } from "../state/cartesianAxisSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { selectTooltipEventType } from "../state/selectors/selectTooltipEventType";
+import {
+  selectActiveCoordinate,
+  selectActiveLabel,
+  selectIsTooltipActive,
+  selectTooltipPayload,
+} from "../state/selectors/tooltipSelectors";
+import {
+  TooltipIndex,
+  TooltipPayload,
+  TooltipPayloadEntry,
+} from "../state/tooltipSlice";
+import { useTooltipChartSynchronisation } from "../synchronisation/useChartSynchronisation";
+import { getUniqPayload, UniqueOption } from "../util/payload/getUniqPayload";
+import {
+  AllowInDimension,
+  AnimationDuration,
+  Coordinate,
+  EasingInput,
+} from "../util/types";
+import { useElementOffset } from "../util/useElementOffset";
+import { Cursor, CursorDefinition } from "./Cursor";
 import {
   DefaultTooltipContent,
   Formatter,
@@ -21,25 +50,6 @@ import {
   ValueType,
 } from "./DefaultTooltipContent";
 import { TooltipBoundingBox } from "./TooltipBoundingBox";
-import { Cursor, CursorDefinition } from "./Cursor";
-import { getUniqPayload, UniqueOption } from "../util/payload/getUniqPayload";
-import { AllowInDimension, AnimationDuration, Coordinate, EasingInput } from "../util/types";
-import { useViewBox } from "../context/chartLayoutContext";
-import { useAccessibilityLayer } from "../context/accessibilityContext";
-import { useElementOffset } from "../util/useElementOffset";
-import { useTooltipPortal } from "../context/tooltipPortalContext";
-import { TooltipTrigger } from "../chart/types";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import { TooltipIndex, TooltipPayload, TooltipPayloadEntry } from "../state/tooltipSlice";
-import { AxisId } from "../state/cartesianAxisSlice";
-import { selectTooltipEventType } from "../state/selectors/selectTooltipEventType";
-import {
-  selectActiveCoordinate,
-  selectActiveLabel,
-  selectIsTooltipActive,
-  selectTooltipPayload,
-} from "../state/selectors/tooltipSelectors";
-import { useTooltipChartSynchronisation } from "../synchronisation/useChartSynchronisation";
 
 export type TooltipContentProps = TooltipProps & {
   label?: string | number;
@@ -50,7 +60,9 @@ export type TooltipContentProps = TooltipProps & {
   activeIndex: TooltipIndex | undefined;
 };
 
-export type ContentType = JSX.Element | ((props: TooltipContentProps) => JSX.Element);
+export type ContentType =
+  | JSX.Element
+  | ((props: TooltipContentProps) => JSX.Element);
 
 function defaultUniqBy(
   entry: Payload<ValueType, NameType>,
@@ -65,7 +77,10 @@ type PropertiesReadFromContext =
   | "label"
   | "accessibilityLayer";
 
-export type TooltipProps = Omit<DefaultTooltipContentProps, PropertiesReadFromContext> & {
+export type TooltipProps = Omit<
+  DefaultTooltipContentProps,
+  PropertiesReadFromContext
+> & {
   active?: boolean;
   allowEscapeViewBox?: AllowInDimension;
   animationDuration?: AnimationDuration;
@@ -114,7 +129,10 @@ export const defaultTooltipProps = {
   wrapperStyle: {},
 } as const satisfies Partial<TooltipProps>;
 
-function renderContent(content: ContentType | undefined, props: TooltipContentProps): JSX.Element {
+function renderContent(
+  content: ContentType | undefined,
+  props: TooltipContentProps,
+): JSX.Element {
   if (typeof content === "function") {
     return content(props);
   }
@@ -156,12 +174,15 @@ export const Tooltip = (props: TooltipProps): JSX.Element => {
   const [lastBoundingBox, updateBoundingBox] = useElementOffset();
 
   const defaultIndexAsString = (): TooltipIndex | undefined =>
-    typeof merged.defaultIndex === "number" ? String(merged.defaultIndex) : merged.defaultIndex;
+    typeof merged.defaultIndex === "number"
+      ? String(merged.defaultIndex)
+      : merged.defaultIndex;
 
   // merge() keeps an explicit `trigger={undefined}` as undefined (unlike React's
   // resolveDefaultProps, which would apply the default). The interaction selectors
   // gate on `trigger === "hover"`, so resolve the default explicitly.
-  const resolvedTrigger = (): TooltipTrigger => merged.trigger ?? defaultTooltipProps.trigger;
+  const resolvedTrigger = (): TooltipTrigger =>
+    merged.trigger ?? defaultTooltipProps.trigger;
 
   // Push the Tooltip's settings into the store so the interaction selectors can
   // read shared/trigger/axisId/active/defaultIndex.
@@ -178,21 +199,44 @@ export const Tooltip = (props: TooltipProps): JSX.Element => {
     },
   );
 
-  const tooltipEventType = useAppSelector((state) => selectTooltipEventType(state, merged.shared));
+  const tooltipEventType = useAppSelector((state) =>
+    selectTooltipEventType(state, merged.shared),
+  );
   const activeState = useAppSelector((state) =>
-    selectIsTooltipActive(state, tooltipEventType(), resolvedTrigger(), defaultIndexAsString()),
+    selectIsTooltipActive(
+      state,
+      tooltipEventType(),
+      resolvedTrigger(),
+      defaultIndexAsString(),
+    ),
   );
   const payloadFromState = useAppSelector((state) =>
-    selectTooltipPayload(state, tooltipEventType(), resolvedTrigger(), defaultIndexAsString()),
+    selectTooltipPayload(
+      state,
+      tooltipEventType(),
+      resolvedTrigger(),
+      defaultIndexAsString(),
+    ),
   );
   const labelFromState = useAppSelector((state) =>
-    selectActiveLabel(state, tooltipEventType(), resolvedTrigger(), defaultIndexAsString()),
+    selectActiveLabel(
+      state,
+      tooltipEventType(),
+      resolvedTrigger(),
+      defaultIndexAsString(),
+    ),
   );
   const coordinate = useAppSelector((state) =>
-    selectActiveCoordinate(state, tooltipEventType(), resolvedTrigger(), defaultIndexAsString()),
+    selectActiveCoordinate(
+      state,
+      tooltipEventType(),
+      resolvedTrigger(),
+      defaultIndexAsString(),
+    ),
   );
 
-  const finalIsActive = (): boolean => merged.active ?? activeState()?.isActive ?? false;
+  const finalIsActive = (): boolean =>
+    merged.active ?? activeState()?.isActive ?? false;
   const finalLabel = (): string | number | undefined =>
     tooltipEventType() === "axis" ? labelFromState() : undefined;
 
@@ -216,7 +260,9 @@ export const Tooltip = (props: TooltipProps): JSX.Element => {
     if (filterNull && payload.length) {
       return getUniqPayload(
         payload.filter(
-          (entry) => entry.value != null && (entry.hide !== true || merged.includeHidden),
+          (entry) =>
+            entry.value != null &&
+            (entry.hide !== true || merged.includeHidden),
         ),
         merged.payloadUniqBy,
         defaultUniqBy,
@@ -225,7 +271,8 @@ export const Tooltip = (props: TooltipProps): JSX.Element => {
     return payload;
   });
 
-  const portal = (): HTMLElement | null => props.portal ?? tooltipPortalFromContext();
+  const portal = (): HTMLElement | null =>
+    props.portal ?? tooltipPortalFromContext();
 
   return (
     <>

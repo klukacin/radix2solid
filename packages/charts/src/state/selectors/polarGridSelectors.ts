@@ -1,7 +1,7 @@
+import { AxisId } from "../cartesianAxisSlice";
 // Ported from recharts 3.8.1 src/state/selectors/polarGridSelectors.ts (commit 7a23854).
 // reselect `createSelector` → plain functions.
 import { RechartsRootState } from "../store";
-import { AxisId } from "../cartesianAxisSlice";
 import { selectPolarAxisTicks } from "./polarScaleSelectors";
 
 export type PolarAngles = ReadonlyArray<number>;

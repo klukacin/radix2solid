@@ -1,3 +1,5 @@
+import type { JSX } from "@solidjs/web";
+import { scalePoint } from "d3-scale";
 // Ported from recharts 3.8.1 src/cartesian/Brush.tsx (commit 7a23854).
 //
 // A draggable data-window control rendered below the plot area. It registers its
@@ -23,24 +25,33 @@
 // (drag overrides win mid-interaction, the Solid equivalent of recharts'
 // getDerivedStateFromProps "don't sync while interacting" guards). Covered by the
 // "with controlled startIndex/endIndex" Brush.spec block.
-import { createEffect, createMemo, createSignal, merge, onCleanup, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { scalePoint } from "d3-scale";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import { createChartEffect } from "../state/createChartState";
-import { Layer } from "../container/Layer";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  merge,
+  onCleanup,
+  Show,
+} from "solid-js";
+
 import { Text } from "../component/Text";
+import { Layer } from "../container/Layer";
 import { RootSurface } from "../container/RootSurface";
 import { PanoramaContextProvider } from "../context/PanoramaContext";
-import { selectChartDataWithIndexes } from "../state/selectors/dataSelectors";
-import { selectBrushDimensions } from "../state/selectors/brushSelectors";
 import { ChartData } from "../state/chartDataSlice";
-import { DataKey, Padding } from "../util/types";
+import { createChartEffect } from "../state/createChartState";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { selectBrushDimensions } from "../state/selectors/brushSelectors";
+import { selectChartDataWithIndexes } from "../state/selectors/dataSelectors";
+import { unregisterOnCleanup } from "../state/unregisterOnCleanup";
 import { getValueByDataKey } from "../util/ChartUtils";
 import { isNumber, isNotNil } from "../util/DataUtils";
-import { unregisterOnCleanup } from "../state/unregisterOnCleanup";
+import { DataKey, Padding } from "../util/types";
 
-export type BrushTickFormatter = (value: unknown, index: number) => string | number;
+export type BrushTickFormatter = (
+  value: unknown,
+  index: number,
+) => string | number;
 type BrushTravellerId = "startX" | "endX";
 
 export interface BrushProps {
@@ -150,8 +161,11 @@ function getTextOfTick(
   tickFormatter: BrushTickFormatter | undefined,
 ): string | number {
   const value = getValueByDataKey(data[index], dataKey, index);
-  const text = typeof value === "number" || typeof value === "string" ? value : index;
-  return typeof tickFormatter === "function" ? tickFormatter(text, index) : text;
+  const text =
+    typeof value === "number" || typeof value === "string" ? value : index;
+  return typeof tickFormatter === "function"
+    ? tickFormatter(text, index)
+    : text;
 }
 
 // Accessible label for a traveller: the `name` of the start/end data rows.
@@ -166,7 +180,11 @@ function getNameFromUnknown(value: unknown): string | undefined {
   return undefined;
 }
 
-function getAriaLabel(data: ChartData, startIndex: number, endIndex: number): string {
+function getAriaLabel(
+  data: ChartData,
+  startIndex: number,
+  endIndex: number,
+): string {
   const start = getNameFromUnknown(data[startIndex]);
   const end = getNameFromUnknown(data[endIndex]);
   return `Min value: ${start}, Max value: ${end}`;
@@ -273,7 +291,8 @@ export const Brush = (props: BrushProps): JSX.Element => {
   const [isSlideMoving, setIsSlideMoving] = createSignal(false);
   const [isTextActive, setIsTextActive] = createSignal(false);
   const [isTravellerFocused, setIsTravellerFocused] = createSignal(false);
-  const [movingTravellerId, setMovingTravellerId] = createSignal<BrushTravellerId | null>(null);
+  const [movingTravellerId, setMovingTravellerId] =
+    createSignal<BrushTravellerId | null>(null);
   let dragStartPageX = 0;
 
   // Traveller pixels are DERIVED from the current indices via the scale; a drag sets
@@ -329,7 +348,10 @@ export const Brush = (props: BrushProps): JSX.Element => {
     const prevValue = id === "startX" ? curStartX : curEndX;
     let delta = pageX - dragStartPageX;
     if (delta > 0) {
-      delta = Math.min(delta, x() + width() - merged.travellerWidth - prevValue);
+      delta = Math.min(
+        delta,
+        x() + width() - merged.travellerWidth - prevValue,
+      );
     } else if (delta < 0) {
       delta = Math.max(delta, x() - prevValue);
     }
@@ -445,7 +467,10 @@ export const Brush = (props: BrushProps): JSX.Element => {
     clearTimeout(leaveTimer);
   });
 
-  const startTravellerDrag = (id: BrushTravellerId, e: MouseEvent | TouchEvent): void => {
+  const startTravellerDrag = (
+    id: BrushTravellerId,
+    e: MouseEvent | TouchEvent,
+  ): void => {
     const pageX = getPageX(e);
     if (pageX == null) {
       return;
@@ -469,7 +494,10 @@ export const Brush = (props: BrushProps): JSX.Element => {
 
   // Keyboard: ArrowLeft/Right moves a focused traveller by one data index, snapping
   // to the next scale tick and dispatching the new window (no overlap with the other).
-  const moveTravellerByKeyboard = (direction: -1 | 1, id: BrushTravellerId): void => {
+  const moveTravellerByKeyboard = (
+    direction: -1 | 1,
+    id: BrushTravellerId,
+  ): void => {
     const vals = scaleValues();
     const cur = id === "startX" ? startIndex() : endIndex();
     if (cur < 0 || cur >= data().length) {
@@ -518,11 +546,15 @@ export const Brush = (props: BrushProps): JSX.Element => {
     isTravellerFocused() ||
     merged.alwaysShowText;
 
-  const slideX = (): number => Math.min(startX(), endX()) + merged.travellerWidth;
-  const slideWidth = (): number => Math.max(Math.abs(endX() - startX()) - merged.travellerWidth, 0);
+  const slideX = (): number =>
+    Math.min(startX(), endX()) + merged.travellerWidth;
+  const slideWidth = (): number =>
+    Math.max(Math.abs(endX() - startX()) - merged.travellerWidth, 0);
 
   const layerClass = (): string =>
-    ["recharts-brush", merged.class].filter((c): c is string => Boolean(c)).join(" ");
+    ["recharts-brush", merged.class]
+      .filter((c): c is string => Boolean(c))
+      .join(" ");
 
   const valid = (): boolean =>
     data().length > 0 &&
@@ -558,7 +590,11 @@ export const Brush = (props: BrushProps): JSX.Element => {
             Test prop presence without evaluating JSX before its panorama owner. */}
         <Show when={"children" in props}>
           <PanoramaContextProvider>
-            <RootSurface otherAttributes={null} title={undefined} desc={undefined}>
+            <RootSurface
+              otherAttributes={null}
+              title={undefined}
+              desc={undefined}
+            >
               {props.children}
             </RootSurface>
           </PanoramaContextProvider>
@@ -584,7 +620,9 @@ export const Brush = (props: BrushProps): JSX.Element => {
           class="recharts-brush-traveller"
           tabIndex={0}
           role="slider"
-          aria-label={merged.ariaLabel ?? getAriaLabel(data(), startIndex(), endIndex())}
+          aria-label={
+            merged.ariaLabel ?? getAriaLabel(data(), startIndex(), endIndex())
+          }
           aria-valuenow={startX()}
           onMouseEnter={() => setIsTextActive(true)}
           onMouseLeave={() => setIsTextActive(false)}
@@ -608,7 +646,9 @@ export const Brush = (props: BrushProps): JSX.Element => {
           class="recharts-brush-traveller"
           tabIndex={0}
           role="slider"
-          aria-label={merged.ariaLabel ?? getAriaLabel(data(), startIndex(), endIndex())}
+          aria-label={
+            merged.ariaLabel ?? getAriaLabel(data(), startIndex(), endIndex())
+          }
           aria-valuenow={endX()}
           onMouseEnter={() => setIsTextActive(true)}
           onMouseLeave={() => setIsTextActive(false)}
@@ -637,7 +677,14 @@ export const Brush = (props: BrushProps): JSX.Element => {
               y={y() + merged.height / 2}
               fill={merged.stroke}
             >
-              {String(getTextOfTick(data(), startIndex(), merged.dataKey, merged.tickFormatter))}
+              {String(
+                getTextOfTick(
+                  data(),
+                  startIndex(),
+                  merged.dataKey,
+                  merged.tickFormatter,
+                ),
+              )}
             </Text>
             <Text
               textAnchor="start"
@@ -646,7 +693,14 @@ export const Brush = (props: BrushProps): JSX.Element => {
               y={y() + merged.height / 2}
               fill={merged.stroke}
             >
-              {String(getTextOfTick(data(), endIndex(), merged.dataKey, merged.tickFormatter))}
+              {String(
+                getTextOfTick(
+                  data(),
+                  endIndex(),
+                  merged.dataKey,
+                  merged.tickFormatter,
+                ),
+              )}
             </Text>
           </Layer>
         </Show>

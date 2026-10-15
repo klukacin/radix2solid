@@ -1,9 +1,9 @@
+import { AxisId, BaseCartesianAxis, TicksSettings } from "./cartesianAxisSlice";
 // Ported from recharts 3.8.1 src/state/polarAxisSlice.ts (commit 7a23854).
 // FULL SOLID-NATIVE REWRITE (no Redux/immer): createStore + draft-first actions.
 // Polar charts are a deferred vertical; this slice is wired into the store so the
 // polar axis registration path is ready when Radar/RadialBar/Pie land.
 import type { ChartStateInitializer } from "./createChartState";
-import { AxisId, BaseCartesianAxis, TicksSettings } from "./cartesianAxisSlice";
 
 export type RadiusAxisSettings = BaseCartesianAxis & TicksSettings;
 export type AngleAxisSettings = BaseCartesianAxis & TicksSettings;
@@ -30,16 +30,19 @@ export interface PolarAxisSlice {
   readonly actions: PolarAxisActions;
 }
 
-export function createPolarAxisSlice(initialState: PolarAxisState=initialPolarAxisState,createState: ChartStateInitializer): PolarAxisSlice {
-  const [state,setState]=createState<PolarAxisState>({
+export function createPolarAxisSlice(
+  initialState: PolarAxisState = initialPolarAxisState,
+  createState: ChartStateInitializer,
+): PolarAxisSlice {
+  const [state, setState] = createState<PolarAxisState>({
     radiusAxis: { ...initialState.radiusAxis },
     angleAxis: { ...initialState.angleAxis },
   });
 
-  const actions: PolarAxisActions={
+  const actions: PolarAxisActions = {
     addRadiusAxis(axis) {
       setState((s) => {
-        s.radiusAxis[axis.id]=axis;
+        s.radiusAxis[axis.id] = axis;
       });
     },
     removeRadiusAxis(axis) {
@@ -49,7 +52,7 @@ export function createPolarAxisSlice(initialState: PolarAxisState=initialPolarAx
     },
     addAngleAxis(axis) {
       setState((s) => {
-        s.angleAxis[axis.id]=axis;
+        s.angleAxis[axis.id] = axis;
       });
     },
     removeAngleAxis(axis) {
@@ -59,5 +62,10 @@ export function createPolarAxisSlice(initialState: PolarAxisState=initialPolarAx
     },
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

@@ -1,12 +1,10 @@
-// Ported from recharts 3.8.1 src/cartesian/YAxis.tsx (commit 7a23854).
-//
-// Registration + visual — see XAxis.tsx for the Solid deviations (registration
-// via createEffect + defaults resolved like recharts' resolveDefaultProps); the
-// visual `<CartesianAxis>` IS rendered at the bottom of this file.
-import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createEffect, createMemo, Show } from "solid-js";
 import type { JSX } from "@solidjs/web";
-import { useAppSelector, useAppStore } from "../state/hooks";
+import { createEffect, createMemo, Show } from "solid-js";
+
+import { isLabelContentAFunction } from "../component/Label";
+import type { ImplicitLabelType } from "../component/Label";
+import { useCartesianChartLayout } from "../context/chartLayoutContext";
+import { useIsPanorama } from "../context/PanoramaContext";
 import {
   NiceTicksAlgorithm,
   YAxisOrientation,
@@ -14,20 +12,22 @@ import {
   YAxisSettings,
   YAxisWidth,
 } from "../state/cartesianAxisSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { registerInStore } from "../state/registerInStore";
 import {
   implicitYAxis,
   selectTicksOfAxis,
   selectYAxisPosition,
   selectYAxisSize,
 } from "../state/selectors/axisSelectors";
-import { CartesianAxis, type CartesianTickEventHandler } from "./CartesianAxis";
-import { getCalculatedYAxisWidth } from "../util/YAxisUtils";
-import { isLabelContentAFunction } from "../component/Label";
-import type { ImplicitLabelType } from "../component/Label";
-import { RenderedTicksReporter } from "./RenderedTicksReporter";
-import { useIsPanorama } from "../context/PanoramaContext";
-import { useCartesianChartLayout } from "../context/chartLayoutContext";
 import { getAxisTypeBasedOnLayout } from "../util/getAxisTypeBasedOnLayout";
+import { CustomScaleDefinition } from "../util/scale/CustomScaleDefinition";
+// Ported from recharts 3.8.1 src/cartesian/YAxis.tsx (commit 7a23854).
+//
+// Registration + visual — see XAxis.tsx for the Solid deviations (registration
+// via createEffect + defaults resolved like recharts' resolveDefaultProps); the
+// visual `<CartesianAxis>` IS rendered at the bottom of this file.
+import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
 import {
   AxisDomain,
   AxisDomainTypeInput,
@@ -39,8 +39,9 @@ import {
   TickFormatter,
   TickProp,
 } from "../util/types";
-import { CustomScaleDefinition } from "../util/scale/CustomScaleDefinition";
-import { registerInStore } from "../state/registerInStore";
+import { getCalculatedYAxisWidth } from "../util/YAxisUtils";
+import { CartesianAxis, type CartesianTickEventHandler } from "./CartesianAxis";
+import { RenderedTicksReporter } from "./RenderedTicksReporter";
 
 export interface YAxisProps<DataPointType = unknown, DataValueType = unknown> {
   yAxisId?: string | number;
@@ -142,15 +143,23 @@ export function YAxis<DataPointType = unknown, DataValueType = unknown>(
 ): JSX.Element {
   const store = useAppStore();
   const layout = useCartesianChartLayout();
-  const yAxisId = createMemo(() => withDefault(props.yAxisId, yAxisDefaultProps.yAxisId));
-  const hide = createMemo(() => withDefault(props.hide, yAxisDefaultProps.hide));
-  const tick = createMemo(() => withDefault(props.tick, yAxisDefaultProps.tick));
+  const yAxisId = createMemo(() =>
+    withDefault(props.yAxisId, yAxisDefaultProps.yAxisId),
+  );
+  const hide = createMemo(() =>
+    withDefault(props.hide, yAxisDefaultProps.hide),
+  );
+  const tick = createMemo(() =>
+    withDefault(props.tick, yAxisDefaultProps.tick),
+  );
   const tickFormatter = createMemo(() => props.tickFormatter);
   const orientation = createMemo(() =>
     withDefault(props.orientation, yAxisDefaultProps.orientation),
   );
   const unit = createMemo(() => props.unit);
-  const mirror = createMemo(() => withDefault(props.mirror, yAxisDefaultProps.mirror));
+  const mirror = createMemo(() =>
+    withDefault(props.mirror, yAxisDefaultProps.mirror),
+  );
 
   if (store != null) {
     registerInStore<YAxisSettings>(
@@ -179,16 +188,25 @@ export function YAxis<DataPointType = unknown, DataValueType = unknown>(
             yAxisDefaultProps.allowDataOverflow,
           ),
           reversed: withDefault(props.reversed, yAxisDefaultProps.reversed),
-          includeHidden: withDefault(props.includeHidden, yAxisDefaultProps.includeHidden),
+          includeHidden: withDefault(
+            props.includeHidden,
+            yAxisDefaultProps.includeHidden,
+          ),
           domain: props.domain,
-          allowDecimals: withDefault(props.allowDecimals, yAxisDefaultProps.allowDecimals),
+          allowDecimals: withDefault(
+            props.allowDecimals,
+            yAxisDefaultProps.allowDecimals,
+          ),
           tickCount: withDefault(props.tickCount, yAxisDefaultProps.tickCount),
           ticks: props.ticks,
           tick: tick(),
           niceTicks: withDefault(props.niceTicks, yAxisDefaultProps.niceTicks),
           interval: withDefault(props.interval, yAxisDefaultProps.interval),
           mirror: mirror(),
-          minTickGap: withDefault(props.minTickGap, yAxisDefaultProps.minTickGap),
+          minTickGap: withDefault(
+            props.minTickGap,
+            yAxisDefaultProps.minTickGap,
+          ),
           angle: withDefault(props.angle, yAxisDefaultProps.angle),
           hide: hide(),
           tickFormatter: tickFormatter(),
@@ -199,7 +217,8 @@ export function YAxis<DataPointType = unknown, DataValueType = unknown>(
       },
       {
         add: (next) => store.actions.cartesianAxis.addYAxis(next),
-        replace: (prev, next) => store.actions.cartesianAxis.replaceYAxis({ prev, next }),
+        replace: (prev, next) =>
+          store.actions.cartesianAxis.replaceYAxis({ prev, next }),
         remove: (prev) => store.actions.cartesianAxis.removeYAxis(prev),
       },
     );
@@ -207,9 +226,13 @@ export function YAxis<DataPointType = unknown, DataValueType = unknown>(
 
   // Visual: render the <CartesianAxis>. Never inside a Brush panorama.
   const isPanorama = useIsPanorama();
-  const position = useAppSelector((state) => selectYAxisPosition(state, yAxisId()));
+  const position = useAppSelector((state) =>
+    selectYAxisPosition(state, yAxisId()),
+  );
   const size = useAppSelector((state) => selectYAxisSize(state, yAxisId()));
-  const ticks = useAppSelector((state) => selectTicksOfAxis(state, "yAxis", yAxisId(), isPanorama));
+  const ticks = useAppSelector((state) =>
+    selectTicksOfAxis(state, "yAxis", yAxisId(), isPanorama),
+  );
   const axisRender = createMemo(() => {
     const p = position();
     const s = size();
@@ -243,10 +266,17 @@ export function YAxis<DataPointType = unknown, DataValueType = unknown>(
         return;
       }
       const el = layerEl;
-      if (el == null || inputs.ticks == null || inputs.size == null || store == null) {
+      if (
+        el == null ||
+        inputs.ticks == null ||
+        inputs.size == null ||
+        store == null
+      ) {
         return;
       }
-      const tickNodes = el.getElementsByClassName("recharts-cartesian-axis-tick-value");
+      const tickNodes = el.getElementsByClassName(
+        "recharts-cartesian-axis-tick-value",
+      );
       if (tickNodes.length === 0) {
         return;
       }
@@ -258,7 +288,10 @@ export function YAxis<DataPointType = unknown, DataValueType = unknown>(
         tickMargin: 2,
       });
       if (Math.round(inputs.size.width) !== Math.round(updatedYAxisWidth)) {
-        store.actions.cartesianAxis.updateYAxisWidth({ id: inputs.id, width: updatedYAxisWidth });
+        store.actions.cartesianAxis.updateYAxisWidth({
+          id: inputs.id,
+          width: updatedYAxisWidth,
+        });
       }
     },
   );
@@ -267,7 +300,11 @@ export function YAxis<DataPointType = unknown, DataValueType = unknown>(
     <Show when={!isPanorama && !hide() && axisRender()}>
       {(ar) => (
         <>
-          <RenderedTicksReporter axisType="yAxis" axisId={yAxisId()} ticks={ar().ticks} />
+          <RenderedTicksReporter
+            axisType="yAxis"
+            axisId={yAxisId()}
+            ticks={ar().ticks}
+          />
           <CartesianAxis
             axisType="yAxis"
             layerRef={(el) => {
@@ -281,7 +318,10 @@ export function YAxis<DataPointType = unknown, DataValueType = unknown>(
             ticks={ar().ticks}
             tickFormatter={tickFormatter()}
             interval={withDefault(props.interval, yAxisDefaultProps.interval)}
-            minTickGap={withDefault(props.minTickGap, yAxisDefaultProps.minTickGap)}
+            minTickGap={withDefault(
+              props.minTickGap,
+              yAxisDefaultProps.minTickGap,
+            )}
             unit={unit()}
             mirror={mirror()}
             class={props.class}

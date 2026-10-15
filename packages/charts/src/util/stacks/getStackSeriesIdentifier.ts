@@ -1,7 +1,7 @@
+import { MaybeStackedGraphicalItem } from "../../state/types/StackedGraphicalItem";
 // Ported from recharts 3.8.1 src/util/stacks/getStackSeriesIdentifier.ts
 // (commit 7a23854).
 import { StackSeriesIdentifier } from "./stackTypes";
-import { MaybeStackedGraphicalItem } from "../../state/types/StackedGraphicalItem";
 
 export function getStackSeriesIdentifier(
   graphicalItem: MaybeStackedGraphicalItem,

@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/polar/PolarAngleAxis.tsx (commit 7a23854).
 //
 // MINIMAL PORT — registers an AngleAxisSettings into the polarAxis slice and
@@ -18,13 +19,27 @@
 // instead). NOTE: the reference PolarAngleAxis renders no axis `label` title
 // either (only PolarRadiusAxis does) — no gap there.
 import { For, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { svgPropertiesNoEvents } from "../util/svgPropertiesNoEvents";
-import { useAppSelector, useAppStore } from "../state/hooks";
+
+import { Text, TextAnchor, TextVerticalAnchor } from "../component/Text";
 import { Layer } from "../container/Layer";
+import { usePolarChartLayout } from "../context/chartLayoutContext";
+import { useIsPanorama } from "../context/PanoramaContext";
 import { Dot, type DotProps } from "../shape/Dot";
 import { Polygon, type PolygonProps } from "../shape/Polygon";
-import { Text, TextAnchor, TextVerticalAnchor } from "../component/Text";
+import { NiceTicksAlgorithm } from "../state/cartesianAxisSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { AngleAxisSettings } from "../state/polarAxisSlice";
+import { registerInStore } from "../state/registerInStore";
+import { selectPolarViewBox } from "../state/selectors/polarAxisSelectors";
+import {
+  selectPolarAngleAxisTicks,
+  selectPolarAxisScale,
+} from "../state/selectors/polarScaleSelectors";
+import { isNumOrStr } from "../util/DataUtils";
+import { getAxisTypeBasedOnLayout } from "../util/getAxisTypeBasedOnLayout";
+import { degreeToRadian, polarToCartesian } from "../util/PolarUtils";
+import { CustomScaleDefinition } from "../util/scale/CustomScaleDefinition";
+import { svgPropertiesNoEvents } from "../util/svgPropertiesNoEvents";
 import {
   AxisDomain,
   AxisDomainTypeInput,
@@ -35,20 +50,6 @@ import {
   TickItem,
   TickProp,
 } from "../util/types";
-import { NiceTicksAlgorithm } from "../state/cartesianAxisSlice";
-import { AngleAxisSettings } from "../state/polarAxisSlice";
-import { degreeToRadian, polarToCartesian } from "../util/PolarUtils";
-import { isNumOrStr } from "../util/DataUtils";
-import {
-  selectPolarAngleAxisTicks,
-  selectPolarAxisScale,
-} from "../state/selectors/polarScaleSelectors";
-import { selectPolarViewBox } from "../state/selectors/polarAxisSelectors";
-import { useIsPanorama } from "../context/PanoramaContext";
-import { usePolarChartLayout } from "../context/chartLayoutContext";
-import { getAxisTypeBasedOnLayout } from "../util/getAxisTypeBasedOnLayout";
-import { CustomScaleDefinition } from "../util/scale/CustomScaleDefinition";
-import { registerInStore } from "../state/registerInStore";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 import { ZIndexLayer } from "../zIndex/ZIndexLayer";
 
@@ -60,10 +61,16 @@ const COS_45 = Math.cos(degreeToRadian(45));
  * recharts merges the same way). Typed as the intersection of the shapes the
  * object is spread into (Polygon for polygon axis lines, Dot for circle ones),
  * so the JSX spreads type-check without assertions. */
-export type PolarAxisLineObjectProps = Omit<PolygonProps, "class" | "children" | "ref" | "points"> &
+export type PolarAxisLineObjectProps = Omit<
+  PolygonProps,
+  "class" | "children" | "ref" | "points"
+> &
   Omit<DotProps, "class" | "children" | "ref" | "cx" | "cy" | "r">;
 
-export interface PolarAngleAxisProps<DataPointType = unknown, DataValueType = unknown> {
+export interface PolarAngleAxisProps<
+  DataPointType = unknown,
+  DataValueType = unknown,
+> {
   angleAxisId?: string | number;
   /** HTML id attribute for the axis layer. */
   id?: string;
@@ -159,7 +166,10 @@ const getTickLineCoord = (
   return { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y };
 };
 
-const getTickTextAnchor = (data: TickItem, orientation: "inner" | "outer"): TextAnchor => {
+const getTickTextAnchor = (
+  data: TickItem,
+  orientation: "inner" | "outer",
+): TextAnchor => {
   const cos = Math.cos(degreeToRadian(-data.coordinate));
   if (cos > eps) {
     return orientation === "outer" ? "start" : "end";
@@ -252,7 +262,9 @@ const AngleAxisTick = (props: AngleTickProps): JSX.Element => {
     if (props.tickFormatter) {
       return props.tickFormatter(props.entry.value, props.index);
     }
-    return isNumOrStr(props.entry.value) ? props.entry.value : String(props.entry.value);
+    return isNumOrStr(props.entry.value)
+      ? props.entry.value
+      : String(props.entry.value);
   };
   // The props recharts' renderTickItem hands to a function-form `tick`.
   const tickContentProps = (): PolarAngleTickContentProps => ({
@@ -326,9 +338,10 @@ const AngleAxisTick = (props: AngleTickProps): JSX.Element => {
   );
 };
 
-export function PolarAngleAxis<DataPointType = unknown, DataValueType = unknown>(
-  props: PolarAngleAxisProps<DataPointType, DataValueType>,
-): JSX.Element {
+export function PolarAngleAxis<
+  DataPointType = unknown,
+  DataValueType = unknown,
+>(props: PolarAngleAxisProps<DataPointType, DataValueType>): JSX.Element {
   const store = useAppStore();
   const layout = usePolarChartLayout();
   const merged = merge(polarAngleAxisDefaultProps, props);
@@ -337,7 +350,11 @@ export function PolarAngleAxis<DataPointType = unknown, DataValueType = unknown>
   if (store != null) {
     registerInStore<AngleAxisSettings>(
       (): AngleAxisSettings | undefined => {
-        const evaluatedType = getAxisTypeBasedOnLayout(layout(), "angleAxis", merged.type);
+        const evaluatedType = getAxisTypeBasedOnLayout(
+          layout(),
+          "angleAxis",
+          merged.type,
+        );
         if (evaluatedType == null) {
           return undefined;
         }
@@ -379,7 +396,12 @@ export function PolarAngleAxis<DataPointType = unknown, DataValueType = unknown>
     selectPolarAxisScale(state, "angleAxis", merged.angleAxisId),
   );
   const ticks = useAppSelector((state) =>
-    selectPolarAngleAxisTicks(state, "angleAxis", merged.angleAxisId, isPanorama),
+    selectPolarAngleAxisTicks(
+      state,
+      "angleAxis",
+      merged.angleAxisId,
+      isPanorama,
+    ),
   );
 
   const renderData = (): {
@@ -390,7 +412,13 @@ export function PolarAngleAxis<DataPointType = unknown, DataValueType = unknown>
   } | null => {
     const vb = viewBox();
     const t = ticks();
-    if (vb == null || scale() == null || t == null || t.length === 0 || merged.hide) {
+    if (
+      vb == null ||
+      scale() == null ||
+      t == null ||
+      t.length === 0 ||
+      merged.hide
+    ) {
       return null;
     }
     return { cx: vb.cx, cy: vb.cy, radius: vb.outerRadius, ticks: t };
@@ -407,7 +435,9 @@ export function PolarAngleAxis<DataPointType = unknown, DataValueType = unknown>
     radius: number;
     ticks: ReadonlyArray<TickItem>;
   }): Coordinate[] =>
-    rd.ticks.map((entry) => polarToCartesian(rd.cx, rd.cy, rd.radius, entry.coordinate));
+    rd.ticks.map((entry) =>
+      polarToCartesian(rd.cx, rd.cy, rd.radius, entry.coordinate),
+    );
 
   return (
     <Show when={renderData()}>
@@ -427,7 +457,8 @@ export function PolarAngleAxis<DataPointType = unknown, DataValueType = unknown>
                     class="recharts-polar-angle-axis-line"
                     fill="none"
                     stroke={merged.stroke}
-                    {...(typeof merged.axisLine === "object" && merged.axisLine != null
+                    {...(typeof merged.axisLine === "object" &&
+                    merged.axisLine != null
                       ? merged.axisLine
                       : {})}
                     points={axisLinePoints(rd())}
@@ -438,7 +469,8 @@ export function PolarAngleAxis<DataPointType = unknown, DataValueType = unknown>
                   class="recharts-polar-angle-axis-line"
                   fill="none"
                   stroke={merged.stroke}
-                  {...(typeof merged.axisLine === "object" && merged.axisLine != null
+                  {...(typeof merged.axisLine === "object" &&
+                  merged.axisLine != null
                     ? merged.axisLine
                     : {})}
                   cx={rd().cx}

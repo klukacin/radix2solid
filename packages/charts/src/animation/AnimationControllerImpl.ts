@@ -1,5 +1,8 @@
 // Ported from recharts 3.9.0 src/animation/AnimationControllerImpl.ts. Pure logic.
-import type { AnimationController, OnAnimationStateUpdate } from "./AnimationController";
+import type {
+  AnimationController,
+  OnAnimationStateUpdate,
+} from "./AnimationController";
 import type { AnimationHandle } from "./AnimationHandle";
 import type { CancelableTimeout, TimeoutController } from "./timeoutController";
 

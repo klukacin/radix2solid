@@ -1,18 +1,31 @@
-import { merge, type Element } from 'solid-js';
-import type { ComponentProps } from '@solidjs/web';
-import { Primitive, type PrimitiveProps } from '@wsagency/radix2solid-primitives/internal';
-import { extractProps } from '../helpers/extract-props.js';
-import type { ComposedProps, RemovedProps } from '../helpers/component-props.js';
-import type { GetPropDefTypes } from '../props/prop-def.js';
-import { kbdPropDefs } from './kbd.props.js';
-import { marginPropDefs, type MarginProps } from '../props/margin.props.js';
+import type { ComponentProps } from "@solidjs/web";
+import {
+  Primitive,
+  type PrimitiveProps,
+} from "@wsagency/radix2solid-primitives/internal";
+import { merge, type Element } from "solid-js";
 
-export type KbdProps = ComposedProps<Omit<ComponentProps<'kbd'>, RemovedProps> & GetPropDefTypes<typeof kbdPropDefs> & MarginProps>;
+import type {
+  ComposedProps,
+  RemovedProps,
+} from "../helpers/component-props.js";
+import { extractProps } from "../helpers/extract-props.js";
+import { marginPropDefs, type MarginProps } from "../props/margin.props.js";
+import type { GetPropDefTypes } from "../props/prop-def.js";
+import { kbdPropDefs } from "./kbd.props.js";
+
+export type KbdProps = ComposedProps<
+  Omit<ComponentProps<"kbd">, RemovedProps> &
+    GetPropDefTypes<typeof kbdPropDefs> &
+    MarginProps
+>;
 export function Kbd(props: KbdProps): Element {
   const parsed = extractProps(props, kbdPropDefs, marginPropDefs);
   const forwarded = merge(parsed, {
-    as: 'kbd' as const,
-    get class() { return ['rt-reset', 'rt-Kbd', parsed.class]; }
+    as: "kbd" as const,
+    get class() {
+      return ["rt-reset", "rt-Kbd", parsed.class];
+    },
   });
-  return <Primitive {...forwarded as PrimitiveProps<'kbd'>} />;
+  return <Primitive {...(forwarded as PrimitiveProps<"kbd">)} />;
 }

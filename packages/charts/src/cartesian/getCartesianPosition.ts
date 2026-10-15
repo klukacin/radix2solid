@@ -1,9 +1,9 @@
+import { TextAnchor, TextVerticalAnchor } from "../component/Text";
+import { cartesianViewBoxToTrapezoid } from "../context/chartLayoutContext";
 // Ported from recharts 3.8.1 src/cartesian/getCartesianPosition.tsx (commit 7a23854).
 // Pure geometry — no framework surface — so behavior is byte-identical to recharts.
 import { getPercentValue, isNumber, isPercent } from "../util/DataUtils";
 import { CartesianViewBoxRequired, TrapezoidViewBox } from "../util/types";
-import { TextAnchor, TextVerticalAnchor } from "../component/Text";
-import { cartesianViewBoxToTrapezoid } from "../context/chartLayoutContext";
 
 export type CartesianLabelPosition =
   | "top"
@@ -59,10 +59,19 @@ export type CartesianPosition = {
  * Calculates the position and alignment for a generic element in a Cartesian
  * coordinate system.
  */
-export const getCartesianPosition = (options: GetCartesianPositionOptions): CartesianPosition => {
-  const { viewBox, position, offset = 0, parentViewBox: parentViewBoxFromOptions, clamp } = options;
+export const getCartesianPosition = (
+  options: GetCartesianPositionOptions,
+): CartesianPosition => {
+  const {
+    viewBox,
+    position,
+    offset = 0,
+    parentViewBox: parentViewBoxFromOptions,
+    clamp,
+  } = options;
 
-  const { x, y, height, upperWidth, lowerWidth } = cartesianViewBoxToTrapezoid(viewBox);
+  const { x, y, height, upperWidth, lowerWidth } =
+    cartesianViewBoxToTrapezoid(viewBox);
 
   // Funnel.tsx provides a viewBox where `x` is the top-left of the trapezoid shape.
   const upperX = x;
@@ -112,7 +121,10 @@ export const getCartesianPosition = (options: GetCartesianPositionOptions): Cart
       verticalAnchor: verticalStart,
     };
     if (clamp && parentViewBox) {
-      result.height = Math.max(parentViewBox.y + parentViewBox.height - (y + height), 0);
+      result.height = Math.max(
+        parentViewBox.y + parentViewBox.height - (y + height),
+        0,
+      );
       result.width = lowerWidth;
     }
     return result;
@@ -140,13 +152,17 @@ export const getCartesianPosition = (options: GetCartesianPositionOptions): Cart
       verticalAnchor: "middle",
     };
     if (clamp && parentViewBox) {
-      result.width = Math.max(parentViewBox.x + parentViewBox.width - result.x, 0);
+      result.width = Math.max(
+        parentViewBox.x + parentViewBox.width - result.x,
+        0,
+      );
       result.height = height;
     }
     return result;
   }
 
-  const sizeAttrs = clamp && parentViewBox ? { width: midHeightWidth, height } : {};
+  const sizeAttrs =
+    clamp && parentViewBox ? { width: midHeightWidth, height } : {};
 
   if (position === "insideLeft") {
     return {

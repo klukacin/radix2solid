@@ -1,15 +1,16 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/chart/CategoricalChart.tsx (commit 7a23854).
 //
 // Solid deviations: `forwardRef` → `ref` prop; no destructuring (omit + props);
 // `className` → `class`. The `compact` (Brush panorama) branch is deferred. Event
 // handlers are not forwarded yet (RechartsWrapper is render-only).
 import { omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { RootSurface } from "../container/RootSurface";
-import { RechartsWrapper } from "./RechartsWrapper";
+
 import { ClipPathProvider } from "../container/ClipPathProvider";
-import { CartesianChartProps } from "../util/types";
+import { RootSurface } from "../container/RootSurface";
 import { svgPropertiesNoEventsKeepCase } from "../util/svgPropertiesNoEvents";
+import { CartesianChartProps } from "../util/types";
+import { RechartsWrapper } from "./RechartsWrapper";
 
 export interface CategoricalChartProps extends CartesianChartProps {
   ref?: SVGSVGElement | ((el: SVGSVGElement) => void);
@@ -52,7 +53,12 @@ export const CategoricalChart = (props: CategoricalChartProps): JSX.Element => {
       onTouchMove={props.onTouchMove}
       onTouchEnd={props.onTouchEnd}
     >
-      <RootSurface otherAttributes={attrs()} title={props.title} desc={props.desc} ref={props.ref}>
+      <RootSurface
+        otherAttributes={attrs()}
+        title={props.title}
+        desc={props.desc}
+        ref={props.ref}
+      >
         <ClipPathProvider>{props.children}</ClipPathProvider>
       </RootSurface>
     </RechartsWrapper>

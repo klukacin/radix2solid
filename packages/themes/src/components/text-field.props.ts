@@ -1,16 +1,26 @@
-import { colorPropDef } from '../props/color.prop.js';
-import { paddingPropDefs } from '../props/padding.props.js';
-import { radiusPropDef } from '../props/radius.prop.js';
-import { flexPropDefs } from './flex.props.js';
+import { colorPropDef } from "../props/color.prop.js";
+import { paddingPropDefs } from "../props/padding.props.js";
+import type { PropDef } from "../props/prop-def.js";
+import { radiusPropDef } from "../props/radius.prop.js";
+import { flexPropDefs } from "./flex.props.js";
 
-import type { PropDef } from '../props/prop-def.js';
-
-const sizes = ['1', '2', '3'] as const;
-const variants = ['classic', 'surface', 'soft'] as const;
+const sizes = ["1", "2", "3"] as const;
+const variants = ["classic", "surface", "soft"] as const;
 
 const textFieldRootPropDefs = {
-  size: { type: 'enum', className: 'rt-r-size', values: sizes, default: '2', responsive: true },
-  variant: { type: 'enum', className: 'rt-variant', values: variants, default: 'surface' },
+  size: {
+    type: "enum",
+    className: "rt-r-size",
+    values: sizes,
+    default: "2",
+    responsive: true,
+  },
+  variant: {
+    type: "enum",
+    className: "rt-variant",
+    values: variants,
+    default: "surface",
+  },
   ...colorPropDef,
   ...radiusPropDef,
 } satisfies {
@@ -18,10 +28,10 @@ const textFieldRootPropDefs = {
   variant: PropDef<(typeof variants)[number]>;
 };
 
-const sides = ['left', 'right'] as const;
+const sides = ["left", "right"] as const;
 
 const textFieldSlotPropDefs = {
-  side: { type: 'enum', values: sides },
+  side: { type: "enum", values: sides },
   ...colorPropDef,
   gap: flexPropDefs.gap,
   px: paddingPropDefs.px,
