@@ -1,0 +1,157 @@
+# Native FileDrop
+
+Status: **Product scope approved; this written specification is pending user review. Product not implemented.** This is a design contract, not an implementation plan or evidence of component tests passing. Written-spec approval precedes implementation planning. No product implementation, dependency change or publication is authorized by creating this document.
+
+## Purpose, scope and alternatives
+
+FileDrop owns browser file **selection**, shared between native chooser and dropping files, with controlled/uncontrolled accepted state, UX filtering, native form projection, accessible browse interaction and styled Themes components. It is this project's extension, not an official upstream Radix component or port.
+
+The application owns file-list rendering/removal, previews/object-URL lifetimes, async acceptance, upload transport/retries/progress, server validation and persistence. Reuse existing Form, Label, Announce, Progress and Toast rather than implementing another upload framework.
+
+Non-goals: upload service, content/MIME sniffing, malware scanning, size-policy engine, directory recursion, File System Access permissions, remote-URL import, paste import, ZIP expansion, persistence, a readOnly editing mode or app-wide drag service. An example must not pretend an upload succeeded without a real application endpoint.
+
+Chosen architecture: headless FileDrop with **one actual native file input** for both chooser and accepted-state form projection. A native file-input recipe is the simpler alternative when dragging is unnecessary. A full uploader/dependency or Foldkit runtime port adds unjustified scope. A separate portaled/private chooser was rejected: isolating every provisional native event would add runtime/ownership machinery for a stronger-than-native invariant that is not required. Preserve native chooser semantics and document the settled-state boundary instead.
+
+## Public API
+
+Namespace/subpath: `FileDrop` / `@wsagency/radix2solid-primitives/file-drop`, within the existing primitives package; styled exports live within existing Themes. Existing long-name/short-alias exports, scoped context, PrimitiveProps/ref handling and structural target-factory asChild apply. No new package/scope.
+
+| Part | Contract |
+| --- | --- |
+| `Root` | Div drop target by default, not an additional nested interactive button. `value?: readonly File[]`, `defaultValue?: readonly File[]` (default empty), `onValueChange?: (value: readonly File[]) => void`; `multiple?: boolean` (default false), `accept?: string`; `name?: string`, `form?: string`, `required?: boolean`, `disabled?: boolean`; `onReject?: (rejection: FileDropRejection) => void`; children, native root props, scope/ref/asChild. |
+| `Input` | One real `input type="file"`, both native chooser and settled form projection. Always mounted even without a form. Mirrors root name/form/multiple/accept/required/disabled; exposes native ref, label/description/error association, onInput/onChange and ordinary native input interaction. Visible or visually hidden while remaining accessible and focusable. Native readOnly is excluded and not forwarded. |
+| `Trigger` | Optional type-button browse affordance, opens Input from actual user activation; existing Label targeting Input is also supported. No global imperative chooser service. |
+
+`FileDropRejection` has `source: 'picker'|'drop'`, `reason: 'no-files'|'too-many-files'|'accept-mismatch'` and `files: readonly File[]`. `no-files` occurs only for an empty/non-file drop. A local rejection is neither an upload error nor a controlled-parent refusal. No extra drag-state callback; `data-dragging` and `data-disabled` are the styling hooks.
+
+ReadOnly is **not supported** in this family: native file-input readonly does not provide meaningful selection locking, and bespoke required/locked semantics are outside scope. Use disabled when native omission/interaction disabling is appropriate, controlled value authority when the app decides acceptance, or app-rendered static metadata for a read-only display. This does not change DatePicker's native-date readOnly contract.
+
+## Accepted state and candidate policy
+
+Accepted parent/local `readonly File[]` is the authority. Native FileList is the form projection, not another source of truth. `undefined` means uncontrolled, matching existing controllable state. Controlled callbacks propose plain arrays; no boolean acknowledgement, timeout, optimistic accepted display or automatic refusal callback.
+
+Snapshot a candidate FileList into a fresh readonly array while retaining File references, not copying file bytes. Never expose a live FileList as public state. Applications treat arrays immutably. A sequence with the same File references in the same order is a semantic no-op for projection/events. Filename, size, lastModified and fakepath are not identity; two different Files can have identical metadata. Keep the existing helper's identity convention while preventing gratuitous native projection for an equivalent wrapper array.
+
+### Shared picker/drop pipeline
+
+1. Native chooser **cancel** preserves accepted selection. An actual native **change with zero files** proposes `[]`, including when required; accepted clear then fails required. Empty/non-file **drop** instead rejects `no-files` without clearing.
+2. More than one candidate with multiple=false rejects the **entire batch** as too-many-files. Do not silently truncate or depend on the FileList setter enforcing count.
+3. Apply accept rules equally to picker and drop, including picker choices made through an 'all files' override. Every candidate must match at least one token; any mismatch rejects the whole batch, retaining previous accepted selection. Count rejection precedes accept rejection.
+4. Accept is a comma-separated list of HTML-style extension tokens, exact MIME types and supported media wildcards (`image/*`, `audio/*`, `video/*`). Trim tokens and compare case-insensitively; empty/omitted accept permits all. Extension matching uses filename suffix; MIME matching uses the supplied type, not byte sniffing. Missing MIME may match a filename extension but cannot satisfy a MIME-only rule by guessing. Malformed configuration is an API error rather than a permissive parser fallback. Duplicate equivalent tokens have no extra meaning.
+5. These filters are UX, **not security**. Names/types can misrepresent contents; servers own real policy. No file metadata inspection is represented as content certification.
+6. A passing changed candidate calls onValueChange once. Uncontrolled state accepts it; controlled state waits for actual prop adoption, synchronously, later or never. Parent non-adoption does not call onReject. Application async ordering and pending/error messages remain app-owned.
+7. Selection **replaces**, not appends. A controlled application can explicitly append to its value in its callback; the primitive does not silently do so. Clear/remove-one uses a new accepted array from the app, not an upload/list-management subsystem.
+8. External accepted values are authoritative, not replayed as user candidates. Values invalid under current accept/count configuration remain visible/projected and acquire domain invalidity, blocking ordinary validated submission without mutating the owner's files. Changing accept/multiple re-evaluates that domain validity without issuing selection or rejection callbacks.
+
+Mixed drops containing files and text process only actual files. Text/URL data is not fetched or converted into a File. Within the zone, handled text/URL drops must not navigate the page. Files-only support does not imply reliable universal directory detection: no directory traversal or remote fetch occurs, and real OS directory behavior must be checked before making browser-specific claims.
+
+## Native events and bounded settlement
+
+Browser selection writes a candidate FileList **before** native input/change; these events are noncancelable. Raw target, capture and bubble observers may therefore see provisional files before reconciliation. preventDefault cannot undo that selection. FileDrop does not conceal raw native events or promise transactional FormData reads inside them. **Native input/change are not accepted-value commit notifications.**
+
+Process candidate selection once on native change, not independently on both input and change. After local filtering/value proposal, reconcile once after current reactive updates: re-read the authoritative accepted File-reference sequence, project it if necessary and refresh validity. No polling for parent acknowledgement. Reentrant callbacks settle to the latest accepted state, not a saved obsolete candidate. Later parent adoption is a normal later accepted-value projection.
+
+### Exact event policy
+
+| Path | Selection/projection | DOM notifications |
+| --- | --- | --- |
+| Picker accepted immediately | One proposal; settle accepted state | Preserve original browser input/change; no additional bubbling pair. |
+| Native picker change to zero files | Propose empty; accepted clear invalidates required, refusal restores accepted files | Original input/change; no no-files rejection or duplicate bubbling pair. |
+| Picker filter rejection or parent not yet adopting | Local reject or value proposal respectively; restore accepted projection | Original native input/change already occurred; do not hide or label them accepted commits. |
+| Drop accepted immediately | Project accepted sequence first | One synthetic bubbling input followed by change for this accepted transition. |
+| Drop rejected or controlled drop not yet adopted | Accepted projection unchanged | No synthetic input/change; local reject only for filter failure. |
+| Later adoption, external accepted update or explicit controlled clear | Project current accepted sequence | One synthetic non-bubbling change following existing programmatic native-control conventions; target/capture observers can see it. |
+| Uncancelled reset | Propose initial value, reproject after browser action | Native reset only; no fake user input/change. |
+| Cancel, cancelled reset, initial projection or equivalent accepted sequence | No accepted transition | Preserve browser behavior, add no notifications. |
+
+Use input.ownerDocument's Event constructor; internal synthetic events do not re-enter the candidate pipeline. Preserve forwarded native handler conventions. onValueChange is the semantic proposal callback; raw noncancelable onInput/onChange cancellation cannot reject native selection. Applications reject through accepted controlled state or cancel a preceding genuinely cancelable interaction.
+
+The contract is **accepted settled state and subsequent normal submission**. FormData or requestSubmit invoked synchronously inside an original native selection listener can observe the browser's candidate; those reads are outside the settlement guarantee. Applications needing acceptance-aware submit use their accepted state and await reactive settlement. Do not build a new form interception/security scheduler. FormData construction does not validate; `form.submit()` bypasses validation by browser design.
+
+### Managed validation after provisional native events
+
+Current Form.Control validates on change and can see a provisional picker FileList. Reconciliation must directly invalidate that pending validation generation and revalidate once against accepted projection through the narrow private Form coordination below. Do **not** dispatch an additional normalization change merely to trigger Form; direct managed coordination is the chosen contract. Outside Form, recompute native/domain validity directly. There is no exactly-once claim for raw browser events, but semantic proposals must not duplicate.
+
+Validation revisions track **File references and ordered sequence**, including provisional-to-accepted transitions. Two distinct Files with the same name/fakepath cannot share the same validation revision. Invalidate/recompute when restoring a refused candidate, adopting another sequence or changing baseline rules, even if `control.value` is unchanged. No stale async result that inspected provisional FormData may publish after accepted projection changes. Existing string-value currency checks alone are insufficient for file controls.
+
+## Native projection, constraints, reset and lifecycle
+
+For each changed accepted projection, allocate a **fresh DataTransfer**, add retained File references and assign its FileList to input.files. Never mutate/reuse that transfer afterward: the assigned FileList can alias it. Empty state can clear input.value with the empty string. Never assign an array to files, a nonempty value string, or files=null as a clearing mechanism. Project accepted state without clearing it after commit; there is no clearInputOnCommit option that would erase FormData.
+
+The native chooser may not emit change when identical files are selected again. Preserve native selection; do not clear it before/after opening just to force reselection. Automated same-file setInputFiles observations are not an OS chooser guarantee. Native cancel and legitimate empty change remain distinct.
+
+Native required belongs on the actual file input, not type hidden. name/form work standalone, inside a form and with an external form ID. Multiple files produce repeated same-name entries (`FormData.getAll`). An empty enabled named file input produces an empty File entry, not omission; the observed sentinel has name empty, size 0 and type application/octet-stream. Do not discard real zero-byte files merely because size is zero. Disabled is omitted from FormData and barred from constraint validation.
+
+Disabled disables Input and Trigger, prevents picker/drop proposals and clears drag state. If a native chooser completion/change arrives while the **current disabled prop is true**, call neither onValueChange nor onReject; restore the latest accepted projection and refresh domain/managed validity without synthesizing a user notification. Raw browser input/change may already have occurred under the event policy above. Current disabled state governs: disabling and then re-enabling before completion does not create a historical cancellation token. Preventing browser navigation from a drop inside the zone is separate from accepting files; no global drop prevention. Programmatic accepted-value changes still project while disabled.
+
+Reset captures the initial accepted/default File-reference array at mount (normally empty), not the latest prop. After an uncancelled reset on input.form, use the existing deferred-reset lifecycle: propose that initial array and reproject the current accepted sequence after browser reset. Controlled refusal restores retained files. Cancelled reset does nothing. Do not synthesize input/change; refresh domain/Form validity through direct coordination, clearing only reset-appropriate errors. Synchronous reads in the native reset/reconciliation window are outside the settled-state promise. External form reassociation follows input.form. Cleanup removes listeners/registrations and cancels queued work so no stale projection, event or async validation publishes after unmount.
+
+Projection capability must work on the suite's supported browsers before release. If native FileList projection is unavailable, do not fake accepted submission or silently drop files. Capability failure is surfaced honestly; support is not claimed from a Chromium-only probe.
+
+## Shared private Form coordination
+
+Compose **Form.Control asChild with FileDrop.Input**, never Root/Trigger. It remains a genuine HTMLInputElement for Form, label activation and native validity. Form matchers receive a fakepath string as control.value; file rules must inspect `FormData.getAll(name)`, not parse paths.
+
+Root owns selection and constraints; Form.Control target-factory props must not override them. Preserve the wrapper's id, composed ref/events and aria-describedby forwarding to the real input. For managed composition, supply Root.name equal to Form.Control's resolved name (including a surrounding Form.Field name); any explicitly supplied wrapper form association must equal Root.form. Conflicting names/associations are configuration errors, not competing precedence paths: the submitted field name and matcher key must remain identical. Native label activation uses the forwarded input id; any separate Trigger accessible name is caller-declared through explicit label IDs/aria-labelledby or its own accessible text, not inferred by walking Form.Label text.
+
+Share the private per-control integration defined in [Calendar/DatePicker design](2026-10-18-calendar-date-picker-design.md), with these self-contained requirements:
+
+* Form.Control provides optional scoped child registration around its slotted input, accepting a baseline-domain-error getter, control-value revision and a request to revalidate after projection. It owns its existing registered input ref, fields and matcher lifecycle.
+* With no Form owner, FileDrop sets its own baseline custom validity for accepted values invalid under accept/count. With an owner, FileDrop registers the baseline and never competes with Form's setCustomValidity. Exactly one writer exists per input.
+* Form clears/reset matcher results without erasing current baseline, combines native constraints/baseline/existing sync and async matcher results, and preserves serverInvalid handling and existing first-invalid focus policy. No global Form rewrite or new public validation registry.
+* Projected File-reference sequence/baseline changes invalidate pending results and trigger one direct managed revalidation. Restoring accepted files after provisional native events also does so. Result currency includes the control revision, not just fakepath/value equality.
+* Cleanup/unregistration cannot retain disposed refs, matchers or completion work. Plain existing Form.Control users retain behavior without the new registration.
+
+This coordination does not generalize the checkbox/radio checked-state bridge into a file adapter, replace existing Form validation, or take ownership of application async file approval.
+
+## Drag, accessibility and mobile
+
+During real dragover file data may be protected: detect file-kind types/items for affordances, then read File objects at drop. Nested enter/leave must not flicker drag state as the pointer crosses an icon. Clear drag state on leave/drop/cancel/disable/unmount. Handle drops directly on Input through the same pipeline and prevent a native default drop from bypassing filters or generating a second proposal. Do not globally hijack page drag/drop; dropEffect is feedback, not acceptance/security.
+
+Browse must work by native keyboard, label, optional Trigger and screen reader without dragging. Root is not a second file-input role. Input stays in the accessibility tree and can receive focus even if visually hidden; a visible focus indication must identify the corresponding browse surface. Labels/descriptions state allowed types, count and required status. Native invalid focus must reveal a usable visible affordance, not an invisible orphan. Use application-rendered rejection text via onReject, associated with the input and optionally announced once through existing Announce. Async parent pending/rejection messages belong to the app; non-adoption must not be announced as primitive rejection.
+
+Themes supplies a styled dropzone and browse affordance with existing size/variant/color/radius patterns, data-dragging/disabled/focus-visible styling, palette/custom accent/local scaling, dark mode and RTL. Comfortable touch controls target about 44 CSS pixels; dense variants meet WCAG 2.2 target-size/spacing. Forced-color contrast, zoom/reflow, long filenames and narrow mobile layouts remain operable. No hover-only instruction. Progress/Toast integration is an app recipe, not upload state in Root.
+
+## SSR and ownership
+
+SSR starts empty: browser Files cannot be restored from HTML or a server filesystem path. Do not serialize file bytes into hydration data. Nonempty client-only defaults can project after mounting without initial user-event notifications; the initial accepted/default references still determine reset. No DataTransfer/File/DOM constructors during server rendering. Stable native IDs/context/ref lifecycle isolate instances and survive hydration/remount.
+
+A browser selection before hydration is not guaranteed to become accepted controlled state automatically; the native file-input recipe is the progressive-enhancement alternative. Do not add an application-wide hydration/file persistence mechanism. Native Solid 2 owns DOM and lifecycle; no secondary renderer or runtime.
+
+## Distribution and complete documentation
+
+Use existing `@wsagency/radix2solid-primitives` and `@wsagency/radix2solid-themes`, native Solid 2 RC15 and TS 7.0.2 producer/current declaration-consumer conventions. No new runtime dependency, Foldkit/Effect adapter, package/scope, version or publishing action is part of this specification stage.
+
+Real library integration surfaces: `packages/primitives/src/index.ts`, `packages/primitives/package.json`, `packages/primitives/vite.config.ts`, primitive README/CHANGELOG; `packages/themes/src/components/index.ts`, `packages/themes/src/components/index.css`, Themes package exports/README/CHANGELOG and `packages/themes/scripts/build-css.js`. Include root/subpath types/browser/server outputs; preserve per-component/full/layered and palette CSS workflows without importing unrelated component styles.
+
+In the **separate radix2solid-web repository**: `apps/website/data/primitives/docs/components/`, `apps/website/data/themes/`, `apps/website/src/demos/` live/CSS/Tailwind sources, `apps/website/src/pages/playground.tsx`, `apps/website/src/components/navigation.tsx`, `apps/website/src/routes.ts`, `apps/website/coverage-manifest.json`, README/CHANGELOG and sandbox/snippet/export/search/markdown scripts under `apps/website/scripts/`. Follow generated-output conventions, not hand-edited generated pages. Docs/coverage label FileDrop as a project extension; no nonexistent upstream Radix source link or claim existing Form/Progress/Announce are new.
+
+Required content: full API/anatomy/events/data attributes; single-document and multiple-file forms; repeated-name FormData and empty File sentinel; equal picker/drop accept/count rejection; controlled async approval/refusal versus local rejection; replacement versus explicit app append; clear/remove-one via controlled array; native cancel versus actual empty change; required/disabled/external form/reset/cancelled reset; same-file caveat; file metadata list; honest application-owned upload integration; non-goals/security boundary; selective/full CSS, live examples, copyable snippets, runnable sandboxes, playground, search and machine-readable markdown. No fake upload transport or unsupported readonly API.
+
+## Required acceptance
+
+These are release conditions, **not implemented-component test results**:
+
+1. Picker/drop enforce identical whole-batch accept/count policy; rejection retains accepted files, valid selection replaces, and local onReject never fires merely for delayed/non-adoption. Zero-file native change clears subject to value authority; cancel preserves; empty drop rejects.
+2. Exactly one semantic proposal per candidate; native picker input/change may expose provisional state and are preserved. No second bubbling picker pair. Drop/programmatic paths follow the event table, internal dispatch cannot recurse, and settled FormData/validity match accepted state.
+3. Refused controlled selection restores previous files; asynchronous adoption projects later without false rejection; equivalent reference sequences avoid needless projections. Reentrant callbacks settle latest authority. No clear-on-commit erases accepted submission.
+4. Same-name/different-reference Files invalidate managed validation even with unchanged fakepath. Provisional async matcher results cannot publish after restoration, later adoption, baseline changes or disposal. Native required, accepted-domain baseline, sync/async matchers and server errors coexist with one customValidity owner.
+5. Fresh DataTransfer projections do not alias later mutations; two controls remain independent. Multiple File entries, empty sentinel, legitimate zero-byte files, disabled omission and required-invalid accepted clear are correct. A chooser opened before disabling and completed while currently disabled restores latest accepted files/validity without value/rejection callbacks or synthesized user notifications; re-enabling before completion restores ordinary current-state processing.
+6. Accepted/refused/cancelled reset, initial value capture, external form/reassociation, browser reset action and teardown during pending settlement preserve the documented boundary without fake user events or leaks.
+7. Real keyboard/label/Trigger/screen-reader chooser activation, native cancel/empty change/same-file behavior, actual OS drop/protected dragover, nested descendants, mixed/text drops and direct-on-input drops are tested on supported browsers. Mobile can browse without drag; browser-only findings are not universal claims.
+8. SSR empty hydration and client-only default projection use no browser globals server-side or duplicate IDs; label/error/focus semantics survive hidden styling, zoom, forced colors, touch and remount. Form target-factory id/ref/events/descriptions survive composition; Root and Form resolved names/associations match, with conflicts rejected rather than divergent matcher keys. Native unsupported capability does not yield silently incorrect FormData.
+9. Root/family browser/SSR imports and consumer declarations work; Themes selective/full CSS respects dependencies and existing tokens; all website/docs/snippet/sandbox/playground/search/markdown outputs match the same API and disclose native-event limits/security scope.
+
+Verification landmarks include existing `e2e/inputs.spec.ts`, `e2e/composition.spec.ts`, `e2e/hydration.spec.ts`, `tests/consumer/` and separate web `e2e/website.spec.ts`/checker scripts. Allocation and implementation commands belong to the later approved implementation plan.
+
+## Source compatibility, portable evidence and provenance
+
+Repository source anchors: `packages/primitives/src/internal/state.ts:3–37` for controlled authority; `packages/primitives/src/internal/events.ts:7–19` for cancellation; `packages/primitives/src/internal/primitive.tsx:6–23` for structural asChild; `packages/primitives/src/internal/form-control.ts:4–24,36–98` for checked-state-specific lifecycle (not a generic file bridge); `packages/primitives/src/select/select.tsx:362–388` for native projection/change/reset convention; `packages/primitives/src/form/form.tsx:139–201` for input-specific matcher/customValidity behavior and current value/version guards; `packages/themes/scripts/build-css.js:23–60` for selective CSS composition.
+
+Design-time platform research used Playwright 1.64.0 and headless Chromium 156.0.8078.4 on Linux with plain HTML, in-page File/DataTransfer and automated setInputFiles. Observed: arrays cannot assign to input.files; files=null does not clear; nonempty input.value assignment throws; empty value clears; assignment emits no input/change; DataTransfer.files can alias assigned input.files; assigning multiple files ignores the input multiple restriction; accept does not validate assigned files; enabled empty file input contributes an empty File; disabled omits and does not validate; native readonly neither reliably blocks selection nor preserves required validation; external form association/reset works; native reset emits reset without input/change; automated input/change are noncancelable; restoring retained FileList after a refused candidate is possible but original events already occurred.
+
+Those facts support projection and settled-state design, **not** completed FileDrop behavior. setInputFiles is automation, not a real OS chooser; synthetic untrusted drops do not establish protected-mode or native default-drop behavior. Same-file automation and chooser gating do not prove real chooser semantics. Firefox/WebKit, mobile/touch, Windows/macOS pickers and assistive technologies were not certified. Required acceptance above remains unexercised component work.
+
+Public references: [HTML file-upload state](https://html.spec.whatwg.org/multipage/input.html#file-upload-state-(type=file)), [MDN file input](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/input/file), [DataTransfer.files](https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer/files), [WCAG target size](https://www.w3.org/WAI/WCAG22/Understanding/target-size-minimum.html). These portable references and the summarized evidence do not depend on private machine paths or artifact logs.
+
+Foldkit [FileDrop](https://foldkit.dev/ui/file-drop) is inspiration only; its picker/drop count asymmetry and native-form divergence are not copied. Examined version 0.168.0 at commit `606ca39eaf1cb92659d83aaaac3512b47cba25a2`, MIT copyright 2025 Devin Jameson. No source copied by this design. Actual future copying/adaptation requires exact-file license review and applicable copyright/full permission notices in distributed source/package notices; record URL/revision/adaptation as engineering provenance, not an MIT-mandated SHA. Preserve existing Radix-derived MIT notices. Do not claim this independently designed extension is an upstream port or add runtime dependencies for attribution.
