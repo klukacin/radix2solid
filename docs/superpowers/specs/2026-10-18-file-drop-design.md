@@ -1,6 +1,6 @@
 # Native FileDrop
 
-Status: **Product scope approved; this written specification is pending user review. Product not implemented.** This is a design contract, not an implementation plan or evidence of component tests passing. Written-spec approval precedes implementation planning. No product implementation, dependency change or publication is authorized by creating this document.
+Status: **Product scope and this written specification approved by the user on 2026-10-18; implementation pending.** This document is the approved design, not an implementation plan or evidence of passing component tests. The orchestrated/subagent execution method is retained. The implementation plan still requires user review before product implementation; no publication, version, tag or deployment is authorized by this approval.
 
 ## Purpose, scope and alternatives
 
