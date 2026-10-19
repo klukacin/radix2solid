@@ -1,6 +1,6 @@
 # Native FileDrop
 
-Status: **Product scope and written specification approved on 2026-10-18; the subsequent implementation plan is now approved via the user's “nastavi”.** Orchestrated local implementation is authorized without another plan/spec approval pause. This design is not evidence of implemented behavior or passing component tests. No publication, version, tag or deployment is authorized.
+Status: **Implemented and locally accepted on bounded targeted evidence**; see [Final local acceptance and delivery](../plans/2026-10-18-calendar-date-picker.md#final-local-acceptance-and-delivery). FileDrop remains a project extension, not an upstream port. This status does not claim a monolithic full suite or universal platform/AT certification. No publication, version, tag, or deployment is authorized.
 
 ## Purpose, scope and alternatives
 
