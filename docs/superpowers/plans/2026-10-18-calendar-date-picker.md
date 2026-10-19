@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Status: **implementation plan pending user review; no implementation authorized by writing it**. Preserve the user's orchestrated/subagent method after plan approval.
+- Status: **implementation plan approved by the user's “nastavi”; orchestrated local implementation authorized**. Preserve the selected subagent method; no further plan/spec approval pause. Publication/release actions remain excluded.
 - Scope is **one Gregorian date-only selection**, one six-week day grid; `DateValue` is canonical `YYYY-MM-DD`, years `0001`–`9999`, no year zero; empty selection is `null`.
 - Required `today`; locale default `en-US`; weekStartsOn default `0`/Sunday; no independent Date.now/navigator locale/time-zone inference.
 - Keep existing packages `@wsagency/radix2solid-primitives` and `@wsagency/radix2solid-themes`, native Solid 2 RC15 and TS 7.0.2 producer/current consumer declaration conventions.
@@ -216,4 +216,4 @@ Each new scope additionally runs existing hydration.spec.ts in packed SSR and on
 
 Spec purpose/scope/public API/date arithmetic/state/bounds/keyboard → C2/C3; shared forms/serialization/reset/focus → C1/C3; SSR/locale/effects → C2/C3; a11y/mobile/Themes → C2–C4 plus final actual-interaction gate; package/distribution/release docs → C5; every website/demo/export surface → C6; license/dependency constraints → global + C5/C6. RF1–RF5 each have named owner tests above. Private source/owner signatures match FileDrop F2 consumption; no public context or second state engine. All commands are planning instructions based on existing scripts/config, not claims they have run. New tests/filenames are explicitly marked Create.
 
-**Handoff:** Plan complete and saved to `docs/superpowers/plans/2026-10-18-calendar-date-picker.md`. Please review the plan. Does it capture what you want? The previously selected orchestrated/subagent execution method is preserved; implementation waits for this plan review.
+**Execution handoff:** User approved this plan via “nastavi”. Continue orchestrated local implementation using the plan-scoped progress ledger; no further plan/spec review pause. Pending checkboxes are work to execute, not completed behavior or release authorization.

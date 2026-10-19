@@ -1,14 +1,41 @@
-import { createSignal, type Element } from 'solid-js';
+import { createSignal, Show, type Element } from 'solid-js';
 import {
-  Theme, useThemeContext, AccessibleIcon, AspectRatio, Avatar, Badge, Blockquote, Box, Button, Callout, Card,
-  Code, Container, DataList, Em, Flex, Grid, Heading, IconButton, Inset, Kbd, Link, Progress, Quote, Reset,
+  Theme, useThemeContext, AccessibleIcon, AspectRatio, Avatar, Badge, Blockquote, Box, Button, Callout, Calendar, Card,
+  Code, Container, DataList, DatePicker, Em, FileDrop, Flex, Grid, Heading, IconButton, Inset, Kbd, Link, Progress, Quote, Reset,
   ScrollArea, Section, Separator, Skeleton, Spinner, Strong, Table, Text, VisuallyHidden,
   ChevronDownIcon, ThickCheckIcon, ThickChevronRightIcon, ThickDividerHorizontalIcon
 } from '@wsagency/radix2solid-themes';
 import '@wsagency/radix2solid-themes/styles.css';
+import { Form, Slot } from '@wsagency/radix2solid-primitives';
 
 const frozenSize = Object.freeze({ md: '3' as const });
 const pixel = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+const useCalendarScope = Calendar.createCalendarScope();
+const useDatePickerScope = DatePicker.createDatePickerScope();
+const useFileDropScope = FileDrop.createFileDropScope();
+
+function ThemeCalendarGrid(props: { scope?: Calendar.GridProps['__scopeCalendar']; focusDate?: string; focusId?: string }): Element {
+  const scope = props.scope;
+  return <Calendar.Grid __scopeCalendar={scope}>{state => <>
+    <Calendar.Row __scopeCalendar={scope}>
+      {state.weekdays.map(day => <Calendar.HeaderCell __scopeCalendar={scope} weekday={day.index} />)}
+    </Calendar.Row>
+    {state.weeks.map(week => <Calendar.Row __scopeCalendar={scope}>
+      {week.map(day => day === null
+        ? <div role="gridcell" aria-disabled="true" />
+        : <Calendar.Cell __scopeCalendar={scope} date={day.date}
+          data-testid={day.date === '2026-10-19' ? 'calendar-selected-day'
+            : day.date === '2026-10-18' ? 'calendar-today-day' : undefined}>
+          <Calendar.Day __scopeCalendar={scope} date={day.date}
+            data-testid={day.date === props.focusDate ? props.focusId ?? 'calendar-focus-day'
+              : day.date === '2026-10-20' ? 'calendar-unavailable-day' : undefined}>
+            {Number(day.date.slice(-2))}
+          </Calendar.Day>
+        </Calendar.Cell>)}
+    </Calendar.Row>)}
+  </>}</Calendar.Grid>;
+}
 function ThemeSettings(): Element {
   const theme = useThemeContext();
   return <Flex gap="2" wrap="wrap" mb="3">
@@ -23,6 +50,24 @@ export function Themes(): Element {
   const [changed, setChanged] = createSignal(false), [loading, setLoading] = createSignal(false);
   const [skeleton, setSkeleton] = createSignal(true), [requests, setRequests] = createSignal(0);
   const [avatarError, setAvatarError] = createSignal(false), [value, setValue] = createSignal<number | null>(25);
+  const [calendarAccent, setCalendarAccent] = createSignal<'jade' | 'tomato'>('jade');
+  const [calendarAppearance, setCalendarAppearance] = createSignal<'light' | 'dark'>('light');
+  const [calendarScale, setCalendarScale] = createSignal<'100%' | '110%'>('100%');
+  const [calendarRadius, setCalendarRadius] = createSignal<'none' | 'large'>('none');
+  const calendarScope = useCalendarScope();
+  const [datePickerAccent, setDatePickerAccent] = createSignal<'jade' | 'tomato'>('jade');
+  const [datePickerAppearance, setDatePickerAppearance] = createSignal<'light' | 'dark'>('light');
+  const [datePickerScale] = createSignal<'110%'>('110%');
+  const datePickerScope = useDatePickerScope();
+  const rootOnlyDatePickerScope = useDatePickerScope();
+  const [fileDropAccent, setFileDropAccent] = createSignal<'jade' | 'tomato'>('jade');
+  const [fileDropAppearance, setFileDropAppearance] = createSignal<'light' | 'dark'>('light');
+  const [fileDropScale, setFileDropScale] = createSignal<'100%' | '110%'>('100%');
+  const fileDropScope = useFileDropScope();
+  const disabledFileDropScope = useFileDropScope();
+  const [fileDropFiles, setFileDropFiles] = createSignal<readonly File[]>([]);
+  const [fileDropChangeCount, setFileDropChangeCount] = createSignal(0);
+  const [fileDropRejectionCount, setFileDropRejectionCount] = createSignal(0);
   let viewport!: HTMLDivElement;
   return <section aria-label="Native presentational Themes">
     <h2>Native Themes</h2>
@@ -83,6 +128,99 @@ export function Themes(): Element {
         </ScrollArea><button onClick={() => viewport.scrollTo({ left: -150, top: 60 })}>Scroll referenced viewport</button>
         <Theme id="theme-nested" accentColor="grass"><Text>Nested accent inherits the parent's resolved gray.</Text></Theme>
         <Theme id="theme-nested-auto" accentColor="grass" grayColor="auto" appearance="dark"><Text>Explicit auto resolves the nested gray.</Text></Theme>
+        <Theme id="theme-calendar-theme" accentColor={calendarAccent()} appearance={calendarAppearance()} scaling={calendarScale()}>
+          <Calendar.Root {...calendarScope} id="theme-calendar-selective" dir="rtl" today="2026-10-18"
+            defaultViewMonth="2026-10" value="2026-10-19" isDateUnavailable={date => date === '2026-10-20'}
+            size={{ initial: '1', md: '3' }} variant="classic" radius={calendarRadius()}>
+            <Calendar.Header {...calendarScope}>
+              <Calendar.PrevTrigger {...calendarScope}>Previous month</Calendar.PrevTrigger>
+              <Calendar.Heading {...calendarScope} />
+              <Calendar.NextTrigger {...calendarScope}>Next month</Calendar.NextTrigger>
+            </Calendar.Header>
+            <button type="button" id="theme-calendar-before">Before calendar</button>
+            <ThemeCalendarGrid scope={calendarScope.__scopeCalendar} focusDate="2026-10-19" />
+          </Calendar.Root>
+          <button onClick={() => setCalendarAccent(value => value === 'jade' ? 'tomato' : 'jade')}>Toggle calendar custom accent</button>
+          <button onClick={() => setCalendarScale(value => value === '100%' ? '110%' : '100%')}>Toggle calendar local scaling</button>
+          <button onClick={() => setCalendarRadius(value => value === 'none' ? 'large' : 'none')}>Toggle calendar radius</button>
+          <button onClick={() => setCalendarAppearance(value => value === 'light' ? 'dark' : 'light')}>Toggle calendar dark appearance</button>
+        </Theme>
+        <Theme id="theme-date-picker-theme" accentColor={datePickerAccent()} appearance={datePickerAppearance()} scaling={datePickerScale()}>
+          <Form.Root id="theme-date-picker-form">
+            <Form.Field name="appointmentDate">
+              <Form.Label>Theme appointment date</Form.Label>
+              <DatePicker.Root {...datePickerScope} id="theme-date-picker-selective" dir="rtl"
+                name="appointmentDate" required today="2026-10-18" defaultViewMonth="2026-10"
+                size="3" variant="classic" radius="large">
+                <button type="button" id="theme-date-picker-before">Before date picker</button>
+                <DatePicker.Trigger {...datePickerScope} id="theme-date-picker-trigger" aria-label="Theme appointment date">
+                  <DatePicker.Value {...datePickerScope} placeholder="Choose a date" />
+                </DatePicker.Trigger>
+                <Form.Control name="appointmentDate" id="theme-date-picker-input" required asChild>
+                  {target => target(DatePicker.FormControl, { __scopeDatePicker: datePickerScope.__scopeDatePicker })}
+                </Form.Control>
+                <DatePicker.Portal {...datePickerScope}>
+                  <DatePicker.Content {...datePickerScope} id="theme-date-picker-content" aria-label="Appointment date">
+                    <DatePicker.Calendar {...datePickerScope} id="theme-date-picker-calendar">
+                      <Calendar.Header __scopeCalendar={datePickerScope.__scopeDatePicker}>
+                        <Calendar.PrevTrigger __scopeCalendar={datePickerScope.__scopeDatePicker}>Previous month</Calendar.PrevTrigger>
+                        <Calendar.Heading __scopeCalendar={datePickerScope.__scopeDatePicker} />
+                        <Calendar.NextTrigger __scopeCalendar={datePickerScope.__scopeDatePicker}>Next month</Calendar.NextTrigger>
+                      </Calendar.Header>
+                      <ThemeCalendarGrid scope={datePickerScope.__scopeDatePicker}
+                        focusDate="2026-10-18" focusId="date-picker-focus-day" />
+                    </DatePicker.Calendar>
+                  </DatePicker.Content>
+                </DatePicker.Portal>
+              </DatePicker.Root>
+              <Form.ValidityState>{validity =>
+                <output id="theme-date-picker-form-validity">{String(!!validity?.valueMissing)}</output>}
+              </Form.ValidityState>
+            </Form.Field>
+            <DatePicker.Root {...rootOnlyDatePickerScope} name="rootOnlyDate" today="2026-10-18"
+              defaultViewMonth="2026-10">
+              <DatePicker.Trigger {...rootOnlyDatePickerScope} aria-label="Root-only date">
+                <DatePicker.Value {...rootOnlyDatePickerScope} />
+              </DatePicker.Trigger>
+            </DatePicker.Root>
+          </Form.Root>
+          <button onClick={() => setDatePickerAccent(value => value === 'jade' ? 'tomato' : 'jade')}>Toggle date picker custom accent</button>
+          <button onClick={() => setDatePickerAppearance(value => value === 'light' ? 'dark' : 'light')}>Toggle date picker dark appearance</button>
+        </Theme>
+        <Theme id="theme-file-drop-theme" accentColor={fileDropAccent()} appearance={fileDropAppearance()} scaling={fileDropScale()}>
+          <form id="theme-file-drop-form">
+            <button type="button" id="theme-file-drop-before">Before file drop</button>
+            <FileDrop.Root {...fileDropScope} id="theme-file-drop-selective" dir="rtl" name="themeFiles"
+              value={fileDropFiles()} accept=".txt" required size="3" variant="outline" radius="large"
+              onValueChange={files => { setFileDropFiles(files); setFileDropChangeCount(count => count + 1); }}
+              onReject={() => setFileDropRejectionCount(count => count + 1)} asChild>
+              {(target: Slot.SlotTarget) => target('section', { children: <>
+                <label for="theme-file-drop-input">Theme file drop</label>
+                <FileDrop.Input {...fileDropScope} id="theme-file-drop-input"
+                  aria-describedby={`theme-file-drop-description${fileDropFiles().length ? '' : ' theme-file-drop-error'}`} />
+                <p id="theme-file-drop-description">Allowed types: .txt. {fileDropFiles().length
+                  ? `Selected: ${fileDropFiles()[0].name}.` : 'A file is required.'}</p>
+                <Show when={!fileDropFiles().length}>
+                  <span id="theme-file-drop-error" role="alert">Choose a text file.</span>
+                </Show>
+                <FileDrop.Trigger {...fileDropScope} id="theme-file-drop-browse">Browse files</FileDrop.Trigger>
+                <span id="theme-file-drop-filename">{fileDropFiles()[0]?.name ?? 'No file selected'}</span>
+                <span data-testid="file-drop-nested-icon">Icon</span>
+                <span data-testid="file-drop-nested-text">Drop here</span>
+                <output id="theme-file-drop-change-count">{fileDropChangeCount()}</output>
+                <output id="theme-file-drop-rejection-count">{fileDropRejectionCount()}</output>
+              </> })}
+            </FileDrop.Root>
+          </form>
+          <FileDrop.Root {...disabledFileDropScope} id="theme-file-drop-disabled" disabled>
+            <label for="theme-file-drop-disabled-input">Disabled file drop</label>
+            <FileDrop.Input {...disabledFileDropScope} id="theme-file-drop-disabled-input" />
+            <FileDrop.Trigger {...disabledFileDropScope} id="theme-file-drop-disabled-browse">Browse disabled files</FileDrop.Trigger>
+          </FileDrop.Root>
+          <button onClick={() => setFileDropAccent(value => value === 'jade' ? 'tomato' : 'jade')}>Toggle file drop custom accent</button>
+          <button onClick={() => setFileDropScale(value => value === '100%' ? '110%' : '100%')}>Toggle file drop local scaling</button>
+          <button onClick={() => setFileDropAppearance(value => value === 'light' ? 'dark' : 'light')}>Toggle file drop dark appearance</button>
+        </Theme>
         <Reset>{target => target('button', { id: 'theme-reset-button', children: 'Native reset target' })}</Reset>
       </Section></Container>
     </Theme>

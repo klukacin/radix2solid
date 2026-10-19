@@ -8,6 +8,8 @@ import type { Scope } from '../internal/context.js';
 
 const popover = createOverlay('Popover', false);
 export const { Root: Popover, Trigger: PopoverTrigger, Portal: PopoverPortal, Content: PopoverContent, Title: PopoverTitle, Description: PopoverDescription, Close: PopoverClose, createScope: createPopoverScope } = popover;
+type PopoverContextAccess = { open: () => boolean; setOpen: (open: boolean | ((previous: boolean) => boolean)) => void };
+export const usePopoverContext: (props: { __scopePopover?: Scope }, part: string) => PopoverContextAccess = popover.context;
 export type PopoverProps = OverlayRootProps;
 export type PopoverTriggerProps = OverlayButtonProps;
 export type PopoverPortalProps = OverlayPortalProps;

@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add Calendar, DatePicker and FileDrop source namespaces and component-specific CSS (including cascade-layer variants). They remain unpublished project extensions and are not available from registry `0.1.0-rc.3`.
+
 ## 0.1.0-rc.3 — source candidate, not yet published
 
 - Align the packed primitives dependency with the five-package rc.3 source suite. Existing Themes wrappers and public behavior remain unchanged; new UI families are primitive APIs styled by consumers.

@@ -1,9 +1,15 @@
 # Native Solid 2 Themes
 
-Native fork, not an official Radix product. **Source candidate `@wsagency/radix2solid-themes@0.1.0-rc.3` — not yet published.** Consume `pnpm pack` tarballs until release-maintainer publication. Existing Themes wrappers are unchanged; Combobox, Command, Tree and Splitter are native primitive APIs, not new Themes exports.
+Native fork, not an official Radix product. **Source candidate `@wsagency/radix2solid-themes@0.1.0-rc.3` — not yet published.** Consume `pnpm pack` tarballs until release-maintainer publication. The local source exports the Calendar, DatePicker and FileDrop Themes families; these exports are not present in installed registry `0.1.0-rc.3`. Combobox, Command, Tree and Splitter remain native primitive APIs, not Themes exports.
 
 Solid `2.0.0-rc.15` and `@solidjs/web` `2.0.0-rc.15` are peers; they require Node `>=22.12.0`. Browser export conditions select native client ESM; the default selects native server ESM. Declarations are shared. No React runtime, React types or element-cloning compatibility layer.
 CSS imports use the application's bundler declarations, e.g. `vite/client` with Vite; TypeScript alone does not define stylesheet modules.
+
+Calendar, DatePicker and FileDrop are unreleased project extensions and are not available from installed registry `0.1.0-rc.3` packages. The local source exports the `Calendar`, `DatePicker` and `FileDrop` namespaces from the package root and `@wsagency/radix2solid-themes/components/{calendar,date-picker,file-drop}`. Their roots accept responsive `size: '1' | '2' | '3'`; Calendar and DatePicker variants are `surface | classic | soft`, while FileDrop variants are `surface | soft | outline`. They also follow existing color, radius, Theme propagation (including portals), dark mode, RTL, custom accent and local scaling patterns. Pack Primitives and Themes from the same checkout, then configure Themes' transitive Primitives dependency to the same physical Primitives tarball.
+
+For the full CSS entry, import `@wsagency/radix2solid-themes/styles.css`. Selective CSS uses the same pipeline as existing components: tokens (`tokens/base.css` plus the palettes used, or `tokens.css`), `css/common.css`, the component stylesheet(s), then `css/utilities.css`. The source candidate provides `css/calendar.css`, `css/date-picker.css` and `css/file-drop.css`, each with a `.layer.css` sibling. Calendar-only styling needs only `css/calendar.css`; DatePicker's stylesheet closure includes Calendar and Popover but not Button; FileDrop needs only `css/file-drop.css`. Use layered or unlayered copies consistently and never import both. These paths are available from the local source candidate, not the registry `0.1.0-rc.3` package.
+
+The source candidate exports `Calendar` parts `Root`, `Header`, `Heading`, `PrevTrigger`, `NextTrigger`, `Grid`, `Row`, `HeaderCell`, `Cell` and `Day`; `DatePicker` parts `Root`, `Trigger`, `Value`, `Portal`, `Content`, `Title`, `Description`, `Close`, `Clear`, `Calendar` and `FormControl`; and `FileDrop` parts `Root`, `Input` and `Trigger`. Each namespace also exports its scope creator and public part-prop types. These are real themed component exports with native Solid parts/props, not CSS-only recipes. The themed `DatePicker.Portal` is client-only and renders no server children; SSR content guidance follows below. Package registry availability remains release-maintainer controlled.
 
 
 ## Usage
@@ -55,7 +61,7 @@ Color props accept `"custom"`. With `grayColor="auto"`, a custom accent resolves
 
 `scaling` accepts the preset values or any positive finite `` `${number}%` `` (for example `"115%"`). Nested scaling is absolute, not multiplied: `<Theme scaling="90%">` inside `<Theme scaling="120%">` renders at 90%. Unitless numbers are rejected and values are not clamped. A caller `style` may override `--scaling` locally, but that does not propagate as a Theme setting.
 
-The public `Portal` preserves native portal lifecycle: no server children; client mounting after hydration settles. It does **not** copy ancestor Theme CSS attributes onto physically relocated DOM. Wrap relocated presentation in Theme when needed.
+The public `Portal` preserves native portal lifecycle: no server children; client mounting after hydration settles. It does **not** copy ancestor Theme CSS attributes onto physically relocated DOM. Wrap relocated presentation in Theme when needed. For initially-open `DatePicker` content that must be present in SSR with stable hydration node identity, render `DatePicker.Content` inline on both server and client without `DatePicker.Portal`; do not use an SSR portal fallback or adaptively switch between inline and portal hosts.
 
 ## Presentational components
 

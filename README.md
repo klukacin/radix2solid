@@ -22,6 +22,15 @@ pnpm --dir packages/icons-extra pack
 
 Pack the other needed packages in the same way; install the resulting tarballs in your application and override Themes' primitives dependency to the same primitives tarball. Source-pinned website deployment is independent of npm publication. The eventual five-package release uses the `next` dist-tag, subject to release-maintainer authorization; first publication and Trusted Publisher configuration for icons-extra remain DevOps-owned.
 
+Calendar, DatePicker and FileDrop are new project extensions, not official Radix components or ports. Their APIs are unreleased and are **not available in the installed registry `0.1.0-rc.3` packages**. To try them, build and pack Primitives from a checkout containing these sources, then install that local tarball. If using Themes, pack it from the same checkout and resolve its transitive Primitives dependency to the **same physical Primitives tarball**:
+
+```sh
+pnpm --dir packages/primitives pack
+pnpm --dir packages/themes pack
+```
+
+These local packs are not published releases. No exact future candidate commit is specified here.
+
 Consumers need Node `>=22.12.0` (required by Solid rc.15). If you use the Themes PostCSS plugins, also install `postcss@^8.5.9`; it is an optional peer.
 
 The documentation website lives in the separate repository [`wsagency/radix2solid-web`](https://github.com/wsagency/radix2solid-web), which builds against a pinned commit of this repository.

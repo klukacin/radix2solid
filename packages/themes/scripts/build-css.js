@@ -26,6 +26,7 @@ const order = [...index.matchAll(/^@import '\.\/([\w-]+)\.css';/gm)]
   .map(match => match[1]).filter(name => !common.includes(name) && name !== 'shared');
 // Composed JSX dependencies not already imported by the component's CSS.
 const dependencies = {
+  'date-picker': ['calendar', 'popover'],
   button: ['spinner'],
   'icon-button': ['spinner'],
   'dropdown-menu': ['scroll-area'],

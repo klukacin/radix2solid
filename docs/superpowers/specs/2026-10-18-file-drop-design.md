@@ -1,6 +1,6 @@
 # Native FileDrop
 
-Status: **Product scope and this written specification approved by the user on 2026-10-18; implementation pending.** This document is the approved design, not an implementation plan or evidence of passing component tests. The orchestrated/subagent execution method is retained. The implementation plan still requires user review before product implementation; no publication, version, tag or deployment is authorized by this approval.
+Status: **Product scope and written specification approved on 2026-10-18; the subsequent implementation plan is now approved via the user's “nastavi”.** Orchestrated local implementation is authorized without another plan/spec approval pause. This design is not evidence of implemented behavior or passing component tests. No publication, version, tag or deployment is authorized.
 
 ## Purpose, scope and alternatives
 
