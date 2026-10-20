@@ -9,7 +9,14 @@ permissions:
   contents: read
 
 jobs:
+  validate:
+    if: github.repository == 'wsagency/radix2solid'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/check.yml
+
   publish:
+    needs: validate
     if: github.repository == 'wsagency/radix2solid'
     runs-on: ubuntu-24.04
     environment: npm
@@ -50,8 +57,7 @@ jobs:
           }
           JS
       - run: pnpm install --frozen-lockfile
-      - run: pnpm exec playwright install --with-deps chromium firefox webkit
-      - run: pnpm check
+      - run: pnpm build
       - name: Pack and inspect actual release tarballs
         run: |
           mkdir -p .artifacts/npm-release

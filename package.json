@@ -10,7 +10,11 @@
     "build": "pnpm --filter @wsagency/radix2solid-primitives build && pnpm --filter @wsagency/radix2solid-icons build && pnpm --filter @wsagency/radix2solid-icons-extra build && pnpm --filter @wsagency/radix2solid-themes build && pnpm --filter @wsagency/radix2solid-charts build && pnpm --filter @radix-solid/gallery build",
     "typecheck": "tsc --noEmit",
     "check": "pnpm build && pnpm typecheck && pnpm test",
-    "test": "node --test tests/slider.test.ts tests/splitter.test.ts tests/calendar.test.ts tests/file-drop.test.ts && pnpm test:consumer && playwright test",
+    "check:packed": "pnpm build && pnpm typecheck && pnpm test:unit && pnpm test:consumer",
+    "check:dev": "pnpm build && pnpm typecheck && pnpm test:unit && pnpm test:dev",
+    "test": "pnpm test:unit && pnpm test:consumer && pnpm test:dev",
+    "test:unit": "node --test tests/slider.test.ts tests/splitter.test.ts tests/calendar.test.ts tests/file-drop.test.ts",
+    "test:dev": "GALLERY_PACKED='' GALLERY_PRODUCTION='' playwright test",
     "test:consumer": "node tests/consumer/run.ts",
     "dev": "pnpm --filter @radix-solid/gallery dev"
   },

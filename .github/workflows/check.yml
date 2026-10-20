@@ -3,13 +3,19 @@ name: Native distribution checks
 on:
   push:
   pull_request:
+  workflow_call:
 
 permissions:
   contents: read
 
 jobs:
-  check:
+  modes:
+    name: Verify (${{ matrix.mode }})
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        mode: [packed, dev]
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -21,4 +27,13 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec playwright install --with-deps chromium firefox webkit
-      - run: pnpm check
+      - run: pnpm check:${{ matrix.mode }}
+
+  check:
+    name: check
+    if: always()
+    needs: modes
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require successful mode matrix
+        run: test "${{ needs.modes.result }}" = success
