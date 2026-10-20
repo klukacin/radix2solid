@@ -2,11 +2,13 @@
 
 `@wsagency/radix2solid-icons-extra` adds icons that Radix Icons does not have, drawn for this project. They are not a Radix port and not part of the 332 icons in [`@wsagency/radix2solid-icons`](https://github.com/wsagency/radix2solid/tree/main/packages/icons#readme), but they have the same props and import shapes. It requires `solid-js` and `@solidjs/web` **2.0.0-rc.15** as peers (Node `>=22.12.0`) and has no dependencies, including on the original icons package.
 
-The registry currently publishes `@wsagency/radix2solid-icons-extra@0.1.0-rc.3` under `next`. The `0.1.0-rc.4` prerelease keeps its API and assets unchanged for the five-package version update. After rc.4 publication, install it with `pnpm add -E @wsagency/radix2solid-icons-extra@0.1.0-rc.4`; until then, install the currently published package with:
+This README describes prerelease `@wsagency/radix2solid-icons-extra@0.1.0-rc.4`. Install the exact version with:
 
 ```sh
-pnpm add -E @wsagency/radix2solid-icons-extra@0.1.0-rc.3 solid-js@2.0.0-rc.15 @solidjs/web@2.0.0-rc.15
+pnpm add -E @wsagency/radix2solid-icons-extra@0.1.0-rc.4 solid-js@2.0.0-rc.15 @solidjs/web@2.0.0-rc.15
 ```
+
+For source-checkout development, packing a local tarball is an optional alternative.
 
 ## Exports
 
