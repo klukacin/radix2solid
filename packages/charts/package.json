@@ -1,6 +1,6 @@
 {
   "name": "@wsagency/radix2solid-charts",
-  "version": "0.1.0-rc.3",
+  "version": "0.1.0-rc.4",
   "private": false,
   "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/", "tag": "next" },
   "type": "module",

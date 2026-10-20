@@ -10,7 +10,7 @@ The five packages keep their native API under the `@wsagency` npm scope:
 - `@wsagency/radix2solid-themes` — all native Themes families, themed portals, ThemePanel, responsive styling, custom accents, percentage scaling, per-component and cascade-layer CSS: [`packages/themes/README.md`](packages/themes/README.md)
 - `@wsagency/radix2solid-charts` — SVG charts that read Themes tokens, with `d3-scale` and `d3-shape` as external dependencies: [`packages/charts`](packages/charts)
 
-**Source candidate `0.1.0-rc.3` — not yet published.** All five source packages share this version. Published `0.1.0-rc.2` remains unchanged and does not provide the new Combobox, Command, Tree, Splitter or extra-icons APIs. Consume builds from the implementation source and `pnpm pack` tarballs until DevOps publishes through the existing npm workflow; source availability is not npm availability. No implementation commit is claimed here before review/merge.
+All five `@wsagency` packages currently have `0.1.0-rc.3` published; the npm `next` tag points to rc.3. The source prerelease is `0.1.0-rc.4`, prepared for release from merged `main` through the existing OIDC workflow. The rc.4 Primitives/Themes packages include Calendar, DatePicker and FileDrop; these new APIs are not in the currently published rc.3 packages. Until the release workflow publishes rc.4, consume those additions from source-built `pnpm pack` tarballs.
 
 ```sh
 # From the reviewed source checkout, with pinned Node 24 and pnpm 11:
@@ -20,16 +20,16 @@ pnpm --dir packages/primitives pack
 pnpm --dir packages/icons-extra pack
 ```
 
-Pack the other needed packages in the same way; install the resulting tarballs in your application and override Themes' primitives dependency to the same primitives tarball. Source-pinned website deployment is independent of npm publication. The eventual five-package release uses the `next` dist-tag, subject to release-maintainer authorization; first publication and Trusted Publisher configuration for icons-extra remain DevOps-owned.
+Pack the other needed packages in the same way; install the resulting tarballs in your application and override Themes' primitives dependency to the same primitives tarball. Source-pinned website deployment remains independent of npm publication. The five-package `0.1.0-rc.4` prerelease is prepared for the existing workflow's `next` tag; release availability follows the merged-main workflow.
 
-Calendar, DatePicker and FileDrop are new project extensions, not official Radix components or ports. Their APIs are unreleased and are **not available in the installed registry `0.1.0-rc.3` packages**. To try them, build and pack Primitives from a checkout containing these sources, then install that local tarball. If using Themes, pack it from the same checkout and resolve its transitive Primitives dependency to the **same physical Primitives tarball**:
+Calendar, DatePicker and FileDrop are new project extensions, not official Radix components or ports. They are included in the `0.1.0-rc.4` source prerelease and are **not present in the currently published registry `0.1.0-rc.3` packages**. Until rc.4 publication, try them by building and packing Primitives from a checkout containing these sources. If using Themes, pack it from the same checkout and resolve its transitive Primitives dependency to the **same physical Primitives tarball**:
 
 ```sh
 pnpm --dir packages/primitives pack
 pnpm --dir packages/themes pack
 ```
 
-These local packs are not published releases. No exact future candidate commit is specified here.
+These local packs are not npm releases. The rc.4 versioned source candidate is prepared for the existing `next`-tag release workflow; package availability follows publication.
 
 Consumers need Node `>=22.12.0` (required by Solid rc.15). If you use the Themes PostCSS plugins, also install `postcss@^8.5.9`; it is an optional peer.
 

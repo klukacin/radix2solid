@@ -1,5 +1,11 @@
 # Changelog
 
+Registry status before rc.4 publication (2026-10-20): `0.1.0-rc.3` is published under the `next` dist-tag. The versioned rc.4 prerelease notes follow; earlier entries retain their historical preparation-time wording.
+
+## 0.1.0-rc.4
+
+- No Charts API or runtime changes from rc.3; advance the package version with the five-package prerelease.
+
 ## 0.1.0-rc.3 — prepared candidate, not yet published
 
 - Port selected Recharts A1–A13 changes and B1/B2 guards, with per-change source mapping and passing local public-consumer evidence in `upstream.json`; the imported solid-recharts baseline and license/dependency notices are unchanged. This is not a complete Recharts 3.10.1 port or a theme API update.

@@ -1,8 +1,10 @@
 # Changelog
 
-## Unreleased
+Registry status before rc.4 publication (2026-10-20): `0.1.0-rc.3` is published under the `next` dist-tag. The versioned rc.4 prerelease notes follow; earlier entries retain their historical preparation-time wording.
 
-- Add Calendar, DatePicker and FileDrop source namespaces and component-specific CSS (including cascade-layer variants). They remain unpublished project extensions and are not available from registry `0.1.0-rc.3`.
+## 0.1.0-rc.4
+
+- Add Calendar, DatePicker and FileDrop source namespaces and component-specific CSS (including cascade-layer variants) in the rc.4 prerelease; these additions are not in the currently published registry rc.3.
 
 ## 0.1.0-rc.3 — source candidate, not yet published
 

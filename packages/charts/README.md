@@ -1,6 +1,6 @@
 # Native Solid 2 Charts
 
-Native fork, not an official Recharts or solid-recharts product. **Prepared candidate `@wsagency/radix2solid-charts@0.1.0-rc.3` — not yet published.** It will be released under the npm `next` dist-tag because its Solid peers are release candidates. After publication: `pnpm add @wsagency/radix2solid-charts@0.1.0-rc.3`; until then consume `pnpm pack` tarballs.
+Native fork, not an official Recharts or solid-recharts product. The npm registry currently publishes `@wsagency/radix2solid-charts@0.1.0-rc.3` under `next`. The `0.1.0-rc.4` prerelease keeps the Charts API unchanged while versioning the package with the five-package suite. After rc.4 publication: `pnpm add -E @wsagency/radix2solid-charts@0.1.0-rc.4`; until then consume the rc.4 source via a `pnpm pack` tarball.
 
 Charts is a source copy of [solid-recharts](https://github.com/yumemi-thomas/solid-recharts) `2.0.0-beta.1`, a Solid port of the [Recharts](https://github.com/recharts/recharts) `3.9.2` component model, adapted to Solid `2.0.0-rc.15` and to server rendering. See `UPSTREAM.md` for the exact commits and every local change.
 
@@ -32,7 +32,7 @@ If your pnpm configuration sets `minimumReleaseAge`, also add exact-version `min
 In the application, install the tarball with the exact Solid peers and the matching toolchain:
 
 ```sh
-pnpm add ./vendor/wsagency-radix2solid-charts-0.1.0-rc.3.tgz solid-js@2.0.0-rc.15 @solidjs/web@2.0.0-rc.15
+pnpm add ./vendor/wsagency-radix2solid-charts-0.1.0-rc.4.tgz solid-js@2.0.0-rc.15 @solidjs/web@2.0.0-rc.15
 pnpm add -D vite@8.3.3 @solidjs/vite-plugin@3.0.0-next.50 typescript@7.0.2
 ```
 
@@ -68,7 +68,7 @@ Custom ticks, shapes, labels and tooltip content are render functions. Create cu
 
 ### Selected upstream additions
 
-The rc.3 candidate ports the selected A1–A13 changes and B1/B2 guards, with passing local public Node SSR, cross-engine SSR/CSR and packed-consumer evidence recorded in `UPSTREAM.md` and `upstream.json`. This is not a complete Recharts 3.10.1 port. Full CI and npm publication remain pending.
+The rc.3 release ports the selected A1–A13 changes and B1/B2 guards, with bounded local public Node SSR, cross-engine SSR/CSR and packed-consumer evidence recorded in `UPSTREAM.md` and `upstream.json`. This is not a complete Recharts 3.10.1 port. The rc.4 prerelease keeps the Charts API unchanged; its required full CI and npm publication run through the existing release workflow.
 
 - `Legend` accepts `position` and `offset` (default `0`). The exported `CartesianPosition` type includes `top`, `bottom`, `left`, `right`, `center`, the Cartesian `inside*` positions, and `{ x, y }` with numbers or percentages. A supplied position overrides `align`/`verticalAlign`; without it, existing alignment remains unchanged. `layout="auto"` is the default: left/right/insideLeft/insideRight resolve to vertical, other positions to horizontal. Explicit horizontal/vertical layouts still win.
 - Outside positioned legends reserve their measured width/height plus offset; inside legends overlay the plot without reserving space. Default-mount positioned legends render in the chart wrapper's HTML outlet on the server and hydrate that element before measurement. Server placement uses a zero-sized legend box, not the final measured dimensions. No-position and explicit custom-portal legends retain the legacy DOM-portal boundary; this does not add their HTML to server output. A custom portal uses only `wrapperStyle` for positioning.
