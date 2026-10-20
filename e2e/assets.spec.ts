@@ -66,6 +66,7 @@ test('extra icons render the original 24-grid folder SVGs with reactive title an
         window.__extraIconServer = [svg, svg.querySelector(':scope > title')!, svg.querySelector('path')!];
       });
       release();
+      await page.waitForLoadState('load');
     }
     // The existing gallery ref output is the hydration/mount boundary, not a test-only timer.
     await expect(page.locator('#refs')).toHaveText('same host');

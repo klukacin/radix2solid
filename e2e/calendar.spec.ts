@@ -158,6 +158,7 @@ test('calendar hydration date-only timezone', async ({ browser, page: fixturePag
       (window as typeof window & { __calendarServerGrid?: Element; __calendarServerDay?: Element }).__calendarServerDay = root.querySelector('[aria-label="October 18, 2026"]')!;
     });
     release();
+    await page.waitForLoadState('load');
     await expect(page.locator('#refs')).toHaveText('same host');
     await day(grid, 'October 18, 2026').focus();
     await page.keyboard.press('ArrowRight');
