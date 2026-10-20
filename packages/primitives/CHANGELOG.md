@@ -8,6 +8,8 @@ Registry status before rc.4 publication (2026-10-20): `0.1.0-rc.3` is published 
 - Add FileDrop selection through one native chooser/drop input, whole-batch accept/count UX filtering, accepted-state form projection and reset.
 - Extend Form validity coordination for date baselines and FileDrop File-reference revisions while preserving one custom-validity writer and existing matcher/server-error behavior.
 - Repair nested `Form.Message` loops in `Form.ValidityState` by memoizing the validity snapshot before invoking its render callback.
+- Give each FileDrop gallery regression input a specific accessible name, including managed, external-form, default-value, disabled-precedence and dynamic-conflict cases.
+- Verify Toast live-region emissions and controlled-parent rejection across Chromium, Firefox and WebKit in SSR/CSR, preserving priority, Action alt-text, hidden/Close exclusion, and refusal/acceptance assertions.
 - Set the shared Overlay default to expose `aria-modal="true"` only for open modal layers; preserve explicit caller-supplied `aria-modal` values.
 
 ## 0.1.0-rc.3 — source candidate, not yet published

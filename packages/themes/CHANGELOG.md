@@ -5,6 +5,7 @@ Registry status before rc.4 publication (2026-10-20): `0.1.0-rc.3` is published 
 ## 0.1.0-rc.4
 
 - Add Calendar, DatePicker and FileDrop source namespaces and component-specific CSS (including cascade-layer variants) in the rc.4 prerelease; these additions are not in the currently published registry rc.3.
+- Improve Calendar day contrast for outside-month and today text, and use accent-12/gray-1 for selected cell/day fill and text. Selected disabled dates share the new accent-12 fill; aria-disabled semantics, gray-a10 text/stripe, and forced-colors styling remain in force.
 
 ## 0.1.0-rc.3 — source candidate, not yet published
 

@@ -35,7 +35,7 @@ function DynamicConflictProbe(props: { kind: DynamicConflictKind; label: string 
       <Form.Root id={formId}>
         <Form.Field name={ownerName()}>
           <FileDrop id={`${formId}-zone`} name={rootName()} form={rootForm()}>
-            <Form.Control id={`${formId}-input`} form={ownerForm()} asChild>
+            <Form.Control id={`${formId}-input`} form={ownerForm()} aria-label={`Dynamic ${props.label} FileDrop input`} asChild>
               {target => target(FileDropInput, {
                 asChild: true,
                 children: inputTarget => inputTarget('input', {
@@ -56,7 +56,7 @@ function DynamicTriggerDisabledProbe(): Element {
   const [triggerDisabled, setTriggerDisabled] = createSignal(false);
   return <>
     <FileDrop id="file-drop-f2-disabled-precedence" name="disabled-precedence" disabled={rootDisabled()}>
-      <FileDropInput id="file-drop-f2-disabled-precedence-input" />
+      <FileDropInput id="file-drop-f2-disabled-precedence-input" aria-label="Disabled precedence test files" />
       <FileDropTrigger disabled={triggerDisabled()}>F2 effective-disabled trigger</FileDropTrigger>
     </FileDrop>
     <button type="button" onClick={() => setRootDisabled(value => !value)}>Toggle F2 Trigger Root disabled</button>
@@ -248,7 +248,7 @@ export function FileDropExamples(): Element {
       <form id="file-drop-f2-external-form" />
       <form id="file-drop-f2-other-form" />
       <FileDrop id="file-drop-f2-external" name="external-files" form={externalForm()}>
-        <FileDropInput id="file-drop-f2-external-input" />
+        <FileDropInput id="file-drop-f2-external-input" aria-label="External form files" />
       </FileDrop>
       <button type="button" onClick={() => setExternalForm(value => value === 'file-drop-f2-external-form' ? 'file-drop-f2-other-form' : 'file-drop-f2-external-form')}>
         Reassociate external form
@@ -257,12 +257,12 @@ export function FileDropExamples(): Element {
         <form id="file-drop-f2-default-form" onReset={event => { if (cancelDefaultReset()) event.preventDefault(); }}>
           <FileDrop id="file-drop-f2-default-a" name="default-a-files" defaultValue={defaultA()}
             onValueChange={() => setDefaultProposals(count => count + 1)}>
-            <FileDropInput id="file-drop-f2-default-a-input" onInput={() => setDefaultEvents(count => count + 1)}
+            <FileDropInput id="file-drop-f2-default-a-input" aria-label="Default alpha files" onInput={() => setDefaultEvents(count => count + 1)}
               onChange={() => setDefaultEvents(count => count + 1)} />
           </FileDrop>
           <FileDrop id="file-drop-f2-default-b" name="default-b-files" defaultValue={defaultB()}
             onValueChange={() => setDefaultProposals(count => count + 1)}>
-            <FileDropInput id="file-drop-f2-default-b-input" onInput={() => setDefaultEvents(count => count + 1)}
+            <FileDropInput id="file-drop-f2-default-b-input" aria-label="Default bravo files" onInput={() => setDefaultEvents(count => count + 1)}
               onChange={() => setDefaultEvents(count => count + 1)} />
           </FileDrop>
           <button type="reset">Reset default files</button>
@@ -278,7 +278,7 @@ export function FileDropExamples(): Element {
         <Show when={pendingMounted()}>
           <FileDrop id="file-drop-f2-disposed" name="disposed-files" value={disposedFiles()}
             onValueChange={() => setPendingProposals(count => count + 1)}>
-            <FileDropInput id="file-drop-f2-disposed-input" />
+            <FileDropInput id="file-drop-f2-disposed-input" aria-label="Disposed lifecycle test files" />
           </FileDrop>
         </Show>
       </div>

@@ -137,7 +137,7 @@ export function Themes(): Element {
               <Calendar.Heading {...calendarScope} />
               <Calendar.NextTrigger {...calendarScope}>Next month</Calendar.NextTrigger>
             </Calendar.Header>
-            <button type="button" id="theme-calendar-before">Before calendar</button>
+            <Button id="theme-calendar-before" type="button" highContrast>Before calendar</Button>
             <ThemeCalendarGrid scope={calendarScope.__scopeCalendar} focusDate="2026-10-19" />
           </Calendar.Root>
           <button onClick={() => setCalendarAccent(value => value === 'jade' ? 'tomato' : 'jade')}>Toggle calendar custom accent</button>
@@ -152,7 +152,7 @@ export function Themes(): Element {
               <DatePicker.Root {...datePickerScope} id="theme-date-picker-selective" dir="rtl"
                 name="appointmentDate" required today="2026-10-18" defaultViewMonth="2026-10"
                 size="3" variant="classic" radius="large">
-                <button type="button" id="theme-date-picker-before">Before date picker</button>
+                <Button id="theme-date-picker-before" type="button" highContrast>Before date picker</Button>
                 <DatePicker.Trigger {...datePickerScope} id="theme-date-picker-trigger" aria-label="Theme appointment date">
                   <DatePicker.Value {...datePickerScope} placeholder="Choose a date" />
                 </DatePicker.Trigger>

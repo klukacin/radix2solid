@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import { accessibilityViolations } from './accessibility.js';
 import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
@@ -227,6 +228,46 @@ test('calendar selective CSS focus targets', async ({ page }, info) => {
   expect(zoomEquivalentDayBox!.width).toBeGreaterThanOrEqual(24);
   await expect(day).toBeInViewport();
 });
+test('calendar day contrast across Jade and Tomato appearances', async ({ page }, info) => {
+  await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
+  await page.evaluate(() => document.fonts.ready);
+  const calendar = page.locator('#theme-calendar-selective');
+  const theme = page.locator('#theme-calendar-theme');
+  await expect(calendar).toBeVisible();
+
+  expect(await accessibilityViolations(page, '#theme-calendar-selective')).toEqual([]);
+
+  await page.getByRole('button', { name: 'Toggle calendar dark appearance', exact: true }).click();
+  await expect(theme).toHaveClass(/dark/);
+  expect(await accessibilityViolations(page, '#theme-calendar-selective')).toEqual([]);
+
+  await page.getByRole('button', { name: 'Toggle calendar custom accent', exact: true }).click();
+  expect(await accessibilityViolations(page, '#theme-calendar-selective')).toEqual([]);
+
+  await page.getByRole('button', { name: 'Toggle calendar dark appearance', exact: true }).click();
+  await expect(theme).toHaveClass(/light/);
+  expect(await accessibilityViolations(page, '#theme-calendar-selective')).toEqual([]);
+});
+
+test('DatePicker selected adjacent-month date keeps selected contrast', async ({ page }, info) => {
+  await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');
+  await page.evaluate(() => document.fonts.ready);
+  const trigger = page.locator('#theme-date-picker-trigger');
+  const calendar = page.locator('#theme-date-picker-calendar');
+
+  await trigger.click();
+  await calendar.getByRole('button', { name: 'November 1, 2026', exact: true }).click();
+  await expect(trigger).toContainText('November 1, 2026');
+  await trigger.click();
+  await calendar.getByRole('button', { name: 'Previous month', exact: true }).click();
+
+  const adjacentSelected = calendar.getByRole('button', { name: 'November 1, 2026', exact: true });
+  await expect(adjacentSelected).toHaveAttribute('data-outside-month', '');
+  await expect(adjacentSelected).not.toHaveAttribute('aria-disabled', 'true');
+  expect(await adjacentSelected.evaluate(node => node.closest('[role="gridcell"]')?.getAttribute('aria-selected'))).toBe('true');
+  expect(await accessibilityViolations(page, '#theme-date-picker-calendar')).toEqual([]);
+});
+
 
 test('date picker nested Theme portal constraints', async ({ page }, info) => {
   await page.goto(info.project.name.endsWith('csr') ? '/csr' : '/');

@@ -112,8 +112,8 @@
 }
 
 .rt-CalendarCell:where([data-selected]) {
-  background-color: var(--accent-9);
-  border-color: var(--accent-9);
+  background-color: var(--accent-12);
+  border-color: var(--accent-12);
 }
 
 .rt-CalendarCell:where([data-today]:not([data-selected])) {
@@ -154,21 +154,21 @@
   z-index: 1;
 }
 
-.rt-CalendarDay:where([data-selected]) {
-  color: var(--accent-contrast);
-  background-color: var(--accent-9);
-  border-color: var(--accent-9);
-  font-weight: var(--font-weight-medium);
+.rt-CalendarDay:where([data-outside-month]) {
+  color: var(--gray-11);
 }
 
 .rt-CalendarDay:where([data-today]:not([data-selected])) {
-  color: var(--accent-11);
+  color: var(--accent-12);
   border-color: var(--accent-8);
   font-weight: var(--font-weight-medium);
 }
 
-.rt-CalendarDay:where([data-outside-month]) {
-  color: var(--gray-a8);
+.rt-CalendarDay:where([data-selected]) {
+  color: var(--gray-1);
+  background-color: var(--accent-12);
+  border-color: var(--accent-12);
+  font-weight: var(--font-weight-medium);
 }
 
 .rt-CalendarDay:where([aria-disabled='true']) {
