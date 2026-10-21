@@ -4,8 +4,8 @@
 // `DataKey<unknown>`.
 import { BaseValue, DataKey } from "../../util/types";
 import { ChartData } from "../chartDataSlice";
-import { MaybeStackedGraphicalItem } from "./StackedGraphicalItem";
 import { BaseCartesianGraphicalItemSettings } from "../graphicalItemsSlice";
+import { MaybeStackedGraphicalItem } from "./StackedGraphicalItem";
 
 export type AreaSettings = BaseCartesianGraphicalItemSettings &
   MaybeStackedGraphicalItem & {

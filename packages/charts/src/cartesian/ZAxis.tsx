@@ -5,13 +5,14 @@
 // value. Solid deviations: useLayoutEffect/prevRef → createEffect add/replace +
 // onCleanup remove (the XAxis/YAxis idiom); defaults via merge.
 import { merge } from "solid-js";
-import { useAppStore } from "../state/hooks";
+
 import { AxisId, ZAxisSettings } from "../state/cartesianAxisSlice";
+import { useAppStore } from "../state/hooks";
+import { registerInStore } from "../state/registerInStore";
 import { implicitZAxis } from "../state/selectors/axisSelectors";
-import { AxisDomain, DataKey, ScaleType } from "../util/types";
 import { AxisRange } from "../state/selectors/axisSelectors";
 import { CustomScaleDefinition } from "../util/scale/CustomScaleDefinition";
-import { registerInStore } from "../state/registerInStore";
+import { AxisDomain, DataKey, ScaleType } from "../util/types";
 
 export interface ZAxisProps<DataPointType = unknown, DataValueType = unknown> {
   zAxisId?: AxisId;
@@ -57,7 +58,8 @@ export function ZAxis<DataPointType = unknown, DataValueType = unknown>(
       }),
       {
         add: (next) => store.actions.cartesianAxis.addZAxis(next),
-        replace: (prev, next) => store.actions.cartesianAxis.replaceZAxis({ prev, next }),
+        replace: (prev, next) =>
+          store.actions.cartesianAxis.replaceZAxis({ prev, next }),
         remove: (prev) => store.actions.cartesianAxis.removeZAxis(prev),
       },
     );

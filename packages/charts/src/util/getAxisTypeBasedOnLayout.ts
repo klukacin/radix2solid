@@ -1,6 +1,11 @@
-// Ported from recharts 3.8.1 src/util/getAxisTypeBasedOnLayout.ts (commit 7a23854).
-import { AxisDomainTypeInput, AxisType, EvaluatedAxisDomainType, LayoutType } from "./types";
 import { isCategoricalAxis } from "./ChartUtils";
+// Ported from recharts 3.8.1 src/util/getAxisTypeBasedOnLayout.ts (commit 7a23854).
+import {
+  AxisDomainTypeInput,
+  AxisType,
+  EvaluatedAxisDomainType,
+  LayoutType,
+} from "./types";
 
 /**
  * Evaluates the "auto" axis domain type based on the chart layout and axis type,

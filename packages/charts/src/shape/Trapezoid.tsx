@@ -1,3 +1,12 @@
+import type { JSX } from "@solidjs/web";
+import { createEffect, createSignal, Show, omit, untrack } from "solid-js";
+
+import type { EasingInput } from "../animation/easing";
+import { JavascriptAnimate } from "../animation/JavascriptAnimate";
+import { getTransitionVal } from "../animation/util";
+import { interpolate } from "../util/DataUtils";
+import { roundTemplateLiteral } from "../util/round";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 /**
  * @fileOverview Trapezoid
  *
@@ -13,16 +22,8 @@
  * stays the static shape.
  */
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createEffect, createSignal, Show, omit, untrack } from "solid-js";
-import type { JSX } from "@solidjs/web";
 import type { AnimationDuration } from "../util/types";
-import type { EasingInput } from "../animation/easing";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
-import { roundTemplateLiteral } from "../util/round";
-import { interpolate } from "../util/DataUtils";
 import { useAnimationId } from "../util/useAnimationId";
-import { getTransitionVal } from "../animation/util";
-import { JavascriptAnimate } from "../animation/JavascriptAnimate";
 
 const getTrapezoidPath = (
   x: number,
@@ -63,7 +64,10 @@ interface TrapezoidOwnProps {
   animationEasing?: EasingInput;
 }
 
-export type TrapezoidProps = Omit<CamelSvgProps<JSX.PathSVGAttributes<SVGPathElement>>, "class"> &
+export type TrapezoidProps = Omit<
+  CamelSvgProps<JSX.PathSVGAttributes<SVGPathElement>>,
+  "class"
+> &
   TrapezoidOwnProps;
 
 export const Trapezoid = (props: TrapezoidProps): JSX.Element => {
@@ -84,12 +88,17 @@ export const Trapezoid = (props: TrapezoidProps): JSX.Element => {
       height() === 0
     );
 
-  const isUpdateAnimationActive = (): boolean => props.isUpdateAnimationActive ?? false;
-  const animationDuration = (): AnimationDuration => props.animationDuration ?? 1500;
+  const isUpdateAnimationActive = (): boolean =>
+    props.isUpdateAnimationActive ?? false;
+  const animationDuration = (): AnimationDuration =>
+    props.animationDuration ?? 1500;
   const animationEasing = (): EasingInput => props.animationEasing ?? "ease";
   const animationBegin = (): number => props.animationBegin ?? 0;
 
-  const layerClass = (): Array<string | undefined> => ["recharts-trapezoid", props.class];
+  const layerClass = (): Array<string | undefined> => [
+    "recharts-trapezoid",
+    props.class,
+  ];
 
   // Animation (update path) state: a ref to read the path length + prev-value
   // closures the animation interpolates from. The ref only captures the element
@@ -143,9 +152,12 @@ export const Trapezoid = (props: TrapezoidProps): JSX.Element => {
   let prevX = untrack(x);
   let prevY = untrack(y);
 
+  const staticPathProps = omit(props, "class");
+  const animatedPathProps = omit(props, "class", "style");
+
   const staticPath = (): JSX.Element => (
     <path
-      {...svgPropertiesAndEvents({ ...omit(props, "class") })}
+      {...svgPropertiesAndEvents({ ...staticPathProps })}
       class={layerClass()}
       d={getTrapezoidPath(x(), y(), upperWidth(), lowerWidth(), height())}
     />
@@ -154,11 +166,17 @@ export const Trapezoid = (props: TrapezoidProps): JSX.Element => {
   return (
     <Show when={valid()}>
       <g>
-        <Show when={isUpdateAnimationActive()} fallback={staticPath()}>
+        <Show
+          when={isUpdateAnimationActive()}
+          fallback={staticPath()}
+        >
           {/* Keyed on animationId: a geometry change → new id → this recreates
               the JavascriptAnimate, restarting the animation from the (updated)
               prev values — the Solid equivalent of recharts' key={animationId}. */}
-          <Show when={animationId()} keyed>
+          <Show
+            when={animationId()}
+            keyed
+          >
             {(animId) => (
               <JavascriptAnimate
                 animationId={animId}
@@ -183,8 +201,16 @@ export const Trapezoid = (props: TrapezoidProps): JSX.Element => {
                     dur: animationDuration(),
                     easing: animationEasing(),
                   }));
-                  const currUpperWidth = interpolate(prevUpperWidth, snap.uw, t);
-                  const currLowerWidth = interpolate(prevLowerWidth, snap.lw, t);
+                  const currUpperWidth = interpolate(
+                    prevUpperWidth,
+                    snap.uw,
+                    t,
+                  );
+                  const currLowerWidth = interpolate(
+                    prevLowerWidth,
+                    snap.lw,
+                    t,
+                  );
                   const currHeight = interpolate(prevHeight, snap.h, t);
                   const currX = interpolate(prevX, snap.cx, t);
                   const currY = interpolate(prevY, snap.cy, t);
@@ -204,16 +230,26 @@ export const Trapezoid = (props: TrapezoidProps): JSX.Element => {
                     typeof snap.easing === "string" ? snap.easing : "ease",
                   );
                   const dashStyle: JSX.CSSProperties =
-                    t > 0 ? { transition, "stroke-dasharray": to } : { "stroke-dasharray": from };
+                    t > 0
+                      ? { transition, "stroke-dasharray": to }
+                      : { "stroke-dasharray": from };
                   // `props.style` may be a string in Solid JSX; only merge object styles.
                   const userStyle: JSX.CSSProperties =
-                    typeof props.style === "object" && props.style != null ? props.style : {};
+                    typeof props.style === "object" && props.style != null
+                      ? props.style
+                      : {};
                   return (
                     <path
-                      {...svgPropertiesAndEvents({ ...omit(props, "class", "style") })}
+                      {...svgPropertiesAndEvents({ ...animatedPathProps })}
                       ref={measurePath}
                       class={layerClass()}
-                      d={getTrapezoidPath(currX, currY, currUpperWidth, currLowerWidth, currHeight)}
+                      d={getTrapezoidPath(
+                        currX,
+                        currY,
+                        currUpperWidth,
+                        currLowerWidth,
+                        currHeight,
+                      )}
                       style={{ ...dashStyle, ...userStyle }}
                     />
                   );

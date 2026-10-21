@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Solid-native replacement for recharts 3.8.1 src/state/RechartsStoreProvider.tsx.
 //
 // recharts created the store once in a `useRef` and provided it via react-redux's
@@ -9,7 +10,7 @@
 // NOTE: the panorama branch (Brush's preview chart reuses the parent store by
 // rendering no Provider) is deferred until PanoramaContext is ported.
 import { untrack } from "solid-js";
-import type { JSX } from "@solidjs/web";
+
 import { RechartsStoreContext } from "./RechartsStoreContext";
 import { createRechartsStore, type RechartsRootState } from "./store";
 
@@ -18,10 +19,14 @@ export interface RechartsStoreProviderProps {
   preloadedState?: Partial<RechartsRootState>;
 }
 
-export function RechartsStoreProvider(props: RechartsStoreProviderProps): JSX.Element {
+export function RechartsStoreProvider(
+  props: RechartsStoreProviderProps,
+): JSX.Element {
   // Create the store once. `preloadedState` is one-time config, so read it
   // untracked (it should not make store creation reactive).
   const store = createRechartsStore(untrack(() => props.preloadedState));
 
-  return <RechartsStoreContext value={store}>{props.children}</RechartsStoreContext>;
+  return (
+    <RechartsStoreContext value={store}>{props.children}</RechartsStoreContext>
+  );
 }

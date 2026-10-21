@@ -8,5 +8,7 @@ export function isEventThrottled(
   throttledEvents: ReadonlyArray<string> | "all" | undefined,
   eventName: string,
 ): boolean {
-  return throttledEvents === "all" || (throttledEvents?.includes(eventName) ?? false);
+  return (
+    throttledEvents === "all" || (throttledEvents?.includes(eventName) ?? false)
+  );
 }

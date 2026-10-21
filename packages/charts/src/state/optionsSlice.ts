@@ -1,9 +1,9 @@
+import { isNan } from "../util/DataUtils";
+import { TooltipEventType } from "../util/types";
 // Ported from recharts 3.8.1 src/state/optionsSlice.ts (commit 7a23854).
 // Solid-native slice.
 import type { ChartStateInitializer } from "./createChartState";
-import { TooltipEventType } from "../util/types";
 import { TooltipIndex, TooltipPayloadSearcher } from "./tooltipSlice";
-import { isNan } from "../util/DataUtils";
 
 /**
  * These chart options are decided internally by Recharts and do not change
@@ -47,18 +47,26 @@ export interface OptionsSlice {
   readonly actions: OptionsActions;
 }
 
-export function createOptionsSlice(initialState: ChartOptions=initialOptionsState,createState: ChartStateInitializer): OptionsSlice {
-  const [state,setState]=createState<ChartOptions>({ ...initialState });
+export function createOptionsSlice(
+  initialState: ChartOptions = initialOptionsState,
+  createState: ChartStateInitializer,
+): OptionsSlice {
+  const [state, setState] = createState<ChartOptions>({ ...initialState });
 
-  const actions: OptionsActions={
+  const actions: OptionsActions = {
     createEventEmitter() {
       setState((s) => {
-        if(s.eventEmitter==null) {
-          s.eventEmitter=Symbol("rechartsEventEmitter");
+        if (s.eventEmitter == null) {
+          s.eventEmitter = Symbol("rechartsEventEmitter");
         }
       });
     },
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

@@ -10,17 +10,17 @@
   animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 
   @media (prefers-reduced-motion: no-preference) {
-    &:where([data-state='delayed-open']) {
-      &:where([data-side='top']) {
+    &:where([data-state="delayed-open"]) {
+      &:where([data-side="top"]) {
         animation-name: rt-slide-from-top, rt-fade-in;
       }
-      &:where([data-side='bottom']) {
+      &:where([data-side="bottom"]) {
         animation-name: rt-slide-from-bottom, rt-fade-in;
       }
-      &:where([data-side='left']) {
+      &:where([data-side="left"]) {
         animation-name: rt-slide-from-left, rt-fade-in;
       }
-      &:where([data-side='right']) {
+      &:where([data-side="right"]) {
         animation-name: rt-slide-from-right, rt-fade-in;
       }
     }

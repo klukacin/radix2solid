@@ -1,8 +1,8 @@
+import { LayoutType, Margin, Size } from "../util/types";
 // Ported from recharts 3.8.1 src/state/layoutSlice.ts (commit 7a23854).
 // Solid-native slice (no Redux): createStore + draft-first action setters.
 import type { ChartStateInitializer } from "./createChartState";
 import { patched } from "./patched";
-import { LayoutType, Margin, Size } from "../util/types";
 
 export type ChartLayoutState = {
   layoutType: LayoutType;
@@ -33,41 +33,49 @@ export interface ChartLayoutSlice {
   readonly actions: ChartLayoutActions;
 }
 
-export function createChartLayoutSlice(initialState: ChartLayoutState=initialChartLayoutState,createState: ChartStateInitializer): ChartLayoutSlice {
-  const [state,setState]=createState<ChartLayoutState>({
+export function createChartLayoutSlice(
+  initialState: ChartLayoutState = initialChartLayoutState,
+  createState: ChartStateInitializer,
+): ChartLayoutSlice {
+  const [state, setState] = createState<ChartLayoutState>({
     ...initialState,
     margin: { ...initialState.margin },
   });
 
-  const actions: ChartLayoutActions={
+  const actions: ChartLayoutActions = {
     setLayout(layoutType) {
       setState((s) => {
-        s.layoutType=layoutType;
+        s.layoutType = layoutType;
       });
     },
     setChartSize(size) {
       setState((s) => {
-        s.width=size.width;
-        s.height=size.height;
+        s.width = size.width;
+        s.height = size.height;
       });
     },
     setMargin(margin) {
       // Slice immutability contract (ADR-0002): replace the margin node.
       setState((s) => {
-        s.margin=patched(s.margin,{
-          top: margin.top??0,
-          right: margin.right??0,
-          bottom: margin.bottom??0,
-          left: margin.left??0,
+        s.margin = patched(s.margin, {
+          top: margin.top ?? 0,
+          right: margin.right ?? 0,
+          bottom: margin.bottom ?? 0,
+          left: margin.left ?? 0,
         });
       });
     },
     setScale(scale) {
       setState((s) => {
-        s.scale=scale;
+        s.scale = scale;
       });
     },
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

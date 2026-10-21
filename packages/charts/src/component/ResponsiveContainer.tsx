@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/component/ResponsiveContainer.tsx (commit 7a23854).
 // Solid-native rewrite: React context/forwardRef/effects -> Solid context, ref
 // prop, and two-arg createEffect. Prop deviation: className -> class.
@@ -14,17 +15,17 @@ import {
   untrack,
   useContext,
 } from "solid-js";
-import type { JSX } from "@solidjs/web";
+
+import { isNumber } from "../util/DataUtils";
+import { isPositiveNumber } from "../util/isWellBehavedNumber";
+import { warn } from "../util/LogUtils";
+import type { Percent, Size } from "../util/types";
 import {
   calculateChartDimensions,
   defaultResponsiveContainerProps,
   getDefaultWidthAndHeight,
   getInnerDivStyle,
 } from "./responsiveContainerUtils";
-import { isNumber } from "../util/DataUtils";
-import { warn } from "../util/LogUtils";
-import type { Percent, Size } from "../util/types";
-import { isPositiveNumber } from "../util/isWellBehavedNumber";
 
 export interface Props extends Omit<
   JSX.HTMLAttributes<HTMLDivElement>,
@@ -60,7 +61,9 @@ const ResponsiveContainerContext = createContext<Accessor<Size | undefined>>(
   missingResponsiveContainerContext,
 );
 
-export const useResponsiveContainerContext = (): ResponsiveContainerCalculations | undefined => {
+export const useResponsiveContainerContext = ():
+  | ResponsiveContainerCalculations
+  | undefined => {
   const context = useContext(ResponsiveContainerContext);
   if (context === missingResponsiveContainerContext) {
     return undefined;
@@ -126,13 +129,18 @@ function styleObjectToString(style: JSX.CSSProperties | undefined): string {
     .join("; ");
 }
 
-function styleEntry(key: string, value: string | number | undefined): string | undefined {
+function styleEntry(
+  key: string,
+  value: string | number | undefined,
+): string | undefined {
   const formatted = cssValue(value);
   return formatted == null ? undefined : `${key}: ${formatted}`;
 }
 
 function joinStyle(parts: ReadonlyArray<string | undefined>): string {
-  return parts.filter((part): part is string => part != null && part.length > 0).join("; ");
+  return parts
+    .filter((part): part is string => part != null && part.length > 0)
+    .join("; ");
 }
 
 interface DebouncedResize {
@@ -205,16 +213,24 @@ function SizeDetectorContainer(props: Props): JSX.Element {
   const height = (): Percent | number | undefined => props.height;
   const minWidth = (): string | number =>
     props.minWidth ?? defaultResponsiveContainerProps.minWidth;
-  const debounce = (): number => props.debounce ?? defaultResponsiveContainerProps.debounce;
-  const [containerWidth, setContainerWidth] = createSignal(initialDimension().width);
-  const [containerHeight, setContainerHeight] = createSignal(initialDimension().height);
+  const debounce = (): number =>
+    props.debounce ?? defaultResponsiveContainerProps.debounce;
+  const [containerWidth, setContainerWidth] = createSignal(
+    initialDimension().width,
+  );
+  const [containerHeight, setContainerHeight] = createSignal(
+    initialDimension().height,
+  );
   let observer: ResizeObserver | undefined;
   let activeResizeCallback: DebouncedResize | undefined;
 
   const writeContainerSize = (newWidth: number, newHeight: number): void => {
     const roundedWidth = Math.round(newWidth);
     const roundedHeight = Math.round(newHeight);
-    if (untrack(containerWidth) === roundedWidth && untrack(containerHeight) === roundedHeight) {
+    if (
+      untrack(containerWidth) === roundedWidth &&
+      untrack(containerHeight) === roundedHeight
+    ) {
       return;
     }
     setContainerWidth(roundedWidth);
@@ -259,8 +275,11 @@ function SizeDetectorContainer(props: Props): JSX.Element {
       props.onResize?.(nextWidth, nextHeight);
     };
 
-    const resizeCallback = debounce() > 0 ? createDebouncedResize(callback, debounce()) : callback;
-    activeResizeCallback = isDebouncedResize(resizeCallback) ? resizeCallback : undefined;
+    const resizeCallback =
+      debounce() > 0 ? createDebouncedResize(callback, debounce()) : callback;
+    activeResizeCallback = isDebouncedResize(resizeCallback)
+      ? resizeCallback
+      : undefined;
     observer = new ResizeObserver(resizeCallback);
     const { width: nextWidth, height: nextHeight } = el.getBoundingClientRect();
     writeContainerSize(nextWidth, nextHeight);
@@ -294,7 +313,11 @@ function SizeDetectorContainer(props: Props): JSX.Element {
   createEffect(
     () => props.aspect,
     (aspect) => {
-      warn(!aspect || aspect > 0, "The aspect(%s) must be greater than zero.", aspect);
+      warn(
+        !aspect || aspect > 0,
+        "The aspect(%s) must be greater than zero.",
+        aspect,
+      );
     },
   );
 
@@ -382,7 +405,8 @@ export function ResponsiveContainer(props: Props): JSX.Element {
     <>
       {hasParentResponsiveContainer() ? (
         props.children
-      ) : isNumber(calculated().calculatedWidth) && isNumber(calculated().calculatedHeight) ? (
+      ) : isNumber(calculated().calculatedWidth) &&
+        isNumber(calculated().calculatedHeight) ? (
         <ResponsiveContainerContextProvider
           width={calculated().calculatedWidth}
           height={calculated().calculatedHeight}
@@ -390,7 +414,11 @@ export function ResponsiveContainer(props: Props): JSX.Element {
           {props.children}
         </ResponsiveContainerContextProvider>
       ) : (
-        <SizeDetectorContainer {...props} width={defaults().width} height={defaults().height} />
+        <SizeDetectorContainer
+          {...props}
+          width={defaults().width}
+          height={defaults().height}
+        />
       )}
     </>
   );

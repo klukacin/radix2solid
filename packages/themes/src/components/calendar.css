@@ -17,9 +17,15 @@
 @breakpoints {
   .rt-CalendarRoot,
   .rt-DatePickerCalendar {
-    &:where(.rt-r-size-1) { --calendar-day-size: var(--space-7); }
-    &:where(.rt-r-size-2) { --calendar-day-size: calc(var(--space-7) + 4px); }
-    &:where(.rt-r-size-3) { --calendar-day-size: var(--space-8); }
+    &:where(.rt-r-size-1) {
+      --calendar-day-size: var(--space-7);
+    }
+    &:where(.rt-r-size-2) {
+      --calendar-day-size: calc(var(--space-7) + 4px);
+    }
+    &:where(.rt-r-size-3) {
+      --calendar-day-size: var(--space-8);
+    }
   }
 }
 
@@ -171,9 +177,13 @@
   font-weight: var(--font-weight-medium);
 }
 
-.rt-CalendarDay:where([aria-disabled='true']) {
+.rt-CalendarDay:where([aria-disabled="true"]) {
   color: var(--gray-a10);
-  background-image: repeating-linear-gradient(135deg, transparent 0 4px, var(--gray-a3) 4px 5px);
+  background-image: repeating-linear-gradient(
+    135deg,
+    transparent 0 4px,
+    var(--gray-a3) 4px 5px
+  );
   cursor: not-allowed;
 }
 
@@ -250,8 +260,12 @@
     outline-offset: 2px;
   }
 
-  .rt-CalendarDay:where([aria-disabled='true']) {
+  .rt-CalendarDay:where([aria-disabled="true"]) {
     color: GrayText;
-    background-image: repeating-linear-gradient(135deg, transparent 0 4px, GrayText 4px 5px);
+    background-image: repeating-linear-gradient(
+      135deg,
+      transparent 0 4px,
+      GrayText 4px 5px
+    );
   }
 }

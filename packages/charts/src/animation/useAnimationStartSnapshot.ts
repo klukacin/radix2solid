@@ -25,7 +25,11 @@ export type AnimationStartSnapshot<T> = {
    * 2. optionally commit later in-flight frames into the mutable ref so future
    *    animations resume smoothly from the latest visible geometry.
    */
-  syncStepValue: (stepValue: T, animationElapsedTime: number, canCommit?: boolean) => void;
+  syncStepValue: (
+    stepValue: T,
+    animationElapsedTime: number,
+    canCommit?: boolean,
+  ) => void;
 };
 
 export function useAnimationStartSnapshot<T>(
@@ -54,7 +58,11 @@ export function useAnimationStartSnapshot<T>(
     return untrack(() => previousValueRef.current);
   });
 
-  const syncStepValue = (stepValue: T, animationElapsedTime: number, canCommit = true): void => {
+  const syncStepValue = (
+    stepValue: T,
+    animationElapsedTime: number,
+    canCommit = true,
+  ): void => {
     if (animationElapsedTime === 0) {
       // Handshake: the new animation has rendered its starting frame. We do not
       // write anything yet; we only allow later in-flight frames to commit.

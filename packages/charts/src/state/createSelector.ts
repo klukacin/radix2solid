@@ -56,7 +56,9 @@ export function createSelector<
   Result,
 >(
   inputs: readonly [...Inputs],
-  combiner: (...values: { [K in keyof Inputs]: ReturnType<Inputs[K]> }) => Result,
+  combiner: (
+    ...values: { [K in keyof Inputs]: ReturnType<Inputs[K]> }
+  ) => Result,
   options?: CreateSelectorOptions<Result>,
 ): (state: State, ...args: unknown[]) => Result;
 export function createSelector(
@@ -71,7 +73,8 @@ export function createSelector(
     let node: CacheNode = cache.get(state) ?? {};
     cache.set(state, node);
     for (const arg of args) {
-      const children: Map<unknown, CacheNode> = node.children ?? new Map<unknown, CacheNode>();
+      const children: Map<unknown, CacheNode> =
+        node.children ?? new Map<unknown, CacheNode>();
       node.children = children;
       const child: CacheNode = children.get(arg) ?? {};
       children.set(arg, child);
@@ -79,15 +82,24 @@ export function createSelector(
     }
 
     // Tracked: the input reads are the selector's whole reactive surface.
-    const values: readonly unknown[] = inputs.map((input) => input(state, ...args));
+    const values: readonly unknown[] = inputs.map((input) =>
+      input(state, ...args),
+    );
 
     const entry = node.entry;
-    if (entry != null && values.every((value, i) => value === entry.inputs[i])) {
+    if (
+      entry != null &&
+      values.every((value, i) => value === entry.inputs[i])
+    ) {
       return entry.result;
     }
 
     const result = untrack(() => combiner(...values));
-    if (entry != null && resultEqualityCheck != null && resultEqualityCheck(entry.result, result)) {
+    if (
+      entry != null &&
+      resultEqualityCheck != null &&
+      resultEqualityCheck(entry.result, result)
+    ) {
       entry.inputs = values;
       return entry.result;
     }

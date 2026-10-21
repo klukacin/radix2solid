@@ -1,8 +1,8 @@
-// Ported from recharts 3.8.1 src/cartesian/getTicks.ts (commit 7a23854).
-// Deviation: a tick's `value` is typed `unknown` here (recharts: `any`), so it is
-// narrowed to `string | number` (via isNumOrStr, else String()) before being
-// passed to getStringSize — behavior-equivalent for the normal string/number case.
-import { CartesianTickItem, CartesianViewBoxRequired, Size } from "../util/types";
+import {
+  CartesianAxisSettings,
+  XAxisOrientation,
+  YAxisOrientation,
+} from "../state/cartesianAxisSlice";
 import { isNumOrStr, isNumber, mathSign } from "../util/DataUtils";
 import { getStringSize } from "../util/DOMUtils";
 import { Global } from "../util/Global";
@@ -12,12 +12,19 @@ import {
   getTickBoundaries,
   isVisible,
 } from "../util/TickUtils";
-import { getEquidistantPreserveEndTicks, getEquidistantTicks } from "./getEquidistantTicks";
+// Ported from recharts 3.8.1 src/cartesian/getTicks.ts (commit 7a23854).
+// Deviation: a tick's `value` is typed `unknown` here (recharts: `any`), so it is
+// narrowed to `string | number` (via isNumOrStr, else String()) before being
+// passed to getStringSize — behavior-equivalent for the normal string/number case.
 import {
-  CartesianAxisSettings,
-  XAxisOrientation,
-  YAxisOrientation,
-} from "../state/cartesianAxisSlice";
+  CartesianTickItem,
+  CartesianViewBoxRequired,
+  Size,
+} from "../util/types";
+import {
+  getEquidistantPreserveEndTicks,
+  getEquidistantTicks,
+} from "./getEquidistantTicks";
 
 export type Sign = 0 | 1 | -1;
 
@@ -93,11 +100,18 @@ function getTicksStart(
       const tailGap = sign * (tail.coordinate + (sign * tailSize) / 2 - end);
       result[len - 1] = tail = {
         ...tail,
-        tickCoord: tailGap > 0 ? tail.coordinate - tailGap * sign : tail.coordinate,
+        tickCoord:
+          tailGap > 0 ? tail.coordinate - tailGap * sign : tail.coordinate,
       };
 
       if (tail.tickCoord != null) {
-        const isTailShow = isVisible(sign, tail.tickCoord, () => tailSize, start, end);
+        const isTailShow = isVisible(
+          sign,
+          tail.tickCoord,
+          () => tailSize,
+          start,
+          end,
+        );
 
         if (isTailShow) {
           end = tail.tickCoord - sign * (tailSize / 2 + minTickGap);
@@ -162,20 +176,32 @@ export function getTicks(
   fontSize?: string,
   letterSpacing?: string,
 ): ReadonlyArray<CartesianTickItem> {
-  const { tick, ticks, viewBox, minTickGap, orientation, interval, tickFormatter, unit, angle } =
-    props;
+  const {
+    tick,
+    ticks,
+    viewBox,
+    minTickGap,
+    orientation,
+    interval,
+    tickFormatter,
+    unit,
+    angle,
+  } = props;
 
   if (!ticks || !ticks.length || !tick) {
     return [];
   }
 
   if (isNumber(interval) || Global.isSsr) {
-    return getNumberIntervalTicks(ticks, isNumber(interval) ? interval : 0) ?? [];
+    return (
+      getNumberIntervalTicks(ticks, isNumber(interval) ? interval : 0) ?? []
+    );
   }
 
   let candidates: ReadonlyArray<CartesianTickItem> = [];
 
-  const sizeKey = orientation === "top" || orientation === "bottom" ? "width" : "height";
+  const sizeKey =
+    orientation === "top" || orientation === "bottom" ? "width" : "height";
   const unitSize: Size =
     unit && sizeKey === "width"
       ? getStringSize(unit, { fontSize, letterSpacing })
@@ -183,11 +209,17 @@ export function getTicks(
 
   const getTickSize = (content: CartesianTickItem, index: number): number => {
     const raw: unknown =
-      typeof tickFormatter === "function" ? tickFormatter(content.value, index) : content.value;
+      typeof tickFormatter === "function"
+        ? tickFormatter(content.value, index)
+        : content.value;
     const value: string | number = isNumOrStr(raw) ? raw : String(raw);
     // Recharts only supports angles when sizeKey === 'width'.
     return sizeKey === "width"
-      ? getAngledTickWidth(getStringSize(value, { fontSize, letterSpacing }), unitSize, angle)
+      ? getAngledTickWidth(
+          getStringSize(value, { fontSize, letterSpacing }),
+          unitSize,
+          angle,
+        )
       : getStringSize(value, { fontSize, letterSpacing })[sizeKey];
   };
 
@@ -202,10 +234,22 @@ export function getTicks(
   const boundaries = getTickBoundaries(viewBox, sign, sizeKey);
 
   if (interval === "equidistantPreserveStart") {
-    return getEquidistantTicks(sign, boundaries, getTickSize, ticks, minTickGap);
+    return getEquidistantTicks(
+      sign,
+      boundaries,
+      getTickSize,
+      ticks,
+      minTickGap,
+    );
   }
   if (interval === "equidistantPreserveEnd") {
-    return getEquidistantPreserveEndTicks(sign, boundaries, getTickSize, ticks, minTickGap);
+    return getEquidistantPreserveEndTicks(
+      sign,
+      boundaries,
+      getTickSize,
+      ticks,
+      minTickGap,
+    );
   }
 
   if (interval === "preserveStart" || interval === "preserveStartEnd") {

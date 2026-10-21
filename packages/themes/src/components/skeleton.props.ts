@@ -1,10 +1,9 @@
-import { heightPropDefs } from '../props/height.props.js';
-import { widthPropDefs } from '../props/width.props.js';
-
-import type { PropDef } from '../props/prop-def.js';
+import { heightPropDefs } from "../props/height.props.js";
+import type { PropDef } from "../props/prop-def.js";
+import { widthPropDefs } from "../props/width.props.js";
 
 const skeletonPropDefs = {
-  loading: { type: 'boolean', default: true },
+  loading: { type: "boolean", default: true },
   ...widthPropDefs,
   ...heightPropDefs,
 } satisfies {

@@ -1,3 +1,10 @@
+import type { JSX } from "@solidjs/web";
+import { Show, omit } from "solid-js";
+
+import { getPercentValue, mathSign } from "../util/DataUtils";
+import { polarToCartesian, RADIAN } from "../util/PolarUtils";
+import { roundTemplateLiteral } from "../util/round";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 /**
  * @fileOverview Sector
  *
@@ -7,13 +14,7 @@
  * `class`); `clsx` → `class={[...]}`; `return null` → `<Show>`.
  */
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { Show, omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
 import { GeometrySector, GeometrySectorWithCornerRadius } from "../util/types";
-import { polarToCartesian, RADIAN } from "../util/PolarUtils";
-import { getPercentValue, mathSign } from "../util/DataUtils";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
-import { roundTemplateLiteral } from "../util/round";
 
 const getDeltaAngle = (startAngle: number, endAngle: number): number => {
   const sign = mathSign(endAngle - startAngle);
@@ -250,7 +251,8 @@ export const Sector = (props: SectorProps): JSX.Element => {
   const forceCornerRadius = (): boolean => props.forceCornerRadius ?? false;
   const cornerIsExternal = (): boolean => props.cornerIsExternal ?? false;
 
-  const valid = (): boolean => !(outerRadius() < innerRadius() || startAngle() === endAngle());
+  const valid = (): boolean =>
+    !(outerRadius() < innerRadius() || startAngle() === endAngle());
 
   const path = (): string => {
     const deltaRadius = outerRadius() - innerRadius();
@@ -279,8 +281,9 @@ export const Sector = (props: SectorProps): JSX.Element => {
     });
   };
 
+  const forwardedProps = omit(props, "class");
   const passthrough = (): Record<string, unknown> => ({
-    ...omit(props, "class"),
+    ...forwardedProps,
     cx: cx(),
     cy: cy(),
     innerRadius: innerRadius(),

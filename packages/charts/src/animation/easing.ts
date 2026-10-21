@@ -29,7 +29,8 @@ const derivativeCubicBezier = (c1: number, c2: number) => (t: number) => {
   return evaluatePolynomial(newParams, t);
 };
 
-type CubicBezierTemplate = `cubic-bezier(${number},${number},${number},${number})`;
+type CubicBezierTemplate =
+  `cubic-bezier(${number},${number},${number},${number})`;
 
 export type NamedBezier =
   | "linear"
@@ -46,7 +47,9 @@ export type BezierEasingFunction = {
   (t: number): number;
 };
 
-const parseCubicBezier = (easing: string): [number, number, number, number] | null => {
+const parseCubicBezier = (
+  easing: string,
+): [number, number, number, number] | null => {
   const easingParts = easing.split("(");
   if (easingParts.length !== 2 || easingParts[0] !== "cubic-bezier") {
     return null;
@@ -58,13 +61,20 @@ const parseCubicBezier = (easing: string): [number, number, number, number] | nu
   const [x1, y1, x2, y2] = numbers.map((x: string) => parseFloat(x));
   // `noUncheckedIndexedAccess` keeps the tuple elements possibly-undefined even
   // after the length check, so narrow explicitly instead of asserting.
-  if (x1 === undefined || y1 === undefined || x2 === undefined || y2 === undefined) {
+  if (
+    x1 === undefined ||
+    y1 === undefined ||
+    x2 === undefined ||
+    y2 === undefined
+  ) {
     return null;
   }
   return [x1, y1, x2, y2];
 };
 
-const getBezierCoordinates = (...args: BezierInput): [number, number, number, number] => {
+const getBezierCoordinates = (
+  ...args: BezierInput
+): [number, number, number, number] => {
   if (args.length === 1) {
     switch (args[0]) {
       case "linear":
@@ -167,7 +177,9 @@ type SpringInput = {
  * then returns a pure, lightweight function mapping progress (0 to 1) to the animated position.
  * This approach is ideal for low-power devices because it removes heavy physics math from the frame loop.
  */
-export const createSpringEasing = (config: SpringInput = {}): ProgressEasingFn => {
+export const createSpringEasing = (
+  config: SpringInput = {},
+): ProgressEasingFn => {
   const { stiff = 100, damping = 8, dt = 16.67 } = config;
   const destX = 1;
 
@@ -212,7 +224,8 @@ export const createSpringEasing = (config: SpringInput = {}): ProgressEasingFn =
 
     // Blend between the two closest frames
     return (
-      (positions[index] ?? 0) + ((positions[index + 1] ?? 0) - (positions[index] ?? 0)) * fraction
+      (positions[index] ?? 0) +
+      ((positions[index + 1] ?? 0) - (positions[index] ?? 0)) * fraction
     );
   };
 };
@@ -235,7 +248,9 @@ export type EasingInput = NamedBezier | "spring" | EasingFunction;
  * named beziers, `cubic-bezier(...)`, `'spring'` via baked physics, or a passed-through
  * `(t) => number`. Returns `null` for unrecognized input.
  */
-export const createEasingFunction = (easing: EasingInput): ProgressEasingFn | null => {
+export const createEasingFunction = (
+  easing: EasingInput,
+): ProgressEasingFn | null => {
   if (typeof easing === "string") {
     switch (easing) {
       case "ease":

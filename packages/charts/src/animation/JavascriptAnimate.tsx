@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.9.0 src/animation/JavascriptAnimate.tsx.
 //
 // Solid 2.0 port of the JavaScript render-prop animation driver, on the v3.9 engine
@@ -11,14 +12,14 @@
 // This is the same driver `AnimatedItems` uses; standalone consumers are the shape
 // update-tweens (`Rectangle`, `Trapezoid`).
 import { createSignal, createEffect, untrack } from "solid-js";
-import type { JSX } from "@solidjs/web";
+
 import { noop } from "../util/DataUtils";
-import { createEasingFunction, type EasingInput } from "./easing";
 import { Global } from "../util/Global";
 import { usePrefersReducedMotion } from "../util/usePrefersReducedMotion";
-import { JavascriptAnimation } from "./AnimationHandle";
-import { RequestAnimationFrameTimeoutController } from "./timeoutController";
 import type { AnimationController } from "./AnimationController";
+import { JavascriptAnimation } from "./AnimationHandle";
+import { createEasingFunction, type EasingInput } from "./easing";
+import { RequestAnimationFrameTimeoutController } from "./timeoutController";
 import { useAnimationController } from "./useAnimationController";
 
 interface JavascriptAnimateProps {
@@ -50,12 +51,18 @@ export function JavascriptAnimate(props: JavascriptAnimateProps): JSX.Element {
 
   const isActive = (): boolean => {
     const active = isActiveProp();
-    return active === "auto" ? !Global.isSsr && !prefersReducedMotion() : active;
+    return active === "auto"
+      ? !Global.isSsr && !prefersReducedMotion()
+      : active;
   };
 
-  const animationController = useAnimationController(props.animationController);
+  const animationController = useAnimationController(
+    untrack(() => props.animationController),
+  );
 
-  const [style, setStyle] = createSignal<number | string>(untrack(() => (isActive() ? from : to)));
+  const [style, setStyle] = createSignal<number | string>(
+    untrack(() => (isActive() ? from : to)),
+  );
 
   // When the animation is not active, jump straight to the final state.
   createEffect(

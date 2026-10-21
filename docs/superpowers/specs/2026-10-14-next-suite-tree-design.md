@@ -12,14 +12,14 @@ Initial scope is single selection or action-only navigation. No multi-selection,
 
 Namespace/subpath: `Tree` / `@wsagency/radix2solid-primitives/tree`; existing long-name/short-alias exports, scoped contexts, refs and native target-factory `asChild` apply.
 
-| Part | Contract |
-| --- | --- |
-| `Root` | `selectionMode: 'single' \| 'none'` (default single); `value/defaultValue: string \| null` (default null); `onValueChange(value)`; `expandedValues/defaultExpandedValues: readonly string[]` (default empty); `onExpandedValuesChange(values)`; `dir`; explicit accessible label. |
-| `Item` | `value: string`, `textValue: string`, `disabled?: boolean`, `hasChildren?: boolean` (default false), cancellable `onActivate(event)`; native `aria-level`, `aria-posinset`, `aria-setsize` for partial-data metadata. Focusable treeitem, not a separate input control. |
-| `ItemText` | Visual label and accessible-name reference. textValue is the explicit plain-text typeahead source regardless of rich children. |
-| `ItemIndicator` | Presentational expanded/selected affordance; no independent state. |
-| `ItemGroup` | Nested group owned by nearest parent Item; renders descendants only while that parent's accepted expansion is true, with existing presence/forceMount convention. |
-| `ExpandTrigger` | Optional button, tabIndex -1, explicit accessible name; toggles nearest branch on pointer/assistive activation without selecting or activating that branch. |
+| Part            | Contract                                                                                                                                                                                                                                                                          |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Root`          | `selectionMode: 'single' \| 'none'` (default single); `value/defaultValue: string \| null` (default null); `onValueChange(value)`; `expandedValues/defaultExpandedValues: readonly string[]` (default empty); `onExpandedValuesChange(values)`; `dir`; explicit accessible label. |
+| `Item`          | `value: string`, `textValue: string`, `disabled?: boolean`, `hasChildren?: boolean` (default false), cancellable `onActivate(event)`; native `aria-level`, `aria-posinset`, `aria-setsize` for partial-data metadata. Focusable treeitem, not a separate input control.           |
+| `ItemText`      | Visual label and accessible-name reference. textValue is the explicit plain-text typeahead source regardless of rich children.                                                                                                                                                    |
+| `ItemIndicator` | Presentational expanded/selected affordance; no independent state.                                                                                                                                                                                                                |
+| `ItemGroup`     | Nested group owned by nearest parent Item; renders descendants only while that parent's accepted expansion is true, with existing presence/forceMount convention.                                                                                                                 |
+| `ExpandTrigger` | Optional button, tabIndex -1, explicit accessible name; toggles nearest branch on pointer/assistive activation without selecting or activating that branch.                                                                                                                       |
 
 Keys are nonempty, unique within Root and stable across reorder. Duplicate detection applies when nodes register; duplicates then are configuration errors, not index-based identities. The primitive cannot certify keys of never-rendered descendants without a forbidden prewalk; authors remain responsible for data-wide uniqueness. Item nesting through ItemGroup supplies parent identity. `hasChildren=true` declares a branch even when its children have not arrived; leaves never receive aria-expanded. Do not discover branch semantics by walking/evaluating child content.
 

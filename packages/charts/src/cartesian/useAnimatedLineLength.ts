@@ -24,7 +24,10 @@ export type AnimatedLineLength = {
    *   - returns the visible length in pixels, or `null` once the line is fully
    *     visible (meaning no entrance stroke-dasharray is needed any more).
    */
-  getVisibleLength: (animationElapsedTime: number, totalLength: number) => number | null;
+  getVisibleLength: (
+    animationElapsedTime: number,
+    totalLength: number,
+  ) => number | null;
 };
 
 /**
@@ -59,7 +62,10 @@ export function useAnimatedLineLength(): AnimatedLineLength {
     }
   };
 
-  const getVisibleLength = (animationElapsedTime: number, totalLength: number): number | null => {
+  const getVisibleLength = (
+    animationElapsedTime: number,
+    totalLength: number,
+  ): number | null => {
     if (reachedFull) {
       return null;
     }

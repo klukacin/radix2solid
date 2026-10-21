@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/cartesian/Bar.tsx (commit 7a23854).
 //
 // MINIMAL PORT — a second graphical item, reusing the axis spine + the band scale.
@@ -10,47 +11,78 @@
 // Solid deviations: `resolveDefaultProps`→`merge`; RegisterGraphicalItemId +
 // Set* effect-dispatch components → a `createEffect` add/replace + `onCleanup`
 // remove (the same idiom as <Line>).
-import { createEffect, createMemo, createSignal, For, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { noop } from "../util/DataUtils";
-import { useAppSelector, useAppStore } from "../state/hooks";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  merge,
+  Show,
+  untrack,
+} from "solid-js";
+
 import {
   AnimatedItems,
   type AnimationInterpolateFn,
   useAnimationCallbacks,
 } from "../animation/AnimatedItems";
+import type { EasingInput } from "../animation/easing";
 import { matchAppend, type AnimationMatchByProp } from "../animation/matchBy";
 import type { MutableRef } from "../animation/useAnimationStartSnapshot";
-import type { EasingInput } from "../animation/easing";
-import { useCartesianChartLayout } from "../context/chartLayoutContext";
-import { RegisterGraphicalItemId } from "../context/RegisterGraphicalItemId";
-import { SetErrorBarContext } from "../context/ErrorBarContext";
-import type { ErrorBarDataItem, ErrorBarDataPointFormatter } from "./ErrorBar";
-import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
-import { TooltipPayloadConfiguration } from "../state/tooltipSlice";
-import { SetLegendPayload } from "../state/SetLegendPayload";
+import { type CellProps, createCellReader } from "../component/Cell";
 import { LegendPayload } from "../component/DefaultLegendContent";
 import type { Formatter } from "../component/DefaultTooltipContent";
-import {
-  useMouseClickItemDispatch,
-  useMouseEnterItemDispatch,
-  useMouseLeaveItemDispatch,
-} from "../context/tooltipContext";
-import { useIsPanorama } from "../context/PanoramaContext";
-import { useUniqueId } from "../util/useUniqueId";
-import { Layer } from "../container/Layer";
-import { GraphicalItemClipPath, useNeedsClip } from "./GraphicalItemClipPath";
-import { type CellProps, createCellReader } from "../component/Cell";
 import {
   type CartesianLabelListEntry,
   CartesianLabelListContextProvider,
   type ImplicitLabelListType,
   LabelListFromLabelProp,
 } from "../component/LabelList";
-import { selectBarRectangles } from "../state/selectors/barSelectors";
-import { BarSettings } from "../state/types/BarSettings";
+import { Layer } from "../container/Layer";
+import { useCartesianChartLayout } from "../context/chartLayoutContext";
+import { SetErrorBarContext } from "../context/ErrorBarContext";
+import { useIsPanorama } from "../context/PanoramaContext";
+import { RegisterGraphicalItemId } from "../context/RegisterGraphicalItemId";
+import {
+  useMouseClickItemDispatch,
+  useMouseEnterItemDispatch,
+  useMouseLeaveItemDispatch,
+} from "../context/tooltipContext";
+import type { RectRadius } from "../shape/Rectangle";
 import { AxisId } from "../state/cartesianAxisSlice";
 import { ChartData } from "../state/chartDataSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { registerInStore } from "../state/registerInStore";
+import { BaseAxisWithScale } from "../state/selectors/axisSelectors";
+import { selectBarRectangles } from "../state/selectors/barSelectors";
+import {
+  selectActiveTooltipDataKey,
+  selectActiveTooltipIndex,
+} from "../state/selectors/tooltipSelectors";
+import { SetLegendPayload } from "../state/SetLegendPayload";
+import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
+import { TooltipPayloadConfiguration } from "../state/tooltipSlice";
+import { BarSettings } from "../state/types/BarSettings";
+import {
+  BarRectangle,
+  defaultBarShape,
+  MinPointSize,
+  minPointSizeCallback,
+  type BarRectangleProps,
+} from "../util/BarUtils";
+import {
+  getBaseValueOfBar,
+  getCateCoordinateOfBar,
+  getTooltipNameProp,
+  getValueByDataKey,
+  truncateByDomain,
+} from "../util/ChartUtils";
+import { StackId } from "../util/ChartUtils";
+import { noop } from "../util/DataUtils";
+import { interpolate, isNan, isNotNil, mathSign } from "../util/DataUtils";
+import type { StackSeries } from "../util/stacks/stackTypes";
+import { svgPropertiesAndEventsFromUnknown } from "../util/svgPropertiesAndEvents";
+import { svgPropertiesNoEventsFromUnknown } from "../util/svgPropertiesNoEvents";
 import {
   AnimationDuration,
   CartesianLayout,
@@ -63,37 +95,14 @@ import {
   TooltipType,
   TrapezoidViewBox,
 } from "../util/types";
-import {
-  getBaseValueOfBar,
-  getCateCoordinateOfBar,
-  getTooltipNameProp,
-  getValueByDataKey,
-  truncateByDomain,
-} from "../util/ChartUtils";
-import type { StackSeries } from "../util/stacks/stackTypes";
-import { interpolate, isNan, isNotNil, mathSign } from "../util/DataUtils";
-import {
-  BarRectangle,
-  defaultBarShape,
-  MinPointSize,
-  minPointSizeCallback,
-  type BarRectangleProps,
-} from "../util/BarUtils";
 import { ActiveShape, ChartOffsetInternal } from "../util/types";
-import type { RectRadius } from "../shape/Rectangle";
+import { useUniqueId } from "../util/useUniqueId";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 import { getZIndexFromUnknown } from "../zIndex/getZIndexFromUnknown";
 import { ZIndexLayer, type ZIndexable } from "../zIndex/ZIndexLayer";
-import { svgPropertiesAndEventsFromUnknown } from "../util/svgPropertiesAndEvents";
-import { svgPropertiesNoEventsFromUnknown } from "../util/svgPropertiesNoEvents";
-import {
-  selectActiveTooltipDataKey,
-  selectActiveTooltipIndex,
-} from "../state/selectors/tooltipSelectors";
-import { BaseAxisWithScale } from "../state/selectors/axisSelectors";
-import { StackId } from "../util/ChartUtils";
 import { BarStackClipLayer, useStackId } from "./BarStack";
-import { registerInStore } from "../state/registerInStore";
+import type { ErrorBarDataItem, ErrorBarDataPointFormatter } from "./ErrorBar";
+import { GraphicalItemClipPath, useNeedsClip } from "./GraphicalItemClipPath";
 
 const defaultMinPointSize = 0;
 
@@ -136,7 +145,10 @@ export interface BarRectangleItem {
   label?: string;
 }
 
-export type BarShapeProps = Omit<BarRectangleItem, "value" | "tooltipPosition"> &
+export type BarShapeProps = Omit<
+  BarRectangleItem,
+  "value" | "tooltipPosition"
+> &
   // v3.9: a function-form custom shape also receives animationElapsedTime / isAnimating /
   // isEntrance while the bar animates (recharts BarShapeProps = BarRectangleItem & ShapeAnimationProps & …).
   ShapeAnimationProps & {
@@ -152,7 +164,11 @@ export type BarShapeProps = Omit<BarRectangleItem, "value" | "tooltipPosition"> 
 
 type BarPointerEvent = MouseEvent | TouchEvent;
 
-export type BarMouseEvent = (data: BarRectangleItem, index: number, event: BarPointerEvent) => void;
+export type BarMouseEvent = (
+  data: BarRectangleItem,
+  index: number,
+  event: BarPointerEvent,
+) => void;
 
 export function computeBarRectangles({
   layout,
@@ -189,11 +205,18 @@ export function computeBarRectangles({
   cells?: ReadonlyArray<CellProps> | undefined;
   dataStartIndex?: number;
 }): ReadonlyArray<BarRectangleItem> | undefined {
-  const { dataKey, minPointSize: minPointSizeProp, hasCustomShape } = barSettings;
+  const {
+    dataKey,
+    minPointSize: minPointSizeProp,
+    hasCustomShape,
+  } = barSettings;
   const numericAxis = layout === "horizontal" ? yAxis : xAxis;
   const baseValue = getBaseValueOfBar({ numericAxis });
   const stackedBarStart = numericAxis.scale.map(baseValue);
-  const getMinPointSize = minPointSizeCallback(minPointSizeProp, defaultMinPointSize);
+  const getMinPointSize = minPointSizeCallback(
+    minPointSizeProp,
+    defaultMinPointSize,
+  );
 
   return displayedData
     .map((entry, index): BarRectangleItem | null => {
@@ -205,7 +228,9 @@ export function computeBarRectangles({
           untruncated != null && stackedDomain != null
             ? truncateByDomain(untruncated, stackedDomain)
             : untruncated;
-        value = Array.isArray(truncated) ? [truncated[0], truncated[1]] : [baseValue, undefined];
+        value = Array.isArray(truncated)
+          ? [truncated[0], truncated[1]]
+          : [baseValue, undefined];
       } else {
         const resolvedValue = getValueByDataKey(entry, dataKey);
         if (Array.isArray(resolvedValue)) {
@@ -241,9 +266,13 @@ export function computeBarRectangles({
         const computedHeight = baseValueScale - currentValueScale;
         height = isNan(computedHeight) ? 0 : computedHeight;
 
-        if (Math.abs(minPointSize) > 0 && Math.abs(height) < Math.abs(minPointSize)) {
+        if (
+          Math.abs(minPointSize) > 0 &&
+          Math.abs(height) < Math.abs(minPointSize)
+        ) {
           const delta =
-            mathSign(height || minPointSize) * (Math.abs(minPointSize) - Math.abs(height));
+            mathSign(height || minPointSize) *
+            (Math.abs(minPointSize) - Math.abs(height));
           y -= delta;
           height += delta;
         }
@@ -269,9 +298,13 @@ export function computeBarRectangles({
         width = currentValueScale - baseValueScale;
         height = pos.size;
 
-        if (Math.abs(minPointSize) > 0 && Math.abs(width) < Math.abs(minPointSize)) {
+        if (
+          Math.abs(minPointSize) > 0 &&
+          Math.abs(width) < Math.abs(minPointSize)
+        ) {
           const delta =
-            mathSign(width || minPointSize) * (Math.abs(minPointSize) - Math.abs(width));
+            mathSign(width || minPointSize) *
+            (Math.abs(minPointSize) - Math.abs(width));
           width += delta;
         }
       }
@@ -295,7 +328,8 @@ export function computeBarRectangles({
       const labelValue = getValueByDataKey(entry, "label");
       const label = typeof labelValue === "string" ? labelValue : undefined;
       const cell = cells?.[index];
-      const cellClass = typeof cell?.class === "string" ? cell.class : undefined;
+      const cellClass =
+        typeof cell?.class === "string" ? cell.class : undefined;
 
       return {
         ...spreadableDataEntry(entry),
@@ -325,14 +359,15 @@ export function computeBarRectangles({
 // the new AnimatedItems engine drives). Mirrors recharts 3.9 `defaultBarAnimateItems`:
 // matched rects tween between prev/next; added rects grow from `stackedBarStart`;
 // removed rects shrink back to the baseline before disappearing at t=1.
-const defaultBarAnimateItems: AnimationInterpolateFn<BarRectangleItem, CartesianLayout> = (
-  items,
-  t,
-  layout,
-) => {
+const defaultBarAnimateItems: AnimationInterpolateFn<
+  BarRectangleItem,
+  CartesianLayout
+> = (items, t, layout) => {
   if (items == null) return [];
   if (t === 1) {
-    return items.flatMap((item) => (item.status === "removed" ? [] : [item.next]));
+    return items.flatMap((item) =>
+      item.status === "removed" ? [] : [item.next],
+    );
   }
   return items.flatMap((item): BarRectangleItem[] => {
     if (item.status === "removed") {
@@ -396,17 +431,18 @@ function BarBackground(props: {
   onTouchEnd?: BarMouseEvent;
 }): JSX.Element {
   const activeIndex = useAppSelector(selectActiveTooltipIndex);
+  const graphicalItemId = untrack(() => props.graphicalItemId);
   // Getter args: the hooks read handler/dataKey at event time (fresh, never stale).
   const onMouseEnter = useMouseEnterItemDispatch(
     () => props.onMouseEnter,
     () => props.dataKey,
-    props.graphicalItemId,
+    graphicalItemId,
   );
   const onMouseLeave = useMouseLeaveItemDispatch(() => props.onMouseLeave);
   const onClick = useMouseClickItemDispatch(
     () => props.onClick,
     () => props.dataKey,
-    props.graphicalItemId,
+    graphicalItemId,
   );
 
   // Per-background-rectangle BarRectangle props (DATA, not JSX). Recomputes on data /
@@ -414,7 +450,9 @@ function BarBackground(props: {
   // memo and feeding it into <ZIndexLayer> (a Portal) leaked ownerless effects on
   // recompute — see the Bar main-layer note. The <Show> wraps <ZIndexLayer> so the
   // Portal subtree stays stable and only the <For> rows update.
-  const backgroundRects = createMemo<ReadonlyArray<BarRectangleProps> | undefined>(() => {
+  const backgroundRects = createMemo<
+    ReadonlyArray<BarRectangleProps> | undefined
+  >(() => {
     const backgroundFromProps = props.background;
     if (!backgroundFromProps) {
       return undefined;
@@ -424,7 +462,8 @@ function BarBackground(props: {
     // every hover move. `isActive` is derived per-rect in the JSX below, so the
     // array stays stable across hover and only the active flag updates.
     const dataKey = props.dataKey;
-    const backgroundProps = svgPropertiesNoEventsFromUnknown(backgroundFromProps);
+    const backgroundProps =
+      svgPropertiesNoEventsFromUnknown(backgroundFromProps);
     const backgroundEventProps = svgPropertiesAndEventsFromUnknown({
       onMouseOver: props.onMouseOver,
       onMouseOut: props.onMouseOut,
@@ -440,7 +479,12 @@ function BarBackground(props: {
       if (bg == null) {
         return [];
       }
-      const { value: _value, background: _bg, tooltipPosition: _tp, ...rest } = entry;
+      const {
+        value: _value,
+        background: _bg,
+        tooltipPosition: _tp,
+        ...rest
+      } = entry;
       return [
         {
           option: backgroundFromProps,
@@ -448,8 +492,8 @@ function BarBackground(props: {
           ...rest,
           fill: "#eee",
           ...bg,
-          ...(backgroundProps ?? {}),
-          ...(backgroundEventProps ?? {}),
+          ...backgroundProps,
+          ...backgroundEventProps,
           onMouseEnter: onMouseEnter(entry, entry.originalDataIndex),
           onMouseLeave: onMouseLeave(entry, entry.originalDataIndex),
           onClick: onClick(entry, entry.originalDataIndex),
@@ -465,13 +509,21 @@ function BarBackground(props: {
   return (
     <Show when={backgroundRects()}>
       {(rects) => (
-        <ZIndexLayer zIndex={getZIndexFromUnknown(props.background, DefaultZIndexes.barBackground)}>
+        <ZIndexLayer
+          zIndex={getZIndexFromUnknown(
+            props.background,
+            DefaultZIndexes.barBackground,
+          )}
+        >
           <Layer>
             <For each={rects()}>
               {(barRectangleProps) => (
                 <BarRectangle
                   {...barRectangleProps}
-                  isActive={String(barRectangleProps.originalDataIndex) === activeIndex()}
+                  isActive={
+                    String(barRectangleProps.originalDataIndex) ===
+                    activeIndex()
+                  }
                 />
               )}
             </For>
@@ -562,14 +614,22 @@ function BarRectangleWithActiveState(props: {
   animationElapsedTime?: number;
   isAnimating?: boolean;
   isEntrance?: boolean;
-  isEntryActive: (entry: BarRectangleItem, dataKey: DataKey<unknown> | undefined) => boolean;
-  isAnotherBarActive: (entry: BarRectangleItem, dataKey: DataKey<unknown> | undefined) => boolean;
+  isEntryActive: (
+    entry: BarRectangleItem,
+    dataKey: DataKey<unknown> | undefined,
+  ) => boolean;
+  isAnotherBarActive: (
+    entry: BarRectangleItem,
+    dataKey: DataKey<unknown> | undefined,
+  ) => boolean;
   onMouseMove?: (event: MouseEvent) => void;
   onMouseDown?: (event: MouseEvent) => void;
   onMouseUp?: (event: MouseEvent) => void;
 }): JSX.Element {
-  const isActive = (): boolean => props.isEntryActive(props.entry, props.dataKey);
-  const isAnotherBarActive = (): boolean => props.isAnotherBarActive(props.entry, props.dataKey);
+  const isActive = (): boolean =>
+    props.isEntryActive(props.entry, props.dataKey);
+  const isAnotherBarActive = (): boolean =>
+    props.isAnotherBarActive(props.entry, props.dataKey);
 
   const [stayInLayer, setStayInLayer] = createSignal(false);
   const [hasMountedActive, setHasMountedActive] = createSignal(false);
@@ -667,8 +727,14 @@ function BarRectangleLayer(props: {
   animationElapsedTime?: number;
   isAnimating?: boolean;
   isEntrance?: boolean;
-  isEntryActive: (entry: BarRectangleItem, dataKey: DataKey<unknown> | undefined) => boolean;
-  isAnotherBarActive: (entry: BarRectangleItem, dataKey: DataKey<unknown> | undefined) => boolean;
+  isEntryActive: (
+    entry: BarRectangleItem,
+    dataKey: DataKey<unknown> | undefined,
+  ) => boolean;
+  isAnotherBarActive: (
+    entry: BarRectangleItem,
+    dataKey: DataKey<unknown> | undefined,
+  ) => boolean;
   onMouseEnter: (event: MouseEvent) => void;
   onMouseLeave: (event: MouseEvent) => void;
   onClick: (event: MouseEvent) => void;
@@ -782,7 +848,10 @@ export interface BarProps extends ZIndexable {
   animationDuration?: AnimationDuration;
   animationEasing?: EasingInput;
   /** Custom per-frame interpolation for the bar rectangles (v3.9). */
-  animationInterpolateFn?: AnimationInterpolateFn<BarRectangleItem, CartesianLayout>;
+  animationInterpolateFn?: AnimationInterpolateFn<
+    BarRectangleItem,
+    CartesianLayout
+  >;
   /** How prev/next rectangles are matched across data updates (v3.9). @defaultValue matchAppend */
   animationMatchBy?: AnimationMatchByProp<BarRectangleItem>;
   id?: string;
@@ -838,13 +907,18 @@ const coerceErrorVal = (value: unknown): number[] | number | undefined => {
 // Maps a BarRectangleItem (erased to `unknown` through the ErrorBar context) to the
 // {x, y, value, errorVal} an ErrorBar draws from. Stacked bars carry a [start, end]
 // value array → use the end value (recharts' errorBarDataPointFormatter).
-const barErrorBarFormatter: ErrorBarDataPointFormatter = (entry, dataKey): ErrorBarDataItem => {
+const barErrorBarFormatter: ErrorBarDataPointFormatter = (
+  entry,
+  dataKey,
+): ErrorBarDataItem => {
   const x = getValueByDataKey(entry, "x");
   const y = getValueByDataKey(entry, "y");
   const rawValue = getValueByDataKey(entry, "value");
   // Array.isArray narrows `unknown` to `any[]`; keep the element `unknown` (the
   // `any → unknown` assignment is safe) so the typeof guard below stays sound.
-  const value: unknown = Array.isArray(rawValue) ? rawValue[rawValue.length - 1] : rawValue;
+  const value: unknown = Array.isArray(rawValue)
+    ? rawValue[rawValue.length - 1]
+    : rawValue;
   const payload = getValueByDataKey(entry, "payload");
   return {
     x: typeof x === "number" ? x : undefined,
@@ -858,11 +932,14 @@ export const Bar = (props: BarProps): JSX.Element => {
   const store = useAppStore();
   const merged = merge(barDefaultProps, props);
   const isPanorama = useIsPanorama();
-  const id = useUniqueId("recharts-bar", props.id);
-  const stackId = useStackId(props.stackId);
+  const id = useUniqueId(
+    "recharts-bar",
+    untrack(() => props.id),
+  );
+  const stackId = useStackId(untrack(() => props.stackId));
   // Custom shape render prop (function form), captured once.
-  const shape = merged.shape ?? defaultBarShape;
-  const activeBar = merged.activeBar;
+  const shape = untrack(() => merged.shape) ?? defaultBarShape;
+  const activeBar = untrack(() => merged.activeBar);
   const hasCustomShape = shape !== defaultBarShape;
 
   if (store != null) {
@@ -884,17 +961,24 @@ export const Bar = (props: BarProps): JSX.Element => {
         hasCustomShape,
       }),
       {
-        add: (next) => store.actions.graphicalItems.addCartesianGraphicalItem(next),
+        add: (next) =>
+          store.actions.graphicalItems.addCartesianGraphicalItem(next),
         replace: (prev, next) =>
-          store.actions.graphicalItems.replaceCartesianGraphicalItem({ prev, next }),
-        remove: (prev) => store.actions.graphicalItems.removeCartesianGraphicalItem(prev),
+          store.actions.graphicalItems.replaceCartesianGraphicalItem({
+            prev,
+            next,
+          }),
+        remove: (prev) =>
+          store.actions.graphicalItems.removeCartesianGraphicalItem(prev),
       },
     );
   }
 
   // Per-bar <Cell> overrides (collected from children, in data order).
   const { cells, resolve: resolveChildren } = createCellReader();
-  const rectangles = useAppSelector((state) => selectBarRectangles(state, id, isPanorama, cells()));
+  const rectangles = useAppSelector((state) =>
+    selectBarRectangles(state, id, isPanorama, cells()),
+  );
 
   // Registers this bar's tooltip payload entry (an explicit `name` prop wins,
   // else it falls back to a string dataKey).
@@ -935,13 +1019,13 @@ export const Bar = (props: BarProps): JSX.Element => {
     id,
   );
   // Capture optional handlers once (not `props.*` reads inside <For>/<Layer>).
-  const onMouseOverHandler = props.onMouseOver;
-  const onMouseOutHandler = props.onMouseOut;
-  const onMouseMoveHandler = props.onMouseMove;
-  const onMouseDownHandler = props.onMouseDown;
-  const onMouseUpHandler = props.onMouseUp;
-  const onTouchMoveHandler = props.onTouchMove;
-  const onTouchEndHandler = props.onTouchEnd;
+  const onMouseOverHandler = untrack(() => props.onMouseOver);
+  const onMouseOutHandler = untrack(() => props.onMouseOut);
+  const onMouseMoveHandler = untrack(() => props.onMouseMove);
+  const onMouseDownHandler = untrack(() => props.onMouseDown);
+  const onMouseUpHandler = untrack(() => props.onMouseUp);
+  const onTouchMoveHandler = untrack(() => props.onTouchMove);
+  const onTouchEndHandler = untrack(() => props.onTouchEnd);
 
   // Legend payload entry for this bar.
   const legendPayload = createMemo<ReadonlyArray<LegendPayload>>(() => [
@@ -969,7 +1053,9 @@ export const Bar = (props: BarProps): JSX.Element => {
       return false;
     }
     const dk = activeTooltipDataKey();
-    return String(entry.originalDataIndex) === idx && (dk == null || dataKey === dk);
+    return (
+      String(entry.originalDataIndex) === idx && (dk == null || dataKey === dk)
+    );
   };
   const isAnotherBarActive = (
     entry: BarRectangleItem,
@@ -980,36 +1066,43 @@ export const Bar = (props: BarProps): JSX.Element => {
       return false;
     }
     const dk = activeTooltipDataKey();
-    return String(entry.originalDataIndex) !== idx || (dk != null && dataKey !== dk);
+    return (
+      String(entry.originalDataIndex) !== idx || (dk != null && dataKey !== dk)
+    );
   };
 
   // One LabelList entry per rectangle (its trapezoid viewBox + value/payload),
   // provided to LabelList via context.
-  const shouldRenderBars = createMemo(() => !merged.hide && rectangles(), { lazy: true });
-  const labelListEntries = createMemo<ReadonlyArray<CartesianLabelListEntry>>(() => {
-    const rects = rectangles();
-    if (!rects) {
-      return [];
-    }
-    return rects.map((r) => {
-      const viewBox: TrapezoidViewBox = {
-        x: r.x,
-        y: r.y,
-        upperWidth: r.width,
-        lowerWidth: r.width,
-        width: r.width,
-        height: r.height,
-      };
-      return {
-        ...viewBox,
-        viewBox,
-        parentViewBox: r.parentViewBox,
-        value: r.value,
-        payload: r.payload,
-        fill: r.fill,
-      };
-    });
-  }, { lazy: true });
+  const shouldRenderBars = createMemo(() => !merged.hide && rectangles(), {
+    lazy: true,
+  });
+  const labelListEntries = createMemo<ReadonlyArray<CartesianLabelListEntry>>(
+    () => {
+      const rects = rectangles();
+      if (!rects) {
+        return [];
+      }
+      return rects.map((r) => {
+        const viewBox: TrapezoidViewBox = {
+          x: r.x,
+          y: r.y,
+          upperWidth: r.width,
+          lowerWidth: r.width,
+          width: r.width,
+          height: r.height,
+        };
+        return {
+          ...viewBox,
+          viewBox,
+          parentViewBox: r.parentViewBox,
+          value: r.value,
+          payload: r.payload,
+          fill: r.fill,
+        };
+      });
+    },
+    { lazy: true },
+  );
 
   const layout = useCartesianChartLayout();
   // ErrorBar whiskers are centered on each bar: offset by half the bar's cross size
@@ -1021,12 +1114,16 @@ export const Bar = (props: BarProps): JSX.Element => {
     }
     return layout() === "vertical" ? r0.height / 2 : r0.width / 2;
   };
-  const { needClip } = useNeedsClip(merged.xAxisId, merged.yAxisId);
-  const barClipPath = createMemo(() => (needClip() ? `url(#clipPath-${id})` : undefined));
+  const { needClip } = useNeedsClip(merged);
+  const barClipPath = createMemo(() =>
+    needClip() ? `url(#clipPath-${id})` : undefined,
+  );
   // Holds the latest visible rectangles frame so a re-animation (data change)
   // tweens from where the bars currently are. Managed by AnimatedItems via
   // useAnimationStartSnapshot.
-  const previousRectanglesRef: MutableRef<ReadonlyArray<BarRectangleItem> | null | undefined> = {
+  const previousRectanglesRef: MutableRef<
+    ReadonlyArray<BarRectangleItem> | null | undefined
+  > = {
     current: null,
   };
   // Cartesian layout for the interpolation fn (Bar is only horizontal | vertical).
@@ -1038,11 +1135,15 @@ export const Bar = (props: BarProps): JSX.Element => {
   // (recharts: BarLabelListProvider showLabels={!isAnimating}); custom shapes also
   // receive `isAnimating` (combined with `animationElapsedTime < 1` below, matching
   // upstream's `isAnimating || animationElapsedTime < 1`).
-  const { isAnimating, handleAnimationStart, handleAnimationEnd } = useAnimationCallbacks(
-    () => props.onAnimationStart?.(),
-    () => props.onAnimationEnd?.(),
+  const { isAnimating, handleAnimationStart, handleAnimationEnd } =
+    useAnimationCallbacks(
+      () => props.onAnimationStart?.(),
+      () => props.onAnimationEnd?.(),
+    );
+  const labelContextEntries = createMemo(
+    () => (isAnimating() ? undefined : labelListEntries()),
+    { lazy: true },
   );
-  const labelContextEntries = createMemo(() => (isAnimating() ? undefined : labelListEntries()), { lazy: true });
 
   // Gate: render only in a cartesian layout AND when there are rectangles to draw.
   // Mirrors <Line>/<Area>'s inline `<Show when={!hide && points()}>` template: the
@@ -1066,16 +1167,24 @@ export const Bar = (props: BarProps): JSX.Element => {
   //      leak), and a populated Bar mounts a stable subtree into the Portal.
   // (`[]` is truthy, matching the old memo which rendered an empty `<For>` for an
   // empty rects array.)
-  const renderableRects = createMemo<ReadonlyArray<BarRectangleItem> | undefined>(() => {
-    const chartLayout = layout();
-    if (chartLayout !== "horizontal" && chartLayout !== "vertical") {
-      return undefined;
-    }
-    return shouldRenderBars() || undefined;
-  }, { lazy: true });
+  const renderableRects = createMemo<
+    ReadonlyArray<BarRectangleItem> | undefined
+  >(
+    () => {
+      const chartLayout = layout();
+      if (chartLayout !== "horizontal" && chartLayout !== "vertical") {
+        return undefined;
+      }
+      return shouldRenderBars() || undefined;
+    },
+    { lazy: true },
+  );
 
   const renderedChildren = resolveChildren(() => (
-    <RegisterGraphicalItemId type="bar" id={id}>
+    <RegisterGraphicalItemId
+      type="bar"
+      id={id}
+    >
       {() => (
         <SetErrorBarContext
           xAxisId={merged.xAxisId}
@@ -1096,57 +1205,71 @@ export const Bar = (props: BarProps): JSX.Element => {
     <>
       {renderedChildren()}
       <SetTooltipEntrySettings tooltipEntrySettings={tooltipConfig()} />
-      <SetLegendPayload id={id} legendPayload={legendPayload()} />
+      <SetLegendPayload
+        id={id}
+        legendPayload={legendPayload()}
+      />
       {/* Defer the Show's initial condition until sibling series have registered. */}
-      {() => <Show when={renderableRects()}>
-        {(rects) => (
-          <ZIndexLayer zIndex={merged.zIndex}>
-            <Layer id={id} class={merged.class ? `recharts-bar ${merged.class}` : "recharts-bar"}>
-              <Show when={needClip()}>
-                <defs>
-                  <GraphicalItemClipPath
-                    clipPathId={id}
-                    xAxisId={merged.xAxisId}
-                    yAxisId={merged.yAxisId}
+      {() => (
+        <Show when={renderableRects()}>
+          {(rects) => (
+            <ZIndexLayer zIndex={merged.zIndex}>
+              <Layer
+                id={id}
+                class={
+                  merged.class ? `recharts-bar ${merged.class}` : "recharts-bar"
+                }
+              >
+                <Show when={needClip()}>
+                  <defs>
+                    <GraphicalItemClipPath
+                      clipPathId={id}
+                      xAxisId={merged.xAxisId}
+                      yAxisId={merged.yAxisId}
+                    />
+                  </defs>
+                </Show>
+                <Layer
+                  class="recharts-bar-rectangles"
+                  clipPath={barClipPath()}
+                >
+                  <BarBackground
+                    background={merged.background}
+                    data={rects()}
+                    dataKey={merged.dataKey}
+                    graphicalItemId={id}
+                    onClick={props.onClick}
+                    onMouseEnter={props.onMouseEnter}
+                    onMouseLeave={props.onMouseLeave}
+                    onMouseMove={props.onMouseMove}
+                    onMouseDown={props.onMouseDown}
+                    onMouseUp={props.onMouseUp}
+                    onMouseOver={props.onMouseOver}
+                    onMouseOut={props.onMouseOut}
+                    onTouchMove={props.onTouchMove}
+                    onTouchEnd={props.onTouchEnd}
                   />
-                </defs>
-              </Show>
-              <Layer class="recharts-bar-rectangles" clipPath={barClipPath()}>
-                <BarBackground
-                  background={merged.background}
-                  data={rects()}
-                  dataKey={merged.dataKey}
-                  graphicalItemId={id}
-                  onClick={props.onClick}
-                  onMouseEnter={props.onMouseEnter}
-                  onMouseLeave={props.onMouseLeave}
-                  onMouseMove={props.onMouseMove}
-                  onMouseDown={props.onMouseDown}
-                  onMouseUp={props.onMouseUp}
-                  onMouseOver={props.onMouseOver}
-                  onMouseOut={props.onMouseOut}
-                  onTouchMove={props.onTouchMove}
-                  onTouchEnd={props.onTouchEnd}
-                />
-                <CartesianLabelListContextProvider value={labelContextEntries}>
-                  <AnimatedItems
-                    animationInput={rects()}
-                    animationIdPrefix="recharts-bar-"
-                    items={rects()}
-                    previousItemsRef={previousRectanglesRef}
-                    isAnimationActive={merged.isAnimationActive}
-                    animationBegin={merged.animationBegin}
-                    animationDuration={merged.animationDuration}
-                    animationEasing={merged.animationEasing}
-                    onAnimationStart={handleAnimationStart}
-                    onAnimationEnd={handleAnimationEnd}
-                    animationInterpolateFn={merged.animationInterpolateFn}
-                    animationMatchBy={merged.animationMatchBy}
-                    layout={cartesianLayout()}
+                  <CartesianLabelListContextProvider
+                    value={labelContextEntries}
                   >
-                    {(frame, animationElapsedTime, isEntrance) => (
-                      <Layer>
-                        {/* keyed={false} (index-keyed): `frame` is a fresh array of
+                    <AnimatedItems
+                      animationInput={rects()}
+                      animationIdPrefix="recharts-bar-"
+                      items={rects()}
+                      previousItemsRef={previousRectanglesRef}
+                      isAnimationActive={merged.isAnimationActive}
+                      animationBegin={merged.animationBegin}
+                      animationDuration={merged.animationDuration}
+                      animationEasing={merged.animationEasing}
+                      onAnimationStart={handleAnimationStart}
+                      onAnimationEnd={handleAnimationEnd}
+                      animationInterpolateFn={merged.animationInterpolateFn}
+                      animationMatchBy={merged.animationMatchBy}
+                      layout={cartesianLayout()}
+                    >
+                      {(frame, animationElapsedTime, isEntrance) => (
+                        <Layer>
+                          {/* keyed={false} (index-keyed): `frame` is a fresh array of
                             fresh rect objects every animation tick; reference-keyed
                             <For> would dispose+recreate every bar's DOM node and
                             rebuild its ~10 event closures per frame. Index-keying
@@ -1154,88 +1277,131 @@ export const Bar = (props: BarProps): JSX.Element => {
                             getter-wrapped props) and builds the handlers once per
                             slot. `r` is now an accessor — event handlers read `r()`
                             at dispatch time so they see the current frame's rect. */}
-                        <For each={frame} keyed={false}>
-                          {(r, i) => (
-                            // Render every selector-output rectangle, matching recharts
-                            // (zero-dimension genuinely-empty bars are already dropped at
-                            // the selector level — selectBarRectangles). We must NOT also
-                            // filter on width/height here: mid-animation a growing bar is
-                            // momentarily collapsed (t≈0 → height/width 0) and recharts
-                            // keeps that element in the DOM, so the rectangles render while
-                            // the chart animates (e.g. a Brush window narrowing). Filtering
-                            // here suppressed all animated bars until the animation was
-                            // driven to a non-zero frame.
-                            <BarRectangleLayer
-                              entry={r()}
-                              displayIndex={i}
-                              dataKey={merged.dataKey}
-                              activeBar={activeBar}
-                              fill={r().fill ?? r().cell?.fill ?? merged.fill}
-                              stroke={r().stroke ?? r().cell?.stroke ?? merged.stroke}
-                              radius={merged.radius}
-                              shape={shape}
-                              animationElapsedTime={animationElapsedTime}
-                              // Mirror upstream's `isAnimating || animationElapsedTime < 1`.
-                              isAnimating={isAnimating() || animationElapsedTime < 1}
-                              isEntrance={isEntrance}
-                              isEntryActive={isEntryActive}
-                              isAnotherBarActive={isAnotherBarActive}
-                              cellClass={typeof r().class === "string" ? r().class : undefined}
-                              onMouseEnter={(event) =>
-                                onItemEnter(r(), r().originalDataIndex)(event)
-                              }
-                              onMouseLeave={(event) =>
-                                onItemLeave(r(), r().originalDataIndex)(event)
-                              }
-                              onClick={(event) => onItemClick(r(), r().originalDataIndex)(event)}
-                              onMouseOver={
-                                onMouseOverHandler != null
-                                  ? (event) => onMouseOverHandler(r(), r().originalDataIndex, event)
-                                  : undefined
-                              }
-                              onMouseOut={
-                                onMouseOutHandler != null
-                                  ? (event) => onMouseOutHandler(r(), r().originalDataIndex, event)
-                                  : undefined
-                              }
-                              onMouseMove={
-                                onMouseMoveHandler != null
-                                  ? (event) => onMouseMoveHandler(r(), r().originalDataIndex, event)
-                                  : undefined
-                              }
-                              onMouseDown={
-                                onMouseDownHandler != null
-                                  ? (event) => onMouseDownHandler(r(), r().originalDataIndex, event)
-                                  : undefined
-                              }
-                              onMouseUp={
-                                onMouseUpHandler != null
-                                  ? (event) => onMouseUpHandler(r(), r().originalDataIndex, event)
-                                  : undefined
-                              }
-                              onTouchMove={
-                                onTouchMoveHandler != null
-                                  ? (event) => onTouchMoveHandler(r(), i, event)
-                                  : undefined
-                              }
-                              onTouchEnd={
-                                onTouchEndHandler != null
-                                  ? (event) => onTouchEndHandler(r(), i, event)
-                                  : undefined
-                              }
-                            />
-                          )}
-                        </For>
-                      </Layer>
-                    )}
-                  </AnimatedItems>
-                  <LabelListFromLabelProp label={merged.label} />
-                </CartesianLabelListContextProvider>
+                          <For
+                            each={frame}
+                            keyed={false}
+                          >
+                            {(r, i) => (
+                              // Render every selector-output rectangle, matching recharts
+                              // (zero-dimension genuinely-empty bars are already dropped at
+                              // the selector level — selectBarRectangles). We must NOT also
+                              // filter on width/height here: mid-animation a growing bar is
+                              // momentarily collapsed (t≈0 → height/width 0) and recharts
+                              // keeps that element in the DOM, so the rectangles render while
+                              // the chart animates (e.g. a Brush window narrowing). Filtering
+                              // here suppressed all animated bars until the animation was
+                              // driven to a non-zero frame.
+                              <BarRectangleLayer
+                                entry={r()}
+                                displayIndex={i}
+                                dataKey={merged.dataKey}
+                                activeBar={activeBar}
+                                fill={r().fill ?? r().cell?.fill ?? merged.fill}
+                                stroke={
+                                  r().stroke ??
+                                  r().cell?.stroke ??
+                                  merged.stroke
+                                }
+                                radius={merged.radius}
+                                shape={shape}
+                                animationElapsedTime={animationElapsedTime}
+                                // Mirror upstream's `isAnimating || animationElapsedTime < 1`.
+                                isAnimating={
+                                  isAnimating() || animationElapsedTime < 1
+                                }
+                                isEntrance={isEntrance}
+                                isEntryActive={isEntryActive}
+                                isAnotherBarActive={isAnotherBarActive}
+                                cellClass={
+                                  typeof r().class === "string"
+                                    ? r().class
+                                    : undefined
+                                }
+                                onMouseEnter={(event) =>
+                                  onItemEnter(r(), r().originalDataIndex)(event)
+                                }
+                                onMouseLeave={(event) =>
+                                  onItemLeave(r(), r().originalDataIndex)(event)
+                                }
+                                onClick={(event) =>
+                                  onItemClick(r(), r().originalDataIndex)(event)
+                                }
+                                onMouseOver={
+                                  onMouseOverHandler != null
+                                    ? (event) =>
+                                        onMouseOverHandler(
+                                          r(),
+                                          r().originalDataIndex,
+                                          event,
+                                        )
+                                    : undefined
+                                }
+                                onMouseOut={
+                                  onMouseOutHandler != null
+                                    ? (event) =>
+                                        onMouseOutHandler(
+                                          r(),
+                                          r().originalDataIndex,
+                                          event,
+                                        )
+                                    : undefined
+                                }
+                                onMouseMove={
+                                  onMouseMoveHandler != null
+                                    ? (event) =>
+                                        onMouseMoveHandler(
+                                          r(),
+                                          r().originalDataIndex,
+                                          event,
+                                        )
+                                    : undefined
+                                }
+                                onMouseDown={
+                                  onMouseDownHandler != null
+                                    ? (event) =>
+                                        onMouseDownHandler(
+                                          r(),
+                                          r().originalDataIndex,
+                                          event,
+                                        )
+                                    : undefined
+                                }
+                                onMouseUp={
+                                  onMouseUpHandler != null
+                                    ? (event) =>
+                                        onMouseUpHandler(
+                                          r(),
+                                          r().originalDataIndex,
+                                          event,
+                                        )
+                                    : undefined
+                                }
+                                onTouchMove={
+                                  onTouchMoveHandler != null
+                                    ? (event) =>
+                                        onTouchMoveHandler(r(), i, event)
+                                    : undefined
+                                }
+                                onTouchEnd={
+                                  onTouchEndHandler != null
+                                    ? (event) =>
+                                        onTouchEndHandler(r(), i, event)
+                                    : undefined
+                                }
+                              />
+                            )}
+                          </For>
+                        </Layer>
+                      )}
+                    </AnimatedItems>
+                    <LabelListFromLabelProp label={merged.label} />
+                  </CartesianLabelListContextProvider>
+                </Layer>
               </Layer>
-            </Layer>
-          </ZIndexLayer>
-        )}
-      </Show>}
+            </ZIndexLayer>
+          )}
+        </Show>
+      )}
     </>
   );
 };

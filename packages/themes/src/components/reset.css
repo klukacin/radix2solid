@@ -19,7 +19,21 @@
   /*                                     */
   /* * * * * * * * * * * * * * * * * * * */
 
-  &:where(address, b, cite, code, dfn, em, i, kbd, q, samp, small, strong, var) {
+  &:where(
+    address,
+    b,
+    cite,
+    code,
+    dfn,
+    em,
+    i,
+    kbd,
+    q,
+    samp,
+    small,
+    strong,
+    var
+  ) {
     font: unset;
   }
   &:where(h1, h2, h3, h4, h5, h6) {
@@ -194,7 +208,7 @@
   }
   &:where(q)::before,
   &:where(q)::after {
-    content: '';
+    content: "";
   }
   &:where(sub, sup) {
     font: unset;
@@ -224,10 +238,10 @@
   &:where(:disabled, [data-disabled]) {
     cursor: var(--cursor-disabled);
   }
-  &:where(input[type='checkbox']) {
+  &:where(input[type="checkbox"]) {
     cursor: var(--cursor-checkbox);
   }
-  &:where(input[type='radio']) {
+  &:where(input[type="radio"]) {
     cursor: var(--cursor-radio);
   }
 

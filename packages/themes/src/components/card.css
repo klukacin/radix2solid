@@ -1,4 +1,4 @@
-@import './_internal/base-card.css';
+@import "./_internal/base-card.css";
 
 /* stylelint-disable selector-max-type */
 /* Disable selector-max-type rule to target `button` and `a` tags. */
@@ -19,7 +19,7 @@
     &::after {
       outline: inherit;
     }
-    &:where(:active:not([data-state='open'])) {
+    &:where(:active:not([data-state="open"])) {
       &::before {
         background-image: linear-gradient(var(--focus-a2), var(--focus-a2));
       }
@@ -83,12 +83,12 @@
         }
       }
     }
-    &:where([data-state='open']) {
+    &:where([data-state="open"]) {
       &::after {
         box-shadow: var(--base-card-surface-hover-box-shadow);
       }
     }
-    &:where(:active:not([data-state='open'])) {
+    &:where(:active:not([data-state="open"])) {
       &::after {
         box-shadow: var(--base-card-surface-active-box-shadow);
       }
@@ -126,14 +126,14 @@
         }
       }
     }
-    &:where([data-state='open']) {
+    &:where([data-state="open"]) {
       transition-duration: 40ms;
       box-shadow: var(--base-card-classic-hover-box-shadow-outer);
       &::after {
         box-shadow: var(--base-card-classic-hover-box-shadow-inner);
       }
     }
-    &:where(:active:not([data-state='open'])) {
+    &:where(:active:not([data-state="open"])) {
       transition-duration: 40ms;
       box-shadow: var(--base-card-classic-active-box-shadow-outer);
       &::after {
@@ -186,13 +186,13 @@
         }
       }
     }
-    &:where([data-state='open']) {
+    &:where([data-state="open"]) {
       background-color: var(--gray-a3);
       &:where(:focus-visible) {
         background-color: var(--focus-a2);
       }
     }
-    &:where(:active:not([data-state='open'])) {
+    &:where(:active:not([data-state="open"])) {
       background-color: var(--gray-a4);
       &:where(:focus-visible) {
         background-color: var(--focus-a2);
@@ -204,7 +204,7 @@
 /* Better -webkit-tap-highlight-color */
 .rt-Card:where(:any-link, button, label) {
   @media (pointer: coarse) {
-    &:where(:active:not(:focus-visible, [data-state='open'])) {
+    &:where(:active:not(:focus-visible, [data-state="open"])) {
       &::before {
         background-image: linear-gradient(var(--gray-a4), var(--gray-a4));
       }

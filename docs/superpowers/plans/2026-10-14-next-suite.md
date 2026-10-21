@@ -36,15 +36,15 @@
 
 ## Scope and ownership map
 
-| Owner / task | Exclusive writable surface | Interfaces / review gate |
-| --- | --- | --- |
-| Inputs / Task 2 (U1–U3) | `packages/primitives/src/internal/active-descendant.ts`; new `combobox` and `command` directories; `apps/gallery/src/inputs.tsx`; `e2e/inputs.spec.ts` | Family namespaces, types and fixture `Inputs(): Element`; no shared index edits. |
-| Tree / Task 3 (U4) | `packages/primitives/src/tree`; `apps/gallery/src/tree.tsx`; `e2e/tree.spec.ts` | `Tree` namespace, types and `Trees(): Element`; no shared roving helper edits. |
-| Splitter / Task 4 (U5) | `packages/primitives/src/splitter`; `apps/gallery/src/splitter.tsx`; `e2e/splitter.spec.ts`; `tests/splitter.test.ts` | `Splitter` namespace, types, `Splitters(): Element`; pure math remains private. |
-| Extra icons / Task 5 (I1–I2) | `packages/icons-extra`; `packages/icons/scripts/generate.ts`; `packages/icons/README.md`; `apps/gallery/src/assets.tsx`; `e2e/assets.spec.ts` | Exactly FolderIcon/FolderOpenIcon, same generator; original generated source byte-identical. |
-| Charts / Task 6 (C1–C7) | `packages/charts` except package version; `tests/consumer/charts.test.ts`; `apps/gallery/src/charts.tsx`; `e2e/charts.spec.ts` | A1–A13 + B1/B2; `CartesianPosition` public type; Charts docs/provenance owned here. |
+| Owner / task                     | Exclusive writable surface                                                                                                                                                                                                                                                            | Interfaces / review gate                                                                                              |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| Inputs / Task 2 (U1–U3)          | `packages/primitives/src/internal/active-descendant.ts`; new `combobox` and `command` directories; `apps/gallery/src/inputs.tsx`; `e2e/inputs.spec.ts`                                                                                                                                | Family namespaces, types and fixture `Inputs(): Element`; no shared index edits.                                      |
+| Tree / Task 3 (U4)               | `packages/primitives/src/tree`; `apps/gallery/src/tree.tsx`; `e2e/tree.spec.ts`                                                                                                                                                                                                       | `Tree` namespace, types and `Trees(): Element`; no shared roving helper edits.                                        |
+| Splitter / Task 4 (U5)           | `packages/primitives/src/splitter`; `apps/gallery/src/splitter.tsx`; `e2e/splitter.spec.ts`; `tests/splitter.test.ts`                                                                                                                                                                 | `Splitter` namespace, types, `Splitters(): Element`; pure math remains private.                                       |
+| Extra icons / Task 5 (I1–I2)     | `packages/icons-extra`; `packages/icons/scripts/generate.ts`; `packages/icons/README.md`; `apps/gallery/src/assets.tsx`; `e2e/assets.spec.ts`                                                                                                                                         | Exactly FolderIcon/FolderOpenIcon, same generator; original generated source byte-identical.                          |
+| Charts / Task 6 (C1–C7)          | `packages/charts` except package version; `tests/consumer/charts.test.ts`; `apps/gallery/src/charts.tsx`; `e2e/charts.spec.ts`                                                                                                                                                        | A1–A13 + B1/B2; `CartesianPosition` public type; Charts docs/provenance owned here.                                   |
 | Native integration / Tasks 1,7,9 | Root/package manifests/lock; primitives root index/Vite/README/CHANGELOG; `tests/consumer/run.ts`, `packed.test.ts`, `types.tsx`, distribution/tree-shaking/coverage; gallery manifest/composition; Playwright config; workflows; root README; Themes/Icons release-status changelogs | Sole shared-file/gate/Git owner. Component docs stay with their source owners; rejected source fixes return to owner. |
-| Website / Task 8 | Sibling `radix2solid-web` isolated clone, branch `implement/next-suite`, based on reviewed PR #2 head `f780d5a99e20b95776825d2caddd9cd0b5636cc9` | Website plan owns exact files/commands; sole web integration/Git/gate worker, directed by Main. |
+| Website / Task 8                 | Sibling `radix2solid-web` isolated clone, branch `implement/next-suite`, based on reviewed PR #2 head `f780d5a99e20b95776825d2caddd9cd0b5636cc9`                                                                                                                                      | Website plan owns exact files/commands; sole web integration/Git/gate worker, directed by Main.                       |
 
 A directory denotes an ownership boundary, not permission to rewrite unrelated code. Main dispatches Inputs, Tree, Splitter, Charts and FAST-icons as disjoint edit owners, at most four live workers; queue the fifth slice. One separate native integration/gate worker owns all shared wiring, tests/builds and Git, serialized after each settled union. Every edit brief has ≤5 explicit target paths plus the plan brief. Charts remains one owner because A4/A5/A9 share geometry/offset and test/docs ledgers. No worker races shared index/manifests/tests/build output.
 
@@ -169,25 +169,25 @@ Avoid duplicate execution: the extended targeted runner owns its listed SSR/CSR 
 
 ## Specification coverage / self-review
 
-| Requirement section | Implementing task / evidence |
-| --- | --- |
-| Index baseline/isolation/release immutability | Global constraints; 1 and 9 |
-| Index cross-family ownership, native tuple/state/exclusions | U1–U5; 7 declarations/distribution; C1 Brush exception |
-| Index exports/docs/website/pin/bounded evidence | 7–9; all focused plan assertions |
-| Inputs Combobox public parts/data/query/commit | U1/U2; 7 root/subpath/types; 8 API/playground |
-| Inputs forms/reset/data replacement/disabled/readOnly | U2 `draft-form`, `reset-data`, `controlled-split-acceptance` cases |
-| Inputs accessibility/editing/SSR/lifecycle | U1–U3 `input-editing`, `active-lifecycle`, `ssr-hydration` cases |
-| Inputs Command action/inline/Dialog/empty/cancellation | U3 `command-actions`, `command-dialog`, `command-replace` |
-| Tree API/state/keys/interaction/typeahead/disabled | U4 `tree-navigation`, `tree-actions`, `tree-keys` |
-| Tree hierarchy/focus repair/retained state/partial data/SSR | U4 `tree-repair`, `tree-ssr`; 8 docs |
-| Splitter parts/units/config/layout/infeasible/measurement | U5 math + `splitter-geometry`, `splitter-config` |
+| Requirement section                                         | Implementing task / evidence                                       |
+| ----------------------------------------------------------- | ------------------------------------------------------------------ |
+| Index baseline/isolation/release immutability               | Global constraints; 1 and 9                                        |
+| Index cross-family ownership, native tuple/state/exclusions | U1–U5; 7 declarations/distribution; C1 Brush exception             |
+| Index exports/docs/website/pin/bounded evidence             | 7–9; all focused plan assertions                                   |
+| Inputs Combobox public parts/data/query/commit              | U1/U2; 7 root/subpath/types; 8 API/playground                      |
+| Inputs forms/reset/data replacement/disabled/readOnly       | U2 `draft-form`, `reset-data`, `controlled-split-acceptance` cases |
+| Inputs accessibility/editing/SSR/lifecycle                  | U1–U3 `input-editing`, `active-lifecycle`, `ssr-hydration` cases   |
+| Inputs Command action/inline/Dialog/empty/cancellation      | U3 `command-actions`, `command-dialog`, `command-replace`          |
+| Tree API/state/keys/interaction/typeahead/disabled          | U4 `tree-navigation`, `tree-actions`, `tree-keys`                  |
+| Tree hierarchy/focus repair/retained state/partial data/SSR | U4 `tree-repair`, `tree-ssr`; 8 docs                               |
+| Splitter parts/units/config/layout/infeasible/measurement   | U5 math + `splitter-geometry`, `splitter-config`                   |
 | Splitter proposals/commits/cancel/stale drag/collapse/focus | U5 `splitter-controlled`, `splitter-gestures`, `splitter-collapse` |
-| Splitter keyboard/ARIA/SSR/cleanup/website | U5 `splitter-ssr`, geometry/gesture cases; 8 |
-| Icons package/catalog/artwork/generator/public contract | I1/I2; original byte identity + packed/SSR/types |
-| Icons all library/website integration/size/release claims | I2; 7–9, no unmeasured size claims |
-| Charts immutable provenance/local patches/manual mapping | C1/C7, preservation checks |
-| Charts selected A1–A13, B1/B2 and all boundaries | C2–C6 full row matrix and A4/A5 exact assertions |
-| Charts matrix C/unselected commits and exclusions | C1/C7 complete comparison inventory; no canary ledger additions |
-| Charts public docs/types/examples/release | C3/C4/C7; 7–9 |
+| Splitter keyboard/ARIA/SSR/cleanup/website                  | U5 `splitter-ssr`, geometry/gesture cases; 8                       |
+| Icons package/catalog/artwork/generator/public contract     | I1/I2; original byte identity + packed/SSR/types                   |
+| Icons all library/website integration/size/release claims   | I2; 7–9, no unmeasured size claims                                 |
+| Charts immutable provenance/local patches/manual mapping    | C1/C7, preservation checks                                         |
+| Charts selected A1–A13, B1/B2 and all boundaries            | C2–C6 full row matrix and A4/A5 exact assertions                   |
+| Charts matrix C/unselected commits and exclusions           | C1/C7 complete comparison inventory; no canary ledger additions    |
+| Charts public docs/types/examples/release                   | C3/C4/C7; 7–9                                                      |
 
 Self-review covers all sections of six specs and the concrete sibling website plan. No technical requirement is dropped or claimed exercised. Source-pinned site deployment is independent of maintainer-controlled npm publication. Corrections include the CartesianPosition collision, existing next-core flag, iconsExtra/icons-extra.json naming, one shared-file/gate/Git owner, explicit browser project matches, behavioral RED before implementation and native target default-action checks. Private SDD ledger records task/interface consistency and rulings; no host-specific workspace paths belong in committed plans.

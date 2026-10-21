@@ -1,14 +1,3 @@
-/**
- * @fileOverview Symbols
- *
- * Ported from recharts 3.8.1 src/shape/Symbols.tsx (commit 7a23854).
- * Pure d3-shape symbol math copied verbatim. Solid deviations: `className` →
- * `class` (Omit the wide SVG `class`); destructuring defaults → `?? default`
- * accessors; `clsx` → `class={[...]}`; `return null` → `<Show>`; the
- * `registerSymbol` static is attached via `Object.assign` (no `as`).
- */
-import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { Show, omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
 import {
   symbol as shapeSymbol,
@@ -21,9 +10,21 @@ import {
   symbolWye,
   type SymbolType as D3SymbolType,
 } from "d3-shape";
-import { SymbolType } from "../util/types";
+import { Show, omit } from "solid-js";
+
 import { isNumber, upperFirst } from "../util/DataUtils";
 import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
+/**
+ * @fileOverview Symbols
+ *
+ * Ported from recharts 3.8.1 src/shape/Symbols.tsx (commit 7a23854).
+ * Pure d3-shape symbol math copied verbatim. Solid deviations: `className` →
+ * `class` (Omit the wide SVG `class`); destructuring defaults → `?? default`
+ * accessors; `clsx` → `class={[...]}`; `return null` → `<Show>`; the
+ * `registerSymbol` static is attached via `Object.assign` (no `as`).
+ */
+import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
+import { SymbolType } from "../util/types";
 
 type SizeType = "area" | "diameter";
 
@@ -48,7 +49,11 @@ const getSymbolFactory = (type: SymbolType): D3SymbolType => {
   return symbolFactories[name] || symbolCircle;
 };
 
-const calculateAreaSize = (size: number, sizeType: SizeType, type: SymbolType): number => {
+const calculateAreaSize = (
+  size: number,
+  sizeType: SizeType,
+  type: SymbolType,
+): number => {
   if (sizeType === "area") {
     return size;
   }
@@ -63,7 +68,12 @@ const calculateAreaSize = (size: number, sizeType: SizeType, type: SymbolType): 
     case "star": {
       const angle = 18 * RADIAN;
 
-      return 1.25 * size * size * (Math.tan(angle) - Math.tan(angle * 2) * Math.tan(angle) ** 2);
+      return (
+        1.25 *
+        size *
+        size *
+        (Math.tan(angle) - Math.tan(angle * 2) * Math.tan(angle) ** 2)
+      );
     }
     case "triangle":
       return (Math.sqrt(3) * size * size) / 4;
@@ -107,7 +117,8 @@ const SymbolsComponent = (props: SymbolsProps): JSX.Element => {
 
   // Runtime guard: despite the type, `type` can be anything at runtime
   // (https://github.com/recharts/recharts/issues/6197); fall back to 'circle'.
-  const realType = (): SymbolType => (typeof type() === "string" ? type() : "circle");
+  const realType = (): SymbolType =>
+    typeof type() === "string" ? type() : "circle";
 
   const getPath = (): string | undefined => {
     const symbolFactory = getSymbolFactory(realType());
@@ -122,8 +133,9 @@ const SymbolsComponent = (props: SymbolsProps): JSX.Element => {
     return s;
   };
 
+  const forwardedProps = omit(props, "class", "type", "size", "sizeType");
   const passthrough = (): Record<string, unknown> => ({
-    ...omit(props, "class", "type", "size", "sizeType"),
+    ...forwardedProps,
     type: type(),
     size: size(),
     sizeType: sizeType(),

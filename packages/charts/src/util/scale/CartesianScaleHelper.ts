@@ -1,16 +1,26 @@
+import {
+  CategoricalDomainItem,
+  Coordinate,
+  NullableCoordinate,
+} from "../types";
 // Ported from recharts 3.8.1 src/util/scale/CartesianScaleHelper.ts (commit 7a23854).
 import { BandPosition, RechartsScale } from "./RechartsScale";
-import { CategoricalDomainItem, Coordinate, NullableCoordinate } from "../types";
 
 export interface CartesianScaleHelper<
   XDomain extends CategoricalDomainItem = CategoricalDomainItem,
   YDomain extends CategoricalDomainItem = CategoricalDomainItem,
 > {
-  map(value: { x: XDomain; y: YDomain }, { position }: { position: BandPosition }): Coordinate;
+  map(
+    value: { x: XDomain; y: YDomain },
+    { position }: { position: BandPosition },
+  ): Coordinate;
 
   mapWithFallback(
     value: { x?: XDomain | null | undefined; y?: YDomain | null | undefined },
-    { position, fallback }: { position?: BandPosition; fallback: "rangeMin" | "rangeMax" },
+    {
+      position,
+      fallback,
+    }: { position?: BandPosition; fallback: "rangeMin" | "rangeMax" },
   ): Coordinate;
 
   isInRange({ x, y }: Partial<NullableCoordinate>): boolean;
@@ -27,12 +37,21 @@ export class CartesianScaleHelperImpl<
 
   private yAxisScale: RechartsScale<YDomain>;
 
-  constructor({ x, y }: { x: RechartsScale<XDomain>; y: RechartsScale<YDomain> }) {
+  constructor({
+    x,
+    y,
+  }: {
+    x: RechartsScale<XDomain>;
+    y: RechartsScale<YDomain>;
+  }) {
     this.xAxisScale = x;
     this.yAxisScale = y;
   }
 
-  map(value: { x: XDomain; y: YDomain }, { position }: { position: BandPosition }): Coordinate {
+  map(
+    value: { x: XDomain; y: YDomain },
+    { position }: { position: BandPosition },
+  ): Coordinate {
     return {
       x: this.xAxisScale.map(value.x, { position }) ?? 0,
       y: this.yAxisScale.map(value.y, { position }) ?? 0,
@@ -41,7 +60,10 @@ export class CartesianScaleHelperImpl<
 
   mapWithFallback(
     value: { x?: XDomain | null | undefined; y?: YDomain | null | undefined },
-    { position, fallback }: { position?: BandPosition; fallback: "rangeMin" | "rangeMax" },
+    {
+      position,
+      fallback,
+    }: { position?: BandPosition; fallback: "rangeMin" | "rangeMax" },
   ): Coordinate {
     let fallbackY: number, fallbackX: number;
     if (fallback === "rangeMin") {

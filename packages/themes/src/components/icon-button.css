@@ -1,4 +1,4 @@
-@import './_internal/base-button.css';
+@import "./_internal/base-button.css";
 
 /***************************************************************************************************
  *                                                                                                 *
@@ -22,10 +22,18 @@
     --margin-left: 0px;
 
     /* Define the overrides to incorporate the negative margins */
-    --margin-top-override: calc(var(--margin-top) - var(--icon-button-ghost-padding));
-    --margin-right-override: calc(var(--margin-right) - var(--icon-button-ghost-padding));
-    --margin-bottom-override: calc(var(--margin-bottom) - var(--icon-button-ghost-padding));
-    --margin-left-override: calc(var(--margin-left) - var(--icon-button-ghost-padding));
+    --margin-top-override: calc(
+      var(--margin-top) - var(--icon-button-ghost-padding)
+    );
+    --margin-right-override: calc(
+      var(--margin-right) - var(--icon-button-ghost-padding)
+    );
+    --margin-bottom-override: calc(
+      var(--margin-bottom) - var(--icon-button-ghost-padding)
+    );
+    --margin-left-override: calc(
+      var(--margin-left) - var(--icon-button-ghost-padding)
+    );
 
     /* Reset the overrides on direct children */
     :where(&) > * {
@@ -35,8 +43,8 @@
       --margin-left-override: initial;
     }
 
-    margin: var(--margin-top-override) var(--margin-right-override) var(--margin-bottom-override)
-      var(--margin-left-override);
+    margin: var(--margin-top-override) var(--margin-right-override)
+      var(--margin-bottom-override) var(--margin-left-override);
   }
 }
 

@@ -1,8 +1,7 @@
-import { breakpoints } from '../props/prop-def.js';
-import { hasOwnProperty } from './has-own-property.js';
-import { isResponsiveObject } from './is-responsive-object.js';
-
-import type { Responsive, Union } from '../props/prop-def.js';
+import { breakpoints } from "../props/prop-def.js";
+import type { Responsive, Union } from "../props/prop-def.js";
+import { hasOwnProperty } from "./has-own-property.js";
+import { isResponsiveObject } from "./is-responsive-object.js";
 
 interface GetResponsiveStylesOptions {
   className: string;
@@ -12,14 +11,21 @@ interface GetResponsiveStylesOptions {
   parseValue?: (value: string) => string | undefined;
 }
 
-function getResponsiveStyles({ className, customProperties, ...args }: GetResponsiveStylesOptions) {
+function getResponsiveStyles({
+  className,
+  customProperties,
+  ...args
+}: GetResponsiveStylesOptions) {
   const responsiveClassNames = getResponsiveClassNames({
     allowArbitraryValues: true,
     className,
     ...args,
   });
 
-  const responsiveCustomProperties = getResponsiveCustomProperties({ customProperties, ...args });
+  const responsiveCustomProperties = getResponsiveCustomProperties({
+    customProperties,
+    ...args,
+  });
   return [responsiveClassNames, responsiveCustomProperties] as const;
 }
 
@@ -44,7 +50,7 @@ function getResponsiveClassNames({
     return undefined;
   }
 
-  if (typeof value === 'string' && propValues.includes(value)) {
+  if (typeof value === "string" && propValues.includes(value)) {
     return getBaseClassName(className, value, parseValue);
   }
 
@@ -62,16 +68,18 @@ function getResponsiveClassNames({
       if (value !== undefined) {
         if (propValues.includes(value)) {
           const baseClassName = getBaseClassName(className, value, parseValue);
-          const bpClassName = bp === 'initial' ? baseClassName : `${bp}:${baseClassName}`;
+          const bpClassName =
+            bp === "initial" ? baseClassName : `${bp}:${baseClassName}`;
           classNames.push(bpClassName);
         } else if (allowArbitraryValues) {
-          const bpClassName = bp === 'initial' ? className : `${bp}:${className}`;
+          const bpClassName =
+            bp === "initial" ? className : `${bp}:${className}`;
           classNames.push(bpClassName);
         }
       }
     }
 
-    return classNames.join(' ');
+    return classNames.join(" ");
   }
 
   if (allowArbitraryValues) {
@@ -84,10 +92,10 @@ function getBaseClassName(
   value: string,
   parseValue: (value: string) => string | undefined,
 ): string {
-  const delimiter = className ? '-' : '';
+  const delimiter = className ? "-" : "";
   const matchedValue = parseValue(value);
-  const isNegative = matchedValue?.startsWith('-');
-  const minus = isNegative ? '-' : '';
+  const isNegative = matchedValue?.startsWith("-");
+  const minus = isNegative ? "-" : "";
   const absoluteValue = isNegative ? matchedValue?.substring(1) : matchedValue;
   return `${minus}${className}${delimiter}${absoluteValue}`;
 }
@@ -108,11 +116,11 @@ function getResponsiveCustomProperties({
   let styles: Record<string, string | undefined> = {};
 
   // Don't generate custom properties if the value is not arbitrary
-  if (!value || (typeof value === 'string' && propValues.includes(value))) {
+  if (!value || (typeof value === "string" && propValues.includes(value))) {
     return undefined;
   }
 
-  if (typeof value === 'string') {
+  if (typeof value === "string") {
     styles = Object.fromEntries(customProperties.map((prop) => [prop, value]));
   }
 
@@ -133,7 +141,8 @@ function getResponsiveCustomProperties({
       }
 
       for (const customProperty of customProperties) {
-        const bpProperty = bp === 'initial' ? customProperty : `${customProperty}-${bp}`;
+        const bpProperty =
+          bp === "initial" ? customProperty : `${customProperty}-${bp}`;
 
         styles[bpProperty] = value;
       }
@@ -150,4 +159,8 @@ function getResponsiveCustomProperties({
   return styles;
 }
 
-export { getResponsiveStyles, getResponsiveCustomProperties, getResponsiveClassNames };
+export {
+  getResponsiveStyles,
+  getResponsiveCustomProperties,
+  getResponsiveClassNames,
+};

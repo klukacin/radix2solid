@@ -58,9 +58,20 @@
 **Interfaces:** Add exported public input `CartesianPosition` exactly as [#7564](https://github.com/recharts/recharts/commit/082495ac4b05070b745089b2d82db2dc1eb8ccc8):
 
 ```ts
-type CartesianPosition = 'top' | 'left' | 'right' | 'bottom' | 'center'
-  | 'insideLeft' | 'insideRight' | 'insideTop' | 'insideBottom'
-  | 'insideTopLeft' | 'insideBottomLeft' | 'insideTopRight' | 'insideBottomRight'
+type CartesianPosition =
+  | "top"
+  | "left"
+  | "right"
+  | "bottom"
+  | "center"
+  | "insideLeft"
+  | "insideRight"
+  | "insideTop"
+  | "insideBottom"
+  | "insideTopLeft"
+  | "insideBottomLeft"
+  | "insideTopRight"
+  | "insideBottomRight"
   | { x: number | Percent; y: number | Percent };
 ```
 
@@ -88,13 +99,13 @@ Keep existing broad `CartesianLabelPosition` for labels. Rename existing calcula
 
 **Interfaces and exact public acceptance:**
 
-| Row / commit | Implementation seam | Required public assertion / preserved boundary |
-| --- | --- | --- |
+| Row / commit                                                                                          | Implementation seam                                                                                      | Required public assertion / preserved boundary                                                                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | A1 `f2786e83fbd89862e19cb11578f4e1d638b3899c` #7542; `f2c3ecb92d4cbaf48307c200f154e3e4859aa1d1` #7530 | Brush controlled-index/data-update paths while retaining native first-render seed and server/timer guard | startIndex=3/endIndex=6 without onChange: drag slide, record traveller aria-valuenow while dragging, release and assert equal; separate unchanged controlled 3–6 survives data replacement. Existing Brush sync + Area panorama pass; SSR has no window access. Deliberately not new Primitives refusal semantics. |
-| A2 `2fa048ec943d9b40e404249c78d067a28ffa95cf` #7547 | Bar active-layer reset | Active tooltip bar loses active shape after index clears/pointer leave or data replacement; keyed Cell reorder/replacement paint/payload/once-event cases remain green. |
-| A3 `82d2bec90c7927ea1e5ce7025fa9adca5de8aea2` #7546 | Sankey native SVG surface | Public title/desc/accessibilityLayer reach root SVG accessible name/description and exact upstream accessibility attributes. Assert server and hydrated attributes equal with node preservation; types and live docs example required. |
-| A6 `4bb83b5b03c877c49428b13a3a39f229ee856dfc` #7458 | Pie children wrapped in existing polar label context with computed radii | Percentage inner/outer radii + child Label position=center gets position from computed Pie radii on server and hydrated DOM. All five context-owned Cell consumer cases remain green; no module-level registrar. |
-| A7 `9817ae52fa440105d77bdec1f8393bcb893733e4` #7566 | Area/area selector null-stack handling | Stacked AreaChart connectNulls across a category where all series are null has continuous rendered area paths for each series; panorama Area still renders. |
+| A2 `2fa048ec943d9b40e404249c78d067a28ffa95cf` #7547                                                   | Bar active-layer reset                                                                                   | Active tooltip bar loses active shape after index clears/pointer leave or data replacement; keyed Cell reorder/replacement paint/payload/once-event cases remain green.                                                                                                                                            |
+| A3 `82d2bec90c7927ea1e5ce7025fa9adca5de8aea2` #7546                                                   | Sankey native SVG surface                                                                                | Public title/desc/accessibilityLayer reach root SVG accessible name/description and exact upstream accessibility attributes. Assert server and hydrated attributes equal with node preservation; types and live docs example required.                                                                             |
+| A6 `4bb83b5b03c877c49428b13a3a39f229ee856dfc` #7458                                                   | Pie children wrapped in existing polar label context with computed radii                                 | Percentage inner/outer radii + child Label position=center gets position from computed Pie radii on server and hydrated DOM. All five context-owned Cell consumer cases remain green; no module-level registrar.                                                                                                   |
+| A7 `9817ae52fa440105d77bdec1f8393bcb893733e4` #7566                                                   | Area/area selector null-stack handling                                                                   | Stacked AreaChart connectNulls across a category where all series are null has continuous rendered area paths for each series; panorama Area still renders.                                                                                                                                                        |
 
 - [ ] Author bounded existing public cases for all five rows; designated gate worker records RED or concrete contained evidence before Main dispatches source adaptation. Reuse fixture data replacement for multiple lifecycle assertions where practical; no per-row permanent file.
 - [ ] Hand-port mapped behavior preserving local patches; native callbacks/owners/store application replace React assumptions. Designated gate worker tests settled C5 union; no arbitrary public props beyond A3.
@@ -104,13 +115,13 @@ Keep existing broad `CartesianLabelPosition` for labels. Rename existing calcula
 
 **Files:** Modify `packages/charts/src/state/selectors/combiners/combineTooltipPayload.ts`, `combineAllBarPositions.ts`, `util/ChartUtils.ts`, `util/getActiveCoordinate.ts`, `component/Label.tsx`; extend existing chart tests/fixture. ChartUtils remains single-owner with C3.
 
-| Row / commit | Required behavior and assertion |
-| --- | --- |
-| A8 `a5d7737d8965702dc14e590658c20bda6ccfb9af` #7573 | allowDuplicatedCategory=false label lookup returns undefined: rendered tooltip payload falls back to active index's entry instead of empty. |
-| A9 `2ea9ca02e12867076405595c010343adb1ccca3b` #7556 | Floating numeric category tick gaps do not collapse band size: rendered bar width equals pinned upstream fixture's expected band width; server tick-ladder stays correct. |
-| A10 `553e77b3b3ab71457c417795c41285fba37b1608` #7550 | Pointer in final/first angular tick gap selects wrapping sector's active index/tooltip, not no sector. |
+| Row / commit                                         | Required behavior and assertion                                                                                                                                                                                                                                                                              |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| A8 `a5d7737d8965702dc14e590658c20bda6ccfb9af` #7573  | allowDuplicatedCategory=false label lookup returns undefined: rendered tooltip payload falls back to active index's entry instead of empty.                                                                                                                                                                  |
+| A9 `2ea9ca02e12867076405595c010343adb1ccca3b` #7556  | Floating numeric category tick gaps do not collapse band size: rendered bar width equals pinned upstream fixture's expected band width; server tick-ladder stays correct.                                                                                                                                    |
+| A10 `553e77b3b3ab71457c417795c41285fba37b1608` #7550 | Pointer in final/first angular tick gap selects wrapping sector's active index/tooltip, not no sector.                                                                                                                                                                                                       |
 | A11 `ca62d1c38d17ab9182fdf78c81cfac3b2b92324c` #7549 | Function Label content receives exact upstream computed x/y plus explicit props/viewBox on server and after hydration; no invented computed anchors, which upstream excludes to avoid nested Label overrides. Expose these values in rendered custom-label output for assertions, not internal state probes. |
-| A13 `411b6f2e6233e617704b3bfb45ebfce16285f0d3` #7582 | Two bars per category, maxBarSize smaller than band, configured barGap: actual gap between rendered bar rectangles equals barGap. |
+| A13 `411b6f2e6233e617704b3bfb45ebfce16285f0d3` #7582 | Two bars per category, maxBarSize smaller than band, configured barGap: actual gap between rendered bar rectangles equals barGap.                                                                                                                                                                            |
 
 - [ ] Read pinned upstream cases for fixed fixture coordinates/data; copy assertions, not the test framework. Extend smallest existing server/browser public-result cases; designated gate worker records pre-port behavior before adaptation dispatch.
 - [ ] Adapt only selected calculation, preserving existing context/state/type boundaries and fractional finite geometry. No new runtime exports or benchmark framework.

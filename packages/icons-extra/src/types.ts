@@ -1,6 +1,9 @@
-import type { JSX } from '@solidjs/web';
+import type { JSX } from "@solidjs/web";
 
-export type IconProps = Omit<JSX.IntrinsicElements['svg'], 'children' | 'title'> & {
+export type IconProps = Omit<
+  JSX.IntrinsicElements["svg"],
+  "children" | "title"
+> & {
   children?: never;
   color?: string;
   size?: number | string;

@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/polar/Radar.tsx (commit 7a23854).
 //
 // MINIMAL PORT — registers a RadarSettings polar graphical item (so the angle
@@ -21,41 +22,54 @@
 // cloneElement). PERMANENT-N/A: element-form `shape`. DEFERRED: object-form
 // `shape`. zIndex relayering IS wired: the `.recharts-radar` Layer is wrapped in
 // <ZIndexLayer> (default DefaultZIndexes.area = 100), matching recharts.
-import { createMemo, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import { useIsPanorama } from "../context/PanoramaContext";
-import { useUniqueId } from "../util/useUniqueId";
-import { usePolarChartLayout } from "../context/chartLayoutContext";
+import { createMemo, merge, Show, untrack } from "solid-js";
+
 import {
   AnimatedItems,
   type AnimationInterpolateFn,
   useAnimationCallbacks,
 } from "../animation/AnimatedItems";
-import { matchAnimationItems, matchByIndex, type AnimationMatchByProp } from "../animation/matchBy";
-import { useAnimationStartSnapshot, type MutableRef } from "../animation/useAnimationStartSnapshot";
 import type { EasingInput } from "../animation/easing";
-import { Layer } from "../container/Layer";
-import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
-import { ZIndexLayer } from "../zIndex/ZIndexLayer";
-import { Polygon } from "../shape/Polygon";
-import { Shape } from "../util/ActiveShapeUtils";
-import { Dots } from "../component/Dots";
+import {
+  matchAnimationItems,
+  matchByIndex,
+  type AnimationMatchByProp,
+} from "../animation/matchBy";
+import {
+  useAnimationStartSnapshot,
+  type MutableRef,
+} from "../animation/useAnimationStartSnapshot";
 import {
   computeActivePointState,
   renderActivePointsLayerFromState,
 } from "../component/ActivePoints";
-import { useActiveTooltipDataPoints } from "../hooks";
-import { selectActiveTooltipIndex } from "../state/selectors/tooltipSelectors";
+import { LegendPayload } from "../component/DefaultLegendContent";
+import { Dots } from "../component/Dots";
 import {
   type CartesianLabelListEntry,
   CartesianLabelListContextProvider,
   type ImplicitLabelListType,
   LabelListFromLabelProp,
 } from "../component/LabelList";
-import { selectRadarPoints } from "../state/selectors/radarSelectors";
-import { RadarSettings } from "../state/types/RadarSettings";
+import { Layer } from "../container/Layer";
+import { usePolarChartLayout } from "../context/chartLayoutContext";
+import { useIsPanorama } from "../context/PanoramaContext";
+import { useActiveTooltipDataPoints } from "../hooks";
+import { Polygon } from "../shape/Polygon";
 import { ChartData } from "../state/chartDataSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { registerInStore } from "../state/registerInStore";
+import { selectRadarPoints } from "../state/selectors/radarSelectors";
+import { selectActiveTooltipIndex } from "../state/selectors/tooltipSelectors";
+import { SetLegendPayload } from "../state/SetLegendPayload";
+import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
+import { TooltipPayloadConfiguration } from "../state/tooltipSlice";
+import { RadarSettings } from "../state/types/RadarSettings";
+import { Shape } from "../util/ActiveShapeUtils";
+import { getTooltipNameProp, getValueByDataKey } from "../util/ChartUtils";
+import { interpolate, isNullish, noop } from "../util/DataUtils";
+import { polarToCartesian } from "../util/PolarUtils";
+import { RechartsScale } from "../util/scale/RechartsScale";
 import {
   ActiveDotType,
   ActiveShape,
@@ -66,15 +80,9 @@ import {
   PolarLayout,
   TooltipType,
 } from "../util/types";
-import { polarToCartesian } from "../util/PolarUtils";
-import { interpolate, isNullish, noop } from "../util/DataUtils";
-import { getTooltipNameProp, getValueByDataKey } from "../util/ChartUtils";
-import { RechartsScale } from "../util/scale/RechartsScale";
-import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
-import { SetLegendPayload } from "../state/SetLegendPayload";
-import { LegendPayload } from "../component/DefaultLegendContent";
-import { TooltipPayloadConfiguration } from "../state/tooltipSlice";
-import { registerInStore } from "../state/registerInStore";
+import { useUniqueId } from "../util/useUniqueId";
+import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
+import { ZIndexLayer } from "../zIndex/ZIndexLayer";
 
 /** recharts: stroke (if not "none") wins as the legend/tooltip color, else fill. */
 const getLegendItemColor = (
@@ -133,7 +141,9 @@ export function computeRadarPoints({
     const angle: number = (angleAxis.scale.map(name) ?? 0) + angleBandSize;
     const pointValue: unknown =
       value != null && Array.isArray(value) ? value[value.length - 1] : value;
-    const radius: number = isNullish(pointValue) ? 0 : (radiusAxis.scale.map(pointValue) ?? 0);
+    const radius: number = isNullish(pointValue)
+      ? 0
+      : (radiusAxis.scale.map(pointValue) ?? 0);
 
     if (value != null && Array.isArray(value) && value.length >= 2) {
       isRange = true;
@@ -141,7 +151,8 @@ export function computeRadarPoints({
 
     points.push({
       ...polarToCartesian(cx, cy, radius, angle),
-      name: typeof name === "string" || typeof name === "number" ? name : undefined,
+      name:
+        typeof name === "string" || typeof name === "number" ? name : undefined,
       value,
       cx,
       cy,
@@ -156,7 +167,9 @@ export function computeRadarPoints({
     points.forEach((point) => {
       if (point.value != null && Array.isArray(point.value)) {
         const baseValue: unknown = point.value[0];
-        const radius: number = isNullish(baseValue) ? 0 : (radiusAxis.scale.map(baseValue) ?? 0);
+        const radius: number = isNullish(baseValue)
+          ? 0
+          : (radiusAxis.scale.map(baseValue) ?? 0);
         baseLinePoints.push({
           ...point,
           radius,
@@ -175,13 +188,15 @@ export function computeRadarPoints({
 // new AnimatedItems engine drives). Mirrors recharts 3.9 `defaultRadarAnimateItems`:
 // matched points tween x/y between prev/next; added points grow from the (cx,cy)
 // center; removed points are dropped immediately (no shrink, unlike Bar).
-export const defaultRadarAnimateItems: AnimationInterpolateFn<RadarPoint, PolarLayout> = (
-  items,
-  t,
-) => {
+export const defaultRadarAnimateItems: AnimationInterpolateFn<
+  RadarPoint,
+  PolarLayout
+> = (items, t) => {
   if (items == null) return [];
   if (t === 1) {
-    return items.flatMap((item) => (item.status === "removed" ? [] : [item.next]));
+    return items.flatMap((item) =>
+      item.status === "removed" ? [] : [item.next],
+    );
   }
   return items.flatMap((item): RadarPoint[] => {
     if (item.status === "removed") return [];
@@ -215,7 +230,10 @@ export interface RadarShapeProps {
   stroke?: string;
 }
 
-export interface RadarProps<DataPointType = Record<string, unknown>, DataValueType = unknown> {
+export interface RadarProps<
+  DataPointType = Record<string, unknown>,
+  DataValueType = unknown,
+> {
   angleAxisId?: string | number;
   radiusAxisId?: string | number;
   dataKey?: DataKey<DataPointType, DataValueType>;
@@ -287,13 +305,17 @@ export const radarDefaultProps = {
   zIndex: DefaultZIndexes.area,
 } as const satisfies Partial<RadarProps>;
 
-export function Radar<DataPointType = Record<string, unknown>, DataValueType = unknown>(
-  props: RadarProps<DataPointType, DataValueType>,
-): JSX.Element {
+export function Radar<
+  DataPointType = Record<string, unknown>,
+  DataValueType = unknown,
+>(props: RadarProps<DataPointType, DataValueType>): JSX.Element {
   const store = useAppStore();
   const merged = merge(radarDefaultProps, props);
   const isPanorama = useIsPanorama();
-  const id = useUniqueId("recharts-radar", props.id);
+  const id = useUniqueId(
+    "recharts-radar",
+    untrack(() => props.id),
+  );
 
   if (store != null) {
     registerInStore<RadarSettings>(
@@ -310,18 +332,30 @@ export function Radar<DataPointType = Record<string, unknown>, DataValueType = u
       {
         add: (next) => store.actions.graphicalItems.addPolarGraphicalItem(next),
         replace: (prev, next) =>
-          store.actions.graphicalItems.replacePolarGraphicalItem({ prev, next }),
-        remove: (prev) => store.actions.graphicalItems.removePolarGraphicalItem(prev),
+          store.actions.graphicalItems.replacePolarGraphicalItem({
+            prev,
+            next,
+          }),
+        remove: (prev) =>
+          store.actions.graphicalItems.removePolarGraphicalItem(prev),
       },
     );
   }
 
   const radar = useAppSelector((state) =>
-    selectRadarPoints(state, merged.radiusAxisId, merged.angleAxisId, isPanorama, id),
+    selectRadarPoints(
+      state,
+      merged.radiusAxisId,
+      merged.angleAxisId,
+      isPanorama,
+      id,
+    ),
   );
 
   const layerClass = (): string =>
-    ["recharts-radar", merged.class].filter((c): c is string => Boolean(c)).join(" ");
+    ["recharts-radar", merged.class]
+      .filter((c): c is string => Boolean(c))
+      .join(" ");
 
   // Radar is an axis-type tooltip item: it registers an entry (so the axis tooltip
   // can resolve its value) but does NOT carry per-point dataDefinedOnItem.
@@ -360,9 +394,12 @@ export function Radar<DataPointType = Record<string, unknown>, DataValueType = u
     return r?.isRange ? r.baseLinePoints : undefined;
   };
 
-  const mainColor = getLegendItemColor(merged.stroke, merged.fill);
-  const activeRadarPoints = createMemo((): ReadonlyArray<RadarPoint> | undefined =>
-    merged.hide ? undefined : radar()?.points,
+  const mainColor = untrack(() =>
+    getLegendItemColor(merged.stroke, merged.fill),
+  );
+  const activeRadarPoints = createMemo(
+    (): ReadonlyArray<RadarPoint> | undefined =>
+      merged.hide ? undefined : radar()?.points,
   );
 
   // Active-dot wiring: the hovered Radar point gets an .recharts-active-dot layer,
@@ -379,7 +416,10 @@ export function Radar<DataPointType = Record<string, unknown>, DataValueType = u
   return (
     <>
       <SetTooltipEntrySettings tooltipEntrySettings={tooltipConfig()} />
-      <SetLegendPayload id={id} legendPayload={legendPayload()} />
+      <SetLegendPayload
+        id={id}
+        legendPayload={legendPayload()}
+      />
       <Show when={activeRadarPoints()}>
         {(points) => (
           // Wrapped in <ZIndexLayer> (default 100) so a `zIndex` prop relayers the
@@ -476,46 +516,66 @@ function RadarAnimatedContent(props: {
   onAnimationStart: (() => void) | undefined;
   onAnimationEnd: (() => void) | undefined;
   onClick: JSX.EventHandlerUnion<SVGPolygonElement, MouseEvent> | undefined;
-  onMouseEnter: JSX.EventHandlerUnion<SVGPolygonElement, MouseEvent> | undefined;
-  onMouseLeave: JSX.EventHandlerUnion<SVGPolygonElement, MouseEvent> | undefined;
+  onMouseEnter:
+    | JSX.EventHandlerUnion<SVGPolygonElement, MouseEvent>
+    | undefined;
+  onMouseLeave:
+    | JSX.EventHandlerUnion<SVGPolygonElement, MouseEvent>
+    | undefined;
   onMouseMove: JSX.EventHandlerUnion<SVGPolygonElement, MouseEvent> | undefined;
   onMouseOver: JSX.EventHandlerUnion<SVGPolygonElement, MouseEvent> | undefined;
   onMouseOut: JSX.EventHandlerUnion<SVGPolygonElement, MouseEvent> | undefined;
   onMouseDown: JSX.EventHandlerUnion<SVGPolygonElement, MouseEvent> | undefined;
   onMouseUp: JSX.EventHandlerUnion<SVGPolygonElement, MouseEvent> | undefined;
-  onTouchStart: JSX.EventHandlerUnion<SVGPolygonElement, TouchEvent> | undefined;
+  onTouchStart:
+    | JSX.EventHandlerUnion<SVGPolygonElement, TouchEvent>
+    | undefined;
   onTouchMove: JSX.EventHandlerUnion<SVGPolygonElement, TouchEvent> | undefined;
   onTouchEnd: JSX.EventHandlerUnion<SVGPolygonElement, TouchEvent> | undefined;
 }): JSX.Element {
   // A function-form custom `shape` replaces the default <Polygon>. Use a ternary
   // (not <Show when={fn}>) so the function-valued read stays tracked without
   // tripping STRICT_READ; element/object shape forms are deferred.
-  const shapeFn = createMemo(() => (typeof props.shape === "function" ? props.shape : undefined));
+  const shapeFn = createMemo(() =>
+    typeof props.shape === "function" ? props.shape : undefined,
+  );
 
   // Cartesian label-list entries, one per (settled) point — recharts'
   // RadarLabelListProvider. The label list reads these from context.
-  const labelListEntries = createMemo<ReadonlyArray<CartesianLabelListEntry>>(() =>
-    props.stepData.map((point): CartesianLabelListEntry => {
-      const viewBox = { x: point.x, y: point.y, width: 0, lowerWidth: 0, upperWidth: 0, height: 0 };
-      return {
-        ...viewBox,
-        value: point.value ?? "",
-        payload: point.payload,
-        parentViewBox: undefined,
-        viewBox,
-        fill: undefined,
-      };
-    }),
+  const labelListEntries = createMemo<ReadonlyArray<CartesianLabelListEntry>>(
+    () =>
+      props.stepData.map((point): CartesianLabelListEntry => {
+        const viewBox = {
+          x: point.x,
+          y: point.y,
+          width: 0,
+          lowerWidth: 0,
+          upperWidth: 0,
+          height: 0,
+        };
+        return {
+          ...viewBox,
+          value: point.value ?? "",
+          payload: point.payload,
+          parentViewBox: undefined,
+          viewBox,
+          fill: undefined,
+        };
+      }),
   );
 
   // Holds the latest visible points frame so a re-animation (data change) tweens
   // from where the polygon currently is. Managed by AnimatedItems via
   // useAnimationStartSnapshot. The baseline gets its own ref/snapshot, mirroring
   // recharts' previousPointsRef / previousBaseLinePointsRef.
-  const previousItemsRef: MutableRef<ReadonlyArray<RadarPoint> | null | undefined> = {
+  const previousItemsRef: MutableRef<
+    ReadonlyArray<RadarPoint> | null | undefined
+  > = {
     current: null,
   };
-  const previousBaseLinePointsRef: MutableRef<ReadonlyArray<RadarPoint> | null | undefined> = {
+  const previousBaseLinePointsRef: MutableRef<
+    ReadonlyArray<RadarPoint> | null | undefined
+  > = {
     current: null,
   };
 
@@ -526,10 +586,9 @@ function RadarAnimatedContent(props: {
   // The baseline animates with the SAME interpolation fn as the outer polygon, driven
   // off its own snapshot. The snapshot is armed/committed from the AnimatedItems
   // render-prop below (one shared animation clock).
-  const baseLineSnapshot = useAnimationStartSnapshot<ReadonlyArray<RadarPoint> | null | undefined>(
-    () => props.stepData,
-    previousBaseLinePointsRef,
-  );
+  const baseLineSnapshot = useAnimationStartSnapshot<
+    ReadonlyArray<RadarPoint> | null | undefined
+  >(() => props.stepData, previousBaseLinePointsRef);
   const baseLineAnimationItems = createMemo(() =>
     matchAnimationItems(
       baseLineSnapshot.startValue() ?? null,
@@ -539,11 +598,14 @@ function RadarAnimatedContent(props: {
   );
 
   // Gate the label list while animating, mirroring recharts (showLabels = !isAnimating).
-  const { isAnimating, handleAnimationStart, handleAnimationEnd } = useAnimationCallbacks(
-    props.onAnimationStart,
-    props.onAnimationEnd,
+  const { isAnimating, handleAnimationStart, handleAnimationEnd } =
+    useAnimationCallbacks(
+      () => props.onAnimationStart?.(),
+      () => props.onAnimationEnd?.(),
+    );
+  const labelContextEntries = createMemo(() =>
+    isAnimating() ? undefined : labelListEntries(),
   );
-  const labelContextEntries = createMemo(() => (isAnimating() ? undefined : labelListEntries()));
 
   return (
     <CartesianLabelListContextProvider value={labelContextEntries}>
@@ -558,7 +620,9 @@ function RadarAnimatedContent(props: {
               isAnimationActive={props.isAnimationActive}
               animationBegin={props.animationBegin}
               animationDuration={
-                typeof props.animationDuration === "number" ? props.animationDuration : 1500
+                typeof props.animationDuration === "number"
+                  ? props.animationDuration
+                  : 1500
               }
               animationEasing={props.animationEasing}
               onAnimationStart={handleAnimationStart}
@@ -571,7 +635,11 @@ function RadarAnimatedContent(props: {
                 const stepBaseLinePoints =
                   t === 1
                     ? props.baseLinePoints
-                    : props.animationInterpolateFn(baseLineAnimationItems(), t, layout());
+                    : props.animationInterpolateFn(
+                        baseLineAnimationItems(),
+                        t,
+                        layout(),
+                      );
                 baseLineSnapshot.syncStepValue(stepBaseLinePoints, t);
 
                 return (

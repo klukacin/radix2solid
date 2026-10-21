@@ -1,27 +1,30 @@
+import { computeArea, ComputedArea } from "../../cartesian/Area";
+import { selectChartLayout } from "../../context/chartLayoutContext";
+import { getBandSizeOfAxis, isCategoricalAxis } from "../../util/ChartUtils";
+import { isNotNil } from "../../util/DataUtils";
+import { AllStackGroups, StackDataPoint } from "../../util/stacks/stackTypes";
+import { ChartData } from "../chartDataSlice";
+import { GraphicalItemId } from "../graphicalItemsSlice";
 // Ported from recharts 3.8.1 src/state/selectors/areaSelectors.ts (commit 7a23854).
 // Solid-native plain selectors (no reselect). Stacked areas are wired:
 // The area's numeric-axis stack group supplies both its series and all stack keys.
 import { RechartsRootState } from "../store";
-import { selectStackGroups, selectUnfilteredCartesianItems } from "./axisSelectors";
-import { getBandSizeOfAxis, isCategoricalAxis } from "../../util/ChartUtils";
-import { ChartData } from "../chartDataSlice";
-import { selectChartLayout } from "../../context/chartLayoutContext";
+import { AreaSettings } from "../types/AreaSettings";
+import {
+  selectStackGroups,
+  selectUnfilteredCartesianItems,
+} from "./axisSelectors";
+import { combineStackedData } from "./combiners/combineStackedData";
 import { selectChartDataWithIndexesIfNotInPanoramaPosition3 } from "./dataSelectors";
-import { selectChartBaseValue } from "./rootPropsSelectors";
-import { GraphicalItemId } from "../graphicalItemsSlice";
 import {
   selectXAxisIdFromGraphicalItemId,
   selectYAxisIdFromGraphicalItemId,
 } from "./graphicalItemSelectors";
+import { selectChartBaseValue } from "./rootPropsSelectors";
 import {
   selectAxisWithScaleForGraphicalItem,
   selectTicksForGraphicalItem,
 } from "./selectAxisForGraphicalItem";
-import { AreaSettings } from "../types/AreaSettings";
-import { computeArea, ComputedArea } from "../../cartesian/Area";
-import { combineStackedData } from "./combiners/combineStackedData";
-import { AllStackGroups, StackDataPoint } from "../../util/stacks/stackTypes";
-import { isNotNil } from "../../util/DataUtils";
 
 const selectBandSize = (
   state: RechartsRootState,
@@ -67,7 +70,12 @@ const selectAreaStackGroups = (
       isPanorama,
     );
   }
-  return selectStackGroups(state, "xAxis", selectXAxisIdFromGraphicalItemId(state, id), isPanorama);
+  return selectStackGroups(
+    state,
+    "xAxis",
+    selectXAxisIdFromGraphicalItemId(state, id),
+    isPanorama,
+  );
 };
 
 export const selectArea = (
@@ -76,20 +84,45 @@ export const selectArea = (
   isPanorama: boolean,
 ): ComputedArea | undefined => {
   const layout = selectChartLayout(state);
-  const xAxis = selectAxisWithScaleForGraphicalItem(state, "xAxis", id, isPanorama);
-  const yAxis = selectAxisWithScaleForGraphicalItem(state, "yAxis", id, isPanorama);
-  const xAxisTicks = selectTicksForGraphicalItem(state, "xAxis", id, isPanorama);
-  const yAxisTicks = selectTicksForGraphicalItem(state, "yAxis", id, isPanorama);
+  const xAxis = selectAxisWithScaleForGraphicalItem(
+    state,
+    "xAxis",
+    id,
+    isPanorama,
+  );
+  const yAxis = selectAxisWithScaleForGraphicalItem(
+    state,
+    "yAxis",
+    id,
+    isPanorama,
+  );
+  const xAxisTicks = selectTicksForGraphicalItem(
+    state,
+    "xAxis",
+    id,
+    isPanorama,
+  );
+  const yAxisTicks = selectTicksForGraphicalItem(
+    state,
+    "yAxis",
+    id,
+    isPanorama,
+  );
   const { chartData, dataStartIndex, dataEndIndex } =
     selectChartDataWithIndexesIfNotInPanoramaPosition3(state, id, isPanorama);
   const bandSize = selectBandSize(state, id, isPanorama);
   const areaSettings = selectSynchronisedAreaSettings(state, id);
   const chartBaseValue = selectChartBaseValue(state);
   const stackGroups = selectAreaStackGroups(state, id, isPanorama);
-  const stackedData = combineStackedData(stackGroups, areaSettings)
-    ?.map((item): StackDataPoint => [item[0], item[1]]);
-  const stackDataKeys = areaSettings?.stackId == null ? undefined :
-    stackGroups?.[areaSettings.stackId]?.graphicalItems.map(item => item.dataKey).filter(isNotNil);
+  const stackedData = combineStackedData(stackGroups, areaSettings)?.map(
+    (item): StackDataPoint => [item[0], item[1]],
+  );
+  const stackDataKeys =
+    areaSettings?.stackId == null
+      ? undefined
+      : stackGroups?.[areaSettings.stackId]?.graphicalItems
+          .map((item) => item.dataKey)
+          .filter(isNotNil);
 
   if (
     areaSettings == null ||

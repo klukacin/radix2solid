@@ -1,20 +1,23 @@
 // Ported from recharts 3.8.1 src/state/selectors/scatterSelectors.ts (commit 7a23854).
 // Solid-native plain functions. The `cells` parameter (per-point <Cell> overrides)
 // is wired — see [[cells-cellreader-port]].
-import { computeScatterPoints, ScatterPointItem } from "../../cartesian/Scatter";
+import {
+  computeScatterPoints,
+  ScatterPointItem,
+} from "../../cartesian/Scatter";
 import type { CellProps } from "../../component/Cell";
-import { RechartsRootState } from "../store";
 import { AxisId } from "../cartesianAxisSlice";
-import { selectChartDataWithIndexesIfNotInPanoramaPosition4 } from "./dataSelectors";
 import { ChartData } from "../chartDataSlice";
+import { GraphicalItemId } from "../graphicalItemsSlice";
+import { RechartsRootState } from "../store";
+import { ScatterSettings } from "../types/ScatterSettings";
 import {
   selectAxisWithScale,
   selectTicksOfGraphicalItem,
   selectUnfilteredCartesianItems,
   selectZAxisWithScale,
 } from "./axisSelectors";
-import { ScatterSettings } from "../types/ScatterSettings";
-import { GraphicalItemId } from "../graphicalItemsSlice";
+import { selectChartDataWithIndexesIfNotInPanoramaPosition4 } from "./dataSelectors";
 
 const selectSynchronisedScatterSettings = (
   state: RechartsRootState,
@@ -39,11 +42,26 @@ export const selectScatterPoints = (
   }
   const xAxis = selectAxisWithScale(state, "xAxis", xAxisId, isPanorama);
   const yAxis = selectAxisWithScale(state, "yAxis", yAxisId, isPanorama);
-  const xAxisTicks = selectTicksOfGraphicalItem(state, "xAxis", xAxisId, isPanorama);
-  const yAxisTicks = selectTicksOfGraphicalItem(state, "yAxis", yAxisId, isPanorama);
+  const xAxisTicks = selectTicksOfGraphicalItem(
+    state,
+    "xAxis",
+    xAxisId,
+    isPanorama,
+  );
+  const yAxisTicks = selectTicksOfGraphicalItem(
+    state,
+    "yAxis",
+    yAxisId,
+    isPanorama,
+  );
   const zAxis = selectZAxisWithScale(state, "zAxis", zAxisId, false);
   const { chartData, dataStartIndex, dataEndIndex } =
-    selectChartDataWithIndexesIfNotInPanoramaPosition4(state, undefined, undefined, isPanorama);
+    selectChartDataWithIndexesIfNotInPanoramaPosition4(
+      state,
+      undefined,
+      undefined,
+      isPanorama,
+    );
 
   let displayedData: ChartData | undefined;
   if (scatterSettings.data != null && scatterSettings.data.length > 0) {

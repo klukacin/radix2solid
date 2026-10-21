@@ -1,16 +1,15 @@
 // @ts-check
-/* eslint-disable @typescript-eslint/no-require-imports */
-const fs = require('fs');
-const path = require('path');
-const postcssModule = require('postcss');
+const fs = require("fs");
+const path = require("path");
+const postcssModule = require("postcss");
 
 // Build a list of breakpoints from "@custom media" rules in "breakpoints.css"
-const breakpointsFile = path.resolve(__dirname, 'src/styles/breakpoints.css');
-const breakpointsCss = fs.readFileSync(breakpointsFile, 'utf-8');
+const breakpointsFile = path.resolve(__dirname, "src/styles/breakpoints.css");
+const breakpointsCss = fs.readFileSync(breakpointsFile, "utf-8");
 const breakpoints = postcssModule
   .parse(breakpointsCss)
   .nodes.map((node) => {
-    if (node.type === 'atrule' && node.name === 'custom-media') {
+    if (node.type === "atrule" && node.name === "custom-media") {
       const match = node.params.match(/--(\w+)\s+(.+)/);
       if (!match) {
         throw new Error(`Invalid custom media rule: ${node.params}`);
@@ -29,9 +28,13 @@ const cache = new WeakMap();
  * @returns {Plugin}
  */
 const plugin = () => ({
-  postcssPlugin: 'postcss-breakpoints',
+  postcssPlugin: "postcss-breakpoints",
   Rule(rule) {
-    if (rule.parent && 'name' in rule.parent && rule.parent.name === 'breakpoints') {
+    if (
+      rule.parent &&
+      "name" in rule.parent &&
+      rule.parent.name === "breakpoints"
+    ) {
       const breakpointsRule = rule.parent;
       // when we first meet a given @breakpoints at-rule
       if (!cache.has(breakpointsRule)) {
@@ -43,7 +46,7 @@ const plugin = () => ({
             return breakpointsMedias;
           }
           breakpointsMedias[breakpoint.name] = new postcssModule.AtRule({
-            name: 'media',
+            name: "media",
             params: breakpoint.params,
           });
           return breakpointsMedias;
@@ -65,7 +68,7 @@ const plugin = () => ({
       // save clone of the rule before we modify it
       const originalRule = rule.clone();
       // clean up the extra indentation
-      rule.selector = rule.selector.replace(/\n\s\s/g, '\n');
+      rule.selector = rule.selector.replace(/\n\s\s/g, "\n");
       rule.cleanRaws();
 
       // add breakpoint-level rules
@@ -94,7 +97,7 @@ module.exports.postcss = true;
  * @param {string} prefix
  */
 function addPrefix(node, prefix) {
-  if (node.type === 'atrule') {
+  if (node.type === "atrule") {
     node.each((child) => addPrefix(child, prefix));
   }
 
@@ -117,14 +120,17 @@ function addPrefix(node, prefix) {
   // - followed by 2 or more prop selectors (lowercase, numbers, -)
   //
   // e.g. ".rt-DialogContent.rt-r-size-2.gray"
-  if ('selector' in node && /\.rt-(?:[A-Z][a-z]+)+(?:\.[a-z0-9-]+){2,}/.test(node.selector)) {
+  if (
+    "selector" in node &&
+    /\.rt-(?:[A-Z][a-z]+)+(?:\.[a-z0-9-]+){2,}/.test(node.selector)
+  ) {
     throw Error(`
       "${node.selector}" looks like it uses compound props on a component.
       "@breakpoints" does not support compound props yet.
     `);
   }
 
-  if ('selector' in node && classNameRegexp.test(node.selector)) {
+  if ("selector" in node && classNameRegexp.test(node.selector)) {
     node.selector = node.selector.replace(classNameRegexp, `.${prefix}\\:$1`);
   }
 }

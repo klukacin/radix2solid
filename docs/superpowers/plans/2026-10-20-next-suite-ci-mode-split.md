@@ -33,6 +33,7 @@
 **One implementation owner for all four files; do not split into independent writer tasks.**
 
 **Files:**
+
 - Modify `package.json` — shared unit/dev scripts and full mode pipelines.
 - Modify `.github/workflows/check.yml` — reusable mode matrix and aggregate.
 - Modify `.github/workflows/publish.yml` — reusable read-only validation and single build before pack.

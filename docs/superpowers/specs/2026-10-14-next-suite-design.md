@@ -10,13 +10,13 @@ All four existing `0.1.0-rc.2` packages are already published. That release is i
 
 ## Reviewed-scope decomposition
 
-| Written contract | Scope |
-| --- | --- |
-| [Combobox and Command](2026-10-14-next-suite-combobox-command-design.md) | Editable single selected key plus independent query/form validity; distinct action-only input/listbox, usable inline or with existing Dialog. |
-| [Tree](2026-10-14-next-suite-tree-design.md) | True hierarchical composite; single or no selection, explicit activation/expansion, focus repair. Disclosure navigation remains a separate valid choice. |
-| [Splitter](2026-10-14-next-suite-splitter-design.md) | Two panels, nestable roots, explicit px/% bounds, proposal versus accepted commit, primary collapse. No N-pane solver. |
-| [Extra icons](2026-10-14-next-suite-icons-extra-design.md) | Small separate original-artwork package and its provenance/public API contract, beginning with folder glyphs. No brand marks or claim that extensions are upstream Radix artwork. |
-| [Charts upstream work](2026-10-14-next-suite-charts-upstream-design.md) | Explicitly selected and mapped native/upstream adaptations and their acceptance boundaries, not blanket Recharts parity or all canary fixes. |
+| Written contract                                                         | Scope                                                                                                                                                                             |
+| ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Combobox and Command](2026-10-14-next-suite-combobox-command-design.md) | Editable single selected key plus independent query/form validity; distinct action-only input/listbox, usable inline or with existing Dialog.                                     |
+| [Tree](2026-10-14-next-suite-tree-design.md)                             | True hierarchical composite; single or no selection, explicit activation/expansion, focus repair. Disclosure navigation remains a separate valid choice.                          |
+| [Splitter](2026-10-14-next-suite-splitter-design.md)                     | Two panels, nestable roots, explicit px/% bounds, proposal versus accepted commit, primary collapse. No N-pane solver.                                                            |
+| [Extra icons](2026-10-14-next-suite-icons-extra-design.md)               | Small separate original-artwork package and its provenance/public API contract, beginning with folder glyphs. No brand marks or claim that extensions are upstream Radix artwork. |
+| [Charts upstream work](2026-10-14-next-suite-charts-upstream-design.md)  | Explicitly selected and mapped native/upstream adaptations and their acceptance boundaries, not blanket Recharts parity or all canary fixes.                                      |
 
 All UI behavior belongs in Primitives. Existing website Themes recipes supply styled live examples/playgrounds; no second behavior engine or automatic expansion of exported Themes wrappers. Each of the four UI families receives a native API page and a styled interactive example using existing website conventions. Library/public examples change only after the implementation is actually available in a pinned build.
 

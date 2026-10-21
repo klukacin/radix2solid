@@ -1,19 +1,23 @@
+import type { JSX } from "@solidjs/web";
 // Partial port of recharts 3.8.1 src/util/BarUtils.tsx (commit 7a23854).
 //
 // Exports `BarRectangle`/`defaultBarShape` for background bars and custom shapes;
 // `MinPointSize` + `minPointSizeCallback` for computeBarRectangles.
 import { createMemo, omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { Rectangle, type RectangleProps } from "../shape/Rectangle";
+
 import type { BarShapeProps } from "../cartesian/Bar";
+import { Rectangle, type RectangleProps } from "../shape/Rectangle";
 import { Shape } from "./ActiveShapeUtils";
-import { ActiveShape, DataKey } from "./types";
 import { isNullish, isNumber } from "./DataUtils";
+import { ActiveShape, DataKey } from "./types";
 
 export const defaultBarShape = Rectangle;
 
 /** Background shape props omit `value`/`tooltipPosition` (recharts BarBackground L499). */
-export type BarRectangleProps = Omit<BarShapeProps, "value" | "tooltipPosition" | "background"> & {
+export type BarRectangleProps = Omit<
+  BarShapeProps,
+  "value" | "tooltipPosition" | "background"
+> & {
   option: ActiveShape<BarShapeProps, SVGPathElement> | undefined;
   onMouseEnter?: (e: MouseEvent) => void;
   onMouseLeave?: (e: MouseEvent) => void;
@@ -32,7 +36,10 @@ export function BarRectangle(props: BarRectangleProps): JSX.Element {
   // fails to exclude `option` and leaks it to custom shape/background functions.
   // Spreading into a plain object keeps the downstream <Shape> reads a static
   // snapshot (no STRICT_READ), while the memo re-runs when any prop changes.
-  const shapeProps = createMemo((): BarRectangleShapeProps => ({ ...omit(props, "option") }));
+  const forwardedProps = omit(props, "option");
+  const shapeProps = createMemo((): BarRectangleShapeProps => ({
+    ...forwardedProps,
+  }));
   return (
     <Shape<BarRectangleShapeProps, SVGPathElement>
       option={props.option}
@@ -48,7 +55,9 @@ export function BarRectangle(props: BarRectangleProps): JSX.Element {
  * A bar's minimum rendered size in pixels, so very small values stay visible.
  * Either a fixed number or a function of the value and its index.
  */
-export type MinPointSize = number | ((value: number | undefined | null, index: number) => number);
+export type MinPointSize =
+  | number
+  | ((value: number | undefined | null, index: number) => number);
 
 /**
  * Safely gets minPointSize from the minPointSize prop if it is a function

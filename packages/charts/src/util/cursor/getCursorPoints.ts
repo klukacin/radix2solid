@@ -10,7 +10,10 @@ import {
   CartesianLayout,
   PolarLayout,
 } from "../types";
-import { RadialCursorPoints, getRadialCursorPoints } from "./getRadialCursorPoints";
+import {
+  RadialCursorPoints,
+  getRadialCursorPoints,
+} from "./getRadialCursorPoints";
 
 export function getCursorPoints(
   layout: CartesianLayout | PolarLayout,

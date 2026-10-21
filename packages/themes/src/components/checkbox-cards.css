@@ -1,5 +1,5 @@
-@import './_internal/base-card.css';
-@import './_internal/base-checkbox.css';
+@import "./_internal/base-card.css";
+@import "./_internal/base-checkbox.css";
 
 .rt-CheckboxCardsRoot {
   line-height: var(--line-height);
@@ -54,7 +54,8 @@
 
 .rt-CheckboxCardsItem {
   --checkbox-cards-item-padding-right: calc(
-    var(--checkbox-cards-item-padding-left) * 2 + var(--checkbox-cards-item-checkbox-size)
+    var(--checkbox-cards-item-padding-left) * 2 +
+      var(--checkbox-cards-item-checkbox-size)
   );
 }
 

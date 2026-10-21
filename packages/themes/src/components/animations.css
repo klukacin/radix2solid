@@ -92,36 +92,36 @@
   .rt-PopperContent {
     animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
 
-    &:where([data-state='open']) {
+    &:where([data-state="open"]) {
       animation-duration: 160ms;
 
-      &:where([data-side='top']) {
+      &:where([data-side="top"]) {
         animation-name: rt-slide-from-top, rt-fade-in;
       }
-      &:where([data-side='bottom']) {
+      &:where([data-side="bottom"]) {
         animation-name: rt-slide-from-bottom, rt-fade-in;
       }
-      &:where([data-side='left']) {
+      &:where([data-side="left"]) {
         animation-name: rt-slide-from-left, rt-fade-in;
       }
-      &:where([data-side='right']) {
+      &:where([data-side="right"]) {
         animation-name: rt-slide-from-right, rt-fade-in;
       }
     }
 
-    &:where([data-state='closed']) {
+    &:where([data-state="closed"]) {
       animation-duration: 100ms;
 
-      &:where([data-side='top']) {
+      &:where([data-side="top"]) {
         animation-name: rt-slide-to-top, rt-fade-out;
       }
-      &:where([data-side='bottom']) {
+      &:where([data-side="bottom"]) {
         animation-name: rt-slide-to-bottom, rt-fade-out;
       }
-      &:where([data-side='left']) {
+      &:where([data-side="left"]) {
         animation-name: rt-slide-to-left, rt-fade-out;
       }
-      &:where([data-side='right']) {
+      &:where([data-side="right"]) {
         animation-name: rt-slide-to-right, rt-fade-out;
       }
     }

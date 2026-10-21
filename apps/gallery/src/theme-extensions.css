@@ -29,7 +29,9 @@
   --custom-track: #52725e;
 }
 
-.radix-themes[data-custom-accent="calm"]:is(.dark, .dark-theme), :is(.dark, .dark-theme) .radix-themes[data-custom-accent="calm"]:not(.light, .light-theme) {
+.radix-themes[data-custom-accent="calm"]:is(.dark, .dark-theme),
+:is(.dark, .dark-theme)
+  .radix-themes[data-custom-accent="calm"]:not(.light, .light-theme) {
   --custom-1: color(display-p3 0.059 0.083 0.071);
   --custom-2: color(display-p3 0.078 0.11 0.094);
   --custom-3: color(display-p3 0.091 0.176 0.138);
@@ -91,7 +93,9 @@
   --custom-track: color(display-p3 0.624 0.313 0.708);
 }
 
-.radix-themes[data-custom-accent="brand-b"]:is(.dark, .dark-theme), :is(.dark, .dark-theme) .radix-themes[data-custom-accent="brand-b"]:not(.light, .light-theme) {
+.radix-themes[data-custom-accent="brand-b"]:is(.dark, .dark-theme),
+:is(.dark, .dark-theme)
+  .radix-themes[data-custom-accent="brand-b"]:not(.light, .light-theme) {
   --custom-1: color(display-p3 0.09 0.068 0.092);
   --custom-2: color(display-p3 0.118 0.077 0.121);
   --custom-3: color(display-p3 0.192 0.105 0.202);
@@ -122,6 +126,12 @@
   --custom-track: color(display-p3 0.624 0.313 0.708);
 }
 
-.extension-app-scale { --scaling: 1.3; }
-#theme-extensions { max-width: 100%; }
-#extension-panel { position: relative; }
+.extension-app-scale {
+  --scaling: 1.3;
+}
+#theme-extensions {
+  max-width: 100%;
+}
+#extension-panel {
+  position: relative;
+}

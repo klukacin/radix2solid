@@ -12,17 +12,17 @@ No freeform values, multiple selection/tokens, virtualization, loader, fuzzy-sea
 
 Public namespace/subpath: `Combobox` / `@wsagency/radix2solid-primitives/combobox`. Parts follow existing long-name and short-alias conventions and native target-factory `asChild`.
 
-| Part | Contract |
-| --- | --- |
-| `Root` | `items: readonly ComboboxItem[]`; `value/defaultValue: string \| null`; `onValueChange(value)`; `query/defaultQuery: string`; `onQueryChange(query)`; `open/defaultOpen: boolean`; `onOpenChange(open)`; `filter`; `disabled`, `readOnly`, `required`, `name`, `form`, `dir`. Defaults: null selection, closed, enabled, editable, optional. |
-| `Input` | Native text input, role combobox and aria-autocomplete=list, forwarded input/ref/description attributes; consumer must supply an accessible name through a label or ARIA. Sole text-editing and normal tab target; Root owns value/form wiring. |
-| `Trigger` | Optional `type=button`, outside the tab sequence; consumer supplies its accessible name. Toggles popup without taking input focus. Disabled/read-only prevents toggling. |
-| `Portal`, `Content` | Existing native portal and nonmodal layer/Popper conventions; content anchored to Input. Content supports explicit labels/descriptions and position props consistent with existing Popper consumers. |
-| `List` | Listbox with Root-owned ID; holds rendered options/groups. |
-| `Item` | Required `value` key into Root items; optional consumer events/ref/asChild. Root supplies label, disabled and matching state. Nonmatching items do not participate in DOM navigation. |
-| `ItemText`, `ItemIndicator` | Label presentation and committed-selection indicator; neither owns state. ItemText can contain rich presentation without changing the data label. |
-| `Group`, `Label`, `Empty` | Named option grouping and a non-option empty status. Empty is shown when there are no rendered matching options. |
-| `Clear` | Optional named `type=button` (consumer supplies accessible name) requesting null value and empty query, closing popup and restoring input focus. No mutation when disabled/read-only. |
+| Part                        | Contract                                                                                                                                                                                                                                                                                                                                     |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Root`                      | `items: readonly ComboboxItem[]`; `value/defaultValue: string \| null`; `onValueChange(value)`; `query/defaultQuery: string`; `onQueryChange(query)`; `open/defaultOpen: boolean`; `onOpenChange(open)`; `filter`; `disabled`, `readOnly`, `required`, `name`, `form`, `dir`. Defaults: null selection, closed, enabled, editable, optional. |
+| `Input`                     | Native text input, role combobox and aria-autocomplete=list, forwarded input/ref/description attributes; consumer must supply an accessible name through a label or ARIA. Sole text-editing and normal tab target; Root owns value/form wiring.                                                                                              |
+| `Trigger`                   | Optional `type=button`, outside the tab sequence; consumer supplies its accessible name. Toggles popup without taking input focus. Disabled/read-only prevents toggling.                                                                                                                                                                     |
+| `Portal`, `Content`         | Existing native portal and nonmodal layer/Popper conventions; content anchored to Input. Content supports explicit labels/descriptions and position props consistent with existing Popper consumers.                                                                                                                                         |
+| `List`                      | Listbox with Root-owned ID; holds rendered options/groups.                                                                                                                                                                                                                                                                                   |
+| `Item`                      | Required `value` key into Root items; optional consumer events/ref/asChild. Root supplies label, disabled and matching state. Nonmatching items do not participate in DOM navigation.                                                                                                                                                        |
+| `ItemText`, `ItemIndicator` | Label presentation and committed-selection indicator; neither owns state. ItemText can contain rich presentation without changing the data label.                                                                                                                                                                                            |
+| `Group`, `Label`, `Empty`   | Named option grouping and a non-option empty status. Empty is shown when there are no rendered matching options.                                                                                                                                                                                                                             |
+| `Clear`                     | Optional named `type=button` (consumer supplies accessible name) requesting null value and empty query, closing popup and restoring input focus. No mutation when disabled/read-only.                                                                                                                                                        |
 
 `ComboboxItem` is `{ value: string; label: string; disabled?: boolean }`. Keys must be unique, nonempty and stable. Invalid duplicate/empty keys are configuration errors, not silently merged options. Labels are plain text and may repeat. Root data, not Item mounting or descendant traversal, supplies the selected label on the server. Rich item children are presentation only.
 
@@ -68,14 +68,14 @@ SSR emits data-defined selected text, deterministic IDs, initial aria-invalid an
 
 Namespace/subpath: `Command` / `@wsagency/radix2solid-primitives/command`.
 
-| Part | Contract |
-| --- | --- |
-| `Root` | `search/defaultSearch: string`, `onSearchChange(search)`, `loop: boolean` (default true). No selected value, open state, form name or global shortcuts. |
-| `Input` | Native text input with combobox/listbox active-descendant semantics and aria-autocomplete=list; consumer supplies an accessible name. Value owned by search state. |
-| `List` | Results listbox, Root-owned ID, accessible name. |
-| `Group`, `Label` | Named result grouping without an independent cursor. |
-| `Item` | `value: string`, `textValue: string`, `disabled?: boolean`, cancellable `onSelect(event)`. Identity is not persisted selection. |
-| `Empty` | Non-option status when zero matching result options are rendered; callers can provide a separate loading status. Visible disabled options still count as results: an all-disabled list has no active suggestion but is not empty. |
+| Part             | Contract                                                                                                                                                                                                                          |
+| ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Root`           | `search/defaultSearch: string`, `onSearchChange(search)`, `loop: boolean` (default true). No selected value, open state, form name or global shortcuts.                                                                           |
+| `Input`          | Native text input with combobox/listbox active-descendant semantics and aria-autocomplete=list; consumer supplies an accessible name. Value owned by search state.                                                                |
+| `List`           | Results listbox, Root-owned ID, accessible name.                                                                                                                                                                                  |
+| `Group`, `Label` | Named result grouping without an independent cursor.                                                                                                                                                                              |
+| `Item`           | `value: string`, `textValue: string`, `disabled?: boolean`, cancellable `onSelect(event)`. Identity is not persisted selection.                                                                                                   |
+| `Empty`          | Non-option status when zero matching result options are rendered; callers can provide a separate loading status. Visible disabled options still count as results: an all-disabled list has no active suggestion but is not empty. |
 
 Caller owns filtering, ranking and rendering. Command performs no automatic string filtering: this avoids overriding domain ranking and makes remote results ordinary child updates. Search changes request the string and reset active suggestion to the first enabled rendered result after the resulting item update. Otherwise preserve active identity across reorder; removal chooses the next/previous visible enabled item or none. Root cleanup removes cursor registrations; no async action scheduler is added.
 

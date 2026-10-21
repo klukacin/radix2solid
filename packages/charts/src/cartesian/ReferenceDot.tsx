@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/cartesian/ReferenceDot.tsx (commit 7a23854).
 //
 // Draws a circle at a DATA coordinate (x, y), mapped to pixels through the
@@ -13,30 +14,30 @@
 //    (React.cloneElement — use the render-function form);
 //    `children` is not rendered (CartesianLabelContext).
 import { createMemo, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { Layer } from "../container/Layer";
-import { Dot, type DotProps } from "../shape/Dot";
+
 import {
   CartesianLabelContextProvider,
   CartesianLabelFromLabelProp,
   type ImplicitLabelType,
 } from "../component/Label";
+import { useClipPathId } from "../container/ClipPathProvider";
+import { Layer } from "../container/Layer";
+import { useIsPanorama } from "../context/PanoramaContext";
+import { Dot, type DotProps } from "../shape/Dot";
+import type { AxisId } from "../state/cartesianAxisSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import type { ReferenceDotSettings } from "../state/referenceElementsSlice";
+import { registerInStore } from "../state/registerInStore";
+import { selectAxisScale } from "../state/selectors/axisSelectors";
+import { adaptEventHandlers } from "../util/adaptEventHandlers";
 import { isNumOrStr } from "../util/DataUtils";
 import { IfOverflow } from "../util/IfOverflow";
-import type { ReferenceDotSettings } from "../state/referenceElementsSlice";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import { selectAxisScale } from "../state/selectors/axisSelectors";
-import { useIsPanorama } from "../context/PanoramaContext";
-import { useClipPathId } from "../container/ClipPathProvider";
+import { CartesianScaleHelperImpl } from "../util/scale/CartesianScaleHelper";
 import { svgPropertiesAndEventsKeepCase } from "../util/svgPropertiesAndEvents";
-import { adaptEventHandlers } from "../util/adaptEventHandlers";
+import { Coordinate } from "../util/types";
 import { useUniqueId } from "../util/useUniqueId";
-import type { AxisId } from "../state/cartesianAxisSlice";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 import { ZIndexLayer } from "../zIndex/ZIndexLayer";
-import { Coordinate } from "../util/types";
-import { CartesianScaleHelperImpl } from "../util/scale/CartesianScaleHelper";
-import { registerInStore } from "../state/registerInStore";
 
 type ReferenceCoordinateValue = number | string;
 
@@ -166,7 +167,12 @@ const renderDot = (option: Props["shape"], props: DotProps): JSX.Element => {
   // (a custom `shape` receives the raw props, as in recharts).
   const dotProps: DotProps = { ...props, class: "recharts-reference-dot-dot" };
   return (
-    <Dot {...dotProps} {...(adaptEventHandlers(dotProps) ?? {})} cx={props.cx} cy={props.cy} />
+    <Dot
+      {...dotProps}
+      {...(adaptEventHandlers(dotProps) ?? {})}
+      cx={props.cx}
+      cy={props.cy}
+    />
   );
 };
 
@@ -186,8 +192,12 @@ function ReferenceDotImpl(props: Props): JSX.Element {
   const merged = merge(referenceDotDefaultProps, props);
   const clipPathId = useClipPathId();
   const isPanorama = useIsPanorama();
-  const xAxisScale = useAppSelector((s) => selectAxisScale(s, "xAxis", merged.xAxisId, isPanorama));
-  const yAxisScale = useAppSelector((s) => selectAxisScale(s, "yAxis", merged.yAxisId, isPanorama));
+  const xAxisScale = useAppSelector((s) =>
+    selectAxisScale(s, "xAxis", merged.xAxisId, isPanorama),
+  );
+  const yAxisScale = useAppSelector((s) =>
+    selectAxisScale(s, "yAxis", merged.yAxisId, isPanorama),
+  );
 
   const coordinate = createMemo<Coordinate | null>(() => {
     const xv = merged.x;
@@ -213,7 +223,8 @@ function ReferenceDotImpl(props: Props): JSX.Element {
     if (!c) {
       return null;
     }
-    const clipPath = merged.ifOverflow === "hidden" ? `url(#${clipPathId})` : undefined;
+    const clipPath =
+      merged.ifOverflow === "hidden" ? `url(#${clipPathId})` : undefined;
     return {
       clipPath,
       ...svgPropertiesAndEventsKeepCase({ ...merged }),

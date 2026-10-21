@@ -1,26 +1,37 @@
-import { asChildPropDef } from '../props/as-child.prop.js';
-import { gapPropDefs } from '../props/gap.props.js';
+import { asChildPropDef } from "../props/as-child.prop.js";
+import { gapPropDefs } from "../props/gap.props.js";
+import type { PropDef, GetPropDefTypes } from "../props/prop-def.js";
 
-import type { PropDef, GetPropDefTypes } from '../props/prop-def.js';
-
-const as = ['div', 'span'] as const;
-const displayValues = ['none', 'inline-grid', 'grid'] as const;
-const columnsValues = ['1', '2', '3', '4', '5', '6', '7', '8', '9'] as const;
-const rowsValues = ['1', '2', '3', '4', '5', '6', '7', '8', '9'] as const;
-const flowValues = ['row', 'column', 'dense', 'row-dense', 'column-dense'] as const;
-const alignValues = ['start', 'center', 'end', 'baseline', 'stretch'] as const;
-const justifyValues = ['start', 'center', 'end', 'between'] as const;
-const alignContentValues = [
-  'start',
-  'center',
-  'end',
-  'baseline',
-  'between',
-  'around',
-  'evenly',
-  'stretch',
+const as = ["div", "span"] as const;
+const displayValues = ["none", "inline-grid", "grid"] as const;
+const columnsValues = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
+const rowsValues = ["1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
+const flowValues = [
+  "row",
+  "column",
+  "dense",
+  "row-dense",
+  "column-dense",
 ] as const;
-const justifyItemsValues = ['start', 'center', 'end', 'baseline', 'stretch'] as const;
+const alignValues = ["start", "center", "end", "baseline", "stretch"] as const;
+const justifyValues = ["start", "center", "end", "between"] as const;
+const alignContentValues = [
+  "start",
+  "center",
+  "end",
+  "baseline",
+  "between",
+  "around",
+  "evenly",
+  "stretch",
+] as const;
+const justifyItemsValues = [
+  "start",
+  "center",
+  "end",
+  "baseline",
+  "stretch",
+] as const;
 
 const gridPropDefs = {
   /**
@@ -30,7 +41,7 @@ const gridPropDefs = {
    * as="div"
    * as="span"
    */
-  as: { type: 'enum', values: as, default: 'div' },
+  as: { type: "enum", values: as, default: "div" },
   ...asChildPropDef,
   /**
    * Sets the CSS **display** property.
@@ -44,8 +55,8 @@ const gridPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/display
    */
   display: {
-    type: 'enum',
-    className: 'rt-r-display',
+    type: "enum",
+    className: "rt-r-display",
     values: displayValues,
     responsive: true,
   },
@@ -60,9 +71,9 @@ const gridPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/grid-template-areas
    */
   areas: {
-    type: 'string',
-    className: 'rt-r-gta',
-    customProperties: ['--grid-template-areas'],
+    type: "string",
+    className: "rt-r-gta",
+    customProperties: ["--grid-template-areas"],
     responsive: true,
   },
   /**
@@ -80,9 +91,9 @@ const gridPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/grid-template-columns
    */
   columns: {
-    type: 'enum | string',
-    className: 'rt-r-gtc',
-    customProperties: ['--grid-template-columns'],
+    type: "enum | string",
+    className: "rt-r-gtc",
+    customProperties: ["--grid-template-columns"],
     values: columnsValues,
     parseValue: parseGridValue,
     responsive: true,
@@ -102,9 +113,9 @@ const gridPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/grid-template-rows
    */
   rows: {
-    type: 'enum | string',
-    className: 'rt-r-gtr',
-    customProperties: ['--grid-template-rows'],
+    type: "enum | string",
+    className: "rt-r-gtr",
+    customProperties: ["--grid-template-rows"],
     values: rowsValues,
     parseValue: parseGridValue,
     responsive: true,
@@ -121,8 +132,8 @@ const gridPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/grid-auto-flow
    */
   flow: {
-    type: 'enum',
-    className: 'rt-r-gaf',
+    type: "enum",
+    className: "rt-r-gaf",
     values: flowValues,
     responsive: true,
   },
@@ -138,8 +149,8 @@ const gridPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/align-items
    */
   align: {
-    type: 'enum',
-    className: 'rt-r-ai',
+    type: "enum",
+    className: "rt-r-ai",
     values: alignValues,
     responsive: true,
   },
@@ -155,8 +166,8 @@ const gridPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/justify-content
    */
   justify: {
-    type: 'enum',
-    className: 'rt-r-jc',
+    type: "enum",
+    className: "rt-r-jc",
     values: justifyValues,
     parseValue: parseJustifyValue,
     responsive: true,
@@ -173,8 +184,8 @@ const gridPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/align-content
    */
   alignContent: {
-    type: 'enum',
-    className: 'rt-r-ac',
+    type: "enum",
+    className: "rt-r-ac",
     values: alignContentValues,
     parseValue: parseAlignContentValue,
     responsive: true,
@@ -191,8 +202,8 @@ const gridPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/align-content
    */
   justifyItems: {
-    type: 'enum',
-    className: 'rt-r-ji',
+    type: "enum",
+    className: "rt-r-ji",
     values: justifyItemsValues,
     responsive: true,
   },
@@ -219,24 +230,26 @@ function parseGridValue(value: string): string {
 }
 
 function parseJustifyValue(value: string) {
-  return value === 'between' ? 'space-between' : value;
+  return value === "between" ? "space-between" : value;
 }
 
 function parseAlignContentValue(value: string) {
   switch (value) {
-    case 'between':
-      return 'space-between';
-    case 'around':
-      return 'space-around';
-    case 'evenly':
-      return 'space-evenly';
+    case "between":
+      return "space-between";
+    case "around":
+      return "space-around";
+    case "evenly":
+      return "space-evenly";
     default:
       return value;
   }
 }
 
 // Use all of the imported prop defs to ensure that JSDoc works
-type GridOwnProps = GetPropDefTypes<typeof gridPropDefs & typeof asChildPropDef>;
+type GridOwnProps = GetPropDefTypes<
+  typeof gridPropDefs & typeof asChildPropDef
+>;
 
 export { gridPropDefs };
 export type { GridOwnProps };

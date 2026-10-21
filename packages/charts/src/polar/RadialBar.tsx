@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/polar/RadialBar.tsx (commit 7a23854).
 //
 // MINIMAL PORT — registers a RadialBarSettings polar item and renders one sector
@@ -31,36 +32,64 @@
 // tooltipPosition).
 // Cells ARE wired: a <Cell> child overrides the per-sector fill/stroke/class.
 import { createMemo, For, merge, Show, untrack } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import { useUniqueId } from "../util/useUniqueId";
+
 import {
   AnimatedItems,
   useAnimationCallbacks,
   type AnimationInterpolateFn,
 } from "../animation/AnimatedItems";
+import type { EasingInput } from "../animation/easing";
 import { matchAppend, type AnimationMatchByProp } from "../animation/matchBy";
 import type { MutableRef } from "../animation/useAnimationStartSnapshot";
-import { usePolarChartLayout } from "../context/chartLayoutContext";
-import type { EasingInput } from "../animation/easing";
-import { Layer } from "../container/Layer";
 import { type CellProps, createCellReader } from "../component/Cell";
+import type { Formatter } from "../component/DefaultTooltipContent";
 import {
   type ImplicitLabelListType,
   type PolarLabelListEntry,
   PolarLabelListContextProvider,
   LabelListFromLabelProp,
 } from "../component/LabelList";
+import { Layer } from "../container/Layer";
+import { usePolarChartLayout } from "../context/chartLayoutContext";
 import {
   useMouseClickItemDispatch,
   useMouseEnterItemDispatch,
   useMouseLeaveItemDispatch,
 } from "../context/tooltipContext";
-import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
-import type { Formatter } from "../component/DefaultTooltipContent";
-import { SetLegendPayload } from "../state/SetLegendPayload";
-import { TooltipPayloadConfiguration } from "../state/tooltipSlice";
+import { TooltipTriggerInfo } from "../context/tooltipContext";
 import { SectorProps } from "../shape/Sector";
+import { AxisId } from "../state/cartesianAxisSlice";
+import { ChartData } from "../state/chartDataSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { registerInStore } from "../state/registerInStore";
+import { BaseAxisWithScale } from "../state/selectors/axisSelectors";
+import {
+  selectRadialBarLegendPayload,
+  selectRadialBarSectors,
+} from "../state/selectors/radialBarSelectors";
+import {
+  selectActiveTooltipDataKey,
+  selectActiveTooltipGraphicalItemId,
+  selectActiveTooltipIndex,
+} from "../state/selectors/tooltipSelectors";
+import { SetLegendPayload } from "../state/SetLegendPayload";
+import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
+import { TooltipPayloadConfiguration } from "../state/tooltipSlice";
+import { RadialBarSettings } from "../state/types/RadialBarSettings";
+import {
+  BarPositionPosition,
+  getCateCoordinateOfBar,
+  getTooltipNameProp,
+  getValueByDataKey,
+} from "../util/ChartUtils";
+import { interpolate, isNumber, mathSign } from "../util/DataUtils";
+import {
+  parseCornerRadius,
+  RadialBarSector,
+  RadialBarSectorProps,
+} from "../util/RadialBarUtils";
+import type { StackSeries } from "../util/stacks/stackTypes";
+import { svgPropertiesNoEventsFromUnknown } from "../util/svgPropertiesNoEvents";
 import {
   ActiveShape,
   AnimationDuration,
@@ -73,34 +102,10 @@ import {
   TickItem,
   TooltipType,
 } from "../util/types";
-import { TooltipTriggerInfo } from "../context/tooltipContext";
-import { parseCornerRadius, RadialBarSector, RadialBarSectorProps } from "../util/RadialBarUtils";
-import { ZIndexLayer, type ZIndexable } from "../zIndex/ZIndexLayer";
+import { useUniqueId } from "../util/useUniqueId";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 import { getZIndexFromUnknown } from "../zIndex/getZIndexFromUnknown";
-import { svgPropertiesNoEventsFromUnknown } from "../util/svgPropertiesNoEvents";
-import {
-  selectRadialBarLegendPayload,
-  selectRadialBarSectors,
-} from "../state/selectors/radialBarSelectors";
-import {
-  selectActiveTooltipDataKey,
-  selectActiveTooltipGraphicalItemId,
-  selectActiveTooltipIndex,
-} from "../state/selectors/tooltipSelectors";
-import { RadialBarSettings } from "../state/types/RadialBarSettings";
-import { BaseAxisWithScale } from "../state/selectors/axisSelectors";
-import { ChartData } from "../state/chartDataSlice";
-import { AxisId } from "../state/cartesianAxisSlice";
-import {
-  BarPositionPosition,
-  getCateCoordinateOfBar,
-  getTooltipNameProp,
-  getValueByDataKey,
-} from "../util/ChartUtils";
-import { interpolate, isNumber, mathSign } from "../util/DataUtils";
-import type { StackSeries } from "../util/stacks/stackTypes";
-import { registerInStore } from "../state/registerInStore";
+import { ZIndexLayer, type ZIndexable } from "../zIndex/ZIndexLayer";
 
 export type RadialBarDataItem = SectorProps &
   PolarViewBoxRequired &
@@ -114,14 +119,20 @@ export type RadialBarDataItem = SectorProps &
   };
 
 /** Shape/activeShape are what RadialBarUtils consumes; the rest is the component surface. */
-export interface RadialBarProps<DataPointType = Record<string, unknown>, DataValueType = unknown> {
+export interface RadialBarProps<
+  DataPointType = Record<string, unknown>,
+  DataValueType = unknown,
+> {
   /**
    * If set a function, the function will be called to render a customized shape.
    * During animations, the function shape also receives `animationElapsedTime`,
    * `isAnimating`, and `isEntrance` (v3.9 {@link ShapeAnimationProps}). By default,
    * renders a sector.
    */
-  shape?: ActiveShape<RadialBarSectorProps & ShapeAnimationProps, SVGPathElement>;
+  shape?: ActiveShape<
+    RadialBarSectorProps & ShapeAnimationProps,
+    SVGPathElement
+  >;
   activeShape?: ActiveShape<RadialBarSectorProps, SVGPathElement>;
   angleAxisId?: AxisId;
   radiusAxisId?: AxisId;
@@ -155,7 +166,10 @@ export interface RadialBarProps<DataPointType = Record<string, unknown>, DataVal
   animationDuration?: AnimationDuration;
   animationEasing?: EasingInput;
   /** Custom per-frame interpolation for the sectors (v3.9). */
-  animationInterpolateFn?: AnimationInterpolateFn<RadialBarDataItem, PolarLayout>;
+  animationInterpolateFn?: AnimationInterpolateFn<
+    RadialBarDataItem,
+    PolarLayout
+  >;
   /** How prev/next sectors are matched across data updates (v3.9). @defaultValue matchAppend */
   animationMatchBy?: AnimationMatchByProp<RadialBarDataItem>;
   /**
@@ -166,17 +180,57 @@ export interface RadialBarProps<DataPointType = Record<string, unknown>, DataVal
   id?: string;
   class?: string;
   /** User pointer handlers, forwarded to each sector's wrapping <Layer>. */
-  onMouseEnter?: (data: RadialBarDataItem, index: number, event: MouseEvent) => void;
-  onMouseLeave?: (data: RadialBarDataItem, index: number, event: MouseEvent) => void;
+  onMouseEnter?: (
+    data: RadialBarDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onMouseLeave?: (
+    data: RadialBarDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
   onClick?: (data: RadialBarDataItem, index: number, event: MouseEvent) => void;
-  onMouseDown?: (data: RadialBarDataItem, index: number, event: MouseEvent) => void;
-  onMouseUp?: (data: RadialBarDataItem, index: number, event: MouseEvent) => void;
-  onMouseMove?: (data: RadialBarDataItem, index: number, event: MouseEvent) => void;
-  onMouseOver?: (data: RadialBarDataItem, index: number, event: MouseEvent) => void;
-  onMouseOut?: (data: RadialBarDataItem, index: number, event: MouseEvent) => void;
-  onTouchStart?: (data: RadialBarDataItem, index: number, event: TouchEvent) => void;
-  onTouchMove?: (data: RadialBarDataItem, index: number, event: TouchEvent) => void;
-  onTouchEnd?: (data: RadialBarDataItem, index: number, event: TouchEvent) => void;
+  onMouseDown?: (
+    data: RadialBarDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onMouseUp?: (
+    data: RadialBarDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onMouseMove?: (
+    data: RadialBarDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onMouseOver?: (
+    data: RadialBarDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onMouseOut?: (
+    data: RadialBarDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onTouchStart?: (
+    data: RadialBarDataItem,
+    index: number,
+    event: TouchEvent,
+  ) => void;
+  onTouchMove?: (
+    data: RadialBarDataItem,
+    index: number,
+    event: TouchEvent,
+  ) => void;
+  onTouchEnd?: (
+    data: RadialBarDataItem,
+    index: number,
+    event: TouchEvent,
+  ) => void;
   /** <Cell> children supplying per-sector fill/stroke/class overrides. */
   children?: JSX.Element;
 }
@@ -186,13 +240,15 @@ export interface RadialBarProps<DataPointType = Record<string, unknown>, DataVal
 // `defaultRadialBarAnimateItems`: matched sectors tween startAngle/endAngle between
 // prev/next; added sectors sweep endAngle from startAngle to final; removed sectors
 // drop immediately. t=1 → final (removed dropped).
-const defaultRadialBarAnimateItems: AnimationInterpolateFn<RadialBarDataItem, PolarLayout> = (
-  items,
-  animationElapsedTime,
-) => {
+const defaultRadialBarAnimateItems: AnimationInterpolateFn<
+  RadialBarDataItem,
+  PolarLayout
+> = (items, animationElapsedTime) => {
   if (items == null) return [];
   if (animationElapsedTime === 1) {
-    return items.flatMap((item) => (item.status === "removed" ? [] : [item.next]));
+    return items.flatMap((item) =>
+      item.status === "removed" ? [] : [item.next],
+    );
   }
   return items.flatMap((item): RadialBarDataItem[] => {
     if (item.status === "removed") return [];
@@ -200,8 +256,16 @@ const defaultRadialBarAnimateItems: AnimationInterpolateFn<RadialBarDataItem, Po
       return [
         {
           ...item.next,
-          startAngle: interpolate(item.prev.startAngle, item.next.startAngle, animationElapsedTime),
-          endAngle: interpolate(item.prev.endAngle, item.next.endAngle, animationElapsedTime),
+          startAngle: interpolate(
+            item.prev.startAngle,
+            item.next.startAngle,
+            animationElapsedTime,
+          ),
+          endAngle: interpolate(
+            item.prev.endAngle,
+            item.next.endAngle,
+            animationElapsedTime,
+          ),
         },
       ];
     }
@@ -209,7 +273,11 @@ const defaultRadialBarAnimateItems: AnimationInterpolateFn<RadialBarDataItem, Po
     return [
       {
         ...item.next,
-        endAngle: interpolate(item.next.startAngle, item.next.endAngle, animationElapsedTime),
+        endAngle: interpolate(
+          item.next.startAngle,
+          item.next.endAngle,
+          animationElapsedTime,
+        ),
       },
     ];
   });
@@ -226,7 +294,9 @@ function RadialBarBackground(props: {
   cornerRadius: string | number | undefined;
 }): JSX.Element {
   const backgroundFromProps = (): SectorProps | undefined =>
-    typeof props.background === "object" && props.background != null ? props.background : undefined;
+    typeof props.background === "object" && props.background != null
+      ? props.background
+      : undefined;
   // SVG presentation props from the background prop, minus `class` (composed below).
   const backgroundProps = (): Record<string, unknown> => {
     const all = svgPropertiesNoEventsFromUnknown(props.background) ?? {};
@@ -269,7 +339,12 @@ function RadialBarBackground(props: {
 
   return (
     <Show when={rows().length > 0}>
-      <ZIndexLayer zIndex={getZIndexFromUnknown(props.background, DefaultZIndexes.barBackground)}>
+      <ZIndexLayer
+        zIndex={getZIndexFromUnknown(
+          props.background,
+          DefaultZIndexes.barBackground,
+        )}
+      >
         <Layer>
           <For each={rows()}>{(row) => <RadialBarSector {...row} />}</For>
         </Layer>
@@ -287,7 +362,12 @@ function truncateStackedValue(
   domain: ReadonlyArray<unknown> | null,
 ): ReadonlyArray<unknown> {
   const result: [number, number] = [stackedValue[0], stackedValue[1]];
-  if (domain == null || domain.length !== 2 || !isNumber(domain[0]) || !isNumber(domain[1])) {
+  if (
+    domain == null ||
+    domain.length !== 2 ||
+    !isNumber(domain[0]) ||
+    !isNumber(domain[1])
+  ) {
     return result;
   }
   const minValue = Math.min(domain[0], domain[1]);
@@ -358,104 +438,118 @@ export function computeRadialBarDataItems({
   const angleTicks = angleAxisTicks;
   const radiusTicks = radiusAxisTicks;
 
-  return displayedData.map((entry: unknown, index: number): RadialBarDataItem => {
-    const stackedValue = stackedData?.[dataStartIndex + index];
-    const raw: unknown = getValueByDataKey(entry, dataKey);
-    const value: ReadonlyArray<unknown> =
-      stackedValue != null
-        ? truncateStackedValue(stackedValue, stackedDomain)
-        : Array.isArray(raw)
-          ? raw
-          : [baseValue, raw];
+  return displayedData.map(
+    (entry: unknown, index: number): RadialBarDataItem => {
+      const stackedValue = stackedData?.[dataStartIndex + index];
+      const raw: unknown = getValueByDataKey(entry, dataKey);
+      const value: ReadonlyArray<unknown> =
+        stackedValue != null
+          ? truncateStackedValue(stackedValue, stackedDomain)
+          : Array.isArray(raw)
+            ? raw
+            : [baseValue, raw];
 
-    let innerRadius: number | undefined;
-    let outerRadius: number | undefined;
-    let startAngle: number | undefined;
-    let endAngle: number | undefined;
-    let background: SectorProps | undefined;
+      let innerRadius: number | undefined;
+      let outerRadius: number | undefined;
+      let startAngle: number | undefined;
+      let endAngle: number | undefined;
+      let background: SectorProps | undefined;
 
-    if (layout === "radial") {
-      startAngle = angleAxis.scale.map(value[0]) ?? rootStartAngle;
-      endAngle = angleAxis.scale.map(value[1]) ?? rootEndAngle;
-      innerRadius =
-        getCateCoordinateOfBar({
-          axis: radiusAxis,
-          ticks: radiusTicks,
-          bandSize,
-          offset: pos.offset,
-          entry,
-          index,
-        }) ?? undefined;
-      if (innerRadius != null && endAngle != null && startAngle != null) {
-        outerRadius = innerRadius + pos.size;
-        const deltaAngle = endAngle - startAngle;
-        if (Math.abs(minPointSize) > 0 && Math.abs(deltaAngle) < Math.abs(minPointSize)) {
-          const delta =
-            mathSign(deltaAngle || minPointSize) * (Math.abs(minPointSize) - Math.abs(deltaAngle));
-          endAngle += delta;
+      if (layout === "radial") {
+        startAngle = angleAxis.scale.map(value[0]) ?? rootStartAngle;
+        endAngle = angleAxis.scale.map(value[1]) ?? rootEndAngle;
+        innerRadius =
+          getCateCoordinateOfBar({
+            axis: radiusAxis,
+            ticks: radiusTicks,
+            bandSize,
+            offset: pos.offset,
+            entry,
+            index,
+          }) ?? undefined;
+        if (innerRadius != null && endAngle != null && startAngle != null) {
+          outerRadius = innerRadius + pos.size;
+          const deltaAngle = endAngle - startAngle;
+          if (
+            Math.abs(minPointSize) > 0 &&
+            Math.abs(deltaAngle) < Math.abs(minPointSize)
+          ) {
+            const delta =
+              mathSign(deltaAngle || minPointSize) *
+              (Math.abs(minPointSize) - Math.abs(deltaAngle));
+            endAngle += delta;
+          }
+          background = {
+            cx,
+            cy,
+            innerRadius,
+            outerRadius,
+            startAngle: rootStartAngle,
+            endAngle: rootEndAngle,
+          };
         }
-        background = {
-          cx,
-          cy,
-          innerRadius,
-          outerRadius,
-          startAngle: rootStartAngle,
-          endAngle: rootEndAngle,
-        };
-      }
-    } else {
-      innerRadius = radiusAxis.scale.map(value[0]);
-      outerRadius = radiusAxis.scale.map(value[1]);
-      startAngle =
-        getCateCoordinateOfBar({
-          axis: angleAxis,
-          ticks: angleTicks,
-          bandSize,
-          offset: pos.offset,
-          entry,
-          index,
-        }) ?? undefined;
-      if (innerRadius != null && outerRadius != null && startAngle != null) {
-        endAngle = startAngle + pos.size;
-        const deltaRadius = outerRadius - innerRadius;
-        if (Math.abs(minPointSize) > 0 && Math.abs(deltaRadius) < Math.abs(minPointSize)) {
-          const delta =
-            mathSign(deltaRadius || minPointSize) *
-            (Math.abs(minPointSize) - Math.abs(deltaRadius));
-          outerRadius += delta;
+      } else {
+        innerRadius = radiusAxis.scale.map(value[0]);
+        outerRadius = radiusAxis.scale.map(value[1]);
+        startAngle =
+          getCateCoordinateOfBar({
+            axis: angleAxis,
+            ticks: angleTicks,
+            bandSize,
+            offset: pos.offset,
+            entry,
+            index,
+          }) ?? undefined;
+        if (innerRadius != null && outerRadius != null && startAngle != null) {
+          endAngle = startAngle + pos.size;
+          const deltaRadius = outerRadius - innerRadius;
+          if (
+            Math.abs(minPointSize) > 0 &&
+            Math.abs(deltaRadius) < Math.abs(minPointSize)
+          ) {
+            const delta =
+              mathSign(deltaRadius || minPointSize) *
+              (Math.abs(minPointSize) - Math.abs(deltaRadius));
+            outerRadius += delta;
+          }
         }
       }
-    }
 
-    // DEVIATION: recharts spreads `...entry` (the raw data row) into the item to
-    // carry arbitrary per-row props (e.g. data.fill) behind a @ts-expect-error.
-    // The minimal port drops that raw-data spread, but DOES honor <Cell> children:
-    // a cell's fill/stroke/class override the component props (per-row data
-    // presentation is still deferred). RadialBarDataItem requires numbers
-    // (PolarViewBoxRequired); recharts leaves these possibly-undefined and relies
-    // on Sector's `?? 0`, so coercing here is behavior-equivalent.
-    const cell = cells?.[index];
-    const cellClass = typeof cell?.class === "string" ? cell.class : undefined;
-    const rowFields =
-      typeof entry === "object" && entry != null && !Array.isArray(entry) ? entry : {};
-    return {
-      ...rowFields,
-      ...(background != null ? { background } : {}),
-      ...(cell != null ? { fill: cell.fill, stroke: cell.stroke, class: cellClass } : {}),
-      payload: entry,
-      // recharts: a stacked item reports the [start, end] tuple, a plain one the value.
-      value: stackedValue != null ? value : value[1],
-      cx,
-      cy,
-      innerRadius: innerRadius ?? 0,
-      outerRadius: outerRadius ?? 0,
-      startAngle: startAngle ?? 0,
-      endAngle: endAngle ?? 0,
-      // Required by PolarViewBoxRequired; recharts gets it via the `any` data
-      // spread. Sector ignores it (path uses start/end angles), so false is inert.
-      clockWise: false,
-    };
-  });
+      // DEVIATION: recharts spreads `...entry` (the raw data row) into the item to
+      // carry arbitrary per-row props (e.g. data.fill) behind a @ts-expect-error.
+      // The minimal port drops that raw-data spread, but DOES honor <Cell> children:
+      // a cell's fill/stroke/class override the component props (per-row data
+      // presentation is still deferred). RadialBarDataItem requires numbers
+      // (PolarViewBoxRequired); recharts leaves these possibly-undefined and relies
+      // on Sector's `?? 0`, so coercing here is behavior-equivalent.
+      const cell = cells?.[index];
+      const cellClass =
+        typeof cell?.class === "string" ? cell.class : undefined;
+      const rowFields =
+        typeof entry === "object" && entry != null && !Array.isArray(entry)
+          ? entry
+          : {};
+      return {
+        ...rowFields,
+        ...(background != null ? { background } : {}),
+        ...(cell != null
+          ? { fill: cell.fill, stroke: cell.stroke, class: cellClass }
+          : {}),
+        payload: entry,
+        // recharts: a stacked item reports the [start, end] tuple, a plain one the value.
+        value: stackedValue != null ? value : value[1],
+        cx,
+        cy,
+        innerRadius: innerRadius ?? 0,
+        outerRadius: outerRadius ?? 0,
+        startAngle: startAngle ?? 0,
+        endAngle: endAngle ?? 0,
+        // Required by PolarViewBoxRequired; recharts gets it via the `any` data
+        // spread. Sector ignores it (path uses start/end angles), so false is inert.
+        clockWise: false,
+      };
+    },
+  );
 }
 
 export const radialBarDefaultProps = {
@@ -477,12 +571,16 @@ export const radialBarDefaultProps = {
   zIndex: DefaultZIndexes.bar,
 } as const satisfies Partial<RadialBarProps>;
 
-export function RadialBar<DataPointType = Record<string, unknown>, DataValueType = unknown>(
-  props: RadialBarProps<DataPointType, DataValueType>,
-): JSX.Element {
+export function RadialBar<
+  DataPointType = Record<string, unknown>,
+  DataValueType = unknown,
+>(props: RadialBarProps<DataPointType, DataValueType>): JSX.Element {
   const store = useAppStore();
   const merged = merge(radialBarDefaultProps, props);
-  const id = useUniqueId("recharts-radial-bar", props.id);
+  const id = useUniqueId(
+    "recharts-radial-bar",
+    untrack(() => props.id),
+  );
 
   const settings = (): RadialBarSettings => ({
     id,
@@ -503,14 +601,21 @@ export function RadialBar<DataPointType = Record<string, unknown>, DataValueType
       add: (next) => store.actions.graphicalItems.addPolarGraphicalItem(next),
       replace: (prev, next) =>
         store.actions.graphicalItems.replacePolarGraphicalItem({ prev, next }),
-      remove: (prev) => store.actions.graphicalItems.removePolarGraphicalItem(prev),
+      remove: (prev) =>
+        store.actions.graphicalItems.removePolarGraphicalItem(prev),
     });
   }
 
   // Per-sector <Cell> overrides (collected from children, in data order).
   const { cells, resolve: resolveChildren } = createCellReader();
   const sectors = useAppSelector((state) =>
-    selectRadialBarSectors(state, merged.radiusAxisId, merged.angleAxisId, settings(), cells()),
+    selectRadialBarSectors(
+      state,
+      merged.radiusAxisId,
+      merged.angleAxisId,
+      settings(),
+      cells(),
+    ),
   );
 
   const visibleSectors = (): ReadonlyArray<RadialBarDataItem> | null => {
@@ -525,29 +630,34 @@ export function RadialBar<DataPointType = Record<string, unknown>, DataValueType
 
   // recharts uses "recharts-area" as the radial-bar layer class (a quirk).
   const layerClass = (): string =>
-    ["recharts-area", merged.class].filter((c): c is string => Boolean(c)).join(" ");
+    ["recharts-area", merged.class]
+      .filter((c): c is string => Boolean(c))
+      .join(" ");
 
   // Tooltip entry: the sectors themselves are the per-item data (the searcher
   // resolves the value via dataKey). NOTE: the minimal port drops the raw-data
   // spread, so per-sector value resolution by dataKey is limited until that lands.
-  const tooltipConfig = createMemo<TooltipPayloadConfiguration>(() => ({
-    dataDefinedOnItem: sectors(),
-    getPosition: () => undefined,
-    settings: {
-      graphicalItemId: id,
-      stroke: merged.stroke,
-      strokeWidth: merged.strokeWidth,
-      fill: merged.fill,
-      nameKey: undefined,
-      dataKey: merged.dataKey,
-      name: getTooltipNameProp(merged.name, merged.dataKey),
-      hide: merged.hide,
-      type: merged.tooltipType,
-      color: merged.fill,
-      unit: "",
-      formatter: merged.formatter,
-    },
-  }), { lazy: true });
+  const tooltipConfig = createMemo<TooltipPayloadConfiguration>(
+    () => ({
+      dataDefinedOnItem: sectors(),
+      getPosition: () => undefined,
+      settings: {
+        graphicalItemId: id,
+        stroke: merged.stroke,
+        strokeWidth: merged.strokeWidth,
+        fill: merged.fill,
+        nameKey: undefined,
+        dataKey: merged.dataKey,
+        name: getTooltipNameProp(merged.name, merged.dataKey),
+        hide: merged.hide,
+        type: merged.tooltipType,
+        color: merged.fill,
+        unit: "",
+        formatter: merged.formatter,
+      },
+    }),
+    { lazy: true },
+  );
 
   // One legend entry per data row (recharts' selectRadialBarLegendPayload) —
   // value/color come from each row's `name`/`fill`.
@@ -559,14 +669,17 @@ export function RadialBar<DataPointType = Record<string, unknown>, DataValueType
   // Holds the latest visible sectors frame so a re-animation (data change) tweens
   // from where the sectors currently are. Managed by AnimatedItems via
   // useAnimationStartSnapshot.
-  const previousSectorsRef: MutableRef<ReadonlyArray<RadialBarDataItem> | null | undefined> = {
+  const previousSectorsRef: MutableRef<
+    ReadonlyArray<RadialBarDataItem> | null | undefined
+  > = {
     current: null,
   };
   // Labels are hidden while the sectors animate (recharts' showLabels={!isAnimating}).
-  const { isAnimating, handleAnimationStart, handleAnimationEnd } = useAnimationCallbacks(
-    () => props.onAnimationStart?.(),
-    () => props.onAnimationEnd?.(),
-  );
+  const { isAnimating, handleAnimationStart, handleAnimationEnd } =
+    useAnimationCallbacks(
+      () => props.onAnimationStart?.(),
+      () => props.onAnimationEnd?.(),
+    );
 
   // User pointer handlers are forwarded to each sector's wrapping <Layer>: the
   // mouse handlers wrap into the tooltip-item dispatch (called props-first), and
@@ -578,7 +691,9 @@ export function RadialBar<DataPointType = Record<string, unknown>, DataValueType
     () => merged.dataKey,
     id,
   );
-  const onItemLeave = useMouseLeaveItemDispatch<RadialBarDataItem>(() => props.onMouseLeave);
+  const onItemLeave = useMouseLeaveItemDispatch<RadialBarDataItem>(
+    () => props.onMouseLeave,
+  );
   const onItemClick = useMouseClickItemDispatch<RadialBarDataItem>(
     () => props.onClick,
     () => merged.dataKey,
@@ -588,16 +703,23 @@ export function RadialBar<DataPointType = Record<string, unknown>, DataValueType
   // Plain props-first pointer/touch callbacks (no tooltip dispatch — only
   // enter/leave/click drive the active tooltip). Each binds (entry, index).
   const onItemMouse =
-    (handler: ((d: RadialBarDataItem, i: number, e: MouseEvent) => void) | undefined) =>
+    (
+      key:
+        | "onMouseDown"
+        | "onMouseUp"
+        | "onMouseMove"
+        | "onMouseOver"
+        | "onMouseOut",
+    ) =>
     (entry: RadialBarDataItem, index: number) =>
     (event: MouseEvent): void => {
-      handler?.(entry, index, event);
+      props[key]?.(entry, index, event);
     };
-  const onItemMouseDown = onItemMouse(props.onMouseDown);
-  const onItemMouseUp = onItemMouse(props.onMouseUp);
-  const onItemMouseMove = onItemMouse(props.onMouseMove);
-  const onItemMouseOver = onItemMouse(props.onMouseOver);
-  const onItemMouseOut = onItemMouse(props.onMouseOut);
+  const onItemMouseDown = onItemMouse("onMouseDown");
+  const onItemMouseUp = onItemMouse("onMouseUp");
+  const onItemMouseMove = onItemMouse("onMouseMove");
+  const onItemMouseOver = onItemMouse("onMouseOver");
+  const onItemMouseOut = onItemMouse("onMouseOut");
 
   const onItemTouchStart =
     (entry: RadialBarDataItem, index: number) =>
@@ -619,7 +741,9 @@ export function RadialBar<DataPointType = Record<string, unknown>, DataValueType
   // the activeShape option instead of the regular shape). Matches Pie's pattern.
   const activeIndex = useAppSelector(selectActiveTooltipIndex);
   const activeDataKey = useAppSelector(selectActiveTooltipDataKey);
-  const activeGraphicalItemId = useAppSelector(selectActiveTooltipGraphicalItemId);
+  const activeGraphicalItemId = useAppSelector(
+    selectActiveTooltipGraphicalItemId,
+  );
   const isSectorActive = (index: number): boolean =>
     String(index) === activeIndex() &&
     (activeDataKey() == null || merged.dataKey === activeDataKey()) &&
@@ -630,21 +754,28 @@ export function RadialBar<DataPointType = Record<string, unknown>, DataValueType
   const isSectorActiveShape = (index: number): boolean =>
     Boolean(merged.activeShape) && isSectorActive(index);
   const sectorOption = (index: number): RadialBarProps["shape"] =>
-    isSectorActive(index) && merged.activeShape != null ? merged.activeShape : merged.shape;
+    isSectorActive(index) && merged.activeShape != null
+      ? merged.activeShape
+      : merged.shape;
 
   const labelContextEntries = (): readonly PolarLabelListEntry[] | undefined =>
-    !isAnimating() ? (visibleSectors() ?? []).map(sector => ({
-      value: sector.value,
-      payload: sector.payload,
-      parentViewBox: undefined,
-      fill: typeof sector.fill === "string" ? sector.fill : undefined,
-      viewBox: {
-        cx: sector.cx, cy: sector.cy,
-        innerRadius: sector.innerRadius, outerRadius: sector.outerRadius,
-        startAngle: sector.startAngle, endAngle: sector.endAngle,
-        clockWise: false,
-      },
-    })) : undefined;
+    !isAnimating()
+      ? (visibleSectors() ?? []).map((sector) => ({
+          value: sector.value,
+          payload: sector.payload,
+          parentViewBox: undefined,
+          fill: typeof sector.fill === "string" ? sector.fill : undefined,
+          viewBox: {
+            cx: sector.cx,
+            cy: sector.cy,
+            innerRadius: sector.innerRadius,
+            outerRadius: sector.outerRadius,
+            startAngle: sector.startAngle,
+            endAngle: sector.endAngle,
+            clockWise: false,
+          },
+        }))
+      : undefined;
 
   const renderedChildren = resolveChildren(() => (
     <PolarLabelListContextProvider value={labelContextEntries}>
@@ -656,7 +787,10 @@ export function RadialBar<DataPointType = Record<string, unknown>, DataValueType
     <PolarLabelListContextProvider value={labelContextEntries}>
       {renderedChildren()}
       <SetTooltipEntrySettings tooltipEntrySettings={tooltipConfig()} />
-      <SetLegendPayload id={id} legendPayload={legendPayload() ?? []} />
+      <SetLegendPayload
+        id={id}
+        legendPayload={legendPayload() ?? []}
+      />
       <Show when={visibleSectors()}>
         {(secs) => (
           // Wrapped in <ZIndexLayer> (default 300) so a `zIndex` prop relayers the
@@ -670,52 +804,58 @@ export function RadialBar<DataPointType = Record<string, unknown>, DataValueType
           // wraps everything (this is also exactly recharts' `.recharts-area` wrap).
           <ZIndexLayer zIndex={merged.zIndex}>
             <Layer class={layerClass()}>
-                <Show when={merged.background}>
-                  {(bg) => (
-                    <RadialBarBackground
-                      sectors={secs()}
-                      background={bg()}
-                      cornerRadius={merged.cornerRadius}
-                    />
-                  )}
-                </Show>
-                {/* Sector enter/update animation via the new v3.9 engine: matched sectors
+              <Show when={merged.background}>
+                {(bg) => (
+                  <RadialBarBackground
+                    sectors={secs()}
+                    background={bg()}
+                    cornerRadius={merged.cornerRadius}
+                  />
+                )}
+              </Show>
+              {/* Sector enter/update animation via the new v3.9 engine: matched sectors
                 tween start/end angle from prev to next, added sectors sweep endAngle
                 from startAngle to final. isAnimationActive=false → t=1 → final sectors
                 → byte-identical to the static render. polarLayout is read untracked for
                 the AnimatedItems layout prop (mirrors Pie): the outer Show already gates
                 on visible sectors, so the layout is always defined here. */}
-                <AnimatedItems
-                  animationInput={secs()}
-                  animationIdPrefix="recharts-radialbar-"
-                  items={secs()}
-                  previousItemsRef={previousSectorsRef}
-                  isAnimationActive={merged.isAnimationActive}
-                  animationBegin={merged.animationBegin}
-                  animationDuration={merged.animationDuration}
-                  animationEasing={merged.animationEasing}
-                  onAnimationStart={handleAnimationStart}
-                  onAnimationEnd={handleAnimationEnd}
-                  animationInterpolateFn={merged.animationInterpolateFn}
-                  animationMatchBy={merged.animationMatchBy}
-                  layout={untrack(() => polarLayout()) ?? "centric"}
-                >
-                  {(frame, animationElapsedTime, isEntrance) => (
-                    <Layer class="recharts-radial-bar-sectors">
-                      <For each={frame}>
-                        {(entry, i) => (
+              <AnimatedItems
+                animationInput={secs()}
+                animationIdPrefix="recharts-radialbar-"
+                items={secs()}
+                previousItemsRef={previousSectorsRef}
+                isAnimationActive={merged.isAnimationActive}
+                animationBegin={merged.animationBegin}
+                animationDuration={merged.animationDuration}
+                animationEasing={merged.animationEasing}
+                onAnimationStart={handleAnimationStart}
+                onAnimationEnd={handleAnimationEnd}
+                animationInterpolateFn={merged.animationInterpolateFn}
+                animationMatchBy={merged.animationMatchBy}
+                layout={untrack(() => polarLayout()) ?? "centric"}
+              >
+                {(frame, animationElapsedTime, isEntrance) => (
+                  <Layer class="recharts-radial-bar-sectors">
+                    <For each={frame}>
+                      {(entry, i) => {
+                        const sectorClass = `recharts-radial-bar-sector ${entry.class ?? ""}`;
+                        return (
                           <RadialBarSector
                             {...entry}
                             index={i()}
                             isActive={isSectorActiveShape(i())}
                             option={sectorOption(i())}
                             animationElapsedTime={animationElapsedTime}
-                            isAnimating={isAnimating() || animationElapsedTime < 1}
+                            isAnimating={
+                              isAnimating() || animationElapsedTime < 1
+                            }
                             isEntrance={isEntrance}
-                            class={`recharts-radial-bar-sector ${entry.class ?? ""}`}
+                            class={sectorClass}
                             fill={entry.fill ?? merged.fill}
                             stroke={entry.stroke ?? merged.stroke}
-                            strokeWidth={entry.strokeWidth ?? merged.strokeWidth}
+                            strokeWidth={
+                              entry.strokeWidth ?? merged.strokeWidth
+                            }
                             cornerRadius={cornerRadius()}
                             forceCornerRadius={merged.forceCornerRadius}
                             cornerIsExternal={merged.cornerIsExternal}
@@ -731,12 +871,13 @@ export function RadialBar<DataPointType = Record<string, unknown>, DataValueType
                             onTouchMove={onItemTouchMove(entry, i())}
                             onTouchEnd={onItemTouchEnd(entry, i())}
                           />
-                        )}
-                      </For>
-                    </Layer>
-                  )}
-                </AnimatedItems>
-                <LabelListFromLabelProp label={merged.label} />
+                        );
+                      }}
+                    </For>
+                  </Layer>
+                )}
+              </AnimatedItems>
+              <LabelListFromLabelProp label={merged.label} />
             </Layer>
           </ZIndexLayer>
         )}

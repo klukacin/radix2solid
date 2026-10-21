@@ -1,3 +1,8 @@
+import type { JSX } from "@solidjs/web";
+import { Show, omit } from "solid-js";
+
+import { roundTemplateLiteral } from "../util/round";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 /**
  * @fileOverview Polygon
  *
@@ -8,17 +13,17 @@
  * `return null` → `<Show>`.
  */
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { Show, omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
 import { Coordinate } from "../util/types";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
-import { roundTemplateLiteral } from "../util/round";
 
-const isValidatePoint = (point: Coordinate | undefined): point is Coordinate => {
+const isValidatePoint = (
+  point: Coordinate | undefined,
+): point is Coordinate => {
   return point != null && point.x === +point.x && point.y === +point.y;
 };
 
-const getParsedPoints = (points: ReadonlyArray<Coordinate> = []): Coordinate[][] => {
+const getParsedPoints = (
+  points: ReadonlyArray<Coordinate> = [],
+): Coordinate[][] => {
   let segmentPoints: Coordinate[][] = [[]];
 
   points.forEach((entry) => {
@@ -63,9 +68,12 @@ const getSinglePolygonPath = (
 
   const polygonPath = segmentPoints
     .map((segPoints) => {
-      return segPoints.reduce((path: string, point: Coordinate, index: number) => {
-        return roundTemplateLiteral`${path}${index === 0 ? "M" : "L"}${point.x},${point.y}`;
-      }, "");
+      return segPoints.reduce(
+        (path: string, point: Coordinate, index: number) => {
+          return roundTemplateLiteral`${path}${index === 0 ? "M" : "L"}${point.x},${point.y}`;
+        },
+        "",
+      );
     })
     .join("");
 
@@ -102,10 +110,20 @@ export type PolygonProps = Omit<
   PolygonOwnProps;
 
 export const Polygon = (props: PolygonProps): JSX.Element => {
+  const forwardedProps = omit(
+    props,
+    "class",
+    "points",
+    "baseLinePoints",
+    "connectNulls",
+  );
   const others = (): Record<string, unknown> => ({
-    ...omit(props, "class", "points", "baseLinePoints", "connectNulls"),
+    ...forwardedProps,
   });
-  const layerClass = (): Array<string | undefined> => ["recharts-polygon", props.class];
+  const layerClass = (): Array<string | undefined> => [
+    "recharts-polygon",
+    props.class,
+  ];
 
   // Narrow `points` to a non-empty array via keyed Show (no non-null assertion).
   const validPoints = (): ReadonlyArray<Coordinate> | undefined =>
@@ -116,7 +134,10 @@ export const Polygon = (props: PolygonProps): JSX.Element => {
       : undefined;
 
   return (
-    <Show when={validPoints()} keyed>
+    <Show
+      when={validPoints()}
+      keyed
+    >
       {(points) => (
         <Show
           when={validBase()}
@@ -135,7 +156,11 @@ export const Polygon = (props: PolygonProps): JSX.Element => {
         >
           {(baseLinePoints) => {
             const hasStroke = props.stroke && props.stroke !== "none";
-            const rangePath = getRanglePath(points, baseLinePoints, props.connectNulls);
+            const rangePath = getRanglePath(
+              points,
+              baseLinePoints,
+              props.connectNulls,
+            );
             return (
               <g class={layerClass()}>
                 <path

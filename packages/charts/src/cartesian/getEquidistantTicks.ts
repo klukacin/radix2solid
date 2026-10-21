@@ -1,7 +1,7 @@
+import { getEveryNth } from "../util/getEveryNth";
 // Ported from recharts 3.8.1 src/cartesian/getEquidistantTicks.ts (commit 7a23854).
 import { isVisible } from "../util/TickUtils";
 import { CartesianTickItem } from "../util/types";
-import { getEveryNth } from "../util/getEveryNth";
 import { Sign } from "./getTicks";
 
 export function getEquidistantTicks(
@@ -39,7 +39,8 @@ export function getEquidistantTicks(
 
     const tickCoord = entry.coordinate;
     // Always show the first tick.
-    const isShow = index === 0 || isVisible(sign, tickCoord, getSize, start, end);
+    const isShow =
+      index === 0 || isVisible(sign, tickCoord, getSize, start, end);
 
     if (!isShow) {
       // Start over with a larger stepsize.
@@ -98,7 +99,8 @@ export function getEquidistantPreserveEndTicks(
 
       const tickCoord = entry.coordinate;
 
-      const isShow = index === offset || isVisible(sign, tickCoord, getSize, start, end);
+      const isShow =
+        index === offset || isVisible(sign, tickCoord, getSize, start, end);
 
       if (!isShow) {
         // Any tick failing visibility/collision rejects this stepsize.

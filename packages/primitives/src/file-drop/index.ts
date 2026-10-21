@@ -5,6 +5,11 @@ export {
   FileDropInput as Input,
   FileDropTrigger,
   FileDropTrigger as Trigger,
-  createFileDropScope
-} from './file-drop.js';
-export type { FileDropProps, FileDropInputProps, FileDropTriggerProps, FileDropRejection } from './file-drop.js';
+  createFileDropScope,
+} from "./file-drop.js";
+export type {
+  FileDropProps,
+  FileDropInputProps,
+  FileDropTriggerProps,
+  FileDropRejection,
+} from "./file-drop.js";

@@ -47,20 +47,18 @@ SSR begins empty: do not serialize files or construct browser `File`, `DataTrans
 
 The public `/internal` surface is native and deliberately not a React-hook compatibility layer. `tests/consumer/coverage-manifest.json` pins its actual declarations and maps the primitive/component families to retained consumer checks.
 
-| Reference shared API | Native equivalent / ownership |
-| --- | --- |
-| `Arrow`, `Menu`, `Primitive` | Public Arrow namespace; internal Menu namespace and direct Primitive component. No synthetic `Primitive.Root` or React discrete-event helper. Native DOM dispatch handles custom events; explicitly flush native state only where the interaction requires it. |
-| `Collection`, `Context` | `createCollection`, `createContextScope`, `Scope` and `CreateScope`; registrations and providers belong to native owners. |
-| `RovingFocus`, `Presence` | `RovingFocusGroup`, `RovingFocusGroupItem`, `createRovingFocusGroupScope`; `createPresence` and `Presence` retain/cancel real exit animations. |
-| `FocusGuards`, `FocusScope`, `DismissableLayer` | Document-wide layer registry, `createDismissableLayer`, branch registration and native focus traversal/autofocus/restoration; not separate React scope/guard wrappers. |
-| `Popper` | `createPopperContext`, `createPopperScope`, `usePopper` and direct Popper/Anchor/Content/Arrow components; owner-document observers and Floating UI cleanup. |
-| `composeRefs`, `useComposedRefs` | `composeRefs` and native ref arrays; no hook alias. |
-| `useControllableState`, `useControllableStateReducer` | `createControllableState` for parent-authoritative values; domain transitions use owned signals rather than a React reducer shim. |
-| `composeEventHandlers`, `useCallbackRef`, `useEffectEvent` | Consumer-first `composeEventHandlers` reads the current callback getter; event handlers read current props instead of cached render callbacks. |
-| `useLayoutEffect`, `useIsHydrated` | Solid 2 `createEffect(compute, apply)` with cleanup returned from apply, or `onSettled` for client-settled work; `isServer` gates DOM access. Native Portal owns hydration deferral. |
-| `useSize`, `useEscapeKeydown` | Owned owner-document ResizeObservers in form controls/Slider/ScrollArea/Popper; shared top-layer Escape dispatch with native cancellation. No unowned hook replacement. |
-
-
+| Reference shared API                                       | Native equivalent / ownership                                                                                                                                                                                                                                  |
+| ---------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Arrow`, `Menu`, `Primitive`                               | Public Arrow namespace; internal Menu namespace and direct Primitive component. No synthetic `Primitive.Root` or React discrete-event helper. Native DOM dispatch handles custom events; explicitly flush native state only where the interaction requires it. |
+| `Collection`, `Context`                                    | `createCollection`, `createContextScope`, `Scope` and `CreateScope`; registrations and providers belong to native owners.                                                                                                                                      |
+| `RovingFocus`, `Presence`                                  | `RovingFocusGroup`, `RovingFocusGroupItem`, `createRovingFocusGroupScope`; `createPresence` and `Presence` retain/cancel real exit animations.                                                                                                                 |
+| `FocusGuards`, `FocusScope`, `DismissableLayer`            | Document-wide layer registry, `createDismissableLayer`, branch registration and native focus traversal/autofocus/restoration; not separate React scope/guard wrappers.                                                                                         |
+| `Popper`                                                   | `createPopperContext`, `createPopperScope`, `usePopper` and direct Popper/Anchor/Content/Arrow components; owner-document observers and Floating UI cleanup.                                                                                                   |
+| `composeRefs`, `useComposedRefs`                           | `composeRefs` and native ref arrays; no hook alias.                                                                                                                                                                                                            |
+| `useControllableState`, `useControllableStateReducer`      | `createControllableState` for parent-authoritative values; domain transitions use owned signals rather than a React reducer shim.                                                                                                                              |
+| `composeEventHandlers`, `useCallbackRef`, `useEffectEvent` | Consumer-first `composeEventHandlers` reads the current callback getter; event handlers read current props instead of cached render callbacks.                                                                                                                 |
+| `useLayoutEffect`, `useIsHydrated`                         | Solid 2 `createEffect(compute, apply)` with cleanup returned from apply, or `onSettled` for client-settled work; `isServer` gates DOM access. Native Portal owns hydration deferral.                                                                           |
+| `useSize`, `useEscapeKeydown`                              | Owned owner-document ResizeObservers in form controls/Slider/ScrollArea/Popper; shared top-layer Escape dispatch with native cancellation. No unowned hook replacement.                                                                                        |
 
 ## Combobox and Command
 
@@ -103,11 +101,16 @@ Style focused Items separately from `[aria-selected="true"]` selection; use nati
 ## Toggle
 
 ```tsx
-import { createSignal } from 'solid-js';
-import { Toggle } from '@wsagency/radix2solid-primitives';
+import { Toggle } from "@wsagency/radix2solid-primitives";
+import { createSignal } from "solid-js";
 
 const [pressed, setPressed] = createSignal(false);
-<Toggle.Root pressed={pressed()} onPressedChange={setPressed}>Bold</Toggle.Root>;
+<Toggle.Root
+  pressed={pressed()}
+  onPressedChange={setPressed}
+>
+  Bold
+</Toggle.Root>;
 ```
 
 `pressed` is parent-authoritative: refusing a request leaves the host unchanged. An undefined `pressed` selects local state. `defaultPressed` initializes once; subsequent changes do not reset local state. Undefined `type` preserves `button`. Requests use the latest callback and unchanged requests do not notify. Local functional writes compose within a microtask batch; callbacks run synchronously for each distinct request, while reactive DOM updates settle normally. This timing differs from React's uncontrolled post-commit effect notification. Consumer click cancellation prevents internal toggling. Native disabled buttons retain platform semantics; custom targets receive disabled/data-disabled and the internal toggle handler does not change state while disabled.
@@ -117,13 +120,19 @@ const [pressed, setPressed] = createSignal(false);
 React cloned an element. This API deliberately does not clone or mutate a DOM node. `asChild` is structural and must be `true` with one render function. The function receives a typed **target factory**, not a snapshot prop bag:
 
 ```tsx
-<Toggle.Root<HTMLAnchorElement> asChild class="trigger" ref={host => console.log(host)}>
-  {target => target('a', {
-    href: '#details',
-    class: 'consumer',
-    onClick: event => event.preventDefault(),
-    children: 'Details'
-  })}
+<Toggle.Root<HTMLAnchorElement>
+  asChild
+  class="trigger"
+  ref={(host) => console.log(host)}
+>
+  {(target) =>
+    target("a", {
+      href: "#details",
+      class: "consumer",
+      onClick: (event) => event.preventDefault(),
+      children: "Details",
+    })
+  }
 </Toggle.Root>
 ```
 
@@ -142,14 +151,17 @@ Native input targets preserve `defaultValue`/`defaultChecked` as actual `value`/
 ## Loading and leading/trailing content
 
 ```tsx
-import { Slot, Toggle } from '@wsagency/radix2solid-primitives';
+import { Slot, Toggle } from "@wsagency/radix2solid-primitives";
 
-<Toggle.Root asChild children={Slot.Slottable({
-  child: target => target('button', { children: 'Save' }),
-  leading: <span aria-hidden="true">→ </span>,
-  trailing: <span aria-hidden="true"> ✓</span>,
-  children: label => <>{loading() ? 'Saving' : label}</>
-})} />;
+<Toggle.Root
+  asChild
+  children={Slot.Slottable({
+    child: (target) => target("button", { children: "Save" }),
+    leading: <span aria-hidden="true">→ </span>,
+    trailing: <span aria-hidden="true"> ✓</span>,
+    children: (label) => <>{loading() ? "Saving" : label}</>,
+  })}
+/>;
 ```
 
 Leading/trailing and transformed loading content stay inside the same target. `createSlot(ownerName)` and `createSlottable(ownerName)` create the same native contracts with owner-specific composition errors; there are no React hook aliases or element-introspection shims.
@@ -159,7 +171,7 @@ Leading/trailing and transformed loading content stay inside the same target. `c
 ## Dialog, Popover and portal ownership
 
 ```tsx
-import { Dialog, Popover } from '@wsagency/radix2solid-primitives';
+import { Dialog, Popover } from "@wsagency/radix2solid-primitives";
 
 <Dialog.Root>
   <Dialog.Trigger>Details</Dialog.Trigger>
@@ -209,22 +221,56 @@ A nested `render()` needs the parent owner during child creation, not around its
 ## Simple native controls
 
 ```tsx
-import { createSignal } from 'solid-js';
-import { AccessibleIcon, AspectRatio, Label, Progress, Separator } from '@wsagency/radix2solid-primitives';
+import {
+  AccessibleIcon,
+  AspectRatio,
+  Label,
+  Progress,
+  Separator,
+} from "@wsagency/radix2solid-primitives";
+import { createSignal } from "solid-js";
 
 const [completed, setCompleted] = createSignal(0);
 <>
-  <button type="button"><AccessibleIcon.Root label="Close">
-    {target => target('svg', { viewBox: '0 0 32 32', children: <path d="M2 30 L30 2 M30 30 L2 2" stroke="currentColor" /> })}
-  </AccessibleIcon.Root></button>
+  <button type="button">
+    <AccessibleIcon.Root label="Close">
+      {(target) =>
+        target("svg", {
+          viewBox: "0 0 32 32",
+          children: (
+            <path
+              d="M2 30 L30 2 M30 30 L2 2"
+              stroke="currentColor"
+            />
+          ),
+        })
+      }
+    </AccessibleIcon.Root>
+  </button>
   <AspectRatio.Root ratio={16 / 9}>
-    <svg viewBox="0 0 160 90" width="100%" height="100%" role="img" aria-label="Landscape">
-      <path d="M0 90 60 20 90 60 110 35 160 90Z" fill="currentColor" />
+    <svg
+      viewBox="0 0 160 90"
+      width="100%"
+      height="100%"
+      role="img"
+      aria-label="Landscape"
+    >
+      <path
+        d="M0 90 60 20 90 60 110 35 160 90Z"
+        fill="currentColor"
+      />
     </svg>
   </AspectRatio.Root>
-  <Label.Root for="account-name">Account name</Label.Root><input id="account-name" />
-  <Progress.Root aria-label="Upload" value={completed()} max={100}>
-    <Progress.Indicator style={{ transform: `translateX(-${100 - completed()}%)` }} />
+  <Label.Root for="account-name">Account name</Label.Root>
+  <input id="account-name" />
+  <Progress.Root
+    aria-label="Upload"
+    value={completed()}
+    max={100}
+  >
+    <Progress.Indicator
+      style={{ transform: `translateX(-${100 - completed()}%)` }}
+    />
   </Progress.Root>
   <button onClick={() => setCompleted(100)}>Complete upload</button>
   <Separator.Root orientation="vertical" />
@@ -236,20 +282,32 @@ AccessibleIcon requires the same single-target factory as Slot and forces the ic
 Progress validates positive max and values between zero and max, falling back to max=100 or indeterminate null with a diagnostic for invalid values. Null/undefined omits value ARIA attributes; zero and completion remain distinct. Indicator shares live value/max through its root, with nested roots isolated and `createProgressScope()` available for explicit scopes. Separator's live orientation controls vertical ARIA semantics; decorative separators use `role="none"`.
 
 ```tsx
-import { createSignal } from 'solid-js';
-import { Announce, Avatar } from '@wsagency/radix2solid-primitives';
+import { Announce, Avatar } from "@wsagency/radix2solid-primitives";
+import { createSignal } from "solid-js";
 
-const [notice, setNotice] = createSignal('Account ready');
-const avatar = 'data:image/svg+xml,' + encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="16" fill="teal"/></svg>'
-);
+const [notice, setNotice] = createSignal("Account ready");
+const avatar =
+  "data:image/svg+xml," +
+  encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32"><circle cx="16" cy="16" r="16" fill="teal"/></svg>',
+  );
 <>
   <Avatar.Root>
-    <Avatar.Image src={avatar} alt="Account avatar" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <Avatar.Image
+      src={avatar}
+      alt="Account avatar"
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    />
     <Avatar.Fallback delayMs={200}>AC</Avatar.Fallback>
   </Avatar.Root>
-  <Announce.Root type="polite" aria-atomic="true">{notice()}</Announce.Root>
-  <button onClick={() => setNotice('Account saved')}>Save account</button>
+  <Announce.Root
+    type="polite"
+    aria-atomic="true"
+  >
+    {notice()}
+  </Announce.Root>
+  <button onClick={() => setNotice("Account saved")}>Save account</button>
 </>;
 ```
 
@@ -259,27 +317,38 @@ Announce keeps original content in place and mirrors live notification markup in
 
 Manual screen-reader delivery remains an acceptance gate: browser DOM/AX observations are not speech-output verification.
 
-
 ## Collapsible and Accordion
 
 ```tsx
-import { createSignal } from 'solid-js';
-import { Accordion, Collapsible } from '@wsagency/radix2solid-primitives';
+import { Accordion, Collapsible } from "@wsagency/radix2solid-primitives";
+import { createSignal } from "solid-js";
 
 const [open, setOpen] = createSignal(false);
-const [item, setItem] = createSignal('');
+const [item, setItem] = createSignal("");
 <>
-  <Collapsible.Root open={open()} onOpenChange={setOpen}>
+  <Collapsible.Root
+    open={open()}
+    onOpenChange={setOpen}
+  >
     <Collapsible.Trigger>Account details</Collapsible.Trigger>
     <Collapsible.Content>Account information</Collapsible.Content>
   </Collapsible.Root>
-  <Accordion.Root type="single" collapsible value={item()} onValueChange={setItem}>
+  <Accordion.Root
+    type="single"
+    collapsible
+    value={item()}
+    onValueChange={setItem}
+  >
     <Accordion.Item value="account">
-      <Accordion.Header><Accordion.Trigger>Account</Accordion.Trigger></Accordion.Header>
+      <Accordion.Header>
+        <Accordion.Trigger>Account</Accordion.Trigger>
+      </Accordion.Header>
       <Accordion.Content>Account information</Accordion.Content>
     </Accordion.Item>
     <Accordion.Item value="settings">
-      <Accordion.Header><Accordion.Trigger>Settings</Accordion.Trigger></Accordion.Header>
+      <Accordion.Header>
+        <Accordion.Trigger>Settings</Accordion.Trigger>
+      </Accordion.Header>
       <Accordion.Content>Account settings</Accordion.Content>
     </Accordion.Item>
   </Accordion.Root>
@@ -293,22 +362,39 @@ Accordion `type="single"` uses a string and cannot close its current item unless
 ## Checkbox and Switch
 
 ```tsx
-import { createSignal } from 'solid-js';
-import { Checkbox, Label, Switch } from '@wsagency/radix2solid-primitives';
+import { Checkbox, Label, Switch } from "@wsagency/radix2solid-primitives";
+import { createSignal } from "solid-js";
 
-const [permission, setPermission] = createSignal<Checkbox.CheckedState>('indeterminate');
+const [permission, setPermission] =
+  createSignal<Checkbox.CheckedState>("indeterminate");
 <>
   <form id="preferences">
     <Label.Root for="permission">Allow access</Label.Root>
-    <Checkbox.Root id="permission" name="permission" value="allowed" required checked={permission()} onCheckedChange={setPermission}>
+    <Checkbox.Root
+      id="permission"
+      name="permission"
+      value="allowed"
+      required
+      checked={permission()}
+      onCheckedChange={setPermission}
+    >
       <Checkbox.Indicator>Selected</Checkbox.Indicator>
     </Checkbox.Root>
-    <Switch.Root aria-label="Notifications" name="notifications" defaultChecked>
+    <Switch.Root
+      aria-label="Notifications"
+      name="notifications"
+      defaultChecked
+    >
       <Switch.Thumb />
     </Switch.Root>
     <button type="reset">Reset preferences</button>
   </form>
-  <Switch.Root aria-label="External preference" name="external" form="preferences" defaultChecked />
+  <Switch.Root
+    aria-label="External preference"
+    name="external"
+    form="preferences"
+    defaultChecked
+  />
 </>;
 ```
 
@@ -321,21 +407,44 @@ Inside or explicitly associated with a form, each root owns a real checkbox inpu
 ## RadioGroup
 
 ```tsx
-import { createSignal } from 'solid-js';
-import { RadioGroup } from '@wsagency/radix2solid-primitives';
+import { RadioGroup } from "@wsagency/radix2solid-primitives";
+import { createSignal } from "solid-js";
 
-const [choice, setChoice] = createSignal<string | null>('one');
+const [choice, setChoice] = createSignal<string | null>("one");
 <>
   <form id="choices">
-    <RadioGroup.Root aria-label="Delivery" name="delivery" value={choice()} onValueChange={setChoice} required>
-      <RadioGroup.Item value="one" aria-label="Standard"><RadioGroup.Indicator>Selected</RadioGroup.Indicator></RadioGroup.Item>
-      <RadioGroup.Item value="two" aria-label="Express"><RadioGroup.Indicator>Selected</RadioGroup.Indicator></RadioGroup.Item>
+    <RadioGroup.Root
+      aria-label="Delivery"
+      name="delivery"
+      value={choice()}
+      onValueChange={setChoice}
+      required
+    >
+      <RadioGroup.Item
+        value="one"
+        aria-label="Standard"
+      >
+        <RadioGroup.Indicator>Selected</RadioGroup.Indicator>
+      </RadioGroup.Item>
+      <RadioGroup.Item
+        value="two"
+        aria-label="Express"
+      >
+        <RadioGroup.Indicator>Selected</RadioGroup.Indicator>
+      </RadioGroup.Item>
     </RadioGroup.Root>
     <button type="reset">Reset delivery</button>
   </form>
-  <RadioGroup.Root aria-label="External choice" name="external" form="choices" defaultValue="one">
+  <RadioGroup.Root
+    aria-label="External choice"
+    name="external"
+    form="choices"
+    defaultValue="one"
+  >
     <RadioGroup.unstable_ItemProvider value="one">
-      <RadioGroup.unstable_ItemTrigger aria-label="External standard"><RadioGroup.Indicator>Selected</RadioGroup.Indicator></RadioGroup.unstable_ItemTrigger>
+      <RadioGroup.unstable_ItemTrigger aria-label="External standard">
+        <RadioGroup.Indicator>Selected</RadioGroup.Indicator>
+      </RadioGroup.unstable_ItemTrigger>
       <RadioGroup.unstable_ItemBubbleInput />
     </RadioGroup.unstable_ItemProvider>
   </RadioGroup.Root>
@@ -351,16 +460,22 @@ All upstream unstable ItemProvider/ItemTrigger/ItemBubbleInput aliases, named pa
 ## Tabs
 
 ```tsx
-import { createSignal } from 'solid-js';
-import { Tabs } from '@wsagency/radix2solid-primitives';
+import { Tabs } from "@wsagency/radix2solid-primitives";
+import { createSignal } from "solid-js";
 
-const [document, setDocument] = createSignal('draft');
-<Tabs.Root value={document()} onValueChange={setDocument} activationMode="manual">
+const [document, setDocument] = createSignal("draft");
+<Tabs.Root
+  value={document()}
+  onValueChange={setDocument}
+  activationMode="manual"
+>
   <Tabs.List aria-label="Documents">
     <Tabs.Trigger value="draft">Draft</Tabs.Trigger>
     <Tabs.Trigger value="published">Published</Tabs.Trigger>
   </Tabs.List>
-  <Tabs.Content value="draft"><input aria-label="Edit draft" /></Tabs.Content>
+  <Tabs.Content value="draft">
+    <input aria-label="Edit draft" />
+  </Tabs.Content>
   <Tabs.Content value="published">Published document</Tabs.Content>
 </Tabs.Root>;
 ```
@@ -372,9 +487,13 @@ List uses current DOM order, skips disabled triggers, honours orientation and ex
 ## ToggleGroup
 
 ```tsx
-import { ToggleGroup } from '@wsagency/radix2solid-primitives';
+import { ToggleGroup } from "@wsagency/radix2solid-primitives";
 
-<ToggleGroup.Root type="multiple" aria-label="Text formatting" defaultValue={['bold']}>
+<ToggleGroup.Root
+  type="multiple"
+  aria-label="Text formatting"
+  defaultValue={["bold"]}
+>
   <ToggleGroup.Item value="bold">Bold</ToggleGroup.Item>
   <ToggleGroup.Item value="italic">Italic</ToggleGroup.Item>
 </ToggleGroup.Root>;
@@ -387,12 +506,15 @@ Root and Item share scoped roving focus with live DOM ordering, disabled skippin
 ## Toolbar
 
 ```tsx
-import { Toolbar } from '@wsagency/radix2solid-primitives';
+import { Toolbar } from "@wsagency/radix2solid-primitives";
 
 <Toolbar.Root aria-label="Editor">
   <Toolbar.Button>Save</Toolbar.Button>
   <Toolbar.Separator />
-  <Toolbar.ToggleGroup type="multiple" aria-label="Formatting">
+  <Toolbar.ToggleGroup
+    type="multiple"
+    aria-label="Formatting"
+  >
     <Toolbar.ToggleItem value="bold">Bold</Toolbar.ToggleItem>
     <Toolbar.ToggleItem value="italic">Italic</Toolbar.ToggleItem>
   </Toolbar.ToggleGroup>
@@ -407,7 +529,7 @@ Buttons, links and ToggleItems participate in one outer roving group; Toolbar.To
 ## AlertDialog
 
 ```tsx
-import { AlertDialog } from '@wsagency/radix2solid-primitives';
+import { AlertDialog } from "@wsagency/radix2solid-primitives";
 
 <AlertDialog.Root>
   <AlertDialog.Trigger>Delete draft</AlertDialog.Trigger>
@@ -428,9 +550,12 @@ AlertDialog reuses Dialog's native modal ownership and links while forcing modal
 ## HoverCard
 
 ```tsx
-import { HoverCard } from '@wsagency/radix2solid-primitives';
+import { HoverCard } from "@wsagency/radix2solid-primitives";
 
-<HoverCard.Root openDelay={700} closeDelay={300}>
+<HoverCard.Root
+  openDelay={700}
+  closeDelay={300}
+>
   <HoverCard.Trigger href="/profile">Profile</HoverCard.Trigger>
   <HoverCard.Portal>
     <HoverCard.Content sideOffset={8}>
@@ -446,9 +571,12 @@ HoverCard uses native anchor focus/non-touch hover, cancellable Escape/outside i
 ## Tooltip
 
 ```tsx
-import { Tooltip } from '@wsagency/radix2solid-primitives';
+import { Tooltip } from "@wsagency/radix2solid-primitives";
 
-<Tooltip.Provider delayDuration={700} skipDelayDuration={300}>
+<Tooltip.Provider
+  delayDuration={700}
+  skipDelayDuration={300}
+>
   <Tooltip.Root>
     <Tooltip.Trigger>Help</Tooltip.Trigger>
     <Tooltip.Portal>
@@ -468,24 +596,29 @@ Normal visible Content supplies the trigger's linked description without duplica
 ## DropdownMenu, ContextMenu and Menubar
 
 ```tsx
-import { createSignal } from 'solid-js';
-import { DropdownMenu } from '@wsagency/radix2solid-primitives';
+import { DropdownMenu } from "@wsagency/radix2solid-primitives";
+import { createSignal } from "solid-js";
 
 const [checked, setChecked] = createSignal(false);
 <DropdownMenu.Root>
   <DropdownMenu.Trigger>Actions</DropdownMenu.Trigger>
   <DropdownMenu.Portal>
     <DropdownMenu.Content>
-      <DropdownMenu.CheckboxItem checked={checked()} onCheckedChange={setChecked}
-        onSelect={event => event.preventDefault()}>
+      <DropdownMenu.CheckboxItem
+        checked={checked()}
+        onCheckedChange={setChecked}
+        onSelect={(event) => event.preventDefault()}
+      >
         <DropdownMenu.ItemIndicator>✓</DropdownMenu.ItemIndicator>
         Keep this menu open
       </DropdownMenu.CheckboxItem>
       <DropdownMenu.Sub>
         <DropdownMenu.SubTrigger>More</DropdownMenu.SubTrigger>
-        <DropdownMenu.Portal><DropdownMenu.SubContent>
-          <DropdownMenu.Item>Nested action</DropdownMenu.Item>
-        </DropdownMenu.SubContent></DropdownMenu.Portal>
+        <DropdownMenu.Portal>
+          <DropdownMenu.SubContent>
+            <DropdownMenu.Item>Nested action</DropdownMenu.Item>
+          </DropdownMenu.SubContent>
+        </DropdownMenu.Portal>
       </DropdownMenu.Sub>
     </DropdownMenu.Content>
   </DropdownMenu.Portal>
@@ -501,22 +634,26 @@ DropdownMenu and ContextMenu expose all 16 parts; Menubar adds its `Menu` part f
 ## NavigationMenu
 
 ```tsx
-import { NavigationMenu } from '@wsagency/radix2solid-primitives';
+import { NavigationMenu } from "@wsagency/radix2solid-primitives";
 
 <NavigationMenu.Root aria-label="Site">
   <NavigationMenu.List>
     <NavigationMenu.Item value="docs">
-      <NavigationMenu.Trigger type="button">Documentation</NavigationMenu.Trigger>
+      <NavigationMenu.Trigger type="button">
+        Documentation
+      </NavigationMenu.Trigger>
       <NavigationMenu.Content>
         <NavigationMenu.Link href="/docs">Getting started</NavigationMenu.Link>
       </NavigationMenu.Content>
     </NavigationMenu.Item>
     <NavigationMenu.Indicator />
   </NavigationMenu.List>
-  <NavigationMenu.Viewport style={{
-    width: 'var(--radix-navigation-menu-viewport-width)',
-    height: 'var(--radix-navigation-menu-viewport-height)'
-  }} />
+  <NavigationMenu.Viewport
+    style={{
+      width: "var(--radix-navigation-menu-viewport-width)",
+      height: "var(--radix-navigation-menu-viewport-height)",
+    }}
+  />
 </NavigationMenu.Root>;
 ```
 
@@ -531,18 +668,26 @@ All nine parts, native Props, long-form aliases and `createNavigationMenuScope()
 ## Select
 
 ```tsx
-import { Select } from '@wsagency/radix2solid-primitives';
+import { Select } from "@wsagency/radix2solid-primitives";
 
-<Select.Root name="fruit" form="order" required defaultValue="apple">
+<Select.Root
+  name="fruit"
+  form="order"
+  required
+  defaultValue="apple"
+>
   <Select.Trigger aria-label="Fruit">
-    <Select.Value placeholder="Choose fruit" /><Select.Icon />
+    <Select.Value placeholder="Choose fruit" />
+    <Select.Icon />
   </Select.Trigger>
   <Select.Portal>
     <Select.Content>
       <Select.ScrollUpButton>▲</Select.ScrollUpButton>
       <Select.Viewport>
         <Select.Item value="apple">
-          <Select.ItemText><strong>Apple</strong></Select.ItemText>
+          <Select.ItemText>
+            <strong>Apple</strong>
+          </Select.ItemText>
           <Select.ItemIndicator>✓</Select.ItemIndicator>
         </Select.Item>
         <Select.Item value="">
@@ -566,12 +711,19 @@ All 18 public parts, native Props, long-form aliases and `createSelectScope()` a
 ## Unstable PasswordToggleField
 
 ```tsx
-import { unstable_PasswordToggleField as Password } from '@wsagency/radix2solid-primitives';
+import { unstable_PasswordToggleField as Password } from "@wsagency/radix2solid-primitives";
 
 <Password.Root>
-  <Password.Input aria-label="Password" name="password" autoComplete="current-password" />
+  <Password.Input
+    aria-label="Password"
+    name="password"
+    autoComplete="current-password"
+  />
   <Password.Toggle>
-    <Password.Slot visible="Hide password" hidden="Show password" />
+    <Password.Slot
+      visible="Hide password"
+      hidden="Show password"
+    />
   </Password.Toggle>
 </Password.Root>;
 ```
@@ -587,17 +739,37 @@ All five public parts, long-form aliases and Props are available through the uns
 ## Unstable OneTimePasswordField
 
 ```tsx
-import { unstable_OneTimePasswordField as OTP } from '@wsagency/radix2solid-primitives';
+import { unstable_OneTimePasswordField as OTP } from "@wsagency/radix2solid-primitives";
 
-<form id="verification" onSubmit={event => {
-  event.preventDefault();
-  console.log(new FormData(event.currentTarget).get('code'));
-}} />;
-<OTP.Root aria-label="Verification code" name="code" form="verification" autoSubmit>
-  <OTP.Input index={0} aria-label="Digit 1" />
-  <OTP.Input index={1} aria-label="Digit 2" />
-  <OTP.Input index={2} aria-label="Digit 3" />
-  <OTP.Input index={3} aria-label="Digit 4" />
+<form
+  id="verification"
+  onSubmit={(event) => {
+    event.preventDefault();
+    console.log(new FormData(event.currentTarget).get("code"));
+  }}
+/>;
+<OTP.Root
+  aria-label="Verification code"
+  name="code"
+  form="verification"
+  autoSubmit
+>
+  <OTP.Input
+    index={0}
+    aria-label="Digit 1"
+  />
+  <OTP.Input
+    index={1}
+    aria-label="Digit 2"
+  />
+  <OTP.Input
+    index={2}
+    aria-label="Digit 3"
+  />
+  <OTP.Input
+    index={3}
+    aria-label="Digit 4"
+  />
   <OTP.HiddenInput />
 </OTP.Root>;
 ```
@@ -615,10 +787,17 @@ The current roving tab stop receives one-time-code autocomplete and full-code ma
 ## Slider
 
 ```tsx
-import { Slider } from '@wsagency/radix2solid-primitives';
+import { Slider } from "@wsagency/radix2solid-primitives";
 
-<Slider.Root defaultValue={[20, 80]} name="levels" minStepsBetweenThumbs={1} step={10}>
-  <Slider.Track><Slider.Range /></Slider.Track>
+<Slider.Root
+  defaultValue={[20, 80]}
+  name="levels"
+  minStepsBetweenThumbs={1}
+  step={10}
+>
+  <Slider.Track>
+    <Slider.Range />
+  </Slider.Track>
   <Slider.Thumb aria-label="Minimum level" />
   <Slider.Thumb aria-label="Maximum level" />
 </Slider.Root>;
@@ -635,14 +814,20 @@ Root, Track, Range, Thumb, their long aliases/Props and `createSliderScope` are 
 ## ScrollArea
 
 ```tsx
-import { ScrollArea } from '@wsagency/radix2solid-primitives';
+import { ScrollArea } from "@wsagency/radix2solid-primitives";
 
-<ScrollArea.Root type="auto" style={{ position: 'relative', width: '240px', height: '160px' }}>
-  <ScrollArea.Viewport style={{ width: '100%', height: '100%' }}>
+<ScrollArea.Root
+  type="auto"
+  style={{ position: "relative", width: "240px", height: "160px" }}
+>
+  <ScrollArea.Viewport style={{ width: "100%", height: "100%" }}>
     <div>Scrollable content</div>
   </ScrollArea.Viewport>
-  <ScrollArea.Scrollbar orientation="vertical" style={{ width: '12px' }}>
-    <ScrollArea.Thumb style={{ background: 'gray' }} />
+  <ScrollArea.Scrollbar
+    orientation="vertical"
+    style={{ width: "12px" }}
+  >
+    <ScrollArea.Thumb style={{ background: "gray" }} />
   </ScrollArea.Scrollbar>
 </ScrollArea.Root>;
 ```
@@ -658,16 +843,24 @@ Resize geometry commits outside ResizeObserver delivery. Deferred viewport, scro
 ## Form
 
 ```tsx
-import { Form } from '@wsagency/radix2solid-primitives';
+import { Form } from "@wsagency/radix2solid-primitives";
 
-<Form.Root onSubmit={event => event.preventDefault()}>
+<Form.Root onSubmit={(event) => event.preventDefault()}>
   <Form.Field name="email">
     <Form.Label>Email</Form.Label>
-    <Form.Control type="email" required defaultValue="reader@example.test" />
+    <Form.Control
+      type="email"
+      required
+      defaultValue="reader@example.test"
+    />
     <Form.Message match="valueMissing">Enter an email.</Form.Message>
     <Form.Message match="typeMismatch">Enter a valid email.</Form.Message>
-    <Form.Message match={value => value.endsWith('@example.invalid')}>Use an available domain.</Form.Message>
-    <Form.ValidityState>{validity => validity?.valid ? 'Valid' : undefined}</Form.ValidityState>
+    <Form.Message match={(value) => value.endsWith("@example.invalid")}>
+      Use an available domain.
+    </Form.Message>
+    <Form.ValidityState>
+      {(validity) => (validity?.valid ? "Valid" : undefined)}
+    </Form.ValidityState>
   </Form.Field>
   <Form.Submit>Submit</Form.Submit>
 </Form.Root>;
@@ -686,9 +879,12 @@ Message without `match` is unconditional: conditionally render server messages w
 ## Toast
 
 ```tsx
-import { Toast } from '@wsagency/radix2solid-primitives';
+import { Toast } from "@wsagency/radix2solid-primitives";
 
-<Toast.Provider duration={5000} swipeDirection="right">
+<Toast.Provider
+  duration={5000}
+  swipeDirection="right"
+>
   <Toast.Root>
     <Toast.Title>Saved</Toast.Title>
     <Toast.Description>Your changes are available.</Toast.Description>

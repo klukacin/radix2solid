@@ -1,12 +1,22 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/zIndex/ZIndexPortal.tsx (commit 7a23854).
 // Solid deviations: `useLayoutEffect` → two-arg `createEffect`; `className` → `class`.
-import { createEffect, createMemo, createSignal, For, onSettled } from "solid-js";
-import type { JSX } from "@solidjs/web";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  onSettled,
+} from "solid-js";
+
 import { useAppSelector, useAppStore } from "../state/hooks";
 import { unregisterCleanup } from "../state/unregisterOnCleanup";
 import { selectAllRegisteredZIndexes } from "./zIndexSelectors";
 
-function ZIndexSvgPortal(props: { zIndex: number; isPanorama: boolean }): JSX.Element {
+function ZIndexSvgPortal(props: {
+  zIndex: number;
+  isPanorama: boolean;
+}): JSX.Element {
   const store = useAppStore();
   const zIndexActions = store?.actions.zIndex;
   const [gRef, setGRef] = createSignal<SVGGElement | undefined>();
@@ -40,7 +50,13 @@ function ZIndexSvgPortal(props: { zIndex: number; isPanorama: boolean }): JSX.El
     });
   });
 
-  return <g tabindex={-1} class={`recharts-zIndex-layer_${props.zIndex}`} ref={setGRef} />;
+  return (
+    <g
+      tabindex={-1}
+      class={`recharts-zIndex-layer_${props.zIndex}`}
+      ref={setGRef}
+    />
+  );
 }
 
 export const AllZIndexPortals = (props: {
@@ -58,11 +74,21 @@ export const AllZIndexPortals = (props: {
   return (
     <>
       <For each={negativeZIndexes()}>
-        {(zIndex) => <ZIndexSvgPortal zIndex={zIndex} isPanorama={props.isPanorama} />}
+        {(zIndex) => (
+          <ZIndexSvgPortal
+            zIndex={zIndex}
+            isPanorama={props.isPanorama}
+          />
+        )}
       </For>
       {props.children}
       <For each={positiveZIndexes()}>
-        {(zIndex) => <ZIndexSvgPortal zIndex={zIndex} isPanorama={props.isPanorama} />}
+        {(zIndex) => (
+          <ZIndexSvgPortal
+            zIndex={zIndex}
+            isPanorama={props.isPanorama}
+          />
+        )}
       </For>
     </>
   );

@@ -29,7 +29,9 @@ export const selectZIndexPortalElement = (
 let cachedZIndexMapKeys = "";
 let cachedAllRegisteredZIndexes: ReadonlyArray<number> = [];
 
-export const selectAllRegisteredZIndexes = (state: RechartsRootState): ReadonlyArray<number> => {
+export const selectAllRegisteredZIndexes = (
+  state: RechartsRootState,
+): ReadonlyArray<number> => {
   const zIndexMapKeys = Object.keys(state.zIndex.zIndexMap).sort().join(",");
   if (zIndexMapKeys === cachedZIndexMapKeys) {
     return cachedAllRegisteredZIndexes;

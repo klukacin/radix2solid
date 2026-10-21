@@ -2,19 +2,30 @@
 // Solid-native: React.ComponentType → `(props) => JSX.Element`; layout binding
 // via `merge()`.
 import type { JSX } from "@solidjs/web";
-import { RadialBarChart as OriginalRadialBarChart } from "../chart/RadialBarChart";
-import { RadarChart as OriginalRadarChart } from "../chart/RadarChart";
+
 import { PieChart as OriginalPieChart } from "../chart/PieChart";
+import { RadarChart as OriginalRadarChart } from "../chart/RadarChart";
+import { RadialBarChart as OriginalRadialBarChart } from "../chart/RadialBarChart";
 import type { PolarChartProps } from "./types";
 
 type Component<P> = (props: P) => JSX.Element;
 type ChartComponent<TData> = Component<Omit<PolarChartProps<TData>, "layout">>;
 
-export type TypedCentricChartContext<TData, _TCategorical, _TNumerical, TComponents> = {
+export type TypedCentricChartContext<
+  TData,
+  _TCategorical,
+  _TNumerical,
+  TComponents,
+> = {
   RadarChart: ChartComponent<TData>;
 } & Omit<TComponents, "RadialBar" | "RadialBarChart" | "Pie" | "PieChart">;
 
-export type TypedRadialChartContext<TData, _TCategorical, _TNumerical, TComponents> = {
+export type TypedRadialChartContext<
+  TData,
+  _TCategorical,
+  _TNumerical,
+  TComponents,
+> = {
   RadialBarChart: ChartComponent<TData>;
   PieChart: ChartComponent<TData>;
 } & Omit<TComponents, "Radar" | "RadarChart">;
@@ -42,19 +53,29 @@ export type NoCentric<T> = "Radar" extends keyof T
  *
  * @since 3.8
  */
-export function createCentricChart<TData, TCategorical = string, TNumerical = number>() {
+export function createCentricChart<
+  TData,
+  TCategorical = string,
+  TNumerical = number,
+>() {
   return function withComponents<TComponents extends Record<string, unknown>>(
     components: NoRadial<TComponents>,
   ): TypedCentricChartContext<TData, TCategorical, TNumerical, TComponents> {
     const RadarChart: ChartComponent<TData> = (props) => (
-      <OriginalRadarChart {...props} layout="centric" />
+      <OriginalRadarChart
+        {...props}
+        layout="centric"
+      />
     );
-    // eslint-disable-next-line typescript/consistent-type-assertions -- runtime identity preserved; type is a remap
     return {
       RadarChart,
-      // eslint-disable-next-line typescript/consistent-type-assertions -- NoRadial<T> narrows to T at runtime
       ...(components as TComponents),
-    } as unknown as TypedCentricChartContext<TData, TCategorical, TNumerical, TComponents>;
+    } as unknown as TypedCentricChartContext<
+      TData,
+      TCategorical,
+      TNumerical,
+      TComponents
+    >;
   };
 }
 
@@ -65,22 +86,35 @@ export function createCentricChart<TData, TCategorical = string, TNumerical = nu
  *
  * @since 3.8
  */
-export function createRadialChart<TData, TCategorical = string, TNumerical = number>() {
+export function createRadialChart<
+  TData,
+  TCategorical = string,
+  TNumerical = number,
+>() {
   return function withComponents<TComponents extends Record<string, unknown>>(
     components: NoCentric<TComponents>,
   ): TypedRadialChartContext<TData, TCategorical, TNumerical, TComponents> {
     const RadialBarChart: ChartComponent<TData> = (props) => (
-      <OriginalRadialBarChart {...props} layout="radial" />
+      <OriginalRadialBarChart
+        {...props}
+        layout="radial"
+      />
     );
     const PieChart: ChartComponent<TData> = (props) => (
-      <OriginalPieChart {...props} layout="radial" />
+      <OriginalPieChart
+        {...props}
+        layout="radial"
+      />
     );
-    // eslint-disable-next-line typescript/consistent-type-assertions -- runtime identity preserved; type is a remap
     return {
       RadialBarChart,
       PieChart,
-      // eslint-disable-next-line typescript/consistent-type-assertions -- NoCentric<T> narrows to T at runtime
       ...(components as TComponents),
-    } as unknown as TypedRadialChartContext<TData, TCategorical, TNumerical, TComponents>;
+    } as unknown as TypedRadialChartContext<
+      TData,
+      TCategorical,
+      TNumerical,
+      TComponents
+    >;
   };
 }

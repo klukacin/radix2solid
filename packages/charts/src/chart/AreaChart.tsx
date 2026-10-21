@@ -2,9 +2,10 @@
 // `forwardRef` → `ref` prop; thin user-facing wrapper over CartesianChart
 // (mirrors LineChart — differs only in chartName / allowed tooltip event types).
 import type { JSX } from "@solidjs/web";
+
 import { arrayTooltipSearcher } from "../state/optionsSlice";
-import { CartesianChart } from "./CartesianChart";
 import { CartesianChartProps, TooltipEventType } from "../util/types";
+import { CartesianChart } from "./CartesianChart";
 
 const allowedTooltipTypes: ReadonlyArray<TooltipEventType> = ["axis"];
 

@@ -3,11 +3,18 @@
 `@wsagency/radix2solid-icons` provides all 332 original icon names with native Solid 2 SVG props, events and refs. This README describes prerelease `0.1.0-rc.4`; install the exact version with `pnpm add -E @wsagency/radix2solid-icons@0.1.0-rc.4`. The rc.4 package keeps the icons API and assets unchanged from rc.3 and uses the npm `next` dist-tag while Solid is prerelease. It requires `solid-js` and `@solidjs/web` **2.0.0-rc.15** as peers (Node `>=22.12.0`); no React runtime or cloning API. The separate extra icons package provides original folder artwork.
 
 ```tsx
-import { CheckIcon } from '@wsagency/radix2solid-icons';
-import GitHubLogoIcon from '@wsagency/radix2solid-icons/GitHubLogoIcon';
+import { CheckIcon } from "@wsagency/radix2solid-icons";
+import GitHubLogoIcon from "@wsagency/radix2solid-icons/GitHubLogoIcon";
 
-<CheckIcon size={24} title="Saved" color="tomato" />;
-<GitHubLogoIcon aria-label="GitHub" ref={svg => svg?.getScreenCTM()} />;
+<CheckIcon
+  size={24}
+  title="Saved"
+  color="tomato"
+/>;
+<GitHubLogoIcon
+  aria-label="GitHub"
+  ref={(svg) => svg?.getScreenCTM()}
+/>;
 ```
 
 Each public deep icon entry supports both `import GitHubLogoIcon from '@wsagency/radix2solid-icons/GitHubLogoIcon'` and `import { GitHubLogoIcon } from '@wsagency/radix2solid-icons/GitHubLogoIcon'`, matching the original named/default contract. Deep imports are limited to the 332 icon entries and original SVG asset subpaths; title/type/index chunks are implementation details.

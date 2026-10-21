@@ -1,7 +1,7 @@
+import { svgPropertiesNoEventsFromUnknown } from "./svgPropertiesNoEvents";
 // Ported from recharts 3.8.1 src/util/getRadiusAndStrokeWidthFromDot.tsx (commit 7a23854).
 // No JSX → `.ts`.
 import { ActiveDotType, DotType } from "./types";
-import { svgPropertiesNoEventsFromUnknown } from "./svgPropertiesNoEvents";
 
 export function getRadiusAndStrokeWidthFromDot(dot: ActiveDotType | DotType): {
   r: number;

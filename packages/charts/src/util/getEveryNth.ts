@@ -12,7 +12,10 @@
  * @param n A number specifying which elements to take.
  * @returns The result array of the same type as the input array.
  */
-export function getEveryNth<Type>(array: ReadonlyArray<Type>, n: number): ReadonlyArray<Type> {
+export function getEveryNth<Type>(
+  array: ReadonlyArray<Type>,
+  n: number,
+): ReadonlyArray<Type> {
   if (n < 1) {
     return [];
   }

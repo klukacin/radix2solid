@@ -1,3 +1,34 @@
+import type { JSX } from "@solidjs/web";
+import { createMemo, merge, Show } from "solid-js";
+
+import {
+  CartesianLabelContextProvider,
+  CartesianLabelFromLabelProp,
+  type ImplicitLabelType,
+} from "../component/Label";
+import { useClipPathId } from "../container/ClipPathProvider";
+import { Layer } from "../container/Layer";
+import { useViewBox } from "../context/chartLayoutContext";
+import { useIsPanorama } from "../context/PanoramaContext";
+import type { AxisId } from "../state/cartesianAxisSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import type { ReferenceLineSettings } from "../state/referenceElementsSlice";
+import { registerInStore } from "../state/registerInStore";
+import {
+  selectAxisScale,
+  selectXAxisSettings,
+  selectYAxisSettings,
+} from "../state/selectors/axisSelectors";
+import { rectWithCoords } from "../util/CartesianUtils";
+import { isNumOrStr } from "../util/DataUtils";
+import { IfOverflow } from "../util/IfOverflow";
+import { isWellBehavedNumber } from "../util/isWellBehavedNumber";
+import {
+  CartesianScaleHelper,
+  CartesianScaleHelperImpl,
+} from "../util/scale/CartesianScaleHelper";
+import { BandPosition, RechartsScale } from "../util/scale/RechartsScale";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 // Ported from recharts 3.8.1 src/cartesian/ReferenceLine.tsx (commit 7a23854).
 //
 // Draws a horizontal/vertical/diagonal line at a DATA coordinate, mapped to
@@ -16,37 +47,14 @@
 //    render-function form; the default-`<line>` branch is kept). <Label> CHILDREN
 //    are not rendered (the `label` prop is).
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createMemo, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { Layer } from "../container/Layer";
 import {
-  CartesianLabelContextProvider,
-  CartesianLabelFromLabelProp,
-  type ImplicitLabelType,
-} from "../component/Label";
-import { rectWithCoords } from "../util/CartesianUtils";
-import { IfOverflow } from "../util/IfOverflow";
-import { isNumOrStr } from "../util/DataUtils";
-import { CartesianViewBoxRequired, Coordinate, RectanglePosition } from "../util/types";
-import { useViewBox } from "../context/chartLayoutContext";
-import type { ReferenceLineSettings } from "../state/referenceElementsSlice";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import {
-  selectAxisScale,
-  selectXAxisSettings,
-  selectYAxisSettings,
-} from "../state/selectors/axisSelectors";
-import { useIsPanorama } from "../context/PanoramaContext";
-import { useClipPathId } from "../container/ClipPathProvider";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
+  CartesianViewBoxRequired,
+  Coordinate,
+  RectanglePosition,
+} from "../util/types";
 import { useUniqueId } from "../util/useUniqueId";
-import { isWellBehavedNumber } from "../util/isWellBehavedNumber";
-import { BandPosition, RechartsScale } from "../util/scale/RechartsScale";
-import { CartesianScaleHelper, CartesianScaleHelperImpl } from "../util/scale/CartesianScaleHelper";
-import type { AxisId } from "../state/cartesianAxisSlice";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 import { ZIndexLayer } from "../zIndex/ZIndexLayer";
-import { registerInStore } from "../state/registerInStore";
 
 /**
  * Single point that defines one end of a segment, in data space.
@@ -84,7 +92,10 @@ export interface ReferenceLineProps<
   /** If defined, renders a vertical line at this (data-space) x position. */
   x?: XValueType;
   /** Tuple of coordinates. If defined, renders a diagonal line segment. */
-  segment?: readonly [{ x?: XValueType; y?: YValueType }, { x?: XValueType; y?: YValueType }];
+  segment?: readonly [
+    { x?: XValueType; y?: YValueType },
+    { x?: XValueType; y?: YValueType },
+  ];
   /** Where within a band the line is drawn (band scales only). @defaultValue 'middle' */
   position?: BandPosition;
   /** The id of the corresponding y-axis. @defaultValue 0 */
@@ -106,7 +117,10 @@ export interface ReferenceLineProps<
 export type Props<
   XValueType extends ReferenceCoordinateValue = ReferenceCoordinateValue,
   YValueType extends ReferenceCoordinateValue = ReferenceCoordinateValue,
-> = Omit<CamelSvgProps<JSX.LineSVGAttributes<SVGLineElement>>, "x" | "y" | "class" | "children"> &
+> = Omit<
+  CamelSvgProps<JSX.LineSVGAttributes<SVGLineElement>>,
+  "x" | "y" | "class" | "children"
+> &
   ReferenceLineProps<XValueType, YValueType>;
 
 const getHorizontalLineEndPoints = (
@@ -237,7 +251,12 @@ const renderLine = (
   ) {
     return null;
   }
-  return <line {...lineProps} class="recharts-reference-line-line" />;
+  return (
+    <line
+      {...lineProps}
+      class="recharts-reference-line-line"
+    />
+  );
 };
 
 function ReportReferenceLine(props: ReferenceLineSettings): JSX.Element {
@@ -288,10 +307,19 @@ function ReferenceLineImpl(props: Props): JSX.Element {
   const viewBox = useViewBox();
   const xAxis = useAppSelector((s) => selectXAxisSettings(s, merged.xAxisId));
   const yAxis = useAppSelector((s) => selectYAxisSettings(s, merged.yAxisId));
-  const xAxisScale = useAppSelector((s) => selectAxisScale(s, "xAxis", merged.xAxisId, isPanorama));
-  const yAxisScale = useAppSelector((s) => selectAxisScale(s, "yAxis", merged.yAxisId, isPanorama));
+  const xAxisScale = useAppSelector((s) =>
+    selectAxisScale(s, "xAxis", merged.xAxisId, isPanorama),
+  );
+  const yAxisScale = useAppSelector((s) =>
+    selectAxisScale(s, "yAxis", merged.yAxisId, isPanorama),
+  );
 
-  const coords = createMemo<{ x1: number; y1: number; x2: number; y2: number } | null>(() => {
+  const coords = createMemo<{
+    x1: number;
+    y1: number;
+    x2: number;
+    y2: number;
+  } | null>(() => {
     const vb = viewBox();
     const xs = xAxisScale();
     const ys = yAxisScale();
@@ -335,12 +363,16 @@ function ReferenceLineImpl(props: Props): JSX.Element {
   // The memo returns the line PROPS (or null) — all reactive prop reads (the svg
   // spread) happen in this tracking scope, so the Show callback has no untracked
   // reads beyond the (static) shape.
-  const rendered = createMemo<{ line: LineShapeProps; rect: RectanglePosition } | null>(() => {
+  const rendered = createMemo<{
+    line: LineShapeProps;
+    rect: RectanglePosition;
+  } | null>(() => {
     const c = coords();
     if (!c) {
       return null;
     }
-    const clipPath = merged.ifOverflow === "hidden" ? `url(#${clipPathId})` : undefined;
+    const clipPath =
+      merged.ifOverflow === "hidden" ? `url(#${clipPathId})` : undefined;
     const line: LineShapeProps = {
       "clip-path": clipPath,
       ...svgPropertiesAndEvents({ ...merged }),
@@ -349,7 +381,10 @@ function ReferenceLineImpl(props: Props): JSX.Element {
       x2: c.x2,
       y2: c.y2,
     };
-    return { line, rect: rectWithCoords({ x1: c.x1, y1: c.y1, x2: c.x2, y2: c.y2 }) };
+    return {
+      line,
+      rect: rectWithCoords({ x1: c.x1, y1: c.y1, x2: c.x2, y2: c.y2 }),
+    };
   });
 
   return (

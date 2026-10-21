@@ -1,3 +1,10 @@
+import { ValueType } from "../../../component/DefaultTooltipContent";
+import { ActiveLabel } from "../../../synchronisation/types";
+import { getTooltipEntry, getValueByDataKey } from "../../../util/ChartUtils";
+import { findEntryInArray, isNumOrStr } from "../../../util/DataUtils";
+import { getSliced } from "../../../util/getSliced";
+import { DataKey, TooltipEventType } from "../../../util/types";
+import { ChartData, ChartDataState } from "../../chartDataSlice";
 // Ported from recharts 3.8.1 src/state/selectors/combiners/combineTooltipPayload.ts.
 //
 // Deviations (all to remove `any`): values pulled from data via getValueByDataKey
@@ -14,13 +21,6 @@ import {
   TooltipPayloadEntry,
   TooltipPayloadSearcher,
 } from "../../tooltipSlice";
-import { ChartData, ChartDataState } from "../../chartDataSlice";
-import { DataKey, TooltipEventType } from "../../../util/types";
-import { findEntryInArray, isNumOrStr } from "../../../util/DataUtils";
-import { getTooltipEntry, getValueByDataKey } from "../../../util/ChartUtils";
-import { getSliced } from "../../../util/getSliced";
-import { ActiveLabel } from "../../../synchronisation/types";
-import { ValueType } from "../../../component/DefaultTooltipContent";
 
 type TooltipPayloadItemLike = {
   name: TooltipEntrySettings["name"];
@@ -71,7 +71,11 @@ function parseName(value: unknown): TooltipEntrySettings["name"] {
 }
 
 function parseUnit(value: unknown): TooltipEntrySettings["unit"] {
-  if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+  if (
+    typeof value === "string" ||
+    typeof value === "number" ||
+    typeof value === "boolean"
+  ) {
     return value;
   }
   return undefined;
@@ -94,7 +98,9 @@ function parseColor(value: unknown): string | undefined {
   return undefined;
 }
 
-function parseTooltipPayloadItem(item: unknown): TooltipPayloadItemLike | undefined {
+function parseTooltipPayloadItem(
+  item: unknown,
+): TooltipPayloadItemLike | undefined {
   if (item == null || typeof item !== "object") {
     return undefined;
   }
@@ -132,7 +138,8 @@ export const combineTooltipPayload = (
   if (activeIndex == null || tooltipPayloadSearcher == null) {
     return undefined;
   }
-  const { chartData, computedData, dataStartIndex, dataEndIndex } = chartDataState;
+  const { chartData, computedData, dataStartIndex, dataEndIndex } =
+    chartDataState;
 
   const init: Array<TooltipPayloadEntry> = [];
 
@@ -144,7 +151,8 @@ export const combineTooltipPayload = (
         ? getSliced(finalData, dataStartIndex, dataEndIndex)
         : finalData;
 
-      const finalDataKey: DataKey<unknown> | undefined = settings?.dataKey ?? tooltipAxisDataKey;
+      const finalDataKey: DataKey<unknown> | undefined =
+        settings?.dataKey ?? tooltipAxisDataKey;
       const finalNameKey: DataKey<unknown> | undefined = settings?.nameKey;
       let tooltipPayload: unknown;
       if (
@@ -156,12 +164,26 @@ export const combineTooltipPayload = (
         // searches by index.
         tooltipEventType === "axis"
       ) {
-        tooltipPayload = findEntryInArray(sliced, tooltipAxisDataKey, activeLabel);
+        tooltipPayload = findEntryInArray(
+          sliced,
+          tooltipAxisDataKey,
+          activeLabel,
+        );
         if (tooltipPayload == null) {
-          tooltipPayload = tooltipPayloadSearcher(sliced, activeIndex, computedData, finalNameKey);
+          tooltipPayload = tooltipPayloadSearcher(
+            sliced,
+            activeIndex,
+            computedData,
+            finalNameKey,
+          );
         }
       } else {
-        tooltipPayload = tooltipPayloadSearcher(sliced, activeIndex, computedData, finalNameKey);
+        tooltipPayload = tooltipPayloadSearcher(
+          sliced,
+          activeIndex,
+          computedData,
+          finalNameKey,
+        );
       }
 
       if (isReadonlyArray(tooltipPayload)) {
@@ -183,7 +205,9 @@ export const combineTooltipPayload = (
               tooltipEntrySettings: newSettings,
               dataKey: itemDataKey,
               payload: itemPayload,
-              value: tooltipEntryValue(getValueByDataKey(itemPayload, itemDataKey)),
+              value: tooltipEntryValue(
+                getValueByDataKey(itemPayload, itemDataKey),
+              ),
               name: itemName,
             }),
           );
@@ -194,8 +218,12 @@ export const combineTooltipPayload = (
             tooltipEntrySettings: settings,
             dataKey: finalDataKey,
             payload: tooltipPayload,
-            value: tooltipEntryValue(getValueByDataKey(tooltipPayload, finalDataKey)),
-            name: toName(getValueByDataKey(tooltipPayload, finalNameKey)) ?? toName(settings?.name),
+            value: tooltipEntryValue(
+              getValueByDataKey(tooltipPayload, finalDataKey),
+            ),
+            name:
+              toName(getValueByDataKey(tooltipPayload, finalNameKey)) ??
+              toName(settings?.name),
           }),
         );
       }

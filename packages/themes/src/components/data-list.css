@@ -125,8 +125,12 @@
         /* Allow the value to poke out of the row when orientation is horizontal */
         --data-list-value-margin-top: var(--data-list-value-trim-start);
         --data-list-value-margin-bottom: var(--data-list-value-trim-end);
-        --data-list-first-item-value-margin-top: var(--data-list-first-item-value-trim-start);
-        --data-list-last-item-value-margin-bottom: var(--data-list-last-item-value-trim-end);
+        --data-list-first-item-value-margin-top: var(
+          --data-list-first-item-value-trim-start
+        );
+        --data-list-last-item-value-margin-bottom: var(
+          --data-list-last-item-value-trim-end
+        );
 
         display: grid;
         /* Use subgrid so all the label columns remain aligned */
@@ -158,7 +162,7 @@
      * Zero-width joiner to establish a baseline.
      * Allows Flex children with text to align automatically.
      */
-    content: '‍';
+    content: "‍";
   }
 }
 
@@ -214,8 +218,12 @@
 /* * * * * * * * * * * * * * * * * * * */
 
 .rt-DataListRoot {
-  --data-list-leading-trim-start: calc(var(--default-leading-trim-start) - var(--line-height) / 2);
-  --data-list-leading-trim-end: calc(var(--default-leading-trim-end) - var(--line-height) / 2);
+  --data-list-leading-trim-start: calc(
+    var(--default-leading-trim-start) - var(--line-height) / 2
+  );
+  --data-list-leading-trim-end: calc(
+    var(--default-leading-trim-end) - var(--line-height) / 2
+  );
 }
 
 .rt-DataListItem {

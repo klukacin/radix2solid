@@ -1,13 +1,24 @@
-import { colorPropDef } from '../props/color.prop.js';
-import { radiusPropDef } from '../props/radius.prop.js';
-import type { PropDef } from '../props/prop-def.js';
+import { colorPropDef } from "../props/color.prop.js";
+import type { PropDef } from "../props/prop-def.js";
+import { radiusPropDef } from "../props/radius.prop.js";
 
-const sizes = ['1', '2', '3'] as const;
-const variants = ['surface', 'soft', 'outline'] as const;
+const sizes = ["1", "2", "3"] as const;
+const variants = ["surface", "soft", "outline"] as const;
 
 const fileDropRootPropDefs = {
-  size: { type: 'enum', className: 'rt-r-size', values: sizes, default: '2', responsive: true },
-  variant: { type: 'enum', className: 'rt-variant', values: variants, default: 'surface' },
+  size: {
+    type: "enum",
+    className: "rt-r-size",
+    values: sizes,
+    default: "2",
+    responsive: true,
+  },
+  variant: {
+    type: "enum",
+    className: "rt-variant",
+    values: variants,
+    default: "surface",
+  },
   ...colorPropDef,
   ...radiusPropDef,
 } satisfies {

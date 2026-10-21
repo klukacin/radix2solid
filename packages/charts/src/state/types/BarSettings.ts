@@ -1,7 +1,7 @@
 // Ported from recharts 3.8.1 src/state/types/BarSettings.ts (commit 7a23854).
 import { MinPointSize } from "../../util/BarUtils";
-import { MaybeStackedGraphicalItem } from "./StackedGraphicalItem";
 import { BaseCartesianGraphicalItemSettings } from "../graphicalItemsSlice";
+import { MaybeStackedGraphicalItem } from "./StackedGraphicalItem";
 
 export type BarSettings = BaseCartesianGraphicalItemSettings &
   MaybeStackedGraphicalItem & {

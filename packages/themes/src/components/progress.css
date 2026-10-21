@@ -16,17 +16,19 @@
   &::after {
     position: absolute;
     inset: 0;
-    content: '';
+    content: "";
     border-radius: inherit;
   }
 }
 
 :where(.radix-themes) {
-  --progress-indicator-after-linear-gradient: var(--white-a5), var(--white-a9), var(--white-a5);
+  --progress-indicator-after-linear-gradient:
+    var(--white-a5), var(--white-a9), var(--white-a5);
 }
 :is(.dark, .dark-theme),
 :is(.dark, .dark-theme) :where(.radix-themes:not(.light, .light-theme)) {
-  --progress-indicator-after-linear-gradient: var(--white-a3), var(--white-a6), var(--white-a3);
+  --progress-indicator-after-linear-gradient:
+    var(--white-a3), var(--white-a6), var(--white-a3);
 }
 .rt-ProgressIndicator {
   display: block;
@@ -37,11 +39,14 @@
   transform-origin: left center;
   transition: transform 120ms;
 
-  &:where([data-state='indeterminate']) {
+  &:where([data-state="indeterminate"]) {
     animation-name:
-      rt-progress-indicator-indeterminate-grow, var(--progress-indicator-indeterminate-animation-start),
+      rt-progress-indicator-indeterminate-grow,
+      var(--progress-indicator-indeterminate-animation-start),
       var(--progress-indicator-indeterminate-animation-repeat);
-    animation-delay: 0s, calc(var(--progress-duration) + 5s), calc(var(--progress-duration) + 7.5s);
+    animation-delay:
+      0s, calc(var(--progress-duration) + 5s),
+      calc(var(--progress-duration) + 7.5s);
     animation-duration: var(--progress-duration), 2.5s, 5s;
     animation-iteration-count: 1, 1, infinite;
     animation-fill-mode: both, none, none;
@@ -51,7 +56,7 @@
     &::after {
       position: absolute;
       inset: 0;
-      content: '';
+      content: "";
       width: 400%;
 
       animation-name: rt-progress-indicator-indeterminate-shine-from-left;

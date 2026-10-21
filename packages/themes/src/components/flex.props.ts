@@ -1,14 +1,18 @@
-import { asChildPropDef } from '../props/as-child.prop.js';
-import { gapPropDefs } from '../props/gap.props.js';
+import { asChildPropDef } from "../props/as-child.prop.js";
+import { gapPropDefs } from "../props/gap.props.js";
+import type { PropDef, GetPropDefTypes } from "../props/prop-def.js";
 
-import type { PropDef, GetPropDefTypes } from '../props/prop-def.js';
-
-const as = ['div', 'span'] as const;
-const displayValues = ['none', 'inline-flex', 'flex'] as const;
-const directionValues = ['row', 'column', 'row-reverse', 'column-reverse'] as const;
-const alignValues = ['start', 'center', 'end', 'baseline', 'stretch'] as const;
-const justifyValues = ['start', 'center', 'end', 'between'] as const;
-const wrapValues = ['nowrap', 'wrap', 'wrap-reverse'] as const;
+const as = ["div", "span"] as const;
+const displayValues = ["none", "inline-flex", "flex"] as const;
+const directionValues = [
+  "row",
+  "column",
+  "row-reverse",
+  "column-reverse",
+] as const;
+const alignValues = ["start", "center", "end", "baseline", "stretch"] as const;
+const justifyValues = ["start", "center", "end", "between"] as const;
+const wrapValues = ["nowrap", "wrap", "wrap-reverse"] as const;
 
 const flexPropDefs = {
   /**
@@ -18,7 +22,7 @@ const flexPropDefs = {
    * as="div"
    * as="span"
    */
-  as: { type: 'enum', values: as, default: 'div' },
+  as: { type: "enum", values: as, default: "div" },
   ...asChildPropDef,
   /**
    * Sets the CSS **display** property.
@@ -32,8 +36,8 @@ const flexPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/display
    */
   display: {
-    type: 'enum',
-    className: 'rt-r-display',
+    type: "enum",
+    className: "rt-r-display",
     values: displayValues,
     responsive: true,
   },
@@ -49,8 +53,8 @@ const flexPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/flex-direction
    */
   direction: {
-    type: 'enum',
-    className: 'rt-r-fd',
+    type: "enum",
+    className: "rt-r-fd",
     values: directionValues,
     responsive: true,
   },
@@ -66,8 +70,8 @@ const flexPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/align-items
    */
   align: {
-    type: 'enum',
-    className: 'rt-r-ai',
+    type: "enum",
+    className: "rt-r-ai",
     values: alignValues,
     responsive: true,
   },
@@ -83,8 +87,8 @@ const flexPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/justify-content
    */
   justify: {
-    type: 'enum',
-    className: 'rt-r-jc',
+    type: "enum",
+    className: "rt-r-jc",
     values: justifyValues,
     parseValue: parseJustifyValue,
     responsive: true,
@@ -101,8 +105,8 @@ const flexPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/flex-wrap
    */
   wrap: {
-    type: 'enum',
-    className: 'rt-r-fw',
+    type: "enum",
+    className: "rt-r-fw",
     values: wrapValues,
     responsive: true,
   },
@@ -117,7 +121,7 @@ const flexPropDefs = {
 };
 
 function parseJustifyValue(value: string) {
-  return value === 'between' ? 'space-between' : value;
+  return value === "between" ? "space-between" : value;
 }
 
 // Use all of the imported prop defs to ensure that JSDoc works

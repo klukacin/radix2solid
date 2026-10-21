@@ -4,7 +4,11 @@
 /* eslint no-console: 0 */
 const isDev = process.env.NODE_ENV !== "production";
 
-export const warn = (condition: boolean, format: string, ...args: unknown[]): void => {
+export const warn = (
+  condition: boolean,
+  format: string,
+  ...args: unknown[]
+): void => {
   if (isDev && typeof console !== "undefined" && console.warn) {
     if (format === undefined) {
       console.warn("LogUtils requires an error message argument");

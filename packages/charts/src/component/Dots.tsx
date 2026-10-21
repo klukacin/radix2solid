@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/component/Dots.tsx (commit 7a23854).
 //
 // Solid deviations:
@@ -8,9 +9,9 @@
 //   - `ZIndexLayer` wrapper deferred (zIndex layering not ported) → plain <Layer>.
 //   - `clsx` → class string composed inline; `className` → `class`.
 import { createMemo, For, omit, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { Dot, type DotProps } from "../shape/Dot";
+
 import { Layer } from "../container/Layer";
+import { Dot, type DotProps } from "../shape/Dot";
 import { DataKey, DotItemDotProps, DotPoint, DotType } from "../util/types";
 
 /** Solid-idiomatic replacement for ReactUtils.isClipDot. */
@@ -21,7 +22,10 @@ export function isClipDot(dot: DotType): boolean {
   return true;
 }
 
-function shouldRenderDots(points: ReadonlyArray<DotPoint> | undefined, dot: DotType): boolean {
+function shouldRenderDots(
+  points: ReadonlyArray<DotPoint> | undefined,
+  dot: DotType,
+): boolean {
   if (points == null) {
     return false;
   }
@@ -31,7 +35,10 @@ function shouldRenderDots(points: ReadonlyArray<DotPoint> | undefined, dot: DotT
   return points.length === 1;
 }
 
-export type DotsDotProps = Omit<DotProps, "cx" | "cy" | "index" | "dataKey" | "value" | "payload">;
+export type DotsDotProps = Omit<
+  DotProps,
+  "cx" | "cy" | "index" | "dataKey" | "value" | "payload"
+>;
 
 export interface DotsProps {
   /** Points to render dots for. */
@@ -81,10 +88,16 @@ function DotRenderer(props: DotRendererProps): JSX.Element {
     points: props.points,
   }));
 
+  const dotAttributes = createMemo(() =>
+    omit(dotProps(), "index", "dataKey", "value", "payload", "points"),
+  );
+
   // A function dot is a render prop; boolean/props-object dots fall back to the
   // default <Dot>. A plain ternary (not <Show when={fn}>) keeps the read tracked
   // without tripping STRICT_READ on the function-valued condition.
-  const renderFn = createMemo(() => (typeof props.dot === "function" ? props.dot : undefined));
+  const renderFn = createMemo(() =>
+    typeof props.dot === "function" ? props.dot : undefined,
+  );
 
   return (
     <>
@@ -92,7 +105,7 @@ function DotRenderer(props: DotRendererProps): JSX.Element {
         renderFn()?.(dotProps())
       ) : (
         <Dot
-          {...omit(dotProps(), "index", "dataKey", "value", "payload", "points")}
+          {...dotAttributes()}
           class={props.dotClass}
         />
       )}
@@ -108,12 +121,18 @@ export function Dots(props: DotsProps): JSX.Element {
 
   return (
     <Show when={shouldRenderDots(props.points, props.dot)}>
-      <Layer class={props.class} clipPath={layerClip()}>
+      <Layer
+        class={props.class}
+        clipPath={layerClip()}
+      >
         {/* keyed={false} (index-keyed): during animation `points` is a fresh
             array with fresh point objects every frame; reference-keyed <For>
             would dispose+recreate every dot's DOM node per frame. Index-keying
             reuses the rows and only updates cx/cy reactively. */}
-        <For each={props.points} keyed={false}>
+        <For
+          each={props.points}
+          keyed={false}
+        >
           {(entry, i) => (
             <DotRenderer
               entry={entry()}

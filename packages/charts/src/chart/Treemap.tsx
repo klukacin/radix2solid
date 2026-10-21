@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/chart/Treemap.tsx (commit 7a23854).
 //
 // A hierarchical chart: the squarified-treemap layout (computeNode rolls values up
@@ -18,31 +19,33 @@
 // works via the wrapper context (the reference itself hardcodes responsive={false}
 // on its wrapper). DEFERRED: the element form of `content` & `nestIndexContent`,
 // per-node name-fit text sizing nuances.
-import { createMemo, createSignal, For, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { Surface } from "../container/Surface";
-import { Layer } from "../container/Layer";
-import { Rectangle } from "../shape/Rectangle";
-import { Polygon } from "../shape/Polygon";
+import { createMemo, createSignal, For, merge, Show, untrack } from "solid-js";
+
 import { CSSTransitionAnimate } from "../animation/CSSTransitionAnimate";
 import type { EasingInput } from "../animation/easing";
-import { RechartsWrapper } from "./RechartsWrapper";
+import { Layer } from "../container/Layer";
+import { Surface } from "../container/Surface";
+import {
+  ReportChartMargin,
+  useChartHeight,
+  useChartWidth,
+} from "../context/chartLayoutContext";
+import { Polygon } from "../shape/Polygon";
+import { Rectangle } from "../shape/Rectangle";
+import { useAppStore } from "../state/hooks";
+import type { ChartOptions } from "../state/optionsSlice";
 import { RechartsStoreProvider } from "../state/RechartsStoreProvider";
-import { ReportChartMargin, useChartHeight, useChartWidth } from "../context/chartLayoutContext";
 import { ReportEventSettings } from "../state/ReportEventSettings";
 import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
-import { useAppStore } from "../state/hooks";
-import { useUniqueId } from "../util/useUniqueId";
-import { getValueByDataKey } from "../util/ChartUtils";
-import { isNan } from "../util/DataUtils";
-import { COLOR_PANEL, DATA_ITEM_INDEX_ATTRIBUTE_NAME } from "../util/Constants";
-import type { ChartOptions } from "../state/optionsSlice";
+import type { RechartsRootState } from "../state/store";
 import type {
   TooltipIndex,
   TooltipPayloadConfiguration,
   TooltipPayloadSearcher,
 } from "../state/tooltipSlice";
-import type { RechartsRootState } from "../state/store";
+import { getValueByDataKey } from "../util/ChartUtils";
+import { COLOR_PANEL, DATA_ITEM_INDEX_ATTRIBUTE_NAME } from "../util/Constants";
+import { isNan } from "../util/DataUtils";
 import type {
   Coordinate,
   DataKey,
@@ -51,14 +54,18 @@ import type {
   MousePointer,
   Percent,
 } from "../util/types";
+import { useUniqueId } from "../util/useUniqueId";
+import { RechartsWrapper } from "./RechartsWrapper";
 
 const NODE_VALUE_KEY = "value";
 const NEST_INDEX_HEIGHT = 30;
 
 // In 'nest' mode the breadcrumb strip steals 30px off the bottom of the drawing
 // surface (recharts getTreemapRenderHeight).
-const getTreemapRenderHeight = (height: number, type: "flat" | "nest"): number =>
-  type === "nest" ? height - NEST_INDEX_HEIGHT : height;
+const getTreemapRenderHeight = (
+  height: number,
+  type: "flat" | "nest",
+): number => (type === "nest" ? height - NEST_INDEX_HEIGHT : height);
 
 export interface TreemapDataType {
   children?: ReadonlyArray<TreemapDataType>;
@@ -86,7 +93,8 @@ interface RectanglePosition {
   height: number;
 }
 
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v != null;
+const isObj = (v: unknown): v is Record<string, unknown> =>
+  typeof v === "object" && v != null;
 const isArr = (v: unknown): v is ReadonlyArray<unknown> => Array.isArray(v);
 const toNum = (v: unknown): number => (typeof v === "number" ? v : 0);
 
@@ -104,9 +112,13 @@ export const addToTreemapNodeIndex = (
 
 // Resolves a Treemap tooltipIndex path (e.g. "children[0]children[1]") against the
 // formatted root — replaces es-toolkit `get`.
-const normalizeTreemapTooltipIndex = (activeIndex: TooltipIndex): TooltipIndex => {
+const normalizeTreemapTooltipIndex = (
+  activeIndex: TooltipIndex,
+): TooltipIndex => {
   const indexStr = String(activeIndex);
-  return /^\d+$/.test(indexStr) ? addToTreemapNodeIndex(Number(indexStr), "") : activeIndex;
+  return /^\d+$/.test(indexStr)
+    ? addToTreemapNodeIndex(Number(indexStr), "")
+    : activeIndex;
 };
 
 export const treemapPayloadSearcher: TooltipPayloadSearcher = (
@@ -154,7 +166,10 @@ export const computeNode = ({
 }): TreemapNode => {
   const currentTooltipIndex =
     depth === 0 ? "" : addToTreemapNodeIndex(index, nestedActiveTooltipIndex);
-  const children: ReadonlyArray<TreemapDataType | TreemapNode> | null | undefined = node.children;
+  const children:
+    | ReadonlyArray<TreemapDataType | TreemapNode>
+    | null
+    | undefined = node.children;
   const computedChildren =
     children && children.length > 0
       ? children.map((child, i) =>
@@ -170,7 +185,10 @@ export const computeNode = ({
       : null;
   let nodeValue: number;
   if (computedChildren && computedChildren.length > 0) {
-    nodeValue = computedChildren.reduce((result, child) => result + child.value, 0);
+    nodeValue = computedChildren.reduce(
+      (result, child) => result + child.value,
+      0,
+    );
   } else {
     const numericValue = toNum(node[String(dataKey)]);
     nodeValue = isNan(numericValue) || numericValue <= 0 ? 0 : numericValue;
@@ -183,7 +201,10 @@ export const computeNode = ({
     width: toNum(node.width),
     height: toNum(node.height),
     children: computedChildren,
-    name: typeof nameRaw === "string" || typeof nameRaw === "number" ? String(nameRaw) : "",
+    name:
+      typeof nameRaw === "string" || typeof nameRaw === "number"
+        ? String(nameRaw)
+        : "",
     value: nodeValue,
     depth,
     index,
@@ -198,7 +219,10 @@ const filterRect = (node: TreemapNode): RectanglePosition => ({
   height: node.height,
 });
 
-const insetRect = (rect: RectanglePosition, nodeInset: number): RectanglePosition => {
+const insetRect = (
+  rect: RectanglePosition,
+  nodeInset: number,
+): RectanglePosition => {
   if (!Number.isFinite(nodeInset) || nodeInset <= 0) {
     return rect;
   }
@@ -257,7 +281,11 @@ const getAreaOfChildren = (
   });
 };
 
-const getWorstScore = (row: Row, parentSize: number, aspectRatio: number): number => {
+const getWorstScore = (
+  row: Row,
+  parentSize: number,
+  aspectRatio: number,
+): number => {
   const parentArea = parentSize * parentSize;
   const rowArea = row.area * row.area;
   const { min, max } = row.items.reduce(
@@ -301,7 +329,11 @@ const horizontalPosition = (
   if (last != null) {
     last.width += parentRect.x + parentRect.width - curX;
   }
-  return { ...parentRect, y: parentRect.y + rowHeight, height: parentRect.height - rowHeight };
+  return {
+    ...parentRect,
+    y: parentRect.y + rowHeight,
+    height: parentRect.height - rowHeight,
+  };
 };
 
 const verticalPosition = (
@@ -330,7 +362,11 @@ const verticalPosition = (
   if (last != null) {
     last.height += parentRect.y + parentRect.height - curY;
   }
-  return { ...parentRect, x: parentRect.x + rowWidth, width: parentRect.width - rowWidth };
+  return {
+    ...parentRect,
+    x: parentRect.x + rowWidth,
+    width: parentRect.width - rowWidth,
+  };
 };
 
 const position = (
@@ -391,10 +427,16 @@ const squarify = (
     row.area = 0;
   }
 
-  const childrenWithGaps = applyGapToChildren(scaleChildren, layoutRect, nodeGap);
+  const childrenWithGaps = applyGapToChildren(
+    scaleChildren,
+    layoutRect,
+    nodeGap,
+  );
   return {
     ...node,
-    children: childrenWithGaps.map((c) => squarify(c, aspectRatio, nodeInset, nodeGap)),
+    children: childrenWithGaps.map((c) =>
+      squarify(c, aspectRatio, nodeInset, nodeGap),
+    ),
   };
 };
 
@@ -527,7 +569,9 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
     node: { children: merged.data },
     nestedActiveTooltipIndex: undefined,
   });
-  const [nestStack, setNestStack] = createSignal<NestEntry[]>(() => [topEntry()]);
+  const [nestStack, setNestStack] = createSignal<NestEntry[]>(() => [
+    topEntry(),
+  ]);
   const currentEntry = (): NestEntry => {
     const stack = nestStack();
     return stack[stack.length - 1] ?? topEntry();
@@ -550,14 +594,22 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
     if (d == null || merged.type !== "nest") {
       return [];
     }
-    return nestStack().map((entry) => layoutFrom(entry.node, d, entry.nestedActiveTooltipIndex));
+    return nestStack().map((entry) =>
+      layoutFrom(entry.node, d, entry.nestedActiveTooltipIndex),
+    );
   });
 
   // Flat render descriptors with fill/stroke BAKED IN, so the <For> callback reads
   // only the For-item (no accessor/prop reads → no STRICT_READ). In nest mode only
   // the current root + its direct children render (recharts' isCurrentRootChild gate).
   const renderNodes = createMemo<
-    Array<{ node: TreemapNode; fill: string; stroke: string; isLeaf: boolean; arrow: boolean }>
+    Array<{
+      node: TreemapNode;
+      fill: string;
+      stroke: string;
+      isLeaf: boolean;
+      arrow: boolean;
+    }>
   >(() => {
     const panel = merged.colorPanel ?? COLOR_PANEL;
     const stroke = merged.stroke ?? "#fff";
@@ -570,7 +622,10 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
       : flattenNodes(root);
     return nodes.map((node) => ({
       node,
-      fill: node.depth < 2 ? (panel[node.index % panel.length] ?? "#000") : "rgba(255,255,255,0)",
+      fill:
+        node.depth < 2
+          ? (panel[node.index % panel.length] ?? "#000")
+          : "rgba(255,255,255,0)",
       stroke,
       isLeaf: !node.children || node.children.length === 0,
       // drill-down arrow on nest children that have their own children.
@@ -596,12 +651,20 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
     x: node.x + node.width / 2,
     y: node.y + node.height / 2,
   });
-  const onUserMouseEnter = (node: TreemapNode, isLeaf: boolean, e: MousePointer): void => {
+  const onUserMouseEnter = (
+    node: TreemapNode,
+    isLeaf: boolean,
+    e: MousePointer,
+  ): void => {
     if (isLeaf || merged.type === "nest") {
       merged.onMouseEnter?.(withRoot(node), e);
     }
   };
-  const onUserMouseLeave = (node: TreemapNode, isLeaf: boolean, e: MousePointer): void => {
+  const onUserMouseLeave = (
+    node: TreemapNode,
+    isLeaf: boolean,
+    e: MousePointer,
+  ): void => {
     if (isLeaf || merged.type === "nest") {
       merged.onMouseLeave?.(withRoot(node), e);
     }
@@ -609,8 +672,16 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
   // nest drill-in: clicking a non-root node with children recomputes the root from
   // it. depth === 0 is the current root cell, which must not drill again.
   const onNestClick = (node: TreemapNode): void => {
-    if (merged.type === "nest" && node.depth > 0 && node.children && node.children.length > 0) {
-      setNestStack((stack) => [...stack, { node, nestedActiveTooltipIndex: node.tooltipIndex }]);
+    if (
+      merged.type === "nest" &&
+      node.depth > 0 &&
+      node.children &&
+      node.children.length > 0
+    ) {
+      setNestStack((stack) => [
+        ...stack,
+        { node, nestedActiveTooltipIndex: node.tooltipIndex },
+      ]);
     }
   };
   const onUserClick = (node: TreemapNode, isLeaf: boolean): void => {
@@ -643,7 +714,10 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
   const tooltipConfig = createMemo<TooltipPayloadConfiguration>(() => ({
     dataDefinedOnItem: formatRoot() ?? undefined,
     getPosition: (index) => {
-      const node = treemapPayloadSearcher(formatRoot(), normalizeTreemapTooltipIndex(index));
+      const node = treemapPayloadSearcher(
+        formatRoot(),
+        normalizeTreemapTooltipIndex(index),
+      );
       if (!isObj(node)) {
         return undefined;
       }
@@ -668,12 +742,14 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
   }));
 
   const layerClass = (): string =>
-    ["recharts-treemap", merged.class].filter((c): c is string => Boolean(c)).join(" ");
+    ["recharts-treemap", merged.class]
+      .filter((c): c is string => Boolean(c))
+      .join(" ");
 
   // Captured once (a render prop rarely changes); reading it in the <For> callback
   // would be an untracked prop read.
-  const content = merged.content;
-  const nestIndexContent = merged.nestIndexContent;
+  const content = untrack(() => merged.content);
+  const nestIndexContent = untrack(() => merged.nestIndexContent);
 
   const handleTouchMove = (event: TouchEvent): void => {
     const touch = event.touches[0];
@@ -737,7 +813,9 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
                       // mousemove DOES bubble up from the child to this layer → drive the
                       // item tooltip here too (idempotent with the default rect's handler).
                       onMouseMove={() => onItemMouseEnter(item.node)}
-                      onMouseLeave={(e) => onUserMouseLeave(item.node, item.isLeaf, e)}
+                      onMouseLeave={(e) =>
+                        onUserMouseLeave(item.node, item.isLeaf, e)
+                      }
                       onClick={() => onUserClick(item.node, item.isLeaf)}
                     >
                       {content ? (
@@ -759,9 +837,18 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
                           {item.arrow ? (
                             <Polygon
                               points={[
-                                { x: item.node.x + 2, y: item.node.y + item.node.height / 2 },
-                                { x: item.node.x + 6, y: item.node.y + item.node.height / 2 + 3 },
-                                { x: item.node.x + 2, y: item.node.y + item.node.height / 2 + 6 },
+                                {
+                                  x: item.node.x + 2,
+                                  y: item.node.y + item.node.height / 2,
+                                },
+                                {
+                                  x: item.node.x + 6,
+                                  y: item.node.y + item.node.height / 2 + 3,
+                                },
+                                {
+                                  x: item.node.x + 2,
+                                  y: item.node.y + item.node.height / 2 + 6,
+                                },
                               ]}
                             />
                           ) : null}
@@ -832,7 +919,9 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
                     }}
                     onClick={() => onNestIndexClick(i())}
                   >
-                    {nestIndexContent ? nestIndexContent(item, i()) : item.name || "root"}
+                    {nestIndexContent
+                      ? nestIndexContent(item, i())
+                      : item.name || "root"}
                   </div>
                 )}
               </For>
@@ -849,10 +938,15 @@ const TreemapImpl = (props: TreemapProps & { id: string }): JSX.Element => {
  * rectangles (a squarified treemap).
  */
 export const Treemap = (props: TreemapProps): JSX.Element => {
-  const id = useUniqueId("recharts-treemap", props.id);
+  const id = useUniqueId(
+    "recharts-treemap",
+    untrack(() => props.id),
+  );
   return (
     <RechartsStoreProvider
-      preloadedState={{ options: treemapOptions } satisfies Partial<RechartsRootState>}
+      preloadedState={
+        { options: treemapOptions } satisfies Partial<RechartsRootState>
+      }
     >
       <ReportChartMargin margin={zeroMargin} />
       <ReportEventSettings
@@ -865,7 +959,10 @@ export const Treemap = (props: TreemapProps): JSX.Element => {
         height={props.height}
         responsive={props.responsive ?? false}
       >
-        <TreemapImpl {...props} id={id} />
+        <TreemapImpl
+          {...props}
+          id={id}
+        />
       </RechartsWrapper>
     </RechartsStoreProvider>
   );

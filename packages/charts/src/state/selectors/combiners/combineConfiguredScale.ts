@@ -8,6 +8,9 @@
 // scale factory through a user-defined type guard before calling it. Behavior is
 // identical (unknown names / non-function exports → `undefined`).
 import * as d3Scales from "d3-scale";
+
+import { upperFirst } from "../../../util/DataUtils";
+import { CustomScaleDefinition } from "../../../util/scale/CustomScaleDefinition";
 import {
   CategoricalDomain,
   CategoricalDomainItem,
@@ -15,14 +18,13 @@ import {
   NumberDomain,
   RechartsScaleType,
 } from "../../../util/types";
-import { CustomScaleDefinition } from "../../../util/scale/CustomScaleDefinition";
 import { BaseCartesianAxis } from "../../cartesianAxisSlice";
 import { AxisRange } from "../axisSelectors";
-import { upperFirst } from "../../../util/DataUtils";
 
 const d3ScaleRecord: Record<string, unknown> = { ...d3Scales };
 
-type ScaleFactory<Domain extends CategoricalDomainItem> = () => CustomScaleDefinition<Domain>;
+type ScaleFactory<Domain extends CategoricalDomainItem> =
+  () => CustomScaleDefinition<Domain>;
 
 function isScaleFactory<Domain extends CategoricalDomainItem>(
   value: unknown,
@@ -30,7 +32,9 @@ function isScaleFactory<Domain extends CategoricalDomainItem>(
   return typeof value === "function";
 }
 
-function getD3ScaleFromType<Domain extends CategoricalDomainItem = CategoricalDomainItem>(
+function getD3ScaleFromType<
+  Domain extends CategoricalDomainItem = CategoricalDomainItem,
+>(
   realScaleType: D3ScaleType | RechartsScaleType,
 ): CustomScaleDefinition<Domain> | undefined {
   const direct = d3ScaleRecord[realScaleType];
@@ -80,14 +84,22 @@ export function combineConfiguredScaleInternal(
 export function combineConfiguredScaleInternal<
   Domain extends CategoricalDomainItem = CategoricalDomainItem,
 >(
-  scale: D3ScaleType | RechartsScaleType | CustomScaleDefinition<Domain> | undefined,
+  scale:
+    | D3ScaleType
+    | RechartsScaleType
+    | CustomScaleDefinition<Domain>
+    | undefined,
   axisDomain: ReadonlyArray<Domain>,
   axisRange: AxisRange,
 ): CustomScaleDefinition<Domain> | undefined;
 export function combineConfiguredScaleInternal<
   Domain extends CategoricalDomainItem = CategoricalDomainItem,
 >(
-  scale: D3ScaleType | RechartsScaleType | CustomScaleDefinition<Domain> | undefined,
+  scale:
+    | D3ScaleType
+    | RechartsScaleType
+    | CustomScaleDefinition<Domain>
+    | undefined,
   axisDomain: ReadonlyArray<Domain>,
   axisRange: AxisRange,
 ): CustomScaleDefinition<Domain> | undefined {
@@ -97,7 +109,8 @@ export function combineConfiguredScaleInternal<
   if (scale == null) {
     return undefined;
   }
-  const d3ScaleFunction: CustomScaleDefinition<Domain> | undefined = getD3ScaleFromType(scale);
+  const d3ScaleFunction: CustomScaleDefinition<Domain> | undefined =
+    getD3ScaleFromType(scale);
   if (d3ScaleFunction == null) {
     return undefined;
   }

@@ -8,7 +8,11 @@ const PENDING = "pending" as const;
 const ACTIVE = "active" as const;
 const COMPLETED = "completed" as const;
 
-export type AnimationState = typeof INIT | typeof PENDING | typeof ACTIVE | typeof COMPLETED;
+export type AnimationState =
+  | typeof INIT
+  | typeof PENDING
+  | typeof ACTIVE
+  | typeof COMPLETED;
 
 type AnimationStateCallback = () => void;
 
@@ -220,7 +224,10 @@ abstract class RechartsAnimation<T, E> {
  *
  * @since 3.9
  */
-export class JavascriptAnimation extends RechartsAnimation<number, ProgressEasingFn> {
+export class JavascriptAnimation extends RechartsAnimation<
+  number,
+  ProgressEasingFn
+> {
   protected nextAnimationUpdate(): number {
     /*
      * JavaScript-based animations have to update as soon as possible,
@@ -235,7 +242,9 @@ export class JavascriptAnimation extends RechartsAnimation<number, ProgressEasin
    * entirely within the easing function's control. Spring typically does this.
    */
   public getInterpolated(): number {
-    return this.easing(interpolate(this.getFrom(), this.getTo(), this.getProgress()));
+    return this.easing(
+      interpolate(this.getFrom(), this.getTo(), this.getProgress()),
+    );
   }
 }
 
@@ -245,7 +254,10 @@ export class JavascriptAnimation extends RechartsAnimation<number, ProgressEasin
  *
  * @since 3.9
  */
-export class CSSTransitionAnimation extends RechartsAnimation<string, NamedBezier> {
+export class CSSTransitionAnimation extends RechartsAnimation<
+  string,
+  NamedBezier
+> {
   protected nextAnimationUpdate(timeElapsed: number): number {
     /**
      * CSS transitions do not need DOM updates past the initial render

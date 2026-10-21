@@ -1,13 +1,14 @@
+import type { JSX } from "@solidjs/web";
+import { omit } from "solid-js";
+
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 // Ported from recharts 3.8.1 src/container/Layer.tsx (commit 7a23854).
 // Solid deviations: `className` → `class` (Omit the wide SVG `class`); `clsx` →
 // `class={[...]}`; `forwardRef` → `ref` prop; no destructuring (omit + props).
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 
 interface LayerOwnProps {
-  class?: string;
+  class?: JSX.ClassValue;
   children?: JSX.Element;
   ref?: SVGGElement | ((el: SVGGElement) => void);
 }
@@ -26,10 +27,11 @@ export type LayerProps = Omit<
  * @link https://developer.mozilla.org/en-US/docs/Web/SVG/Reference/Element/g
  */
 export const Layer = (props: LayerProps): JSX.Element => {
+  const rest = omit(props, "class", "children", "ref");
   return (
     <g
       class={["recharts-layer", props.class]}
-      {...svgPropertiesAndEvents({ ...omit(props, "class", "children", "ref") })}
+      {...svgPropertiesAndEvents({ ...rest })}
       ref={props.ref}
     >
       {props.children}

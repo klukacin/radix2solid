@@ -1,12 +1,13 @@
+import type { JSX } from "@solidjs/web";
+
+import { useIsPanorama } from "../context/PanoramaContext";
+import { LayoutType, Margin } from "../util/types";
 // Ported from recharts 3.8.1 src/state/ReportMainChartProps.tsx (commit 7a23854).
 //
 // Solid deviations: `memo(..., propsAreEqual)` is dropped (Solid doesn't
 // re-render; the comparator has no equivalent); `useAppDispatch` + action
 // creators → `useAppStore().actions`; render-phase registration includes SSR.
 import { createChartEffect } from "./createChartState";
-import type { JSX } from "@solidjs/web";
-import { LayoutType, Margin } from "../util/types";
-import { useIsPanorama } from "../context/PanoramaContext";
 import { useAppStore } from "./hooks";
 
 /** Props accepted only on the main chart (not the Brush panorama). */

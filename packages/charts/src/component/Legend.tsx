@@ -1,10 +1,45 @@
+import { JSX, Portal } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/component/Legend.tsx (commit 7a23854).
 //
 // Native portals remain the legacy/custom-portal path. Position-based legends
 // register the same body in the wrapper's HTML outlet for SSR and hydration.
 // Measurement runs after claiming that body; content retains the Legend owner.
-import { createEffect, createMemo, createRoot, getOwner, merge, onCleanup, runWithOwner, Show } from "solid-js";
-import { JSX, Portal } from "@solidjs/web";
+import {
+  createEffect,
+  createMemo,
+  createRoot,
+  getOwner,
+  merge,
+  onCleanup,
+  runWithOwner,
+  Show,
+} from "solid-js";
+
+import { cartesianPositionToCSSTranslate } from "../cartesian/cartesianPositionToCSSTranslate";
+import {
+  type CartesianPosition,
+  getCartesianPosition,
+  isOutsidePosition,
+} from "../cartesian/getCartesianPosition";
+import {
+  useChartHeight,
+  useChartWidth,
+  useMargin,
+} from "../context/chartLayoutContext";
+import { useLegendPayload } from "../context/legendPayloadContext";
+import {
+  useLegendOutlet,
+  useLegendPortal,
+} from "../context/legendPortalContext";
+import { createChartEffect } from "../state/createChartState";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { initialLegendState } from "../state/legendSlice";
+import { selectChartViewBox } from "../state/selectors/selectChartOffsetInternal";
+import { selectLegendArea } from "../state/selectors/selectLegendArea";
+import { unregisterCleanup } from "../state/unregisterOnCleanup";
+import { getUniqPayload, UniqueOption } from "../util/payload/getUniqPayload";
+import type { CartesianLayout, LayoutType, Margin } from "../util/types";
+import { ElementOffset, useElementOffset } from "../util/useElementOffset";
 import {
   ContentType,
   DefaultLegendContent,
@@ -14,20 +49,6 @@ import {
   Props as DefaultLegendContentProps,
   VerticalAlignmentType,
 } from "./DefaultLegendContent";
-import type { CartesianLayout, LayoutType, Margin } from "../util/types";
-import { getUniqPayload, UniqueOption } from "../util/payload/getUniqPayload";
-import { useLegendPayload } from "../context/legendPayloadContext";
-import { useLegendOutlet, useLegendPortal } from "../context/legendPortalContext";
-import { ElementOffset, useElementOffset } from "../util/useElementOffset";
-import { useChartHeight, useChartWidth, useMargin } from "../context/chartLayoutContext";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import { createChartEffect } from "../state/createChartState";
-import { unregisterCleanup } from "../state/unregisterOnCleanup";
-import { initialLegendState } from "../state/legendSlice";
-import { type CartesianPosition, getCartesianPosition, isOutsidePosition } from "../cartesian/getCartesianPosition";
-import { cartesianPositionToCSSTranslate } from "../cartesian/cartesianPositionToCSSTranslate";
-import { selectLegendArea } from "../state/selectors/selectLegendArea";
-import { selectChartViewBox } from "../state/selectors/selectChartOffsetInternal";
 
 function defaultUniqBy(entry: LegendPayload): string | undefined {
   return entry.value;
@@ -41,7 +62,10 @@ function toCssLength(value: number | string | undefined): string {
   return typeof value === "number" ? `${value}px` : value;
 }
 
-export type LegendProps = Omit<DefaultLegendContentProps, "payload" | "layout"> & {
+export type LegendProps = Omit<
+  DefaultLegendContentProps,
+  "payload" | "layout"
+> & {
   content?: ContentType;
   wrapperStyle?: JSX.CSSProperties;
   width?: number | string;
@@ -146,15 +170,25 @@ export const Legend = (props: LegendProps): JSX.Element => {
   const [lastBoundingBox, updateBoundingBox] = useElementOffset();
   const owner = getOwner();
   const outlet = useLegendOutlet();
-  const useOutlet = () => outlet != null && merged.position != null && props.portal == null;
+  const useOutlet = () =>
+    outlet != null && merged.position != null && props.portal == null;
   const layout = (): CartesianLayout => {
     if (merged.layout !== "auto") return merged.layout;
     const position = merged.position;
-    return position === "left" || position === "right" || position === "insideLeft" || position === "insideRight"
-      ? "vertical" : "horizontal";
+    return position === "left" ||
+      position === "right" ||
+      position === "insideLeft" ||
+      position === "insideRight"
+      ? "vertical"
+      : "horizontal";
   };
-  const positionViewBox = useAppSelector(state => merged.position == null ? undefined :
-    isOutsidePosition(merged.position) ? selectLegendArea(state) : selectChartViewBox(state));
+  const positionViewBox = useAppSelector((state) =>
+    merged.position == null
+      ? undefined
+      : isOutsidePosition(merged.position)
+        ? selectLegendArea(state)
+        : selectChartViewBox(state),
+  );
 
   // Push the legend settings into the store (drives the offset's legend space).
   createChartEffect(
@@ -168,25 +202,36 @@ export const Legend = (props: LegendProps): JSX.Element => {
     }),
     (settings) => {
       store?.actions.legend.setLegendSettings(settings);
-      return unregisterCleanup(() => store?.actions.legend.setLegendSettings(initialLegendState.settings));
+      return unregisterCleanup(() =>
+        store?.actions.legend.setLegendSettings(initialLegendState.settings),
+      );
     },
   );
 
   // Only outside/default legends reserve measured plot space.
   createEffect(
     () => ({
-      report: props.portal == null && (merged.position == null || isOutsidePosition(merged.position)),
-      width: lastBoundingBox().width, height: lastBoundingBox().height,
+      report:
+        props.portal == null &&
+        (merged.position == null || isOutsidePosition(merged.position)),
+      width: lastBoundingBox().width,
+      height: lastBoundingBox().height,
     }),
     (size) => {
       if (size.report) {
-        store?.actions.legend.setLegendSize({ width: size.width, height: size.height });
-        return unregisterCleanup(() => store?.actions.legend.setLegendSize({ width: 0, height: 0 }));
+        store?.actions.legend.setLegendSize({
+          width: size.width,
+          height: size.height,
+        });
+        return unregisterCleanup(() =>
+          store?.actions.legend.setLegendSize({ width: 0, height: 0 }),
+        );
       }
     },
   );
 
-  const portal = (): HTMLElement | null => props.portal ?? legendPortalFromContext();
+  const portal = (): HTMLElement | null =>
+    props.portal ?? legendPortalFromContext();
 
   const finalPayload = createMemo<ReadonlyArray<LegendPayload>>(() =>
     getUniqPayload(contextPayload() ?? [], merged.payloadUniqBy, defaultUniqBy),
@@ -201,7 +246,12 @@ export const Legend = (props: LegendProps): JSX.Element => {
     const h = chartHeight() ?? 0;
     const m = margin();
     const maxWidth = w - (m?.left ?? 0) - (m?.right ?? 0);
-    const widthOrHeight = getWidthOrHeight(layout(), merged.height, merged.width, maxWidth);
+    const widthOrHeight = getWidthOrHeight(
+      layout(),
+      merged.height,
+      merged.width,
+      maxWidth,
+    );
     return {
       align: merged.align,
       iconSize: merged.iconSize,
@@ -239,11 +289,20 @@ export const Legend = (props: LegendProps): JSX.Element => {
     const h = chartHeight();
     const m = margin();
     const maxWidth = (w ?? 0) - (m?.left ?? 0) - (m?.right ?? 0);
-    const widthOrHeight = getWidthOrHeight(layout(), merged.height, merged.width, maxWidth);
+    const widthOrHeight = getWidthOrHeight(
+      layout(),
+      merged.height,
+      merged.width,
+      maxWidth,
+    );
     const viewBox = positionViewBox();
     let positionStyle: JSX.CSSProperties;
     if (merged.position != null && viewBox != null) {
-      const result = getCartesianPosition({ viewBox, position: merged.position, offset: merged.offset });
+      const result = getCartesianPosition({
+        viewBox,
+        position: merged.position,
+        offset: merged.offset,
+      });
       const box = lastBoundingBox();
       const position = merged.position;
       positionStyle = {
@@ -254,12 +313,24 @@ export const Legend = (props: LegendProps): JSX.Element => {
         "overflow-y": "auto",
         top: `${result.y + (position === "top" ? box.height + merged.offset : position === "bottom" ? -box.height - merged.offset : 0)}px`,
         left: `${result.x + (position === "left" ? box.width + merged.offset : position === "right" ? -box.width - merged.offset : 0)}px`,
-        transform: cartesianPositionToCSSTranslate(result.horizontalAnchor, result.verticalAnchor),
+        transform: cartesianPositionToCSSTranslate(
+          result.horizontalAnchor,
+          result.verticalAnchor,
+        ),
       };
     } else {
-      positionStyle = getDefaultPosition(merged.wrapperStyle,
-        { layout: layout(), align: merged.align, verticalAlign: merged.verticalAlign },
-        m, w ?? 0, h ?? 0, lastBoundingBox());
+      positionStyle = getDefaultPosition(
+        merged.wrapperStyle,
+        {
+          layout: layout(),
+          align: merged.align,
+          verticalAlign: merged.verticalAlign,
+        },
+        m,
+        w ?? 0,
+        h ?? 0,
+        lastBoundingBox(),
+      );
     }
     return {
       position: "absolute",
@@ -273,19 +344,26 @@ export const Legend = (props: LegendProps): JSX.Element => {
   };
 
   const renderLegend = (): JSX.Element => {
-    const positioned = useOutlet();
+    const initialPositioned = useOutlet();
     let element: HTMLDivElement | null = null;
-    if (positioned) {
-      createEffect(() => undefined, () => {
-        updateBoundingBox(element);
-        return () => updateBoundingBox(null);
-      });
+    if (initialPositioned) {
+      createEffect(
+        () => undefined,
+        () => {
+          updateBoundingBox(element);
+          return () => updateBoundingBox(null);
+        },
+      );
     }
     return (
-      <div class="recharts-legend-wrapper" style={outerStyle()} ref={node => {
-        if (positioned) element = node;
-        else updateBoundingBox(node);
-      }}>
+      <div
+        class="recharts-legend-wrapper"
+        style={outerStyle()}
+        ref={(node) => {
+          if (initialPositioned) element = node;
+          else updateBoundingBox(node);
+        }}
+      >
         <Show
           when={typeof merged.content === "function" ? merged.content : null}
           fallback={
@@ -310,21 +388,26 @@ export const Legend = (props: LegendProps): JSX.Element => {
       </div>
     );
   };
-  const ready = () => contextPayload() != null && chartWidth() != null && chartHeight() != null;
+  const ready = () =>
+    contextPayload() != null && chartWidth() != null && chartHeight() != null;
   const renderInOutlet = (): JSX.Element => {
     let dispose: (() => void) | undefined;
-    const content = runWithOwner(owner, () => createRoot(cleanup => {
-      dispose = cleanup;
-      return <Show when={ready()}>{(_ready) => renderLegend()}</Show>;
-    }));
+    const content = runWithOwner(owner, () =>
+      createRoot((cleanup) => {
+        dispose = cleanup;
+        return <Show when={ready()}>{(_ready) => renderLegend()}</Show>;
+      }),
+    );
     onCleanup(() => dispose?.());
     return content;
   };
-  createChartEffect(useOutlet, enabled => enabled ? outlet?.(renderInOutlet) : undefined);
+  createChartEffect(useOutlet, (enabled) =>
+    enabled ? outlet?.(renderInOutlet) : undefined,
+  );
 
   return (
     <Show when={!useOutlet() && ready() ? portal() : null}>
-      {mount => <Portal mount={mount()}>{renderLegend()}</Portal>}
+      {(mount) => <Portal mount={mount()}>{renderLegend()}</Portal>}
     </Show>
   );
 };

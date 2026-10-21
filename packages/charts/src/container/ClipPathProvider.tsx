@@ -1,10 +1,11 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/container/ClipPathProvider.tsx (commit 7a23854).
 //
 // Solid deviations: `useState(id)` → a once-computed `const` (Solid runs the body
 // once); `return null` when no plot area → keyed `<Show>`; context-value-is-
 // provider; default `null` (not undefined, which would make `useContext` throw).
 import { createContext, createUniqueId, useContext, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
+
 import { usePlotArea } from "../hooks";
 
 const ClipPathIdContext = createContext<string | null>(null);
@@ -13,7 +14,9 @@ const ClipPathIdContext = createContext<string | null>(null);
  * Generates a unique clip path ID, renders the clip rect over the plot area, and
  * provides the ID via context (read with `useClipPathId`).
  */
-export const ClipPathProvider = (props: { children: JSX.Element }): JSX.Element => {
+export const ClipPathProvider = (props: {
+  children: JSX.Element;
+}): JSX.Element => {
   const clipPathId = `recharts-${createUniqueId()}-clip`;
   const plotArea = usePlotArea();
 
@@ -29,7 +32,12 @@ export const ClipPathProvider = (props: { children: JSX.Element }): JSX.Element 
               initial plot here, not the outer Show's pre-registration snapshot. */}
           <defs>
             <clipPath id={clipPathId}>
-              <rect x={plotArea()?.x} y={plotArea()?.y} height={plotArea()?.height} width={plotArea()?.width} />
+              <rect
+                x={plotArea()?.x}
+                y={plotArea()?.y}
+                height={plotArea()?.height}
+                width={plotArea()?.width}
+              />
             </clipPath>
           </defs>
         </ClipPathIdContext>
@@ -38,4 +46,5 @@ export const ClipPathProvider = (props: { children: JSX.Element }): JSX.Element 
   );
 };
 
-export const useClipPathId = (): string | undefined => useContext(ClipPathIdContext) ?? undefined;
+export const useClipPathId = (): string | undefined =>
+  useContext(ClipPathIdContext) ?? undefined;

@@ -1,3 +1,16 @@
+import { TooltipTrigger } from "../chart/types";
+import type {
+  NameType,
+  Payload,
+  ValueType,
+} from "../component/DefaultTooltipContent";
+import {
+  CartesianViewBoxRequired,
+  Coordinate,
+  DataKey,
+  PolarCoordinate,
+} from "../util/types";
+import { AxisId } from "./cartesianAxisSlice";
 // Ported from recharts 3.8.1 src/state/tooltipSlice.ts (commit 7a23854).
 // FULL SOLID-NATIVE REWRITE (no Redux/immer): createStore + draft-first nested
 // setters. Deviations: `DataKey<any>` → `DataKey<unknown>`; the by-reference
@@ -8,17 +21,16 @@
 // graphical item registers exactly one entry, so the id is unique).
 import type { ChartStateInitializer } from "./createChartState";
 import { createCollectionActions } from "./createCollectionActions";
-import { patched } from "./patched";
-import { TooltipTrigger } from "../chart/types";
-import type { NameType, Payload, ValueType } from "../component/DefaultTooltipContent";
-import { CartesianViewBoxRequired, Coordinate, DataKey, PolarCoordinate } from "../util/types";
-import { AxisId } from "./cartesianAxisSlice";
 import { GraphicalItemId } from "./graphicalItemsSlice";
+import { patched } from "./patched";
 
 /** One Tooltip can display multiple TooltipPayloadEntries at a time. */
 export type TooltipPayloadEntry = Payload<ValueType, NameType>;
 
-export type TooltipEntrySettings = Omit<TooltipPayloadEntry, "payload" | "value"> & {
+export type TooltipEntrySettings = Omit<
+  TooltipPayloadEntry,
+  "payload" | "value"
+> & {
   nameKey: DataKey<unknown> | undefined;
 };
 
@@ -43,7 +55,9 @@ export type TooltipPayloadConfiguration = {
   /** All the data the item provided; the searcher + activeIndex resolve the payload. */
   dataDefinedOnItem: unknown;
   /** The item's preferred tooltip coordinates, instead of relying on the axes. */
-  getPosition: (tooltipIndex: NonNullable<TooltipIndex>) => Coordinate | undefined;
+  getPosition: (
+    tooltipIndex: NonNullable<TooltipIndex>,
+  ) => Coordinate | undefined;
 };
 
 export type ActiveTooltipProps = {
@@ -165,8 +179,11 @@ export interface TooltipSlice {
   readonly actions: TooltipActions;
 }
 
-export function createTooltipSlice(initialState: TooltipState=initialTooltipState,createState: ChartStateInitializer): TooltipSlice {
-  const [state,setState]=createState<TooltipState>({
+export function createTooltipSlice(
+  initialState: TooltipState = initialTooltipState,
+  createState: ChartStateInitializer,
+): TooltipSlice {
+  const [state, setState] = createState<TooltipState>({
     itemInteraction: {
       click: { ...initialState.itemInteraction.click },
       hover: { ...initialState.itemInteraction.hover },
@@ -186,24 +203,24 @@ export function createTooltipSlice(initialState: TooltipState=initialTooltipStat
   // collection matches by `settings.graphicalItemId` instead — the same proxy-safe
   // identity strategy as graphicalItemsSlice. Each graphical item registers exactly
   // one entry, so the id is unique.
-  const entries=createCollectionActions<TooltipPayloadConfiguration>(
+  const entries = createCollectionActions<TooltipPayloadConfiguration>(
     (updater) =>
       setState((s) => {
-        const next=updater(s.tooltipItemPayloads);
-        if(next!==s.tooltipItemPayloads) {
-          s.tooltipItemPayloads=next;
+        const next = updater(s.tooltipItemPayloads);
+        if (next !== s.tooltipItemPayloads) {
+          s.tooltipItemPayloads = next;
         }
       }),
     (p) => p.settings.graphicalItemId,
   );
 
-  const actions: TooltipActions={
+  const actions: TooltipActions = {
     addTooltipEntrySettings: entries.add,
     replaceTooltipEntrySettings: entries.replace,
     removeTooltipEntrySettings: entries.remove,
     setTooltipSettingsState(payload) {
       setState((s) => {
-        s.settings=payload;
+        s.settings = payload;
       });
     },
     setActiveMouseOverItemIndex(payload) {
@@ -213,12 +230,14 @@ export function createTooltipSlice(initialState: TooltipState=initialTooltipStat
       // keep the node reference stable, so reference-keyed selectors would never
       // recompute — see the store-proxy-reference-identity memory.
       setState((s) => {
-        s.syncInteraction=patched(s.syncInteraction,{
+        s.syncInteraction = patched(s.syncInteraction, {
           active: false,
           sourceViewBox: undefined,
         });
-        s.keyboardInteraction=patched(s.keyboardInteraction,{ active: false });
-        s.itemInteraction=patched(s.itemInteraction,{
+        s.keyboardInteraction = patched(s.keyboardInteraction, {
+          active: false,
+        });
+        s.itemInteraction = patched(s.itemInteraction, {
           hover: {
             active: true,
             index: payload.activeIndex,
@@ -231,29 +250,31 @@ export function createTooltipSlice(initialState: TooltipState=initialTooltipStat
     },
     mouseLeaveChart() {
       setState((s) => {
-        s.itemInteraction=patched(s.itemInteraction,{
-          hover: patched(s.itemInteraction.hover,{ active: false }),
+        s.itemInteraction = patched(s.itemInteraction, {
+          hover: patched(s.itemInteraction.hover, { active: false }),
         });
-        s.axisInteraction=patched(s.axisInteraction,{
-          hover: patched(s.axisInteraction.hover,{ active: false }),
+        s.axisInteraction = patched(s.axisInteraction, {
+          hover: patched(s.axisInteraction.hover, { active: false }),
         });
       });
     },
     mouseLeaveItem() {
       setState((s) => {
-        s.itemInteraction=patched(s.itemInteraction,{
-          hover: patched(s.itemInteraction.hover,{ active: false }),
+        s.itemInteraction = patched(s.itemInteraction, {
+          hover: patched(s.itemInteraction.hover, { active: false }),
         });
       });
     },
     setActiveClickItemIndex(payload) {
       setState((s) => {
-        s.syncInteraction=patched(s.syncInteraction,{
+        s.syncInteraction = patched(s.syncInteraction, {
           active: false,
           sourceViewBox: undefined,
         });
-        s.keyboardInteraction=patched(s.keyboardInteraction,{ active: false });
-        s.itemInteraction=patched(s.itemInteraction,{
+        s.keyboardInteraction = patched(s.keyboardInteraction, {
+          active: false,
+        });
+        s.itemInteraction = patched(s.itemInteraction, {
           click: {
             active: true,
             index: payload.activeIndex,
@@ -266,13 +287,15 @@ export function createTooltipSlice(initialState: TooltipState=initialTooltipStat
     },
     setMouseOverAxisIndex(payload) {
       setState((s) => {
-        s.syncInteraction=patched(s.syncInteraction,{
+        s.syncInteraction = patched(s.syncInteraction, {
           active: false,
           sourceViewBox: undefined,
         });
-        s.keyboardInteraction=patched(s.keyboardInteraction,{ active: false });
-        s.axisInteraction=patched(s.axisInteraction,{
-          hover: patched(s.axisInteraction.hover,{
+        s.keyboardInteraction = patched(s.keyboardInteraction, {
+          active: false,
+        });
+        s.axisInteraction = patched(s.axisInteraction, {
+          hover: patched(s.axisInteraction.hover, {
             active: true,
             index: payload.activeIndex,
             dataKey: payload.activeDataKey,
@@ -283,13 +306,15 @@ export function createTooltipSlice(initialState: TooltipState=initialTooltipStat
     },
     setMouseClickAxisIndex(payload) {
       setState((s) => {
-        s.syncInteraction=patched(s.syncInteraction,{
+        s.syncInteraction = patched(s.syncInteraction, {
           active: false,
           sourceViewBox: undefined,
         });
-        s.keyboardInteraction=patched(s.keyboardInteraction,{ active: false });
-        s.axisInteraction=patched(s.axisInteraction,{
-          click: patched(s.axisInteraction.click,{
+        s.keyboardInteraction = patched(s.keyboardInteraction, {
+          active: false,
+        });
+        s.axisInteraction = patched(s.axisInteraction, {
+          click: patched(s.axisInteraction.click, {
             active: true,
             index: payload.activeIndex,
             dataKey: payload.activeDataKey,
@@ -300,12 +325,12 @@ export function createTooltipSlice(initialState: TooltipState=initialTooltipStat
     },
     setSyncInteraction(payload) {
       setState((s) => {
-        s.syncInteraction=payload;
+        s.syncInteraction = payload;
       });
     },
     setKeyboardInteraction(payload) {
       setState((s) => {
-        s.keyboardInteraction=patched(s.keyboardInteraction,{
+        s.keyboardInteraction = patched(s.keyboardInteraction, {
           active: payload.active,
           index: payload.activeIndex,
           coordinate: payload.activeCoordinate,
@@ -314,5 +339,10 @@ export function createTooltipSlice(initialState: TooltipState=initialTooltipStat
     },
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

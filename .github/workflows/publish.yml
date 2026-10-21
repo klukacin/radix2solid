@@ -3,7 +3,7 @@ name: Publish native packages
 on:
   push:
     tags:
-      - 'v*-rc.*'
+      - "v*-rc.*"
 
 permissions:
   contents: read

@@ -1,7 +1,8 @@
-import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
-import { omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
+import { omit } from "solid-js";
+
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
+import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
 
 export interface CartesianViewBox {
   x?: number;
@@ -36,7 +37,8 @@ export type SurfaceProps = Omit<
  * Renders an SVG element. All charts include a Surface; you would not normally use this directly.
  */
 export const Surface = (props: SurfaceProps) => {
-  const svgView = () => props.viewBox ?? { width: props.width, height: props.height, x: 0, y: 0 };
+  const svgView = () =>
+    props.viewBox ?? { width: props.width, height: props.height, x: 0, y: 0 };
   const rest = omit(
     props,
     "children",

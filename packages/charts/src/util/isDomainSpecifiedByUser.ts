@@ -3,15 +3,17 @@
 
 import { MAX_VALUE_REG, MIN_VALUE_REG } from "./ChartUtils";
 import { isNumber } from "./DataUtils";
-import { AxisDomain, AxisDomainItem, NumberDomain } from "./types";
 import { isWellBehavedNumber } from "./isWellBehavedNumber";
+import { AxisDomain, AxisDomainItem, NumberDomain } from "./types";
 
 /**
  * `Array.isArray` narrows the readonly `AxisDomain` union to `any[]` (a TS
  * limitation), which would leak `any` into the destructured elements. This guard
  * narrows to the well-typed 2-tuple so element types stay `AxisDomainItem`.
  */
-function isDomainTuple(d: AxisDomain | undefined): d is Readonly<[AxisDomainItem, AxisDomainItem]> {
+function isDomainTuple(
+  d: AxisDomain | undefined,
+): d is Readonly<[AxisDomainItem, AxisDomainItem]> {
   return Array.isArray(d) && d.length === 2;
 }
 
@@ -167,7 +169,10 @@ export function parseNumericalUserDomain(
       } catch {
         /* ignore the exception and compute domain from data later */
       }
-    } else if (typeof providedMin === "string" && MIN_VALUE_REG.test(providedMin)) {
+    } else if (
+      typeof providedMin === "string" &&
+      MIN_VALUE_REG.test(providedMin)
+    ) {
       const match = MIN_VALUE_REG.exec(providedMin);
       if (match == null || match[1] == null || dataDomain == null) {
         finalMin = undefined;
@@ -193,7 +198,10 @@ export function parseNumericalUserDomain(
       } catch {
         /* ignore the exception and compute domain from data later */
       }
-    } else if (typeof providedMax === "string" && MAX_VALUE_REG.test(providedMax)) {
+    } else if (
+      typeof providedMax === "string" &&
+      MAX_VALUE_REG.test(providedMax)
+    ) {
       const match = MAX_VALUE_REG.exec(providedMax);
       if (match == null || match[1] == null || dataDomain == null) {
         finalMax = undefined;

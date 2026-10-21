@@ -1,17 +1,34 @@
-import { paddingPropDefs } from './padding.props.js';
-import { heightPropDefs } from './height.props.js';
-import { widthPropDefs } from './width.props.js';
+import { heightPropDefs } from "./height.props.js";
+import { paddingPropDefs } from "./padding.props.js";
+import type { PropDef, GetPropDefTypes } from "./prop-def.js";
+import { widthPropDefs } from "./width.props.js";
 
-import type { PropDef, GetPropDefTypes } from './prop-def.js';
-
-const overflowValues = ['visible', 'hidden', 'clip', 'scroll', 'auto'] as const;
-const positionValues = ['static', 'relative', 'absolute', 'fixed', 'sticky'] as const;
+const overflowValues = ["visible", "hidden", "clip", "scroll", "auto"] as const;
+const positionValues = [
+  "static",
+  "relative",
+  "absolute",
+  "fixed",
+  "sticky",
+] as const;
 // prettier-ignore
 const positionEdgeValues = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-1', '-2', '-3', '-4', '-5', '-6', '-7', '-8', '-9'] as const;
-const flexShrinkValues = ['0', '1'] as const;
-const flexGrowValues = ['0', '1'] as const;
-const alignSelfValues = ['start', 'center', 'end', 'baseline', 'stretch'] as const;
-const justifySelfValues = ['start', 'center', 'end', 'baseline', 'stretch'] as const;
+const flexShrinkValues = ["0", "1"] as const;
+const flexGrowValues = ["0", "1"] as const;
+const alignSelfValues = [
+  "start",
+  "center",
+  "end",
+  "baseline",
+  "stretch",
+] as const;
+const justifySelfValues = [
+  "start",
+  "center",
+  "end",
+  "baseline",
+  "stretch",
+] as const;
 
 const layoutPropDefs = {
   ...paddingPropDefs,
@@ -29,8 +46,8 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/position
    */
   position: {
-    type: 'enum',
-    className: 'rt-r-position',
+    type: "enum",
+    className: "rt-r-position",
     values: positionValues,
     responsive: true,
   },
@@ -47,9 +64,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/inset
    */
   inset: {
-    type: 'enum | string',
-    className: 'rt-r-inset',
-    customProperties: ['--inset'],
+    type: "enum | string",
+    className: "rt-r-inset",
+    customProperties: ["--inset"],
     values: positionEdgeValues,
     responsive: true,
   },
@@ -66,9 +83,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/top
    */
   top: {
-    type: 'enum | string',
-    className: 'rt-r-top',
-    customProperties: ['--top'],
+    type: "enum | string",
+    className: "rt-r-top",
+    customProperties: ["--top"],
     values: positionEdgeValues,
     responsive: true,
   },
@@ -85,9 +102,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/right
    */
   right: {
-    type: 'enum | string',
-    className: 'rt-r-right',
-    customProperties: ['--right'],
+    type: "enum | string",
+    className: "rt-r-right",
+    customProperties: ["--right"],
     values: positionEdgeValues,
     responsive: true,
   },
@@ -104,9 +121,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/bottom
    */
   bottom: {
-    type: 'enum | string',
-    className: 'rt-r-bottom',
-    customProperties: ['--bottom'],
+    type: "enum | string",
+    className: "rt-r-bottom",
+    customProperties: ["--bottom"],
     values: positionEdgeValues,
     responsive: true,
   },
@@ -123,9 +140,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/left
    */
   left: {
-    type: 'enum | string',
-    className: 'rt-r-left',
-    customProperties: ['--left'],
+    type: "enum | string",
+    className: "rt-r-left",
+    customProperties: ["--left"],
     values: positionEdgeValues,
     responsive: true,
   },
@@ -141,8 +158,8 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/overflow
    */
   overflow: {
-    type: 'enum',
-    className: 'rt-r-overflow',
+    type: "enum",
+    className: "rt-r-overflow",
     values: overflowValues,
     responsive: true,
   },
@@ -158,8 +175,8 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/overflow
    */
   overflowX: {
-    type: 'enum',
-    className: 'rt-r-ox',
+    type: "enum",
+    className: "rt-r-ox",
     values: overflowValues,
     responsive: true,
   },
@@ -175,8 +192,8 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/overflow
    */
   overflowY: {
-    type: 'enum',
-    className: 'rt-r-oy',
+    type: "enum",
+    className: "rt-r-oy",
     values: overflowValues,
     responsive: true,
   },
@@ -193,9 +210,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/flex-basis
    */
   flexBasis: {
-    type: 'string',
-    className: 'rt-r-fb',
-    customProperties: ['--flex-basis'],
+    type: "string",
+    className: "rt-r-fb",
+    customProperties: ["--flex-basis"],
     responsive: true,
   },
   /**
@@ -211,9 +228,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/flex-shrink
    */
   flexShrink: {
-    type: 'enum | string',
-    className: 'rt-r-fs',
-    customProperties: ['--flex-shrink'],
+    type: "enum | string",
+    className: "rt-r-fs",
+    customProperties: ["--flex-shrink"],
     values: flexShrinkValues,
     responsive: true,
   },
@@ -230,9 +247,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/flex-grow
    */
   flexGrow: {
-    type: 'enum | string',
-    className: 'rt-r-fg',
-    customProperties: ['--flex-grow'],
+    type: "enum | string",
+    className: "rt-r-fg",
+    customProperties: ["--flex-grow"],
     values: flexGrowValues,
     responsive: true,
   },
@@ -247,9 +264,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/grid-area
    */
   gridArea: {
-    type: 'string',
-    className: 'rt-r-ga',
-    customProperties: ['--grid-area'],
+    type: "string",
+    className: "rt-r-ga",
+    customProperties: ["--grid-area"],
     responsive: true,
   },
   /**
@@ -265,9 +282,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/grid-column
    */
   gridColumn: {
-    type: 'string',
-    className: 'rt-r-gc',
-    customProperties: ['--grid-column'],
+    type: "string",
+    className: "rt-r-gc",
+    customProperties: ["--grid-column"],
     responsive: true,
   },
   /**
@@ -283,9 +300,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/grid-column-start
    */
   gridColumnStart: {
-    type: 'string',
-    className: 'rt-r-gcs',
-    customProperties: ['--grid-column-start'],
+    type: "string",
+    className: "rt-r-gcs",
+    customProperties: ["--grid-column-start"],
     responsive: true,
   },
   /**
@@ -301,9 +318,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/grid-column-end
    */
   gridColumnEnd: {
-    type: 'string',
-    className: 'rt-r-gce',
-    customProperties: ['--grid-column-end'],
+    type: "string",
+    className: "rt-r-gce",
+    customProperties: ["--grid-column-end"],
     responsive: true,
   },
   /**
@@ -319,9 +336,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/grid-row
    */
   gridRow: {
-    type: 'string',
-    className: 'rt-r-gr',
-    customProperties: ['--grid-row'],
+    type: "string",
+    className: "rt-r-gr",
+    customProperties: ["--grid-row"],
     responsive: true,
   },
   /**
@@ -337,9 +354,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/grid-row-start
    */
   gridRowStart: {
-    type: 'string',
-    className: 'rt-r-grs',
-    customProperties: ['--grid-row-start'],
+    type: "string",
+    className: "rt-r-grs",
+    customProperties: ["--grid-row-start"],
     responsive: true,
   },
   /**
@@ -355,9 +372,9 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/grid-row-end
    */
   gridRowEnd: {
-    type: 'string',
-    className: 'rt-r-gre',
-    customProperties: ['--grid-row-end'],
+    type: "string",
+    className: "rt-r-gre",
+    customProperties: ["--grid-row-end"],
     responsive: true,
   },
   /**
@@ -372,8 +389,8 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/align-self
    */
   alignSelf: {
-    type: 'enum',
-    className: 'rt-r-as',
+    type: "enum",
+    className: "rt-r-as",
     values: alignSelfValues,
     responsive: true,
   },
@@ -389,8 +406,8 @@ const layoutPropDefs = {
    * https://developer.mozilla.org/en-US/docs/Web/CSS/justify-self
    */
   justifySelf: {
-    type: 'enum',
-    className: 'rt-r-js',
+    type: "enum",
+    className: "rt-r-js",
     values: justifySelfValues,
     responsive: true,
   },
@@ -420,7 +437,10 @@ const layoutPropDefs = {
 
 // Use all of the imported prop defs to ensure that JSDoc works
 type LayoutProps = GetPropDefTypes<
-  typeof paddingPropDefs & typeof widthPropDefs & typeof heightPropDefs & typeof layoutPropDefs
+  typeof paddingPropDefs &
+    typeof widthPropDefs &
+    typeof heightPropDefs &
+    typeof layoutPropDefs
 >;
 
 export { layoutPropDefs };

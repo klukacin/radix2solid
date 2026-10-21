@@ -3,6 +3,7 @@
 // Accessor (Solid reactive-hook convention); the full useTooltipAxis hook (the
 // axis settings object) lands when more consumers need it.
 import { Accessor } from "solid-js";
+
 import { useAppSelector } from "../state/hooks";
 import {
   selectTooltipAxis,
@@ -19,6 +20,9 @@ export const useTooltipAxisBandSize = (): Accessor<number | undefined> => {
     if (!tooltipAxis || !tooltipAxisScale) {
       return getBandSizeOfAxis(undefined, tooltipTicks);
     }
-    return getBandSizeOfAxis({ ...tooltipAxis, scale: tooltipAxisScale }, tooltipTicks);
+    return getBandSizeOfAxis(
+      { ...tooltipAxis, scale: tooltipAxisScale },
+      tooltipTicks,
+    );
   });
 };

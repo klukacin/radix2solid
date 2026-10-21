@@ -1,11 +1,28 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/context/chartLayoutContext.tsx (commit 7a23854).
 //
 // Solid deviations: selector hooks return Accessors (since `useAppSelector`
 // does); `useAppDispatch` + action creators → `useAppStore().actions` +
 // Collect server geometry synchronously; reactive browser updates run after render.
 import { type Accessor } from "solid-js";
+
+import { useResponsiveContainerContext } from "../component/ResponsiveContainer";
 import { createChartEffect } from "../state/createChartState";
-import type { JSX } from "@solidjs/web";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import {
+  selectBrushDimensions,
+  selectBrushSettings,
+} from "../state/selectors/brushSelectors";
+import {
+  selectChartHeight,
+  selectChartWidth,
+} from "../state/selectors/containerSelectors";
+import {
+  selectChartOffsetInternal,
+  selectChartViewBox,
+} from "../state/selectors/selectChartOffsetInternal";
+import { RechartsRootState } from "../state/store";
+import { isPositiveNumber } from "../util/isWellBehavedNumber";
 import {
   CartesianLayout,
   CartesianViewBoxRequired,
@@ -15,19 +32,11 @@ import {
   Percent,
   PolarLayout,
 } from "../util/types";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import { RechartsRootState } from "../state/store";
-import {
-  selectChartOffsetInternal,
-  selectChartViewBox,
-} from "../state/selectors/selectChartOffsetInternal";
-import { selectChartHeight, selectChartWidth } from "../state/selectors/containerSelectors";
 import { useIsPanorama } from "./PanoramaContext";
-import { selectBrushDimensions, selectBrushSettings } from "../state/selectors/brushSelectors";
-import { useResponsiveContainerContext } from "../component/ResponsiveContainer";
-import { isPositiveNumber } from "../util/isWellBehavedNumber";
 
-export const useViewBox = (): Accessor<CartesianViewBoxRequired | undefined> => {
+export const useViewBox = (): Accessor<
+  CartesianViewBoxRequired | undefined
+> => {
   const panorama = useIsPanorama();
   const rootViewBox = useAppSelector(selectChartViewBox);
   const brushDimensions = useAppSelector(selectBrushDimensions);
@@ -64,21 +73,26 @@ export const useOffsetInternal = (): Accessor<ChartOffsetInternal> => {
 };
 
 /** Width of the chart in pixels, or `undefined` outside a chart context. */
-export const useChartWidth = (): Accessor<number | undefined> => useAppSelector(selectChartWidth);
+export const useChartWidth = (): Accessor<number | undefined> =>
+  useAppSelector(selectChartWidth);
 
 /** Height of the chart in pixels, or `undefined` outside a chart context. */
-export const useChartHeight = (): Accessor<number | undefined> => useAppSelector(selectChartHeight);
+export const useChartHeight = (): Accessor<number | undefined> =>
+  useAppSelector(selectChartHeight);
 
 /** Margin (empty space around the chart, excluding axes/legend/brushes). */
 export const useMargin = (): Accessor<Margin | undefined> =>
   useAppSelector((state) => state.layout.margin);
 
-export const selectChartLayout = (state: RechartsRootState): LayoutType => state.layout.layoutType;
+export const selectChartLayout = (state: RechartsRootState): LayoutType =>
+  state.layout.layoutType;
 
 export const useChartLayout = (): Accessor<LayoutType | undefined> =>
   useAppSelector(selectChartLayout);
 
-export const useCartesianChartLayout = (): Accessor<CartesianLayout | undefined> => {
+export const useCartesianChartLayout = (): Accessor<
+  CartesianLayout | undefined
+> => {
   const layout = useChartLayout();
   return () => {
     const l = layout();
@@ -86,7 +100,9 @@ export const useCartesianChartLayout = (): Accessor<CartesianLayout | undefined>
   };
 };
 
-export const selectPolarChartLayout = (state: RechartsRootState): PolarLayout | undefined => {
+export const selectPolarChartLayout = (
+  state: RechartsRootState,
+): PolarLayout | undefined => {
   const layout = state.layout.layoutType;
   return layout === "centric" || layout === "radial" ? layout : undefined;
 };
@@ -126,7 +142,9 @@ export const ReportChartSize = (props: {
   return null;
 };
 
-export const ReportChartMargin = (props: { margin: Partial<Margin> }): JSX.Element => {
+export const ReportChartMargin = (props: {
+  margin: Partial<Margin>;
+}): JSX.Element => {
   const store = useAppStore();
   createChartEffect(
     () => props.margin,

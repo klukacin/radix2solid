@@ -1,4 +1,4 @@
-@import './_internal/base-card.css';
+@import "./_internal/base-card.css";
 
 .rt-RadioCardsRoot {
   line-height: var(--line-height);
@@ -89,7 +89,7 @@
       box-shadow: var(--base-card-surface-box-shadow);
     }
     @media (hover: hover) {
-      &:where(:not(:disabled):not([data-state='checked']):hover) {
+      &:where(:not(:disabled):not([data-state="checked"]):hover) {
         &::after {
           box-shadow: var(--base-card-surface-hover-box-shadow);
         }
@@ -119,7 +119,7 @@
       box-shadow: var(--base-card-classic-box-shadow-inner);
     }
     @media (hover: hover) {
-      &:where(:not(:disabled):not([data-state='checked']):hover) {
+      &:where(:not(:disabled):not([data-state="checked"]):hover) {
         transition-duration: 40ms;
         box-shadow: var(--base-card-classic-hover-box-shadow-outer);
         &::after {
@@ -136,7 +136,7 @@
 /*                                     */
 /* * * * * * * * * * * * * * * * * * * */
 
-.rt-RadioCardsItem:where([data-state='checked']) {
+.rt-RadioCardsItem:where([data-state="checked"]) {
   &::after {
     outline: 2px solid var(--accent-indicator);
   }
@@ -157,7 +157,7 @@
   &::after {
     outline: 2px solid var(--focus-8);
   }
-  &:where([data-state='checked']) {
+  &:where([data-state="checked"]) {
     &::before {
       background-image: linear-gradient(var(--focus-a3), var(--focus-a3));
     }

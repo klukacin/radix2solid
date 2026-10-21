@@ -12,21 +12,33 @@ For source-checkout development, packing a local tarball is an optional alternat
 
 ## Exports
 
-| Export | Asset |
-| --- | --- |
-| `FolderIcon` | `icons/folder.svg` |
+| Export           | Asset                   |
+| ---------------- | ----------------------- |
+| `FolderIcon`     | `icons/folder.svg`      |
 | `FolderOpenIcon` | `icons/folder-open.svg` |
 
 The root also exports the `IconProps` type.
 
 ```tsx
-import { FolderIcon, type IconProps } from '@wsagency/radix2solid-icons-extra';
-import FolderOpenIcon from '@wsagency/radix2solid-icons-extra/FolderOpenIcon';
-import folderSvg from '@wsagency/radix2solid-icons-extra/icons/folder.svg?url';
+import { FolderIcon, type IconProps } from "@wsagency/radix2solid-icons-extra";
+import FolderOpenIcon from "@wsagency/radix2solid-icons-extra/FolderOpenIcon";
+import folderSvg from "@wsagency/radix2solid-icons-extra/icons/folder.svg?url";
 
-<FolderIcon title="Project files" color="tomato" />;
-<FolderOpenIcon size={24} ref={svg => svg?.getScreenCTM()} onClick={() => {}} />;
-<a href={folderSvg} download="folder.svg">Download</a>;
+<FolderIcon
+  title="Project files"
+  color="tomato"
+/>;
+<FolderOpenIcon
+  size={24}
+  ref={(svg) => svg?.getScreenCTM()}
+  onClick={() => {}}
+/>;
+<a
+  href={folderSvg}
+  download="folder.svg"
+>
+  Download
+</a>;
 ```
 
 Each deep icon entry supports both the default and the named import (`import { FolderOpenIcon } from '@wsagency/radix2solid-icons-extra/FolderOpenIcon'`). Deep imports are limited to the icon entries and the original SVG subpaths `@wsagency/radix2solid-icons-extra/icons/<asset>.svg`, which are exported unchanged.

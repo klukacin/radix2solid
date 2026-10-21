@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/component/TooltipBoundingBox.tsx (commit 7a23854).
 //
 // Deviations: React.useState → createSignal; the keydown (Escape-to-dismiss)
@@ -8,7 +9,8 @@
 // CSSProperties → JSX.CSSProperties (kebab keys); the `xmlns` attribute is dropped
 // (the tooltip renders into an HTML portal div, not inside the SVG).
 import { createEffect, createSignal, onSettled } from "solid-js";
-import type { JSX } from "@solidjs/web";
+
+import { getTooltipTranslate } from "../util/tooltip/translate";
 import {
   AllowInDimension,
   AnimationDuration,
@@ -18,7 +20,6 @@ import {
   PolarCoordinate,
 } from "../util/types";
 import { ElementOffset, SetElementOffset } from "../util/useElementOffset";
-import { getTooltipTranslate } from "../util/tooltip/translate";
 import { usePrefersReducedMotion } from "../util/usePrefersReducedMotion";
 
 export type TooltipBoundingBoxProps = {
@@ -52,7 +53,8 @@ function resolveTransitionProperty(args: {
     return undefined;
   }
   if (args.isAnimationActive && args.active) {
-    const easing = typeof args.animationEasing === "string" ? args.animationEasing : "ease";
+    const easing =
+      typeof args.animationEasing === "string" ? args.animationEasing : "ease";
     return `transform ${args.animationDuration}ms ${easing}`;
   }
   return undefined;
@@ -63,7 +65,9 @@ type DismissState = {
   dismissedAtCoordinate: { x: number; y: number };
 };
 
-export const TooltipBoundingBox = (props: TooltipBoundingBoxProps): JSX.Element => {
+export const TooltipBoundingBox = (
+  props: TooltipBoundingBoxProps,
+): JSX.Element => {
   const prefersReducedMotion = usePrefersReducedMotion();
   const [state, setState] = createSignal<DismissState>({
     dismissed: false,
@@ -97,19 +101,25 @@ export const TooltipBoundingBox = (props: TooltipBoundingBoxProps): JSX.Element 
     ({ coord, st }) => {
       if (
         st.dismissed &&
-        (coord.x !== st.dismissedAtCoordinate.x || coord.y !== st.dismissedAtCoordinate.y)
+        (coord.x !== st.dismissedAtCoordinate.x ||
+          coord.y !== st.dismissedAtCoordinate.y)
       ) {
         setState({ ...st, dismissed: false });
       }
     },
   );
 
-  const translate = (): { cssProperties: JSX.CSSProperties; cssClasses: string } =>
+  const translate = (): {
+    cssProperties: JSX.CSSProperties;
+    cssClasses: string;
+  } =>
     getTooltipTranslate({
       allowEscapeViewBox: props.allowEscapeViewBox,
       coordinate: props.coordinate,
-      offsetLeft: typeof props.offset === "number" ? props.offset : props.offset.x,
-      offsetTop: typeof props.offset === "number" ? props.offset : props.offset.y,
+      offsetLeft:
+        typeof props.offset === "number" ? props.offset : props.offset.x,
+      offsetTop:
+        typeof props.offset === "number" ? props.offset : props.offset.y,
       position: props.position,
       reverseDirection: props.reverseDirection,
       tooltipBox: {
@@ -139,13 +149,21 @@ export const TooltipBoundingBox = (props: TooltipBoundingBoxProps): JSX.Element 
         };
     return {
       ...positionStyle,
-      visibility: !state().dismissed && props.active && props.hasPayload ? "visible" : "hidden",
+      visibility:
+        !state().dismissed && props.active && props.hasPayload
+          ? "visible"
+          : "hidden",
       ...props.wrapperStyle,
     };
   };
 
   return (
-    <div tabindex={-1} class={translate().cssClasses} style={outerStyle()} ref={props.innerRef}>
+    <div
+      tabindex={-1}
+      class={translate().cssClasses}
+      style={outerStyle()}
+      ref={props.innerRef}
+    >
       {props.children}
     </div>
   );

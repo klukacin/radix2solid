@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/component/DefaultTooltipContent.tsx (commit 7a23854).
 //
 // The type half seeded the tooltip slice/selectors early; the component lands now.
@@ -9,10 +10,13 @@
 // Element` check dropped (Solid renders an Element or a string uniformly).
 import { For, Show, createMemo, merge } from "solid-js";
 import type { Element } from "solid-js";
-import type { JSX } from "@solidjs/web";
+
+import type {
+  TooltipPayload,
+  TooltipPayloadEntry,
+} from "../state/tooltipSlice";
 import { isNullish, isNumOrStr } from "../util/DataUtils";
 import { DataKey, TooltipType } from "../util/types";
-import type { TooltipPayload, TooltipPayloadEntry } from "../state/tooltipSlice";
 
 export type ValueType = number | string | ReadonlyArray<number | string>;
 export type NameType = number | string;
@@ -23,7 +27,10 @@ function defaultFormatter(value: ValueType | undefined): Element {
     : value;
 }
 
-export type Formatter<TValue extends ValueType = ValueType, TName extends NameType = NameType> = (
+export type Formatter<
+  TValue extends ValueType = ValueType,
+  TName extends NameType = NameType,
+> = (
   value: TValue | undefined,
   name: TName | undefined,
   item: Payload<TValue, TName>,
@@ -31,7 +38,10 @@ export type Formatter<TValue extends ValueType = ValueType, TName extends NameTy
   payload: ReadonlyArray<Payload<TValue, TName>>,
 ) => [Element, TName] | Element;
 
-export interface Payload<TValue extends ValueType = ValueType, TName extends NameType = NameType> {
+export interface Payload<
+  TValue extends ValueType = ValueType,
+  TName extends NameType = NameType,
+> {
   type?: TooltipType;
   color?: string;
   formatter?: Formatter<TValue, TName>;
@@ -55,9 +65,16 @@ export interface Payload<TValue extends ValueType = ValueType, TName extends Nam
 export type TooltipItemSorter<
   TValue extends ValueType = ValueType,
   TName extends NameType = NameType,
-> = "dataKey" | "value" | "name" | ((item: Payload<TValue, TName>) => number | string | undefined);
+> =
+  | "dataKey"
+  | "value"
+  | "name"
+  | ((item: Payload<TValue, TName>) => number | string | undefined);
 
-export interface Props<TValue extends ValueType = ValueType, TName extends NameType = NameType> {
+export interface Props<
+  TValue extends ValueType = ValueType,
+  TName extends NameType = NameType,
+> {
   separator?: string;
   wrapperClass?: string;
   labelClass?: string;
@@ -65,7 +82,10 @@ export interface Props<TValue extends ValueType = ValueType, TName extends NameT
   contentStyle?: JSX.CSSProperties;
   itemStyle?: JSX.CSSProperties;
   labelStyle?: JSX.CSSProperties;
-  labelFormatter?: (label: Element, payload: ReadonlyArray<Payload<TValue, TName>>) => Element;
+  labelFormatter?: (
+    label: Element,
+    payload: ReadonlyArray<Payload<TValue, TName>>,
+  ) => Element;
   label?: Element;
   payload?: ReadonlyArray<Payload<TValue, TName>>;
   itemSorter?: TooltipItemSorter<TValue, TName>;
@@ -120,7 +140,10 @@ function sortKeyOf(
   return typeof dataKey === "function" ? undefined : dataKey;
 }
 
-function compareSortKeys(a: number | string | undefined, b: number | string | undefined): number {
+function compareSortKeys(
+  a: number | string | undefined,
+  b: number | string | undefined,
+): number {
   if (a === b) {
     return 0;
   }
@@ -174,45 +197,60 @@ export const DefaultTooltipContent = (props: Props): JSX.Element => {
   // A child component (not an inline render fn) so the reactive prop reads happen
   // during its own render rather than in the <For> callback body — avoids
   // STRICT_READ_UNTRACKED (same pattern as Dots' DotRenderer).
-  const TooltipItem = (itemProps: { entry: TooltipPayloadEntry; index: number }): JSX.Element => {
-    const formattedEntry = createMemo<{ value: Element; name: Element } | null>(() => {
-      const entry = itemProps.entry;
-      if (!entry || entry.type === "none") {
+  const TooltipItem = (itemProps: {
+    entry: TooltipPayloadEntry;
+    index: number;
+  }): JSX.Element => {
+    const formattedEntry = createMemo<{ value: Element; name: Element } | null>(
+      () => {
+        const entry = itemProps.entry;
+        if (!entry || entry.type === "none") {
+          return null;
+        }
+        const finalFormatter: Formatter =
+          entry.formatter ?? props.formatter ?? defaultFormatter;
+        const formatted = finalFormatter(
+          entry.value,
+          entry.name,
+          entry,
+          itemProps.index,
+          props.payload ?? [],
+        );
+        if (Array.isArray(formatted)) {
+          return { value: formatted[0], name: formatted[1] };
+        }
+        if (formatted != null) {
+          return { value: formatted, name: entry.name };
+        }
         return null;
-      }
-      const finalFormatter: Formatter = entry.formatter ?? props.formatter ?? defaultFormatter;
-      const formatted = finalFormatter(
-        entry.value,
-        entry.name,
-        entry,
-        itemProps.index,
-        props.payload ?? [],
-      );
-      if (Array.isArray(formatted)) {
-        return { value: formatted[0], name: formatted[1] };
-      }
-      if (formatted != null) {
-        return { value: formatted, name: entry.name };
-      }
-      return null;
-    });
+      },
+    );
 
     const itemStyle = (): JSX.CSSProperties => ({
       ...defaultDefaultTooltipContentProps.itemStyle,
-      color: itemProps.entry.color ?? defaultDefaultTooltipContentProps.itemStyle.color,
+      color:
+        itemProps.entry.color ??
+        defaultDefaultTooltipContentProps.itemStyle.color,
       ...props.itemStyle,
     });
 
     return (
       <Show when={formattedEntry()}>
         {(fe) => (
-          <li class="recharts-tooltip-item" style={itemStyle()}>
+          <li
+            class="recharts-tooltip-item"
+            style={itemStyle()}
+          >
             <Show when={isNumOrStr(fe().name)}>
               <span class="recharts-tooltip-item-name">{fe().name}</span>
-              <span class="recharts-tooltip-item-separator">{merged.separator}</span>
+              <span class="recharts-tooltip-item-separator">
+                {merged.separator}
+              </span>
             </Show>
             <span class="recharts-tooltip-item-value">{fe().value}</span>
-            <span class="recharts-tooltip-item-unit">{itemProps.entry.unit ?? ""}</span>
+            <span class="recharts-tooltip-item-unit">
+              {itemProps.entry.unit ?? ""}
+            </span>
           </li>
         )}
       </Show>
@@ -223,7 +261,10 @@ export const DefaultTooltipContent = (props: Props): JSX.Element => {
     ...defaultDefaultTooltipContentProps.contentStyle,
     ...props.contentStyle,
   });
-  const finalLabelStyle = (): JSX.CSSProperties => ({ margin: 0, ...props.labelStyle });
+  const finalLabelStyle = (): JSX.CSSProperties => ({
+    margin: 0,
+    ...props.labelStyle,
+  });
 
   return (
     <div
@@ -232,13 +273,24 @@ export const DefaultTooltipContent = (props: Props): JSX.Element => {
       role={merged.accessibilityLayer ? "status" : undefined}
       aria-live={merged.accessibilityLayer ? "assertive" : undefined}
     >
-      <p class={["recharts-tooltip-label", props.labelClass]} style={finalLabelStyle()}>
+      <p
+        class={["recharts-tooltip-label", props.labelClass]}
+        style={finalLabelStyle()}
+      >
         {finalLabel()}
       </p>
       <Show when={sortedPayload().length > 0}>
-        <ul class="recharts-tooltip-item-list" style={{ padding: 0, margin: 0 }}>
+        <ul
+          class="recharts-tooltip-item-list"
+          style={{ padding: 0, margin: 0 }}
+        >
           <For each={sortedPayload()}>
-            {(entry, i) => <TooltipItem entry={entry} index={i()} />}
+            {(entry, i) => (
+              <TooltipItem
+                entry={entry}
+                index={i()}
+              />
+            )}
           </For>
         </ul>
       </Show>

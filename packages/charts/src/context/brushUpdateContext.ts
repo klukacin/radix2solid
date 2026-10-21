@@ -11,4 +11,6 @@ export interface BrushStartEndIndex {
 
 export type OnBrushUpdate = (newState: BrushStartEndIndex) => void;
 
-export const BrushUpdateDispatchContext = createContext<OnBrushUpdate>(() => {});
+export const BrushUpdateDispatchContext = createContext<OnBrushUpdate>(
+  () => {},
+);

@@ -3,7 +3,10 @@
 
 import { isWellBehavedNumber } from "../util/isWellBehavedNumber";
 
-export function getZIndexFromUnknown(input: unknown, defaultZIndex: number): number {
+export function getZIndexFromUnknown(
+  input: unknown,
+  defaultZIndex: number,
+): number {
   if (
     input &&
     typeof input === "object" &&

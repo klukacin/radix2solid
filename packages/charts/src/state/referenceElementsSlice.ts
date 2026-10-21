@@ -1,3 +1,6 @@
+import type { ReferenceLineSegment } from "../cartesian/ReferenceLine";
+import type { IfOverflow } from "../util/IfOverflow";
+import type { AxisId } from "./cartesianAxisSlice";
 // Ported from recharts 3.8.1 src/state/referenceElementsSlice.ts (commit 7a23854).
 //
 // FULL SOLID-NATIVE REWRITE (no Redux/immer — see the state-architecture
@@ -13,9 +16,6 @@
 // graphicalItemsSlice / tooltipSlice / legendSlice.
 import type { ChartStateInitializer } from "./createChartState";
 import { createCollectionActions } from "./createCollectionActions";
-import type { AxisId } from "./cartesianAxisSlice";
-import type { IfOverflow } from "../util/IfOverflow";
-import type { ReferenceLineSegment } from "../cartesian/ReferenceLine";
 
 export type ReferenceElementSettings = {
   /**
@@ -73,8 +73,11 @@ export interface ReferenceElementsSlice {
   readonly actions: ReferenceElementsActions;
 }
 
-export function createReferenceElementsSlice(initialState: ReferenceElementState=initialReferenceElementState,createState: ChartStateInitializer): ReferenceElementsSlice {
-  const [state,setState]=createState<ReferenceElementState>({
+export function createReferenceElementsSlice(
+  initialState: ReferenceElementState = initialReferenceElementState,
+  createState: ChartStateInitializer,
+): ReferenceElementsSlice {
+  const [state, setState] = createState<ReferenceElementState>({
     dots: [...initialState.dots],
     areas: [...initialState.areas],
     lines: [...initialState.lines],
@@ -84,38 +87,38 @@ export function createReferenceElementsSlice(initialState: ReferenceElementState
   // actions reassign the whole array rather than mutate in place (see ADR-0002).
   // Reference elements have no replace action — a change is remove-then-add at the
   // call site (ReferenceLine/Dot/Area), so only add + remove are wired.
-  const dots=createCollectionActions<ReferenceDotSettings>(
+  const dots = createCollectionActions<ReferenceDotSettings>(
     (updater) =>
       setState((s) => {
-        const next=updater(s.dots);
-        if(next!==s.dots) {
-          s.dots=next;
+        const next = updater(s.dots);
+        if (next !== s.dots) {
+          s.dots = next;
         }
       }),
     (d) => d.id,
   );
-  const areas=createCollectionActions<ReferenceAreaSettings>(
+  const areas = createCollectionActions<ReferenceAreaSettings>(
     (updater) =>
       setState((s) => {
-        const next=updater(s.areas);
-        if(next!==s.areas) {
-          s.areas=next;
+        const next = updater(s.areas);
+        if (next !== s.areas) {
+          s.areas = next;
         }
       }),
     (a) => a.id,
   );
-  const lines=createCollectionActions<ReferenceLineSettings>(
+  const lines = createCollectionActions<ReferenceLineSettings>(
     (updater) =>
       setState((s) => {
-        const next=updater(s.lines);
-        if(next!==s.lines) {
-          s.lines=next;
+        const next = updater(s.lines);
+        if (next !== s.lines) {
+          s.lines = next;
         }
       }),
     (l) => l.id,
   );
 
-  const actions: ReferenceElementsActions={
+  const actions: ReferenceElementsActions = {
     addDot: dots.add,
     removeDot: dots.remove,
     addArea: areas.add,
@@ -124,5 +127,10 @@ export function createReferenceElementsSlice(initialState: ReferenceElementState
     removeLine: lines.remove,
   };
 
-  return { get state() { return state(); },actions };
+  return {
+    get state() {
+      return state();
+    },
+    actions,
+  };
 }

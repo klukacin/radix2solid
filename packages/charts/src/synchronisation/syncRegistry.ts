@@ -67,7 +67,10 @@ function snapshot<L>(set: Set<L>): ReadonlyArray<L> {
 interface SyncEventCenter {
   on(eventName: typeof TOOLTIP_SYNC_EVENT, listener: TooltipSyncListener): void;
   on(eventName: typeof BRUSH_SYNC_EVENT, listener: BrushSyncListener): void;
-  off(eventName: typeof TOOLTIP_SYNC_EVENT, listener: TooltipSyncListener): void;
+  off(
+    eventName: typeof TOOLTIP_SYNC_EVENT,
+    listener: TooltipSyncListener,
+  ): void;
   off(eventName: typeof BRUSH_SYNC_EVENT, listener: BrushSyncListener): void;
   emit(
     eventName: typeof TOOLTIP_SYNC_EVENT,
@@ -99,32 +102,31 @@ type SyncEventName = typeof TOOLTIP_SYNC_EVENT | typeof BRUSH_SYNC_EVENT;
 export const syncEventCenter: SyncEventCenter = {
   on(eventName: SyncEventName, listener: AnyListener): void {
     if (eventName === TOOLTIP_SYNC_EVENT) {
-      // eslint-disable-next-line typescript/consistent-type-assertions -- narrowed by eventName
       tooltipListeners.add(listener as TooltipSyncListener);
     } else {
-      // eslint-disable-next-line typescript/consistent-type-assertions -- narrowed by eventName
       brushListeners.add(listener as BrushSyncListener);
     }
   },
   off(eventName: SyncEventName, listener: AnyListener): void {
     if (eventName === TOOLTIP_SYNC_EVENT) {
-      // eslint-disable-next-line typescript/consistent-type-assertions -- narrowed by eventName
       tooltipListeners.delete(listener as TooltipSyncListener);
     } else {
-      // eslint-disable-next-line typescript/consistent-type-assertions -- narrowed by eventName
       brushListeners.delete(listener as BrushSyncListener);
     }
   },
-  emit(eventName: SyncEventName, syncId: SyncId, payload: AnyPayload, emitter: symbol): void {
+  emit(
+    eventName: SyncEventName,
+    syncId: SyncId,
+    payload: AnyPayload,
+    emitter: symbol,
+  ): void {
     if (eventName === TOOLTIP_SYNC_EVENT) {
       for (const listener of snapshot(tooltipListeners)) {
-        // eslint-disable-next-line typescript/consistent-type-assertions -- narrowed by eventName
         listener(syncId, payload as TooltipSyncState, emitter);
       }
       return;
     }
     for (const listener of snapshot(brushListeners)) {
-      // eslint-disable-next-line typescript/consistent-type-assertions -- narrowed by eventName
       listener(syncId, payload as BrushStartEndIndex, emitter);
     }
   },

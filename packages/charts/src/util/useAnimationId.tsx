@@ -8,6 +8,7 @@
 // fresh id) exactly when `input` changes by reference, and returns the cached id
 // otherwise. Same behavior as recharts, expressed through Solid reactivity.
 import { createMemo, type Accessor } from "solid-js";
+
 import { uniqueId } from "./DataUtils";
 
 /**

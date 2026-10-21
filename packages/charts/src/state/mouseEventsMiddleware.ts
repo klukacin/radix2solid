@@ -4,10 +4,10 @@
 // Throttling via eventSettings matches reference (raf / ms / allowlist).
 import { getRelativeCoordinate } from "../util/getRelativeCoordinate";
 import type { HTMLMousePointer, RelativePointer } from "../util/types";
-import { selectActivePropsFromChartPointer } from "./selectors/tooltipSelectors";
-import { selectTooltipEventType } from "./selectors/selectTooltipEventType";
-import type { RechartsStore } from "./store";
 import { isEventThrottled } from "./isEventThrottled";
+import { selectTooltipEventType } from "./selectors/selectTooltipEventType";
+import { selectActivePropsFromChartPointer } from "./selectors/tooltipSelectors";
+import type { RechartsStore } from "./store";
 
 /*
  * This single rafId is safe because:
@@ -19,7 +19,10 @@ let rafId: number | null = null;
 let timeoutId: ReturnType<typeof setTimeout> | null = null;
 let latestChartPointer: RelativePointer | null = null;
 
-export function dispatchMouseClick(store: RechartsStore, mousePointer: HTMLMousePointer): void {
+export function dispatchMouseClick(
+  store: RechartsStore,
+  mousePointer: HTMLMousePointer,
+): void {
   const activeProps = selectActivePropsFromChartPointer(
     store.state,
     getRelativeCoordinate(mousePointer),
@@ -33,7 +36,10 @@ export function dispatchMouseClick(store: RechartsStore, mousePointer: HTMLMouse
   }
 }
 
-export function dispatchMouseMove(store: RechartsStore, mousePointer: HTMLMousePointer): void {
+export function dispatchMouseMove(
+  store: RechartsStore,
+  mousePointer: HTMLMousePointer,
+): void {
   const state = store.state;
   const { throttleDelay, throttledEvents } = state.eventSettings;
   const isThrottled = isEventThrottled(throttledEvents, "mousemove");
@@ -42,7 +48,10 @@ export function dispatchMouseMove(store: RechartsStore, mousePointer: HTMLMouseP
     cancelAnimationFrame(rafId);
     rafId = null;
   }
-  if (timeoutId !== null && (typeof throttleDelay !== "number" || !isThrottled)) {
+  if (
+    timeoutId !== null &&
+    (typeof throttleDelay !== "number" || !isThrottled)
+  ) {
     clearTimeout(timeoutId);
     timeoutId = null;
   }
@@ -62,7 +71,10 @@ export function dispatchMouseMove(store: RechartsStore, mousePointer: HTMLMouseP
     }
 
     if (tooltipEventType === "axis") {
-      const activeProps = selectActivePropsFromChartPointer(currentState, latestChartPointer);
+      const activeProps = selectActivePropsFromChartPointer(
+        currentState,
+        latestChartPointer,
+      );
       if (activeProps?.activeIndex != null) {
         store.actions.tooltip.setMouseOverAxisIndex({
           activeIndex: activeProps.activeIndex,

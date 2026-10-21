@@ -1,3 +1,4 @@
+import { DataKey, LegendType, TooltipType } from "../../util/types";
 // Ported from recharts 3.8.1 src/state/types/PieSettings.ts (commit 7a23854).
 //
 // MINIMAL PORT. Deviation: recharts carries arbitrary path presentation props in
@@ -6,7 +7,6 @@
 // sector actually needs — `fill` and `stroke` — and defers the general
 // passthrough (and per-data-row presentation via Cells) to a later step.
 import { BasePolarGraphicalItemSettings } from "../graphicalItemsSlice";
-import { DataKey, LegendType, TooltipType } from "../../util/types";
 
 export interface PieSettings extends BasePolarGraphicalItemSettings {
   type: "pie";

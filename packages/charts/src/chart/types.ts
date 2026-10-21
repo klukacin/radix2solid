@@ -9,7 +9,10 @@ import { MouseHandlerDataParam } from "../synchronisation/types";
 
 export type TooltipTrigger = "hover" | "click";
 
-export type CategoricalChartFunc<E = Event> = (nextState: MouseHandlerDataParam, event: E) => void;
+export type CategoricalChartFunc<E = Event> = (
+  nextState: MouseHandlerDataParam,
+  event: E,
+) => void;
 
 export interface ExternalMouseEvents {
   /** Customized click handler for this chart. */

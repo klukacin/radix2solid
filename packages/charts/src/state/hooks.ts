@@ -9,6 +9,7 @@
 //   - There is no `dispatch`/action-object indirection: `useAppStore()` exposes
 //     the `{ state, actions }` store, and callers run `store.actions.<slice>.<fn>()`.
 import { createMemo, useContext, type Accessor } from "solid-js";
+
 import { RechartsStoreContext } from "./RechartsStoreContext";
 import type { RechartsRootState, RechartsStore } from "./store";
 
@@ -41,5 +42,5 @@ export function useAppSelector<T>(
   const selected = createMemo(() => selector(store.state), { lazy: true });
   // Initial declarations are plain chart-local data, not reactive store writes.
   // Re-read them until handoff; this does not revisit already-emitted SSR markup.
-  return () => store.isInitializing() ? selector(store.state) : selected();
+  return () => (store.isInitializing() ? selector(store.state) : selected());
 }

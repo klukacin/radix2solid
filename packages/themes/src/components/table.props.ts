@@ -1,29 +1,28 @@
-import { paddingPropDefs } from '../props/padding.props.js';
-import { widthPropDefs } from '../props/width.props.js';
+import { paddingPropDefs } from "../props/padding.props.js";
+import type { PropDef } from "../props/prop-def.js";
+import { widthPropDefs } from "../props/width.props.js";
 
-import type { PropDef } from '../props/prop-def.js';
-
-const sizes = ['1', '2', '3'] as const;
-const variants = ['surface', 'ghost'] as const;
-const layoutValues = ['auto', 'fixed'] as const;
+const sizes = ["1", "2", "3"] as const;
+const variants = ["surface", "ghost"] as const;
+const layoutValues = ["auto", "fixed"] as const;
 
 const tableRootPropDefs = {
   size: {
-    type: 'enum',
-    className: 'rt-r-size',
+    type: "enum",
+    className: "rt-r-size",
     values: sizes,
-    default: '2',
+    default: "2",
     responsive: true,
   },
   variant: {
-    type: 'enum',
-    className: 'rt-variant',
+    type: "enum",
+    className: "rt-variant",
     values: variants,
-    default: 'ghost',
+    default: "ghost",
   },
   layout: {
-    type: 'enum',
-    className: 'rt-r-tl',
+    type: "enum",
+    className: "rt-r-tl",
     values: layoutValues,
     responsive: true,
   },
@@ -33,12 +32,12 @@ const tableRootPropDefs = {
   layout: PropDef<(typeof layoutValues)[number]>;
 };
 
-const rowAlign = ['start', 'center', 'end', 'baseline'] as const;
+const rowAlign = ["start", "center", "end", "baseline"] as const;
 
 const tableRowPropDefs = {
   align: {
-    type: 'enum',
-    className: 'rt-r-va',
+    type: "enum",
+    className: "rt-r-va",
     values: rowAlign,
     parseValue: parseAlignValue,
     responsive: true,
@@ -49,19 +48,19 @@ const tableRowPropDefs = {
 
 function parseAlignValue(value: string) {
   return {
-    baseline: 'baseline',
-    start: 'top',
-    center: 'middle',
-    end: 'bottom',
+    baseline: "baseline",
+    start: "top",
+    center: "middle",
+    end: "bottom",
   }[value];
 }
 
-const justifyValues = ['start', 'center', 'end'] as const;
+const justifyValues = ["start", "center", "end"] as const;
 
 const tableCellPropDefs = {
   justify: {
-    type: 'enum',
-    className: 'rt-r-ta',
+    type: "enum",
+    className: "rt-r-ta",
     values: justifyValues,
     parseValue: parseJustifyValue,
     responsive: true,
@@ -74,9 +73,9 @@ const tableCellPropDefs = {
 
 function parseJustifyValue(value: string) {
   return {
-    start: 'left',
-    center: 'center',
-    end: 'right',
+    start: "left",
+    center: "center",
+    end: "right",
   }[value];
 }
 

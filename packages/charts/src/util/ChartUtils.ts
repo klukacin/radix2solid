@@ -1,11 +1,3 @@
-// Partial seed of recharts 3.8.1 src/util/ChartUtils.ts (commit 7a23854).
-//
-// ChartUtils is a large barrel; most of it couples to legend/tooltip/stack state
-// slices (deferred to T3) or victory-vendor d3-shape. We seed ONLY the leaf pieces
-// that pure consumers need today, growing incrementally (same approach as types.ts).
-// Kept byte-identical so importers match the reference path (`./ChartUtils`).
-import { sortBy } from "./collectionUtils";
-import { get } from "./objectPath";
 import {
   type Series,
   type SeriesPoint,
@@ -16,9 +8,34 @@ import {
   stackOffsetWiggle,
   stackOrderNone,
 } from "d3-shape";
-import { isNan, isNotNil, isNullish, isNumber, isNumOrStr, mathSign } from "./DataUtils";
+
+import type { ValueType } from "../component/DefaultTooltipContent";
+import type { LegendSettings } from "../state/legendSlice";
+import type { BaseAxisWithScale } from "../state/selectors/axisSelectors";
+import type {
+  TooltipEntrySettings,
+  TooltipPayloadEntry,
+} from "../state/tooltipSlice";
+// Partial seed of recharts 3.8.1 src/util/ChartUtils.ts (commit 7a23854).
+//
+// ChartUtils is a large barrel; most of it couples to legend/tooltip/stack state
+// slices (deferred to T3) or victory-vendor d3-shape. We seed ONLY the leaf pieces
+// that pure consumers need today, growing incrementally (same approach as types.ts).
+// Kept byte-identical so importers match the reference path (`./ChartUtils`).
+import { sortBy } from "./collectionUtils";
+import {
+  isNan,
+  isNotNil,
+  isNullish,
+  isNumber,
+  isNumOrStr,
+  mathSign,
+} from "./DataUtils";
 import { getSliced } from "./getSliced";
 import { isWellBehavedNumber } from "./isWellBehavedNumber";
+import { get } from "./objectPath";
+import type { RechartsScale } from "./scale/RechartsScale";
+import type { AllStackGroups } from "./stacks/stackTypes";
 import type {
   AxisTick,
   AxisDomainTypeInput,
@@ -34,13 +51,7 @@ import type {
   StackOffsetType,
   TickItem,
 } from "./types";
-import type { RechartsScale } from "./scale/RechartsScale";
-import type { BaseAxisWithScale } from "../state/selectors/axisSelectors";
-import type { TooltipEntrySettings, TooltipPayloadEntry } from "../state/tooltipSlice";
-import type { ValueType } from "../component/DefaultTooltipContent";
-import type { LegendSettings } from "../state/legendSlice";
 import type { Size } from "./types";
-import type { AllStackGroups } from "./stacks/stackTypes";
 
 // Domain-string patterns: `dataMin - <n>` / `dataMax + <n>` (used by
 // util/isDomainSpecifiedByUser to detect a user-extended numerical domain).
@@ -102,7 +113,10 @@ export function getValueByDataKey<DataPointType, DataValueType>(
   return defaultValue;
 }
 
-export const isCategoricalAxis = (layout: LayoutType, axisType: AxisType): boolean =>
+export const isCategoricalAxis = (
+  layout: LayoutType,
+  axisType: AxisType,
+): boolean =>
   (layout === "horizontal" && axisType === "xAxis") ||
   (layout === "vertical" && axisType === "yAxis") ||
   (layout === "centric" && axisType === "angleAxis") ||
@@ -149,7 +163,9 @@ export const getTicksOfAxis = (
   }
 
   const offsetForBand =
-    realScaleType === "scaleBand" && scale.bandwidth ? scale.bandwidth() / 2 : 2;
+    realScaleType === "scaleBand" && scale.bandwidth
+      ? scale.bandwidth() / 2
+      : 2;
   let offset =
     (isGrid || isAll) && type === "category" && scale.bandwidth
       ? scale.bandwidth() / offsetForBand
@@ -166,7 +182,9 @@ export const getTicksOfAxis = (
   if (isGrid && (ticks || niceTicks)) {
     return (ticks || niceTicks || [])
       .map((entry: AxisTick, index: number): TickItem | null => {
-        const scaleContent = duplicateDomain ? duplicateDomain.indexOf(entry) : entry;
+        const scaleContent = duplicateDomain
+          ? duplicateDomain.indexOf(entry)
+          : entry;
         const scaled = scale.map(scaleContent);
         if (!isWellBehavedNumber(scaled)) {
           return null;
@@ -219,7 +237,9 @@ export const getTicksOfAxis = (
         return null;
       }
       const value =
-        duplicateDomain != null && typeof entry === "number" ? duplicateDomain[entry] : entry;
+        duplicateDomain != null && typeof entry === "number"
+          ? duplicateDomain[entry]
+          : entry;
       return {
         coordinate: scaled + offset,
         value,
@@ -241,7 +261,12 @@ export const truncateByDomain = <T>(
   value: SeriesPoint<T>,
   domain: ReadonlyArray<number>,
 ): [number, number] | SeriesPoint<T> => {
-  if (!domain || domain.length !== 2 || !isNumber(domain[0]) || !isNumber(domain[1])) {
+  if (
+    !domain ||
+    domain.length !== 2 ||
+    !isNumber(domain[0]) ||
+    !isNumber(domain[1])
+  ) {
     return value;
   }
 
@@ -274,8 +299,14 @@ export const truncateByDomain = <T>(
 // The axis-ticks selector memoizes the ticks array, so this map is built once per
 // render and reused for every point lookup, making it O(points). First value wins,
 // mirroring Array.find.
-const tickByValueCache = new WeakMap<ReadonlyArray<TickItem>, Map<unknown, TickItem>>();
-function findTickByValue(ticks: ReadonlyArray<TickItem>, value: unknown): TickItem | undefined {
+const tickByValueCache = new WeakMap<
+  ReadonlyArray<TickItem>,
+  Map<unknown, TickItem>
+>();
+function findTickByValue(
+  ticks: ReadonlyArray<TickItem>,
+  value: unknown,
+): TickItem | undefined {
   // Map uses SameValueZero and would match NaN, while the upstream Array.find
   // lookup uses strict equality (NaN !== NaN). Preserve that fallback behavior.
   if (typeof value === "number" && Number.isNaN(value)) {
@@ -330,7 +361,9 @@ export function getCateCoordinateOfLine<T>({
       const key: string | number = axisDataKey;
       const cellValue = entry[key];
       if (!isNullish(cellValue)) {
-        const matchedTick = ticks ? findTickByValue(ticks, cellValue) : undefined;
+        const matchedTick = ticks
+          ? findTickByValue(ticks, cellValue)
+          : undefined;
 
         if (matchedTick) {
           return matchedTick.coordinate + bandSize / 2;
@@ -341,7 +374,10 @@ export function getCateCoordinateOfLine<T>({
     return ticks?.[index] ? ticks[index].coordinate + bandSize / 2 : null;
   }
 
-  const value = getValueByDataKey(entry, !isNullish(dataKey) ? dataKey : axis.dataKey);
+  const value = getValueByDataKey(
+    entry,
+    !isNullish(dataKey) ? dataKey : axis.dataKey,
+  );
 
   const scaled = axis.scale.map(value);
   if (!isNumber(scaled)) {
@@ -370,7 +406,11 @@ export const getCateCoordinateOfBar = ({
     return tick ? tick.coordinate + offset : null;
   }
   // getValueByDataKey does not validate the output type.
-  const value = getValueByDataKey(entry, axis.dataKey, axis.scale.domain()[index]);
+  const value = getValueByDataKey(
+    entry,
+    axis.dataKey,
+    axis.scale.domain()[index],
+  );
 
   if (isNullish(value)) {
     return null;
@@ -387,7 +427,11 @@ export const getCateCoordinateOfBar = ({
 // `domain[0]`/`domain[1]` with `@ts-expect-error`; the domain items are
 // CategoricalDomainItem, so they are coerced with `Number()` for the number-axis
 // branch (numbers pass through unchanged).
-export const getBaseValueOfBar = ({ numericAxis }: { numericAxis: BaseAxisWithScale }): unknown => {
+export const getBaseValueOfBar = ({
+  numericAxis,
+}: {
+  numericAxis: BaseAxisWithScale;
+}): unknown => {
   const domain = numericAxis.scale.domain();
 
   if (numericAxis.type === "number") {
@@ -428,16 +472,24 @@ export const getBandSizeOfAxis = (
   }
 
   if (axis && ticks && ticks.length >= 2) {
-    const orderedTicks: ReadonlyArray<TickItem> = sortBy(ticks, [(o: TickItem) => o.coordinate]);
+    const orderedTicks: ReadonlyArray<TickItem> = sortBy(ticks, [
+      (o: TickItem) => o.coordinate,
+    ]);
     let maxGap = 0;
     for (let i = 1; i < orderedTicks.length; i++) {
-      maxGap = Math.max(maxGap, (orderedTicks[i]?.coordinate || 0) - (orderedTicks[i - 1]?.coordinate || 0));
+      maxGap = Math.max(
+        maxGap,
+        (orderedTicks[i]?.coordinate || 0) -
+          (orderedTicks[i - 1]?.coordinate || 0),
+      );
     }
     // Near-coincident float ticks share a category slot, not a new bar-sized band.
     const minMeaningfulGap = maxGap * 1e-4;
     let bandSize = Infinity;
     for (let i = 1; i < orderedTicks.length; i++) {
-      const gap = (orderedTicks[i]?.coordinate || 0) - (orderedTicks[i - 1]?.coordinate || 0);
+      const gap =
+        (orderedTicks[i]?.coordinate || 0) -
+        (orderedTicks[i - 1]?.coordinate || 0);
       if (gap > minMeaningfulGap) bandSize = Math.min(gap, bandSize);
     }
 
@@ -510,19 +562,32 @@ export const appendOffsetOfLegend = (
   legendSize: Size,
 ): OffsetSides => {
   const { width: boxWidth, height: boxHeight } = legendSize;
-  const { align, verticalAlign, layout, position, offset: legendOffset = 0 } = legendSettings;
+  const {
+    align,
+    verticalAlign,
+    layout,
+    position,
+    offset: legendOffset = 0,
+  } = legendSettings;
   if (position != null) {
     if (position === "top" || position === "bottom") {
-      return { ...offset, [position]: offset[position] + (boxHeight || 0) + legendOffset };
+      return {
+        ...offset,
+        [position]: offset[position] + (boxHeight || 0) + legendOffset,
+      };
     }
     if (position === "left" || position === "right") {
-      return { ...offset, [position]: offset[position] + (boxWidth || 0) + legendOffset };
+      return {
+        ...offset,
+        [position]: offset[position] + (boxWidth || 0) + legendOffset,
+      };
     }
     return offset;
   }
 
   if (
-    (layout === "vertical" || (layout === "horizontal" && verticalAlign === "middle")) &&
+    (layout === "vertical" ||
+      (layout === "horizontal" && verticalAlign === "middle")) &&
     align !== "center" &&
     isNumber(offset[align])
   ) {
@@ -530,11 +595,15 @@ export const appendOffsetOfLegend = (
   }
 
   if (
-    (layout === "horizontal" || (layout === "vertical" && align === "center")) &&
+    (layout === "horizontal" ||
+      (layout === "vertical" && align === "center")) &&
     verticalAlign !== "middle" &&
     isNumber(offset[verticalAlign])
   ) {
-    return { ...offset, [verticalAlign]: offset[verticalAlign] + (boxHeight || 0) };
+    return {
+      ...offset,
+      [verticalAlign]: offset[verticalAlign] + (boxHeight || 0),
+    };
   }
 
   return offset;
@@ -572,7 +641,10 @@ export const calculatePolarTooltipPos = (
 // are needed (recharts' @ts-expect-error was for older DefinitelyTyped types).
 type StackDatum = Record<string, unknown>;
 type StackKey = DataKey<unknown>;
-type OffsetAccessor = (series: Series<StackDatum, StackKey>[], order: number[]) => void;
+type OffsetAccessor = (
+  series: Series<StackDatum, StackKey>[],
+  order: number[],
+) => void;
 
 /**
  * Stacks all positive numbers above zero and all negative numbers below zero.
@@ -654,7 +726,8 @@ export const getStackedData = (
   dataKeys: ReadonlyArray<StackKey>,
   offsetType: StackOffsetType,
 ): ReadonlyArray<Series<StackDatum, StackKey>> => {
-  const offsetAccessor: OffsetAccessor = STACK_OFFSET_MAP[offsetType] ?? offsetSign;
+  const offsetAccessor: OffsetAccessor =
+    STACK_OFFSET_MAP[offsetType] ?? offsetSign;
   // Track whether any value is a [min, max] tuple during the (unavoidable) value
   // accessor pass, so the ranged-data fixup below can be skipped entirely for the
   // common scalar case instead of running a second full series×points scan.
@@ -677,7 +750,11 @@ export const getStackedData = (
   if (hasRangedValues) {
     result.forEach((s, seriesIndex) => {
       s.forEach((point, pointIndex) => {
-        const value = getValueByDataKey(data[pointIndex], dataKeys[seriesIndex], 0);
+        const value = getValueByDataKey(
+          data[pointIndex],
+          dataKeys[seriesIndex],
+          0,
+        );
         if (value != null && Array.isArray(value) && value.length === 2) {
           const lo: unknown = value[0];
           const hi: unknown = value[1];
@@ -693,7 +770,9 @@ export const getStackedData = (
   return result;
 };
 
-const getDomainOfSingle = (data: ReadonlyArray<ReadonlyArray<unknown>>): number[] => {
+const getDomainOfSingle = (
+  data: ReadonlyArray<ReadonlyArray<unknown>>,
+): number[] => {
   // Reduce loop, not `Math.min(...flat)`: spreading a data-sized array throws a V8
   // RangeError past ~100k elements. Empty input yields [Infinity, -Infinity],
   // matching the previous Math.min/Math.max-of-empty behavior.

@@ -1,7 +1,7 @@
-// Ported from recharts 3.8.1 src/state/types/StackedGraphicalItem.ts (commit 7a23854).
-import { GraphicalItemSettings } from "../graphicalItemsSlice";
 import { NormalizedStackId } from "../../util/ChartUtils";
 import { DataKey } from "../../util/types";
+// Ported from recharts 3.8.1 src/state/types/StackedGraphicalItem.ts (commit 7a23854).
+import { GraphicalItemSettings } from "../graphicalItemsSlice";
 
 /**
  * Some graphical items allow data stacking. The stacks are optional, so all
@@ -28,6 +28,8 @@ export function isStacked<T extends GraphicalItemSettings>(
   graphicalItem: T,
 ): graphicalItem is T & DefinitelyStackedGraphicalItem {
   return (
-    "stackId" in graphicalItem && graphicalItem.stackId != null && graphicalItem.dataKey != null
+    "stackId" in graphicalItem &&
+    graphicalItem.stackId != null &&
+    graphicalItem.dataKey != null
   );
 }

@@ -11,29 +11,54 @@ For the full CSS entry, import `@wsagency/radix2solid-themes/styles.css`. Select
 
 The rc.4 release exports Calendar parts `Root`, `Header`, `Heading`, `PrevTrigger`, `NextTrigger`, `Grid`, `Row`, `HeaderCell`, `Cell` and `Day`; DatePicker parts `Root`, `Trigger`, `Value`, `Portal`, `Content`, `Title`, `Description`, `Close`, `Clear`, `Calendar` and `FormControl`; and FileDrop parts `Root`, `Input` and `Trigger`. Each namespace also exports its scope creator and public part-prop types. These are real themed component exports with native Solid parts/props, not CSS-only recipes. The themed `DatePicker.Portal` is client-only and renders no server children; SSR content guidance follows below.
 
-
 ## Usage
 
 ```tsx
-import { createSignal } from 'solid-js';
-import { Theme, Button, Box, Heading, Text, Skeleton } from '@wsagency/radix2solid-themes';
-import '@wsagency/radix2solid-themes/styles.css';
+import {
+  Theme,
+  Button,
+  Box,
+  Heading,
+  Text,
+  Skeleton,
+} from "@wsagency/radix2solid-themes";
+import { createSignal } from "solid-js";
+
+import "@wsagency/radix2solid-themes/styles.css";
 
 function Example() {
   const [loading, setLoading] = createSignal(false);
-  const size = Object.freeze({ md: '3' as const });
-  return <Theme appearance="light" accentColor="indigo" radius="medium">
-    <Heading>Native theme</Heading>
-    <Text as="p">Responsive CSS and live props.</Text>
-    <Button size={size} loading={loading()} onClick={() => setLoading(true)}>Save</Button>
-    <Button onClick={() => setLoading(false)}>Finish</Button>
-    <Box asChild width={{ initial: '160px', md: '240px' }}>
-      {target => target('article', { children: 'One native host' })}
-    </Box>
-    <Skeleton asChild loading={loading()}>
-      {target => target('button', { children: 'Pending action' })}
-    </Skeleton>
-  </Theme>;
+  const size = Object.freeze({ md: "3" as const });
+  return (
+    <Theme
+      appearance="light"
+      accentColor="indigo"
+      radius="medium"
+    >
+      <Heading>Native theme</Heading>
+      <Text as="p">Responsive CSS and live props.</Text>
+      <Button
+        size={size}
+        loading={loading()}
+        onClick={() => setLoading(true)}
+      >
+        Save
+      </Button>
+      <Button onClick={() => setLoading(false)}>Finish</Button>
+      <Box
+        asChild
+        width={{ initial: "160px", md: "240px" }}
+      >
+        {(target) => target("article", { children: "One native host" })}
+      </Box>
+      <Skeleton
+        asChild
+        loading={loading()}
+      >
+        {(target) => target("button", { children: "Pending action" })}
+      </Skeleton>
+    </Theme>
+  );
 }
 ```
 
@@ -52,9 +77,14 @@ Server rendering uses initial Theme metadata without allocating client synchroni
 `accentColor="custom"` with `customAccent="<id>"` (a letter, then letters, digits, `_` or `-`) uses a palette you supply. Every physical Theme root, including themed portal roots, carries `data-custom-accent="<id>"`. Define the complete light and dark sets of the 28 tokens (`--custom-1`…`--custom-12`, `--custom-a1`…`--custom-a12`, `--custom-contrast`, `--custom-surface`, `--custom-indicator`, `--custom-track`) yourself, generated ahead of time rather than during render:
 
 ```css
-.radix-themes[data-custom-accent='calm'] { /* light tokens */ }
-.radix-themes[data-custom-accent='calm']:is(.dark, .dark-theme),
-:is(.dark, .dark-theme) .radix-themes[data-custom-accent='calm']:not(.light, .light-theme) { /* dark tokens */ }
+.radix-themes[data-custom-accent="calm"] {
+  /* light tokens */
+}
+.radix-themes[data-custom-accent="calm"]:is(.dark, .dark-theme),
+:is(.dark, .dark-theme)
+  .radix-themes[data-custom-accent="calm"]:not(.light, .light-theme) {
+  /* dark tokens */
+}
 ```
 
 Color props accept `"custom"`. With `grayColor="auto"`, a custom accent resolves to `gray`; an omitted nested gray still inherits the parent's resolved gray.
@@ -84,11 +114,15 @@ Dialog, AlertDialog, Popover, HoverCard, Tooltip, Select, DropdownMenu and Conte
 
 ```tsx
 <Dialog.Root>
-  <Dialog.Trigger>{target => target(Button, { children: 'Open dialog' })}</Dialog.Trigger>
+  <Dialog.Trigger>
+    {(target) => target(Button, { children: "Open dialog" })}
+  </Dialog.Trigger>
   <Dialog.Content>
     <Dialog.Title>Settings</Dialog.Title>
     <Dialog.Description>Update your preferences.</Dialog.Description>
-    <Dialog.Close>{target => target(Button, { children: 'Close' })}</Dialog.Close>
+    <Dialog.Close>
+      {(target) => target(Button, { children: "Close" })}
+    </Dialog.Close>
   </Dialog.Content>
 </Dialog.Root>
 ```
@@ -102,7 +136,6 @@ Themed overlay content recreates Theme on its physical portal root, including cu
 ThemePanel controls the captured root settings despite its own medium-radius/100% preview. `T` toggles it and restores focus; modifier keys, editable targets, non-radio/checkbox text inputs, select/textarea and menu/listbox/combobox targets are excluded. Inherited appearance observes html/body light/dark classes; an `onAppearanceChange` callback can own that switch. Copy Theme writes the non-default configuration to the clipboard and reports failures. Standalone content/type remain exported as `unstable_ThemePanelContent`/`unstable_ThemePanelContentProps` at the package root and `ThemePanelContent`/`ThemePanelContentProps` from `components/theme-panel`.
 
 Keyless document events are ignored. Native `inert` reflects whether panel interaction is disabled, and inherited factory refs keep their child-first precedence. Panel spacing uses the original layout gap; modal scrollbar removal retains the upstream fixed-edge placement.
-
 
 ## CSS, props and plugins
 

@@ -83,9 +83,18 @@
 .rt-DatePickerContent {
   box-sizing: border-box;
   inline-size: max-content;
-  min-inline-size: min(var(--radix-popover-trigger-width, 0px), var(--radix-popover-content-available-width, 100vw));
-  max-inline-size: min(var(--radix-popover-content-available-width, 100vw), calc(100vw - 1rem));
-  max-block-size: min(var(--radix-popover-content-available-height, 100dvh), calc(100dvh - 1rem));
+  min-inline-size: min(
+    var(--radix-popover-trigger-width, 0px),
+    var(--radix-popover-content-available-width, 100vw)
+  );
+  max-inline-size: min(
+    var(--radix-popover-content-available-width, 100vw),
+    calc(100vw - 1rem)
+  );
+  max-block-size: min(
+    var(--radix-popover-content-available-height, 100dvh),
+    calc(100dvh - 1rem)
+  );
   overflow: auto;
   overscroll-behavior: contain;
   scroll-padding-block: var(--space-3);
@@ -108,7 +117,6 @@
     min-block-size: 32px;
     padding-inline: var(--space-2);
   }
-
 }
 
 @media (forced-colors: active) {

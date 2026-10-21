@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/chart/Sankey.tsx (commit 7a23854).
 //
 // A flow diagram: nodes (Rectangles) connected by value-weighted link ribbons
@@ -18,27 +19,29 @@
 // through getValueByDataKey in the payload searcher (reference parity).
 // NON-GAPS: the reference Sankey has NO animation and hardcodes responsive={false}
 // on its wrapper (ResponsiveContainer sizing flows via the wrapper context).
-import { createEffect, createMemo, For, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { Surface } from "../container/Surface";
+import { createEffect, createMemo, For, merge, Show, untrack } from "solid-js";
+
 import { Layer } from "../container/Layer";
+import { Surface } from "../container/Surface";
+import {
+  ReportChartMargin,
+  useChartHeight,
+  useChartWidth,
+} from "../context/chartLayoutContext";
 import { Rectangle } from "../shape/Rectangle";
-import { RechartsWrapper } from "./RechartsWrapper";
+import { useAppStore } from "../state/hooks";
+import type { ChartOptions } from "../state/optionsSlice";
 import { RechartsStoreProvider } from "../state/RechartsStoreProvider";
-import { ReportChartMargin, useChartHeight, useChartWidth } from "../context/chartLayoutContext";
 import { ReportEventSettings } from "../state/ReportEventSettings";
 import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
-import { useAppStore } from "../state/hooks";
-import { useUniqueId } from "../util/useUniqueId";
-import { isNotNil } from "../util/DataUtils";
-import { getValueByDataKey } from "../util/ChartUtils";
-import type { ChartOptions } from "../state/optionsSlice";
+import type { RechartsRootState } from "../state/store";
 import type {
   TooltipIndex,
   TooltipPayloadConfiguration,
   TooltipPayloadSearcher,
 } from "../state/tooltipSlice";
-import type { RechartsRootState } from "../state/store";
+import { getValueByDataKey } from "../util/ChartUtils";
+import { isNotNil } from "../util/DataUtils";
 import type {
   Coordinate,
   DataKey,
@@ -47,6 +50,8 @@ import type {
   MousePointer,
   Percent,
 } from "../util/types";
+import { useUniqueId } from "../util/useUniqueId";
+import { RechartsWrapper } from "./RechartsWrapper";
 
 // ---- Types ----
 interface LinkDataItem {
@@ -133,7 +138,8 @@ export type SankeyNodeOptions = (props: NodeProps) => JSX.Element;
 type SankeyVerticalAlign = "justify" | "top";
 type SankeyHorizontalAlign = "left" | "justify";
 
-const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v != null;
+const isObj = (v: unknown): v is Record<string, unknown> =>
+  typeof v === "object" && v != null;
 const isArr = (v: unknown): v is ReadonlyArray<unknown> => Array.isArray(v);
 
 // ---- Pure layout (ported verbatim) ----
@@ -159,9 +165,12 @@ const cubicValue = (
     t ** 3 * end
   );
 };
-const getValue = (entry: { value?: number } | undefined): number => (entry && entry.value) || 0;
-const getSumOfIds = (links: ReadonlyArray<LinkDataItem>, ids: number[]): number =>
-  ids.reduce((result, id) => result + getValue(links[id]), 0);
+const getValue = (entry: { value?: number } | undefined): number =>
+  (entry && entry.value) || 0;
+const getSumOfIds = (
+  links: ReadonlyArray<LinkDataItem>,
+  ids: number[],
+): number => ids.reduce((result, id) => result + getValue(links[id]), 0);
 const sumBy = <T,>(arr: ReadonlyArray<T>, fn: (x: T) => number): number =>
   arr.reduce((s, x) => s + fn(x), 0);
 
@@ -220,7 +229,10 @@ const searchTargetsAndSources = (links: LinkDataItem[], id: number) => {
   return { sourceNodes, sourceLinks, targetLinks, targetNodes };
 };
 
-const updateDepthOfTargets = (tree: SankeyNode[], curNode: SankeyNode): void => {
+const updateDepthOfTargets = (
+  tree: SankeyNode[],
+  curNode: SankeyNode,
+): void => {
   const { targetNodes } = curNode;
   for (let i = 0, len = targetNodes.length; i < len; i++) {
     const targetNode = targetNodes[i];
@@ -315,7 +327,9 @@ const updateYOfTree = (
   let yRatio = Math.min(
     ...depthTree.map((nodes) => {
       const sum = sumBy(nodes, getValue);
-      return sum === 0 ? Infinity : (height - (nodes.length - 1) * nodePadding) / sum;
+      return sum === 0
+        ? Infinity
+        : (height - (nodes.length - 1) * nodePadding) / sum;
     }),
   );
   if (yRatio === Infinity) {
@@ -344,7 +358,10 @@ const updateYOfTree = (
       }
     }
   }
-  return links.map((link): LinkDataItemDy => ({ ...link, dy: getValue(link) * yRatio }));
+  return links.map((link): LinkDataItemDy => ({
+    ...link,
+    dy: getValue(link) * yRatio,
+  }));
 };
 
 const resolveCollisions = (
@@ -403,7 +420,11 @@ const relaxLeftToRight = (
     for (const node of nodes) {
       if (node.sourceLinks.length) {
         const sourceSum = getSumOfIds(links, node.sourceLinks);
-        const weightedSum = getSumWithWeightedSource(tree, links, node.sourceLinks);
+        const weightedSum = getSumWithWeightedSource(
+          tree,
+          links,
+          node.sourceLinks,
+        );
         const y = sourceSum === 0 ? centerY(node) : weightedSum / sourceSum;
         node.y += (y - centerY(node)) * alpha;
       }
@@ -425,7 +446,11 @@ const relaxRightToLeft = (
     for (const node of nodes) {
       if (node.targetLinks.length) {
         const targetSum = getSumOfIds(links, node.targetLinks);
-        const weightedSum = getSumWithWeightedTarget(tree, links, node.targetLinks);
+        const weightedSum = getSumWithWeightedTarget(
+          tree,
+          links,
+          node.targetLinks,
+        );
         const y = targetSum === 0 ? centerY(node) : weightedSum / targetSum;
         node.y += (y - centerY(node)) * alpha;
       }
@@ -438,10 +463,14 @@ const updateYOfLinks = (tree: SankeyNode[], links: LinkDataItemDy[]): void => {
     let sy = 0;
     let ty = 0;
     node.targetLinks.sort(
-      (a, b) => (tree[links[a]?.target ?? -1]?.y ?? 0) - (tree[links[b]?.target ?? -1]?.y ?? 0),
+      (a, b) =>
+        (tree[links[a]?.target ?? -1]?.y ?? 0) -
+        (tree[links[b]?.target ?? -1]?.y ?? 0),
     );
     node.sourceLinks.sort(
-      (a, b) => (tree[links[a]?.source ?? -1]?.y ?? 0) - (tree[links[b]?.source ?? -1]?.y ?? 0),
+      (a, b) =>
+        (tree[links[a]?.source ?? -1]?.y ?? 0) -
+        (tree[links[b]?.source ?? -1]?.y ?? 0),
     );
     for (const targetLink of node.targetLinks) {
       const link = links[targetLink];
@@ -468,7 +497,8 @@ const getLinkYAtX = (
 ): number => {
   const sourceX = sourceNode.x + sourceNode.dx;
   const targetX = targetNode.x;
-  const progress = targetX === sourceX ? 0 : (x - sourceX) / (targetX - sourceX);
+  const progress =
+    targetX === sourceX ? 0 : (x - sourceX) / (targetX - sourceX);
   const boundedProgress = Math.min(Math.max(progress, 0), 1);
   const sourceY = sourceNode.y + (link.sy ?? 0) + link.dy / 2;
   const targetY = targetNode.y + (link.ty ?? 0) + link.dy / 2;
@@ -532,7 +562,10 @@ const resolveNodeLinkCollisions = (
     });
 
     const containedNodeObstacles = fixedObstacles.filter((obstacle) =>
-      nodes.some((node) => node.y >= obstacle.y && node.y + node.dy <= obstacle.y + obstacle.dy),
+      nodes.some(
+        (node) =>
+          node.y >= obstacle.y && node.y + node.dy <= obstacle.y + obstacle.dy,
+      ),
     );
 
     if (containedNodeObstacles.length === 0) {
@@ -542,8 +575,10 @@ const resolveNodeLinkCollisions = (
     type CollisionItem =
       | { node: SankeyNode; fixed: false }
       | { y: number; dy: number; fixed: true };
-    const getItemY = (item: CollisionItem): number => (item.fixed ? item.y : item.node.y);
-    const getItemHeight = (item: CollisionItem): number => (item.fixed ? item.dy : item.node.dy);
+    const getItemY = (item: CollisionItem): number =>
+      item.fixed ? item.y : item.node.y;
+    const getItemHeight = (item: CollisionItem): number =>
+      item.fixed ? item.dy : item.node.dy;
     let items: CollisionItem[] = [
       ...nodes.map((node) => ({ node, fixed: false as const })),
       ...containedNodeObstacles,
@@ -612,7 +647,13 @@ export const computeData = ({
   const { links } = data;
   const { tree } = getNodesTree(data, width, nodeWidth, align);
   const depthTree = getDepthTree(tree);
-  const linksWithDy = updateYOfTree(depthTree, height, nodePadding, links, verticalAlign);
+  const linksWithDy = updateYOfTree(
+    depthTree,
+    height,
+    nodePadding,
+    links,
+    verticalAlign,
+  );
   resolveCollisions(depthTree, height, nodePadding, sort);
   if (verticalAlign === "justify") {
     let alpha = 1;
@@ -663,7 +704,12 @@ const buildLinkProps = (
   };
 };
 
-const buildNodeProps = (node: SankeyNode, left: number, top: number, i: number): NodeProps => ({
+const buildNodeProps = (
+  node: SankeyNode,
+  left: number,
+  top: number,
+  i: number,
+): NodeProps => ({
   x: node.x + left,
   y: node.y + top,
   width: node.dx,
@@ -706,9 +752,17 @@ export const sankeyPayloadSearcher: TooltipPayloadSearcher = (
   if (targetType === "node") {
     return { payload, name: resolveName(payload), value: payload.value };
   }
-  const source = isObj(payload.source) ? resolveName(payload.source) : undefined;
-  const target = isObj(payload.target) ? resolveName(payload.target) : undefined;
-  return { payload, name: `${String(source)} - ${String(target)}`, value: payload.value };
+  const source = isObj(payload.source)
+    ? resolveName(payload.source)
+    : undefined;
+  const target = isObj(payload.target)
+    ? resolveName(payload.target)
+    : undefined;
+  return {
+    payload,
+    name: `${String(source)} - ${String(target)}`,
+    value: payload.value,
+  };
 };
 
 export interface SankeyProps extends EventThrottlingProps {
@@ -737,9 +791,21 @@ export interface SankeyProps extends EventThrottlingProps {
   node?: SankeyNodeOptions;
   /** Custom link renderer (function form). Receives the laid-out link props. */
   link?: (props: LinkProps) => JSX.Element;
-  onMouseEnter?: (item: NodeProps | LinkProps, type: SankeyElementType, e: MousePointer) => void;
-  onMouseLeave?: (item: NodeProps | LinkProps, type: SankeyElementType, e: MousePointer) => void;
-  onClick?: (item: NodeProps | LinkProps, type: SankeyElementType, e: MousePointer) => void;
+  onMouseEnter?: (
+    item: NodeProps | LinkProps,
+    type: SankeyElementType,
+    e: MousePointer,
+  ) => void;
+  onMouseLeave?: (
+    item: NodeProps | LinkProps,
+    type: SankeyElementType,
+    e: MousePointer,
+  ) => void;
+  onClick?: (
+    item: NodeProps | LinkProps,
+    type: SankeyElementType,
+    e: MousePointer,
+  ) => void;
   // Accepted (from the SVG container in recharts) but intentionally not wired —
   // the Sankey only dispatches enter/leave/click on nodes and links.
   onMouseMove?: (e: MousePointer) => void;
@@ -781,37 +847,43 @@ const SankeyImpl = (props: SankeyProps & { id: string }): JSX.Element => {
   const dims = (): { width: number; height: number } | undefined => {
     const w = width();
     const h = height();
-    return w != null && h != null && w > 0 && h > 0 ? { width: w, height: h } : undefined;
+    return w != null && h != null && w > 0 && h > 0
+      ? { width: w, height: h }
+      : undefined;
   };
 
-  const computed = createMemo<{ nodes: NodeProps[]; links: LinkProps[] }>(() => {
-    const d = dims();
-    const data = merged.data;
-    if (d == null || data == null || !data.links || !data.nodes) {
-      return { nodes: [], links: [] };
-    }
-    const margin = merged.margin;
-    const contentWidth = d.width - (margin.left ?? 0) - (margin.right ?? 0);
-    const contentHeight = d.height - (margin.top ?? 0) - (margin.bottom ?? 0);
-    const layout = computeData({
-      data,
-      width: contentWidth,
-      height: contentHeight,
-      iterations: merged.iterations,
-      nodeWidth: merged.nodeWidth,
-      nodePadding: merged.nodePadding,
-      sort: merged.sort,
-      verticalAlign: merged.verticalAlign,
-      align: merged.align,
-    });
-    const top = margin.top ?? 0;
-    const left = margin.left ?? 0;
-    const links = layout.links
-      .map((l, i) => buildLinkProps(l, layout.nodes, left, top, i, merged.linkCurvature))
-      .filter(isNotNil);
-    const nodes = layout.nodes.map((n, i) => buildNodeProps(n, left, top, i));
-    return { nodes, links };
-  });
+  const computed = createMemo<{ nodes: NodeProps[]; links: LinkProps[] }>(
+    () => {
+      const d = dims();
+      const data = merged.data;
+      if (d == null || data == null || !data.links || !data.nodes) {
+        return { nodes: [], links: [] };
+      }
+      const margin = merged.margin;
+      const contentWidth = d.width - (margin.left ?? 0) - (margin.right ?? 0);
+      const contentHeight = d.height - (margin.top ?? 0) - (margin.bottom ?? 0);
+      const layout = computeData({
+        data,
+        width: contentWidth,
+        height: contentHeight,
+        iterations: merged.iterations,
+        nodeWidth: merged.nodeWidth,
+        nodePadding: merged.nodePadding,
+        sort: merged.sort,
+        verticalAlign: merged.verticalAlign,
+        align: merged.align,
+      });
+      const top = margin.top ?? 0;
+      const left = margin.left ?? 0;
+      const links = layout.links
+        .map((l, i) =>
+          buildLinkProps(l, layout.nodes, left, top, i, merged.linkCurvature),
+        )
+        .filter(isNotNil);
+      const nodes = layout.nodes.map((n, i) => buildNodeProps(n, left, top, i));
+      return { nodes, links };
+    },
+  );
 
   // Publish the computed data so the tooltip searcher can resolve node-/link-N.
   createEffect(
@@ -841,7 +913,8 @@ const SankeyImpl = (props: SankeyProps & { id: string }): JSX.Element => {
     getPosition: (index) => {
       const key = String(index);
       const nodes = computed().nodes;
-      const node = nodes.find((n) => `node-${n.index}` === key) ?? nodes[Number(key)];
+      const node =
+        nodes.find((n) => `node-${n.index}` === key) ?? nodes[Number(key)];
       if (node == null) {
         return undefined;
       }
@@ -863,7 +936,9 @@ const SankeyImpl = (props: SankeyProps & { id: string }): JSX.Element => {
   }));
 
   const layerClass = (): string =>
-    ["recharts-sankey", merged.class].filter((c): c is string => Boolean(c)).join(" ");
+    ["recharts-sankey", merged.class]
+      .filter((c): c is string => Boolean(c))
+      .join(" ");
 
   return (
     <Show when={dims()}>
@@ -873,8 +948,17 @@ const SankeyImpl = (props: SankeyProps & { id: string }): JSX.Element => {
           height={d().height}
           title={props.title}
           desc={props.desc}
-          role={props.role ?? (merged.accessibilityLayer ? "application" : undefined)}
-          tabIndex={typeof props.tabIndex === "number" ? props.tabIndex : merged.accessibilityLayer ? 0 : undefined}
+          role={
+            props.role ??
+            (merged.accessibilityLayer ? "application" : undefined)
+          }
+          tabIndex={
+            typeof props.tabIndex === "number"
+              ? props.tabIndex
+              : merged.accessibilityLayer
+                ? 0
+                : undefined
+          }
         >
           <Layer class={layerClass()}>
             <Layer class="recharts-sankey-links">
@@ -982,11 +1066,17 @@ const SankeyImpl = (props: SankeyProps & { id: string }): JSX.Element => {
  * relaxation, conveying how quantities split and merge across stages.
  */
 export const Sankey = (props: SankeyProps): JSX.Element => {
-  const id = useUniqueId("recharts-sankey", props.id);
-  const margin = (): Partial<Margin> => props.margin ?? sankeyDefaultProps.margin;
+  const id = useUniqueId(
+    "recharts-sankey",
+    untrack(() => props.id),
+  );
+  const margin = (): Partial<Margin> =>
+    props.margin ?? sankeyDefaultProps.margin;
   return (
     <RechartsStoreProvider
-      preloadedState={{ options: sankeyOptions } satisfies Partial<RechartsRootState>}
+      preloadedState={
+        { options: sankeyOptions } satisfies Partial<RechartsRootState>
+      }
     >
       <ReportChartMargin margin={margin()} />
       <ReportEventSettings
@@ -999,7 +1089,10 @@ export const Sankey = (props: SankeyProps): JSX.Element => {
         height={props.height}
         responsive={props.responsive ?? false}
       >
-        <SankeyImpl {...props} id={id} />
+        <SankeyImpl
+          {...props}
+          id={id}
+        />
       </RechartsWrapper>
     </RechartsStoreProvider>
   );

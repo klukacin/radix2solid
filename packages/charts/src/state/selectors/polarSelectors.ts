@@ -1,3 +1,9 @@
+import { selectChartLayout } from "../../context/chartLayoutContext";
+import type { AllStackGroups } from "../../util/stacks/stackTypes";
+import { CategoricalDomain, NumberDomain } from "../../util/types";
+import { AxisId } from "../cartesianAxisSlice";
+import { AppliedChartData, ChartData } from "../chartDataSlice";
+import { PolarGraphicalItemSettings } from "../graphicalItemsSlice";
 // Ported from recharts 3.8.1 src/state/selectors/polarSelectors.ts (commit 7a23854).
 //
 // FULL SOLID-NATIVE REWRITE: reselect `createSelector` → plain functions
@@ -10,19 +16,7 @@
 // numerical domain calls `combineDomainOfAllAppliedNumericalValuesIncludingErrorValues`
 // directly, so the helper is dead weight. Polar charts have no error bars.
 import { RechartsRootState } from "../store";
-import { AxisId } from "../cartesianAxisSlice";
-import { PolarGraphicalItemSettings } from "../graphicalItemsSlice";
-import { AppliedChartData, ChartData } from "../chartDataSlice";
-import { CategoricalDomain, NumberDomain } from "../../util/types";
-import { selectChartLayout } from "../../context/chartLayoutContext";
-import {
-  selectChartDataAndAlwaysIgnoreIndexes,
-  selectChartDataSliceIgnoringIndexes,
-  selectChartDataWithIndexes,
-} from "./dataSelectors";
-import { pickAxisType } from "./pickAxisType";
-import { selectReverseStackOrder, selectStackOffsetType } from "./rootPropsSelectors";
-import { combineCheckedDomain } from "./combiners/combineCheckedDomain";
+import { isStacked } from "../types/StackedGraphicalItem";
 import {
   combineAppliedValues,
   combineAxisDomain,
@@ -44,9 +38,18 @@ import {
   selectRenderableAxisSettings,
   selectTooltipAxis,
 } from "./axisSelectors";
-import { isStacked } from "../types/StackedGraphicalItem";
+import { combineCheckedDomain } from "./combiners/combineCheckedDomain";
 import { combineDisplayedStackedData } from "./combiners/combineDisplayedStackedData";
-import type { AllStackGroups } from "../../util/stacks/stackTypes";
+import {
+  selectChartDataAndAlwaysIgnoreIndexes,
+  selectChartDataSliceIgnoringIndexes,
+  selectChartDataWithIndexes,
+} from "./dataSelectors";
+import { pickAxisType } from "./pickAxisType";
+import {
+  selectReverseStackOrder,
+  selectStackOffsetType,
+} from "./rootPropsSelectors";
 
 export type PolarAxisType = "angleAxis" | "radiusAxis";
 
@@ -58,7 +61,8 @@ const selectAxisPredicate = (
   _state: RechartsRootState,
   axisType: PolarAxisType,
   axisId: AxisId,
-): ((item: PolarGraphicalItemSettings) => boolean) => itemAxisPredicate(axisType, axisId);
+): ((item: PolarGraphicalItemSettings) => boolean) =>
+  itemAxisPredicate(axisType, axisId);
 
 export const selectPolarItemsSettings = (
   state: RechartsRootState,
@@ -75,7 +79,10 @@ const selectPolarGraphicalItemsData = (
   state: RechartsRootState,
   axisType: PolarAxisType,
   polarAxisId: AxisId,
-): ChartData => combineGraphicalItemsData(selectPolarItemsSettings(state, axisType, polarAxisId));
+): ChartData =>
+  combineGraphicalItemsData(
+    selectPolarItemsSettings(state, axisType, polarAxisId),
+  );
 
 export const selectPolarDisplayedData = (
   state: RechartsRootState,

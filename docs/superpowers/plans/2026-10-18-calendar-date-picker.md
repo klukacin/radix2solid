@@ -67,7 +67,10 @@ interface FormValidityOwner {
   register(source: FormValiditySource): () => void;
   revalidate(): void;
 }
-function FormValidityProvider(props: { value: FormValidityOwner; children?: Element }): Element;
+function FormValidityProvider(props: {
+  value: FormValidityOwner;
+  children?: Element;
+}): Element;
 function useFormValidityOwner(): FormValidityOwner | undefined;
 ```
 
@@ -85,9 +88,13 @@ The owner exposes resolved name and explicit form before target props can mask t
 
 - **Step 1: Write failing consumer assertions** in `e2e/form-validity.spec.ts`: `baseline survives clear and async revision`, `same-name File replacement rejects stale matcher`, and `ordinary Form behavior unchanged`. Fixture exposes real inputs/buttons and outputs derived from `checkValidity()`/submitted FormData, not internal invocation counts. Assert:
   ```ts
-  expect(await field.evaluate((n: HTMLInputElement) => n.validity.customError)).toBe(true);
-  await page.getByRole('button', { name: 'Resolve older validation' }).click();
-  expect(await field.evaluate((n: HTMLInputElement) => n.validity.customError)).toBe(true);
+  expect(
+    await field.evaluate((n: HTMLInputElement) => n.validity.customError),
+  ).toBe(true);
+  await page.getByRole("button", { name: "Resolve older validation" }).click();
+  expect(
+    await field.evaluate((n: HTMLInputElement) => n.validity.customError),
+  ).toBe(true);
   ```
   The same-name case creates two distinct browser File objects named `same.txt`, lets a matcher read the first, accepts the second and proves the first result cannot publish. Also cover baseline clearing to '', source disposal, reset and serverInvalid preservation (RF4).
 - **Step 2: RED gate by orchestrator:** `pnpm exec playwright test e2e/form-validity.spec.ts --project=ssr --project=csr`. Expect missing fixture/required user-visible behavior, not a compile failure. Integration owner adds the new filename to CSR/Firefox/WebKit allowlists as part of the fixture delivery; use `--list` across all six projects before the GREEN run.
@@ -118,10 +125,14 @@ Internal composition exports from calendar.tsx (never from the family public ind
 
 - **Step 1: Write failing date and user tests.** `tests/calendar.test.ts` asserts `addMonths('2024-01-31',1)==='2024-02-29'`, `addMonths('2024-02-29',12)==='2025-02-28'`, valid 0001/0099/9999, rejected `2026-02-30`, and exactly 42 positions with null edge padding/no out-of-domain dates. `e2e/calendar.spec.ts` names `calendar independent selection month and cursor`, `calendar changed bounds controlled fallback`, `calendar all unavailable and RTL`, `calendar hydration date-only timezone`, `calendar cancellation refs and disposal`.
   ```ts
-  await grid.getByRole('button', { name: 'October 18, 2026', exact: true }).focus();
-  await page.keyboard.press('ArrowRight');
-  await expect(page.getByLabel('Accepted date')).toHaveText('2026-10-18');
-  await expect(grid.getByRole('button', { name: 'October 19, 2026', exact: true })).toBeFocused();
+  await grid
+    .getByRole("button", { name: "October 18, 2026", exact: true })
+    .focus();
+  await page.keyboard.press("ArrowRight");
+  await expect(page.getByLabel("Accepted date")).toHaveText("2026-10-18");
+  await expect(
+    grid.getByRole("button", { name: "October 19, 2026", exact: true }),
+  ).toBeFocused();
   ```
   Pin min/max changes in uncontrolled and refused controlled views, Grid fallback when no in-bounds day exists, all-unavailable month browse, nonselecting navigation, root disabled/readOnly, adjacent-month activation, IME/defaultPrevented, per-part refs and no focus stealing from outside (RF1/RF2).
   Add `calendar configuration and instance isolation`: invalid date/month strings and min>max fail consistently in server/client paths; two calendars keep independent labels/IDs/cursors; changing locale/week start/direction never changes selected ISO value. Verify Heading announces only actual month changes, not selection twice; Home/End, Page/Shift+Page, chronological Prev/Next under RTL and bounded unavailable navigation each have actual focus assertions.
@@ -142,10 +153,15 @@ C3 tests conflict `target('input', { required:false, disabled:true, readOnly:tru
 
 - **Step 1: Write failing browser cases** `date picker independent refusal and focus`, `date picker native date form validity focus`, `date picker managed Form baseline labels revisions`, `date picker external reset lifecycle`, `date picker SSR locale and nested layers`. Actual assertions include:
   ```ts
-  expect(await form.evaluate((n: HTMLFormElement) => n.checkValidity())).toBe(false);
+  expect(await form.evaluate((n: HTMLFormElement) => n.checkValidity())).toBe(
+    false,
+  );
   await expect(prior).toBeFocused(); // standalone only
-  await submit.click(); await expect(trigger).toBeFocused();
-  expect(await form.evaluate((n: HTMLFormElement) => new FormData(n).get('due'))).toBe('2026-10-18');
+  await submit.click();
+  await expect(trigger).toBeFocused();
+  expect(
+    await form.evaluate((n: HTMLFormElement) => new FormData(n).get("due")),
+  ).toBe("2026-10-18");
   ```
   Test refused value+accepted close and accepted value+refused close, Escape/outside without selection, removed Trigger, nested Dialog, actual nonmodal/modal Tab behavior, Clear required invalid, disabled omission/readOnly date validation bypass, external form reassociation, cancelled/reset refusal, disposed queued reset, changed constraint invalidity, sync/async/server errors and explicit name/form conflict. Form.Label activation may focus bridge then Trigger; Trigger name comes from explicit label IDs/text. Bridge id/ref/events/aria-describedby must survive asChild composition. Add delayed matcher/new baseline test and standalone-versus-managed checkValidity focus distinction (RF3/RF4).
   Extend the SSR case to both initial closed and explicit open rendering, two independent IDs, no pre-mount autofocus and teardown/remount. Reopening an uncontrolled picker centers accepted selection; a controlled month remains authoritative. Add an event trace asserting bridge projection precedes bubbling user input/change, programmatic updates emit one non-bubbling change, and initial/no-op/refused/reset paths emit none. Assert root name without mounted FormControl contributes no entry, empty enabled contributes '', one mounted named bridge contributes exactly one entry, and newly invalid retained values remain in direct FormData while ordinary submit is blocked.

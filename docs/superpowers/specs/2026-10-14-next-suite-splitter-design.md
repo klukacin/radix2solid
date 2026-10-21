@@ -12,11 +12,11 @@ Reuse native layout, state, event/ref cleanup and existing Slider math/pointer p
 
 Namespace/subpath: `Splitter` / `@wsagency/radix2solid-primitives/splitter`, with standard long-name/short-alias exports and native target-factory asChild.
 
-| Part | Contract |
-| --- | --- |
-| `Root` | `orientation: 'horizontal' \| 'vertical'` (default horizontal); `dir`; `unit: '%' \| 'px'` (default %); `size/defaultSize: number`; `onSizeChange(proposal: number)`; `onSizeCommit(acceptedSize: number)`; `step?: number`; `disabled?: boolean`; `collapsed/defaultCollapsed: boolean` (default false); `onCollapsedChange(proposal: boolean)`. |
-| `Panel` | Required `side: 'primary' \| 'secondary'`; `minSize?: number`, `maxSize?: number`; primary only: `collapsible?: boolean`, `collapsedSize?: number` (default 0). Standard id/ref/attributes. |
-| `Handle` | One focusable separator between the panels. Required accessible name matching the primary pane, via aria-label or aria-labelledby. Generated aria-controls refers to primary Panel; standard ref/events/asChild. |
+| Part     | Contract                                                                                                                                                                                                                                                                                                                                          |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Root`   | `orientation: 'horizontal' \| 'vertical'` (default horizontal); `dir`; `unit: '%' \| 'px'` (default %); `size/defaultSize: number`; `onSizeChange(proposal: number)`; `onSizeCommit(acceptedSize: number)`; `step?: number`; `disabled?: boolean`; `collapsed/defaultCollapsed: boolean` (default false); `onCollapsedChange(proposal: boolean)`. |
+| `Panel`  | Required `side: 'primary' \| 'secondary'`; `minSize?: number`, `maxSize?: number`; primary only: `collapsible?: boolean`, `collapsedSize?: number` (default 0). Standard id/ref/attributes.                                                                                                                                                       |
+| `Handle` | One focusable separator between the panels. Required accessible name matching the primary pane, via aria-label or aria-labelledby. Generated aria-controls refers to primary Panel; standard ref/events/asChild.                                                                                                                                  |
 
 Exactly one primary Panel, Handle and secondary Panel belong directly to each Root, in that logical order. Nested Roots live inside Panels and do not join the parent's registration. Missing/duplicate/wrong-order parts are configuration errors; no implicit third panel. Root `orientation` describes pane flow; horizontal flow has a vertical separator, vertical flow a horizontal separator. RTL reverses horizontal visual flow without reversing logical primary/secondary identity.
 

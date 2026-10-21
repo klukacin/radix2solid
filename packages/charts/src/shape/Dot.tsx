@@ -1,8 +1,9 @@
-import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
-import { Show, omit } from "solid-js";
 import type { JSX } from "@solidjs/web";
+import { Show, omit } from "solid-js";
+
 import { isNumber } from "../util/DataUtils";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
+import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
 
 interface DotOwnProps {
   /** The x-coordinate of center, in pixels. */

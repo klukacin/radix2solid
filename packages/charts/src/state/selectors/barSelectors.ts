@@ -1,8 +1,22 @@
+import { BarRectangleItem, computeBarRectangles } from "../../cartesian/Bar";
+import type { CellProps } from "../../component/Cell";
+import { selectChartLayout } from "../../context/chartLayoutContext";
+import {
+  BarPositionPosition,
+  getBandSizeOfAxis,
+  StackId,
+} from "../../util/ChartUtils";
+import { isNullish } from "../../util/DataUtils";
+import type { StackSeries } from "../../util/stacks/stackTypes";
+import { DataKey, LayoutType, TickItem } from "../../util/types";
+import { ChartData } from "../chartDataSlice";
+import { GraphicalItemId } from "../graphicalItemsSlice";
 // Ported from recharts 3.8.1 src/state/selectors/barSelectors.ts (commit 7a23854).
 // Solid-native plain selectors (no reselect). Stacks are deferred:
 // `selectBarStackGroups`/`selectStackedDataOfItem` return undefined, so
 // computeBarRectangles runs the unstacked path. Cells deferred (passed undefined).
 import { RechartsRootState } from "../store";
+import { BarSettings } from "../types/BarSettings";
 import {
   BaseAxisWithScale,
   selectAxisWithScale,
@@ -11,36 +25,32 @@ import {
   selectTicksOfGraphicalItem,
   selectUnfilteredCartesianItems,
 } from "./axisSelectors";
+import { combineAllBarPositions } from "./combiners/combineAllBarPositions";
+import { combineBarPosition } from "./combiners/combineBarPosition";
+import {
+  BarCategory,
+  combineBarSizeList,
+} from "./combiners/combineBarSizeList";
 import { combineStackedData } from "./combiners/combineStackedData";
-import type { StackSeries } from "../../util/stacks/stackTypes";
-import { isNullish } from "../../util/DataUtils";
-import { BarPositionPosition, getBandSizeOfAxis, StackId } from "../../util/ChartUtils";
-import { DataKey, LayoutType, TickItem } from "../../util/types";
-import { BarRectangleItem, computeBarRectangles } from "../../cartesian/Bar";
-import type { CellProps } from "../../component/Cell";
-import { selectChartLayout } from "../../context/chartLayoutContext";
-import { ChartData } from "../chartDataSlice";
 import { selectChartDataWithIndexesIfNotInPanoramaPosition3 } from "./dataSelectors";
-import { selectAxisViewBox, selectChartOffsetInternal } from "./selectChartOffsetInternal";
+import {
+  selectXAxisIdFromGraphicalItemId,
+  selectYAxisIdFromGraphicalItemId,
+} from "./graphicalItemSelectors";
 import {
   selectBarCategoryGap,
   selectBarGap,
   selectRootBarSize,
   selectRootMaxBarSize,
 } from "./rootPropsSelectors";
-import { BarSettings } from "../types/BarSettings";
-import { GraphicalItemId } from "../graphicalItemsSlice";
-import { BarCategory, combineBarSizeList } from "./combiners/combineBarSizeList";
-import { combineAllBarPositions } from "./combiners/combineAllBarPositions";
-import {
-  selectXAxisIdFromGraphicalItemId,
-  selectYAxisIdFromGraphicalItemId,
-} from "./graphicalItemSelectors";
-import { combineBarPosition } from "./combiners/combineBarPosition";
 import {
   selectAxisWithScaleForGraphicalItem,
   selectTicksForGraphicalItem,
 } from "./selectAxisForGraphicalItem";
+import {
+  selectAxisViewBox,
+  selectChartOffsetInternal,
+} from "./selectChartOffsetInternal";
 
 const selectSynchronisedBarSettings = (
   state: RechartsRootState,
@@ -69,7 +79,9 @@ export const selectAllVisibleBars = (
       continue;
     }
     const matchesAxis =
-      layout === "horizontal" ? item.xAxisId === xAxisId : item.yAxisId === yAxisId;
+      layout === "horizontal"
+        ? item.xAxisId === xAxisId
+        : item.yAxisId === yAxisId;
     if (matchesAxis && item.isPanorama === isPanorama && item.hide === false) {
       bars.push(item);
     }
@@ -130,7 +142,9 @@ export const selectBarBandSize = (
   const layout = selectChartLayout(state);
   const globalMaxBarSize = selectRootMaxBarSize(state);
   const { maxBarSize: childMaxBarSize } = barSettings;
-  const maxBarSize = isNullish(childMaxBarSize) ? globalMaxBarSize : childMaxBarSize;
+  const maxBarSize = isNullish(childMaxBarSize)
+    ? globalMaxBarSize
+    : childMaxBarSize;
   let axis: BaseAxisWithScale | undefined;
   let ticks: ReadonlyArray<TickItem> | undefined;
   if (layout === "horizontal") {
@@ -225,10 +239,30 @@ export const selectBarRectangles = (
 ): ReadonlyArray<BarRectangleItem> | undefined => {
   const axisViewBox = selectAxisViewBox(state);
   const offset = selectChartOffsetInternal(state);
-  const xAxis = selectAxisWithScaleForGraphicalItem(state, "xAxis", id, isPanorama);
-  const yAxis = selectAxisWithScaleForGraphicalItem(state, "yAxis", id, isPanorama);
-  const xAxisTicks = selectTicksForGraphicalItem(state, "xAxis", id, isPanorama);
-  const yAxisTicks = selectTicksForGraphicalItem(state, "yAxis", id, isPanorama);
+  const xAxis = selectAxisWithScaleForGraphicalItem(
+    state,
+    "xAxis",
+    id,
+    isPanorama,
+  );
+  const yAxis = selectAxisWithScaleForGraphicalItem(
+    state,
+    "yAxis",
+    id,
+    isPanorama,
+  );
+  const xAxisTicks = selectTicksForGraphicalItem(
+    state,
+    "xAxis",
+    id,
+    isPanorama,
+  );
+  const yAxisTicks = selectTicksForGraphicalItem(
+    state,
+    "yAxis",
+    id,
+    isPanorama,
+  );
   const pos = selectBarPosition(state, id, isPanorama);
   const layout: LayoutType = selectChartLayout(state);
   const { chartData, dataStartIndex, dataEndIndex } =
@@ -268,7 +302,9 @@ export const selectBarRectangles = (
   // (truncated to the numeric axis domain). The numeric axis is Y (horizontal) / X.
   const numericAxis = layout === "horizontal" ? yAxis : xAxis;
   const stackedDomain: ReadonlyArray<number> | null = stackedData
-    ? numericAxis.scale.domain().filter((d): d is number => typeof d === "number")
+    ? numericAxis.scale
+        .domain()
+        .filter((d): d is number => typeof d === "number")
     : null;
 
   return computeBarRectangles({

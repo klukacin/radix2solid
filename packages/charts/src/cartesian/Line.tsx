@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.9.0 src/cartesian/Line.tsx.
 //
 // FULLY WIRED: graphical-item registration, points selection, drawing (the
@@ -20,31 +21,33 @@
 //     `any`); the value comes from `getValueByDataKey`, which is genuinely
 //     untyped, and only x/y are needed to draw. It flows through `scale.map`
 //     (which accepts `unknown`) unchanged.
-import { createEffect, createMemo, createSignal, merge, Show, untrack } from "solid-js";
-import { useActiveTooltipDataPoints } from "../hooks";
-import { selectActiveTooltipIndex } from "../state/selectors/tooltipSelectors";
-import type { JSX } from "@solidjs/web";
-import { useAppSelector, useAppStore } from "../state/hooks";
+import {
+  createEffect,
+  createMemo,
+  createSignal,
+  merge,
+  Show,
+  untrack,
+} from "solid-js";
+
 import {
   AnimatedItems,
   useAnimationCallbacks,
   type AnimationInterpolateFn,
 } from "../animation/AnimatedItems";
-import { matchByIndex, type AnimationItem, type AnimationMatchByProp } from "../animation/matchBy";
-import type { MutableRef } from "../animation/useAnimationStartSnapshot";
-import { LineDrawShape, type LineDrawShapeProps } from "./LineDrawShape";
-import { useAnimatedLineLength } from "./useAnimatedLineLength";
 import type { EasingInput } from "../animation/easing";
-import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
-import { TooltipPayloadConfiguration } from "../state/tooltipSlice";
-import { SetLegendPayload } from "../state/SetLegendPayload";
+import {
+  matchByIndex,
+  type AnimationItem,
+  type AnimationMatchByProp,
+} from "../animation/matchBy";
+import type { MutableRef } from "../animation/useAnimationStartSnapshot";
+import {
+  computeActivePointState,
+  renderActivePointsLayerFromState,
+} from "../component/ActivePoints";
 import { LegendPayload } from "../component/DefaultLegendContent";
 import type { Formatter } from "../component/DefaultTooltipContent";
-import { useIsPanorama } from "../context/PanoramaContext";
-import { useCartesianChartLayout } from "../context/chartLayoutContext";
-import { useUniqueId } from "../util/useUniqueId";
-import { Layer } from "../container/Layer";
-import type { CurveType, CurveProps } from "../shape/Curve";
 import { Dots, isClipDot } from "../component/Dots";
 import {
   type CartesianLabelListEntry,
@@ -52,17 +55,34 @@ import {
   type ImplicitLabelListType,
   LabelListFromLabelProp,
 } from "../component/LabelList";
-import type { TrapezoidViewBox } from "../util/types";
-import { getRadiusAndStrokeWidthFromDot } from "../util/getRadiusAndStrokeWidthFromDot";
-import { pickEventHandlers } from "../util/adaptEventHandlers";
-import { usePlotArea } from "../hooks";
-import { RegisterGraphicalItemId } from "../context/RegisterGraphicalItemId";
+import { Layer } from "../container/Layer";
+import { useCartesianChartLayout } from "../context/chartLayoutContext";
 import { SetErrorBarContext } from "../context/ErrorBarContext";
-import type { ErrorBarDataItem, ErrorBarDataPointFormatter } from "./ErrorBar";
-import { selectLinePoints } from "../state/selectors/lineSelectors";
-import { LineSettings } from "../state/types/LineSettings";
+import { useIsPanorama } from "../context/PanoramaContext";
+import { RegisterGraphicalItemId } from "../context/RegisterGraphicalItemId";
+import { useActiveTooltipDataPoints } from "../hooks";
+import { usePlotArea } from "../hooks";
+import type { CurveType, CurveProps } from "../shape/Curve";
 import { AxisId } from "../state/cartesianAxisSlice";
 import { ChartData } from "../state/chartDataSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { registerInStore } from "../state/registerInStore";
+import { BaseAxisWithScale } from "../state/selectors/axisSelectors";
+import { selectLinePoints } from "../state/selectors/lineSelectors";
+import { selectActiveTooltipIndex } from "../state/selectors/tooltipSelectors";
+import { SetLegendPayload } from "../state/SetLegendPayload";
+import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
+import { TooltipPayloadConfiguration } from "../state/tooltipSlice";
+import { LineSettings } from "../state/types/LineSettings";
+import { pickEventHandlers } from "../util/adaptEventHandlers";
+import {
+  getCateCoordinateOfLine,
+  getTooltipNameProp,
+  getValueByDataKey,
+} from "../util/ChartUtils";
+import { interpolate, isNotNil, isNullish, noop } from "../util/DataUtils";
+import { getRadiusAndStrokeWidthFromDot } from "../util/getRadiusAndStrokeWidthFromDot";
+import type { TrapezoidViewBox } from "../util/types";
 import {
   ActiveDotType,
   ActiveShape,
@@ -74,17 +94,13 @@ import {
   TickItem,
   TooltipType,
 } from "../util/types";
-import {
-  computeActivePointState,
-  renderActivePointsLayerFromState,
-} from "../component/ActivePoints";
-import { getCateCoordinateOfLine, getTooltipNameProp, getValueByDataKey } from "../util/ChartUtils";
-import { interpolate, isNotNil, isNullish, noop } from "../util/DataUtils";
-import { BaseAxisWithScale } from "../state/selectors/axisSelectors";
-import { GraphicalItemClipPath, useNeedsClip } from "./GraphicalItemClipPath";
+import { useUniqueId } from "../util/useUniqueId";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 import { ZIndexLayer } from "../zIndex/ZIndexLayer";
-import { registerInStore } from "../state/registerInStore";
+import type { ErrorBarDataItem, ErrorBarDataPointFormatter } from "./ErrorBar";
+import { GraphicalItemClipPath, useNeedsClip } from "./GraphicalItemClipPath";
+import { LineDrawShape, type LineDrawShapeProps } from "./LineDrawShape";
+import { useAnimatedLineLength } from "./useAnimatedLineLength";
 
 export interface LinePointItem {
   readonly value: unknown;
@@ -138,7 +154,13 @@ export function computeLinePoints({
       }
 
       const x = isNullish(value) ? null : xAxis.scale.map(value);
-      const y = getCateCoordinateOfLine({ axis: yAxis, ticks: yAxisTicks, bandSize, entry, index });
+      const y = getCateCoordinateOfLine({
+        axis: yAxis,
+        ticks: yAxisTicks,
+        bandSize,
+        entry,
+        index,
+      });
       if (x == null || y == null) {
         return null;
       }
@@ -205,7 +227,10 @@ export interface LineProps extends LineSvgProps {
   onAnimationStart?: () => void;
   onAnimationEnd?: () => void;
   /** Custom per-frame interpolation for the line points (v3.9). */
-  animationInterpolateFn?: AnimationInterpolateFn<LinePointItem, CartesianLayout>;
+  animationInterpolateFn?: AnimationInterpolateFn<
+    LinePointItem,
+    CartesianLayout
+  >;
   /** How prev/next points are matched across data updates (v3.9). @defaultValue matchByIndex */
   animationMatchBy?: AnimationMatchByProp<LinePointItem>;
   label?: ImplicitLabelListType;
@@ -222,11 +247,17 @@ export interface LineProps extends LineSvgProps {
 // Compute the average x-shift between matched pairs (prev → next): the overall
 // direction and magnitude of the data movement, used to extrapolate the entry/exit
 // position of added/removed points (recharts `averageShift`).
-function averageShift(items: ReadonlyArray<AnimationItem<LinePointItem>>): number {
+function averageShift(
+  items: ReadonlyArray<AnimationItem<LinePointItem>>,
+): number {
   let total = 0;
   let count = 0;
   for (const item of items) {
-    if (item.status === "matched" && item.prev.x != null && item.next.x != null) {
+    if (
+      item.status === "matched" &&
+      item.prev.x != null &&
+      item.next.x != null
+    ) {
       total += item.next.x - item.prev.x;
       count++;
     }
@@ -239,15 +270,17 @@ function averageShift(items: ReadonlyArray<AnimationItem<LinePointItem>>): numbe
 // matched points tween prev→next; added points enter from where they "would have
 // been" (extrapolated by the average shift); removed points exit by the same shift.
 // On first render returns [] — the entrance is driven by stroke-dasharray reveal.
-const defaultLineAnimateItems: AnimationInterpolateFn<LinePointItem, CartesianLayout> = (
-  items,
-  animationElapsedTime,
-) => {
+const defaultLineAnimateItems: AnimationInterpolateFn<
+  LinePointItem,
+  CartesianLayout
+> = (items, animationElapsedTime) => {
   if (items == null) {
     return [];
   }
   if (animationElapsedTime === 1) {
-    return items.flatMap((item) => (item.status === "removed" ? [] : [item.next]));
+    return items.flatMap((item) =>
+      item.status === "removed" ? [] : [item.next],
+    );
   }
 
   const shift = averageShift(items);
@@ -300,7 +333,10 @@ const coerceErrorVal = (value: unknown): number[] | number | undefined => {
 
 // Maps a LinePointItem (erased to `unknown` by the ErrorBar context) to the
 // {x, y, value, errorVal} an ErrorBar needs.
-const lineErrorBarFormatter: ErrorBarDataPointFormatter = (entry, dataKey): ErrorBarDataItem => {
+const lineErrorBarFormatter: ErrorBarDataPointFormatter = (
+  entry,
+  dataKey,
+): ErrorBarDataItem => {
   // `entry` is a LinePointItem erased to `unknown` by the context; read its fields
   // via getValueByDataKey (accepts unknown) to stay cast-free.
   const x = getValueByDataKey(entry, "x");
@@ -344,7 +380,10 @@ export const Line = (props: LineProps): JSX.Element => {
   const merged = merge(lineDefaultProps, props);
   const isPanorama = useIsPanorama();
   const layout = useCartesianChartLayout();
-  const id = useUniqueId("recharts-line", props.id);
+  const id = useUniqueId(
+    "recharts-line",
+    untrack(() => props.id),
+  );
 
   if (store != null) {
     registerInStore<LineSettings>(
@@ -360,10 +399,15 @@ export const Line = (props: LineProps): JSX.Element => {
         hide: merged.hide,
       }),
       {
-        add: (next) => store.actions.graphicalItems.addCartesianGraphicalItem(next),
+        add: (next) =>
+          store.actions.graphicalItems.addCartesianGraphicalItem(next),
         replace: (prev, next) =>
-          store.actions.graphicalItems.replaceCartesianGraphicalItem({ prev, next }),
-        remove: (prev) => store.actions.graphicalItems.removeCartesianGraphicalItem(prev),
+          store.actions.graphicalItems.replaceCartesianGraphicalItem({
+            prev,
+            next,
+          }),
+        remove: (prev) =>
+          store.actions.graphicalItems.removeCartesianGraphicalItem(prev),
       },
     );
   }
@@ -443,7 +487,9 @@ export const Line = (props: LineProps): JSX.Element => {
   const forwardPathRef = (el: SVGPathElement): void => {
     curveEl = el;
   };
-  const previousPointsRef: MutableRef<ReadonlyArray<LinePointItem> | null | undefined> = {
+  const previousPointsRef: MutableRef<
+    ReadonlyArray<LinePointItem> | null | undefined
+  > = {
     current: null,
   };
   const animatedLineLength = useAnimatedLineLength();
@@ -451,7 +497,7 @@ export const Line = (props: LineProps): JSX.Element => {
   const activeTooltipIndex = useAppSelector(selectActiveTooltipIndex);
   const activeDataPoints = useActiveTooltipDataPoints();
 
-  const { needClip } = useNeedsClip(merged.xAxisId, merged.yAxisId);
+  const { needClip } = useNeedsClip(merged);
   const plotArea = usePlotArea();
   // Line is only ever horizontal | vertical (the render Show below cannot mount in
   // any other layout); coerce for the AnimatedItems layout prop.
@@ -460,37 +506,42 @@ export const Line = (props: LineProps): JSX.Element => {
 
   // One LabelList entry per data point: a zero-size viewBox at the point's (x, y).
   // recharts does not pass parentViewBox here (labels can escape) — mirrored.
-  const labelListEntries = createMemo<ReadonlyArray<CartesianLabelListEntry>>(() => {
-    const pts = points();
-    if (pts == null) {
-      return [];
-    }
-    return pts.map((point): CartesianLabelListEntry => {
-      const viewBox: TrapezoidViewBox = {
-        x: point.x ?? 0,
-        y: point.y ?? 0,
-        width: 0,
-        lowerWidth: 0,
-        upperWidth: 0,
-        height: 0,
-      };
-      return {
-        ...viewBox,
-        value: point.value,
-        payload: point.payload,
-        viewBox,
-        parentViewBox: undefined,
-        fill: undefined,
-      };
-    });
-  });
+  const labelListEntries = createMemo<ReadonlyArray<CartesianLabelListEntry>>(
+    () => {
+      const pts = points();
+      if (pts == null) {
+        return [];
+      }
+      return pts.map((point): CartesianLabelListEntry => {
+        const viewBox: TrapezoidViewBox = {
+          x: point.x ?? 0,
+          y: point.y ?? 0,
+          width: 0,
+          lowerWidth: 0,
+          upperWidth: 0,
+          height: 0,
+        };
+        return {
+          ...viewBox,
+          value: point.value,
+          payload: point.payload,
+          viewBox,
+          parentViewBox: undefined,
+          fill: undefined,
+        };
+      });
+    },
+  );
   // Labels are hidden while the entrance animation runs and shown once it ends
   // (matching recharts: showLabels = !isAnimating).
-  const { isAnimating, handleAnimationStart, handleAnimationEnd } = useAnimationCallbacks(
-    () => props.onAnimationStart?.(),
-    () => props.onAnimationEnd?.(),
+  const { isAnimating, handleAnimationStart, handleAnimationEnd } =
+    useAnimationCallbacks(
+      () => props.onAnimationStart?.(),
+      () => props.onAnimationEnd?.(),
+    );
+  const labelContextEntries = createMemo(() =>
+    isAnimating() ? undefined : labelListEntries(),
   );
-  const labelContextEntries = createMemo(() => (isAnimating() ? undefined : labelListEntries()));
 
   // Measure on data change AND on animation start/end (showLabels flips): a
   // data-change morph alters the path geometry per frame, so the length taken
@@ -530,7 +581,9 @@ export const Line = (props: LineProps): JSX.Element => {
     index: activeTooltipIndex(),
     dataPoints: activeDataPoints(),
   }));
-  const curveClipPath = createMemo(() => (needClip() ? `url(#clipPath-${id})` : undefined));
+  const curveClipPath = createMemo(() =>
+    needClip() ? `url(#clipPath-${id})` : undefined,
+  );
   // recharts emits the plot-area width/height as raw DOM attributes on the curve
   // path (the "Render 1 line" attr-set spec asserts them). SVG <path> has no typed
   // width/height, so spread them as a plain object rather than typed JSX props.
@@ -555,7 +608,10 @@ export const Line = (props: LineProps): JSX.Element => {
   return (
     <>
       <SetTooltipEntrySettings tooltipEntrySettings={tooltipConfig()} />
-      <SetLegendPayload id={id} legendPayload={legendPayload()} />
+      <SetLegendPayload
+        id={id}
+        legendPayload={legendPayload()}
+      />
       <Show when={!merged.hide && points()}>
         {(pts) => (
           // The line group carries "recharts-line" plus the user's `class`
@@ -563,7 +619,13 @@ export const Line = (props: LineProps): JSX.Element => {
           // (default 400) so a `zIndex` prop relayers the whole line into its portal
           // — recharts wraps the entire `.recharts-line` Layer in ZIndexLayer.
           <ZIndexLayer zIndex={merged.zIndex}>
-            <Layer class={merged.class == null ? "recharts-line" : `recharts-line ${merged.class}`}>
+            <Layer
+              class={
+                merged.class == null
+                  ? "recharts-line"
+                  : `recharts-line ${merged.class}`
+              }
+            >
               <Show when={needClip()}>
                 <defs>
                   <GraphicalItemClipPath
@@ -611,9 +673,13 @@ export const Line = (props: LineProps): JSX.Element => {
                     // recharts: visibleLength is computed only while the animation is
                     // active; once settled it is null so no entrance dasharray remains.
                     const len = untrack(totalLength);
-                    const animationActive = untrack(isAnimating) || animationElapsedTime < 1;
+                    const animationActive =
+                      untrack(isAnimating) || animationElapsedTime < 1;
                     const visibleLength = animationActive
-                      ? animatedLineLength.getVisibleLength(animationElapsedTime, len)
+                      ? animatedLineLength.getVisibleLength(
+                          animationElapsedTime,
+                          len,
+                        )
                       : null;
                     // recharts only draws the curve path when there is more than one
                     // point (a single point is a lone dot, no line).
@@ -635,13 +701,16 @@ export const Line = (props: LineProps): JSX.Element => {
                       forwardPathRef,
                       ...eventHandlers(),
                       ...curveSizeAttrs(),
-                      ...(curveClipPath() != null ? { clipPath: curveClipPath() } : {}),
+                      ...(curveClipPath() != null
+                        ? { clipPath: curveClipPath() }
+                        : {}),
                     });
                     const customShape = merged.shape;
                     return (
                       <>
                         <Show when={frame.length > 1}>
-                          {hasCustomShape() && typeof customShape === "function" ? (
+                          {hasCustomShape() &&
+                          typeof customShape === "function" ? (
                             customShape(shapeProps())
                           ) : (
                             <LineDrawShape {...shapeProps()} />
@@ -705,7 +774,10 @@ export const Line = (props: LineProps): JSX.Element => {
       {/* Provide the item's id + data/axes to children (ErrorBar/LabelList).
           Rendered unconditionally so ErrorBar registers and can extend the axis
           domain even before/independent of the curve drawing. */}
-      <RegisterGraphicalItemId type="line" id={id}>
+      <RegisterGraphicalItemId
+        type="line"
+        id={id}
+      >
         {() => (
           <SetErrorBarContext
             xAxisId={merged.xAxisId}

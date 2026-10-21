@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Partial port of recharts 3.8.1 src/component/DefaultLegendContent.tsx (commit 7a23854).
 //
 // TYPES + component. The legend slice/selectors need these types; the component
@@ -6,19 +7,23 @@
 // `JSX.CSSProperties`, `className`→`class`, clsx→`class={[...]}`; `LegendItemSorter`
 // is co-located here (reference keeps it in Legend.tsx) so the slice can import it
 // without depending on the Legend component. `adaptEventsOfChild` events deferred.
-import { For, Show, merge } from "solid-js";
+import { For, Match, Show, Switch, merge } from "solid-js";
 import type { Element } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { DataKey, LegendType, MousePointer } from "../util/types";
+
 import { Surface } from "../container/Surface";
 import { Symbols } from "../shape/Symbols";
+import { DataKey, LegendType, MousePointer, SymbolType } from "../util/types";
 
 const SIZE = 32;
 
 export type HorizontalAlignmentType = "center" | "left" | "right";
 export type VerticalAlignmentType = "top" | "bottom" | "middle";
 
-export type Formatter = (value: string | undefined, entry: LegendPayload, index: number) => Element;
+export type Formatter = (
+  value: string | undefined,
+  entry: LegendPayload,
+  index: number,
+) => Element;
 
 export interface LegendPayload {
   value: string | undefined;
@@ -30,7 +35,10 @@ export interface LegendPayload {
   dataKey?: DataKey<unknown>;
 }
 
-export type LegendItemSorter = "value" | "dataKey" | ((item: LegendPayload) => number | string);
+export type LegendItemSorter =
+  | "value"
+  | "dataKey"
+  | ((item: LegendPayload) => number | string);
 
 export type ContentType = JSX.Element | ((props: Props) => JSX.Element);
 
@@ -70,61 +78,66 @@ const LegendIcon = (props: {
 }): JSX.Element => {
   const color = (): string | undefined =>
     props.data.inactive ? props.inactiveColor : props.data.color;
-  const preferredIcon = (): LegendType | undefined => props.iconType ?? props.data.type;
+  const preferredIcon = (): LegendType | undefined =>
+    props.iconType ?? props.data.type;
+  const symbolType = (): SymbolType => {
+    const icon = preferredIcon();
+    return icon == null ||
+      icon === "none" ||
+      icon === "plainline" ||
+      icon === "line" ||
+      icon === "rect"
+      ? "square"
+      : icon;
+  };
   const halfSize = SIZE / 2;
   const thirdSize = SIZE / 3;
   const sixthSize = SIZE / 6;
 
   return (
     <Show when={preferredIcon() !== "none"}>
-      {(() => {
-        const icon = preferredIcon();
-        if (icon === "plainline") {
-          return (
-            <line
-              stroke-width={4}
-              fill="none"
-              stroke={color()}
-              x1={0}
-              y1={halfSize}
-              x2={SIZE}
-              y2={halfSize}
-              class="recharts-legend-icon"
-            />
-          );
-        }
-        if (icon === "line") {
-          return (
-            <path
-              stroke-width={4}
-              fill="none"
-              stroke={color()}
-              d={`M0,${halfSize}h${thirdSize}A${sixthSize},${sixthSize},0,1,1,${2 * thirdSize},${halfSize}H${SIZE}M${2 * thirdSize},${halfSize}A${sixthSize},${sixthSize},0,1,1,${thirdSize},${halfSize}`}
-              class="recharts-legend-icon"
-            />
-          );
-        }
-        if (icon === "rect") {
-          return (
-            <path
-              stroke="none"
-              fill={color()}
-              d={`M0,${SIZE / 8}h${SIZE}v${(SIZE * 3) / 4}h${-SIZE}z`}
-              class="recharts-legend-icon"
-            />
-          );
-        }
-        return (
+      <Switch
+        fallback={
           <Symbols
             fill={color()}
             cx={halfSize}
             cy={halfSize}
             size={SIZE}
             sizeType="diameter"
-            type={icon == null || icon === "none" ? "square" : icon}
+            type={symbolType()}
           />
-        );
-      })()}
+        }
+      >
+        <Match when={preferredIcon() === "plainline"}>
+          <line
+            stroke-width={4}
+            fill="none"
+            stroke={color()}
+            x1={0}
+            y1={halfSize}
+            x2={SIZE}
+            y2={halfSize}
+            class="recharts-legend-icon"
+          />
+        </Match>
+        <Match when={preferredIcon() === "line"}>
+          <path
+            stroke-width={4}
+            fill="none"
+            stroke={color()}
+            d={`M0,${halfSize}h${thirdSize}A${sixthSize},${sixthSize},0,1,1,${2 * thirdSize},${halfSize}H${SIZE}M${2 * thirdSize},${halfSize}A${sixthSize},${sixthSize},0,1,1,${thirdSize},${halfSize}`}
+            class="recharts-legend-icon"
+          />
+        </Match>
+        <Match when={preferredIcon() === "rect"}>
+          <path
+            stroke="none"
+            fill={color()}
+            d={`M0,${SIZE / 8}h${SIZE}v${(SIZE * 3) / 4}h${-SIZE}z`}
+            class="recharts-legend-icon"
+          />
+        </Match>
+      </Switch>
     </Show>
   );
 };
@@ -154,20 +167,27 @@ export const DefaultLegendContent = (props: Props): JSX.Element => {
 
   const valueOf = (entry: LegendPayload, index: number): Element => {
     const finalFormatter = entry.formatter ?? merged.formatter;
-    return finalFormatter ? finalFormatter(entry.value, entry, index) : entry.value;
+    return finalFormatter
+      ? finalFormatter(entry.value, entry, index)
+      : entry.value;
   };
 
   const labelStyleOf = (entry: LegendPayload): JSX.CSSProperties => ({
     ...merged.labelStyle,
     // recharts parity: an explicit labelStyle.color wins over the entry color.
-    color: entry.inactive ? merged.inactiveColor : (merged.labelStyle?.color ?? entry.color),
+    color: entry.inactive
+      ? merged.inactiveColor
+      : (merged.labelStyle?.color ?? entry.color),
     "white-space": merged.labelStyle?.["white-space"] ?? "normal",
     "overflow-wrap": merged.labelStyle?.["overflow-wrap"] ?? "break-word",
   });
 
   return (
     <Show when={merged.payload && merged.payload.length}>
-      <ul class="recharts-default-legend" style={listStyle()}>
+      <ul
+        class="recharts-default-legend"
+        style={listStyle()}
+      >
         <For each={merged.payload}>
           {(entry, i) => (
             <Show when={entry.type !== "none"}>
@@ -179,15 +199,23 @@ export const DefaultLegendContent = (props: Props): JSX.Element => {
                 ]}
                 style={itemStyle()}
                 onClick={(event) => merged.onClick?.(entry, i(), event)}
-                onMouseEnter={(event) => merged.onMouseEnter?.(entry, i(), event)}
-                onMouseLeave={(event) => merged.onMouseLeave?.(entry, i(), event)}
+                onMouseEnter={(event) =>
+                  merged.onMouseEnter?.(entry, i(), event)
+                }
+                onMouseLeave={(event) =>
+                  merged.onMouseLeave?.(entry, i(), event)
+                }
               >
                 <Surface
                   width={merged.iconSize}
                   height={merged.iconSize}
                   viewBox={{ x: 0, y: 0, width: SIZE, height: SIZE }}
                   style={svgStyle}
-                  aria-label={entry.value == null ? "legend icon" : `${entry.value} legend icon`}
+                  aria-label={
+                    entry.value == null
+                      ? "legend icon"
+                      : `${entry.value} legend icon`
+                  }
                 >
                   <LegendIcon
                     data={entry}
@@ -195,7 +223,10 @@ export const DefaultLegendContent = (props: Props): JSX.Element => {
                     inactiveColor={merged.inactiveColor}
                   />
                 </Surface>
-                <span class="recharts-legend-item-text" style={labelStyleOf(entry)}>
+                <span
+                  class="recharts-legend-item-text"
+                  style={labelStyleOf(entry)}
+                >
                   {valueOf(entry, i())}
                 </span>
               </li>

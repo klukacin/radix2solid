@@ -8,7 +8,9 @@
 // accessor returns null (outside a provider).
 import { Accessor, createContext, useContext } from "solid-js";
 
-export const TooltipPortalContext = createContext<Accessor<HTMLElement | null>>(() => null);
+export const TooltipPortalContext = createContext<Accessor<HTMLElement | null>>(
+  () => null,
+);
 
 export const useTooltipPortal = (): Accessor<HTMLElement | null> =>
   useContext(TooltipPortalContext);

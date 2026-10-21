@@ -21,10 +21,10 @@ First pin the whole Solid tuple in the application's `pnpm-workspace.yaml`, so n
 ```yaml
 overrides:
   solid-js: 2.0.0-rc.15
-  '@solidjs/web': 2.0.0-rc.15
-  '@solidjs/signals': 2.0.0-rc.15
-  '@solidjs/compiler': 2.0.0-rc.15
-  '@solidjs/babel-plugin': 2.0.0-rc.15
+  "@solidjs/web": 2.0.0-rc.15
+  "@solidjs/signals": 2.0.0-rc.15
+  "@solidjs/compiler": 2.0.0-rc.15
+  "@solidjs/babel-plugin": 2.0.0-rc.15
 ```
 
 If your pnpm configuration sets `minimumReleaseAge`, also add exact-version `minimumReleaseAgeExclude` entries for these releases until they age, as this repository's `pnpm-workspace.yaml` does. Configure both before the first install.
@@ -41,22 +41,43 @@ Use `@solidjs/vite-plugin` with `solid({ ssr: true })` for server rendering, and
 ## Usage
 
 ```tsx
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } from '@wsagency/radix2solid-charts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+} from "@wsagency/radix2solid-charts";
 
 const data = [
-  { month: 'Jan', visitors: 4000 },
-  { month: 'Feb', visitors: 3000 },
-  { month: 'Mar', visitors: 5000 },
+  { month: "Jan", visitors: 4000 },
+  { month: "Feb", visitors: 3000 },
+  { month: "Mar", visitors: 5000 },
 ];
 
 function Visitors() {
-  return <LineChart width={500} height={300} data={data} title="Visitors by month">
-    <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-a6, #ccc)" />
-    <XAxis dataKey="month" />
-    <YAxis />
-    <Tooltip />
-    <Line type="monotone" dataKey="visitors" stroke="var(--accent-9, royalblue)" />
-  </LineChart>;
+  return (
+    <LineChart
+      width={500}
+      height={300}
+      data={data}
+      title="Visitors by month"
+    >
+      <CartesianGrid
+        strokeDasharray="3 3"
+        stroke="var(--gray-a6, #ccc)"
+      />
+      <XAxis dataKey="month" />
+      <YAxis />
+      <Tooltip />
+      <Line
+        type="monotone"
+        dataKey="visitors"
+        stroke="var(--accent-9, royalblue)"
+      />
+    </LineChart>
+  );
 }
 ```
 
@@ -81,15 +102,27 @@ The rc.3 release ports the selected A1–A13 changes and B1/B2 guards, with boun
 Local verification includes all 20 public Charts Node SSR tests, the selected browser cases across Chromium/Firefox/WebKit, and every Charts case in the packed Chromium core suite. Review follow-ups passed font/spacing changes and positive-to-zero Pie geometry in packed Chromium, plus controlled real-font completion and axis disposal in all three engines. TS7 and TS5.9 packed declarations passed, including the selected public prop types. Server-only claim cases intentionally skip CSR; these local results are not a claim that the full CI workflow has run.
 
 ```tsx
-import { Legend } from '@wsagency/radix2solid-charts';
+import { Legend } from "@wsagency/radix2solid-charts";
 
-<LineChart width={500} height={300} data={data}>
-  <XAxis dataKey="month" height="auto" angle={-45} interval={0} label="Month" />
+<LineChart
+  width={500}
+  height={300}
+  data={data}
+>
+  <XAxis
+    dataKey="month"
+    height="auto"
+    angle={-45}
+    interval={0}
+    label="Month"
+  />
   <Line dataKey="visitors" />
-  <Legend position="bottom" offset={10} />
-</LineChart>
+  <Legend
+    position="bottom"
+    offset={10}
+  />
+</LineChart>;
 ```
-
 
 ## Server rendering
 
@@ -104,17 +137,47 @@ The server renders a chart in one pass, before axes and series have registered w
 5. Set `interval={0}` on both axes. The browser measures label text and drops labels that would overlap; the server cannot, so without `interval={0}` the two disagree. Make sure your labels fit.
 
 ```tsx
-import { ComposedChart, XAxis, YAxis, Bar } from '@wsagency/radix2solid-charts';
+import { ComposedChart, XAxis, YAxis, Bar } from "@wsagency/radix2solid-charts";
 
-const data = [{ name: 'A', low: 10, high: 20 }, { name: 'B', low: 20, high: 30 }];
+const data = [
+  { name: "A", low: 10, high: 20 },
+  { name: "B", low: 20, high: 30 },
+];
 
 function StackedTotals() {
-  return <ComposedChart width={500} height={300} margin={{ top: 5, right: 5, bottom: 35, left: 65 }} data={data}>
-    <XAxis dataKey="name" scale="band" height={0} interval={0} />
-    <YAxis domain={[0, 50]} allowDataOverflow width={0} interval={0} />
-    <Bar dataKey="low" stackId="sum" fill="var(--accent-9, royalblue)" isAnimationActive={false} />
-    <Bar dataKey="high" stackId="sum" fill="var(--teal-9, teal)" isAnimationActive={false} />
-  </ComposedChart>;
+  return (
+    <ComposedChart
+      width={500}
+      height={300}
+      margin={{ top: 5, right: 5, bottom: 35, left: 65 }}
+      data={data}
+    >
+      <XAxis
+        dataKey="name"
+        scale="band"
+        height={0}
+        interval={0}
+      />
+      <YAxis
+        domain={[0, 50]}
+        allowDataOverflow
+        width={0}
+        interval={0}
+      />
+      <Bar
+        dataKey="low"
+        stackId="sum"
+        fill="var(--accent-9, royalblue)"
+        isAnimationActive={false}
+      />
+      <Bar
+        dataKey="high"
+        stackId="sum"
+        fill="var(--teal-9, teal)"
+        isAnimationActive={false}
+      />
+    </ComposedChart>
+  );
 }
 ```
 

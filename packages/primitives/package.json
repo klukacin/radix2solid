@@ -2,18 +2,23 @@
   "name": "@wsagency/radix2solid-primitives",
   "version": "0.1.0-rc.4",
   "private": false,
-  "publishConfig": { "access": "public", "registry": "https://registry.npmjs.org/", "tag": "next" },
-  "type": "module",
-  "license": "MIT",
-  "repository": { "type": "git", "url": "git+https://github.com/wsagency/radix2solid.git", "directory": "packages/primitives" },
   "homepage": "https://github.com/wsagency/radix2solid/tree/main/packages/primitives#readme",
-  "bugs": { "url": "https://github.com/wsagency/radix2solid/issues" },
+  "bugs": {
+    "url": "https://github.com/wsagency/radix2solid/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wsagency/radix2solid.git",
+    "directory": "packages/primitives"
+  },
   "files": [
     "dist",
     "LICENSE",
     "README.md",
     "CHANGELOG.md"
   ],
+  "type": "module",
   "sideEffects": false,
   "exports": {
     ".": {
@@ -31,62 +36,235 @@
       "browser": "./dist/client/toggle.js",
       "default": "./dist/server/toggle.js"
     },
-    "./direction": { "types": "./dist/types/direction/index.d.ts", "browser": "./dist/client/direction.js", "default": "./dist/server/direction.js" },
-    "./portal": { "types": "./dist/types/portal/index.d.ts", "browser": "./dist/client/portal.js", "default": "./dist/server/portal.js" },
-    "./visually-hidden": { "types": "./dist/types/visually-hidden/index.d.ts", "browser": "./dist/client/visually-hidden.js", "default": "./dist/server/visually-hidden.js" },
-    "./arrow": { "types": "./dist/types/arrow/index.d.ts", "browser": "./dist/client/arrow.js", "default": "./dist/server/arrow.js" },
-    "./dialog": { "types": "./dist/types/dialog/index.d.ts", "browser": "./dist/client/dialog.js", "default": "./dist/server/dialog.js" },
-    "./popover": { "types": "./dist/types/popover/index.d.ts", "browser": "./dist/client/popover.js", "default": "./dist/server/popover.js" },
-    "./alert-dialog": { "types": "./dist/types/alert-dialog/index.d.ts", "browser": "./dist/client/alert-dialog.js", "default": "./dist/server/alert-dialog.js" },
-    "./hover-card": { "types": "./dist/types/hover-card/index.d.ts", "browser": "./dist/client/hover-card.js", "default": "./dist/server/hover-card.js" },
-    "./tooltip": { "types": "./dist/types/tooltip/index.d.ts", "browser": "./dist/client/tooltip.js", "default": "./dist/server/tooltip.js" },
-    "./dropdown-menu": { "types": "./dist/types/dropdown-menu/index.d.ts", "browser": "./dist/client/dropdown-menu.js", "default": "./dist/server/dropdown-menu.js" },
-    "./context-menu": { "types": "./dist/types/context-menu/index.d.ts", "browser": "./dist/client/context-menu.js", "default": "./dist/server/context-menu.js" },
-    "./menubar": { "types": "./dist/types/menubar/index.d.ts", "browser": "./dist/client/menubar.js", "default": "./dist/server/menubar.js" },
-    "./navigation-menu": { "types": "./dist/types/navigation-menu/index.d.ts", "browser": "./dist/client/navigation-menu.js", "default": "./dist/server/navigation-menu.js" },
-    "./select": { "types": "./dist/types/select/index.d.ts", "browser": "./dist/client/select.js", "default": "./dist/server/select.js" },
-    "./combobox": { "types": "./dist/types/combobox/index.d.ts", "browser": "./dist/client/combobox.js", "default": "./dist/server/combobox.js" },
-    "./command": { "types": "./dist/types/command/index.d.ts", "browser": "./dist/client/command.js", "default": "./dist/server/command.js" },
-    "./tree": { "types": "./dist/types/tree/index.d.ts", "browser": "./dist/client/tree.js", "default": "./dist/server/tree.js" },
-    "./splitter": { "types": "./dist/types/splitter/index.d.ts", "browser": "./dist/client/splitter.js", "default": "./dist/server/splitter.js" },
-    "./password-toggle-field": { "types": "./dist/types/password-toggle-field/index.d.ts", "browser": "./dist/client/password-toggle-field.js", "default": "./dist/server/password-toggle-field.js" },
-    "./one-time-password-field": { "types": "./dist/types/one-time-password-field/index.d.ts", "browser": "./dist/client/one-time-password-field.js", "default": "./dist/server/one-time-password-field.js" },
-    "./slider": { "types": "./dist/types/slider/index.d.ts", "browser": "./dist/client/slider.js", "default": "./dist/server/slider.js" },
-    "./scroll-area": { "types": "./dist/types/scroll-area/index.d.ts", "browser": "./dist/client/scroll-area.js", "default": "./dist/server/scroll-area.js" },
-    "./form": { "types": "./dist/types/form/index.d.ts", "browser": "./dist/client/form.js", "default": "./dist/server/form.js" },
-    "./calendar": { "types": "./dist/types/calendar/index.d.ts", "browser": "./dist/client/calendar.js", "default": "./dist/server/calendar.js" },
-    "./date-picker": { "types": "./dist/types/date-picker/index.d.ts", "browser": "./dist/client/date-picker.js", "default": "./dist/server/date-picker.js" },
-    "./file-drop": { "types": "./dist/types/file-drop/index.d.ts", "browser": "./dist/client/file-drop.js", "default": "./dist/server/file-drop.js" },
-    "./toast": { "types": "./dist/types/toast/index.d.ts", "browser": "./dist/client/toast.js", "default": "./dist/server/toast.js" },
-    "./accessible-icon": { "types": "./dist/types/accessible-icon/index.d.ts", "browser": "./dist/client/accessible-icon.js", "default": "./dist/server/accessible-icon.js" },
-    "./aspect-ratio": { "types": "./dist/types/aspect-ratio/index.d.ts", "browser": "./dist/client/aspect-ratio.js", "default": "./dist/server/aspect-ratio.js" },
-    "./label": { "types": "./dist/types/label/index.d.ts", "browser": "./dist/client/label.js", "default": "./dist/server/label.js" },
-    "./progress": { "types": "./dist/types/progress/index.d.ts", "browser": "./dist/client/progress.js", "default": "./dist/server/progress.js" },
-    "./separator": { "types": "./dist/types/separator/index.d.ts", "browser": "./dist/client/separator.js", "default": "./dist/server/separator.js" },
-    "./avatar": { "types": "./dist/types/avatar/index.d.ts", "browser": "./dist/client/avatar.js", "default": "./dist/server/avatar.js" },
-    "./announce": { "types": "./dist/types/announce/index.d.ts", "browser": "./dist/client/announce.js", "default": "./dist/server/announce.js" },
-    "./collapsible": { "types": "./dist/types/collapsible/index.d.ts", "browser": "./dist/client/collapsible.js", "default": "./dist/server/collapsible.js" },
-    "./accordion": { "types": "./dist/types/accordion/index.d.ts", "browser": "./dist/client/accordion.js", "default": "./dist/server/accordion.js" },
-    "./checkbox": { "types": "./dist/types/checkbox/index.d.ts", "browser": "./dist/client/checkbox.js", "default": "./dist/server/checkbox.js" },
-    "./switch": { "types": "./dist/types/switch/index.d.ts", "browser": "./dist/client/switch.js", "default": "./dist/server/switch.js" },
-    "./radio-group": { "types": "./dist/types/radio-group/index.d.ts", "browser": "./dist/client/radio-group.js", "default": "./dist/server/radio-group.js" },
-    "./tabs": { "types": "./dist/types/tabs/index.d.ts", "browser": "./dist/client/tabs.js", "default": "./dist/server/tabs.js" },
-    "./toggle-group": { "types": "./dist/types/toggle-group/index.d.ts", "browser": "./dist/client/toggle-group.js", "default": "./dist/server/toggle-group.js" },
-    "./toolbar": { "types": "./dist/types/toolbar/index.d.ts", "browser": "./dist/client/toolbar.js", "default": "./dist/server/toolbar.js" },
+    "./direction": {
+      "types": "./dist/types/direction/index.d.ts",
+      "browser": "./dist/client/direction.js",
+      "default": "./dist/server/direction.js"
+    },
+    "./portal": {
+      "types": "./dist/types/portal/index.d.ts",
+      "browser": "./dist/client/portal.js",
+      "default": "./dist/server/portal.js"
+    },
+    "./visually-hidden": {
+      "types": "./dist/types/visually-hidden/index.d.ts",
+      "browser": "./dist/client/visually-hidden.js",
+      "default": "./dist/server/visually-hidden.js"
+    },
+    "./arrow": {
+      "types": "./dist/types/arrow/index.d.ts",
+      "browser": "./dist/client/arrow.js",
+      "default": "./dist/server/arrow.js"
+    },
+    "./dialog": {
+      "types": "./dist/types/dialog/index.d.ts",
+      "browser": "./dist/client/dialog.js",
+      "default": "./dist/server/dialog.js"
+    },
+    "./popover": {
+      "types": "./dist/types/popover/index.d.ts",
+      "browser": "./dist/client/popover.js",
+      "default": "./dist/server/popover.js"
+    },
+    "./alert-dialog": {
+      "types": "./dist/types/alert-dialog/index.d.ts",
+      "browser": "./dist/client/alert-dialog.js",
+      "default": "./dist/server/alert-dialog.js"
+    },
+    "./hover-card": {
+      "types": "./dist/types/hover-card/index.d.ts",
+      "browser": "./dist/client/hover-card.js",
+      "default": "./dist/server/hover-card.js"
+    },
+    "./tooltip": {
+      "types": "./dist/types/tooltip/index.d.ts",
+      "browser": "./dist/client/tooltip.js",
+      "default": "./dist/server/tooltip.js"
+    },
+    "./dropdown-menu": {
+      "types": "./dist/types/dropdown-menu/index.d.ts",
+      "browser": "./dist/client/dropdown-menu.js",
+      "default": "./dist/server/dropdown-menu.js"
+    },
+    "./context-menu": {
+      "types": "./dist/types/context-menu/index.d.ts",
+      "browser": "./dist/client/context-menu.js",
+      "default": "./dist/server/context-menu.js"
+    },
+    "./menubar": {
+      "types": "./dist/types/menubar/index.d.ts",
+      "browser": "./dist/client/menubar.js",
+      "default": "./dist/server/menubar.js"
+    },
+    "./navigation-menu": {
+      "types": "./dist/types/navigation-menu/index.d.ts",
+      "browser": "./dist/client/navigation-menu.js",
+      "default": "./dist/server/navigation-menu.js"
+    },
+    "./select": {
+      "types": "./dist/types/select/index.d.ts",
+      "browser": "./dist/client/select.js",
+      "default": "./dist/server/select.js"
+    },
+    "./combobox": {
+      "types": "./dist/types/combobox/index.d.ts",
+      "browser": "./dist/client/combobox.js",
+      "default": "./dist/server/combobox.js"
+    },
+    "./command": {
+      "types": "./dist/types/command/index.d.ts",
+      "browser": "./dist/client/command.js",
+      "default": "./dist/server/command.js"
+    },
+    "./tree": {
+      "types": "./dist/types/tree/index.d.ts",
+      "browser": "./dist/client/tree.js",
+      "default": "./dist/server/tree.js"
+    },
+    "./splitter": {
+      "types": "./dist/types/splitter/index.d.ts",
+      "browser": "./dist/client/splitter.js",
+      "default": "./dist/server/splitter.js"
+    },
+    "./password-toggle-field": {
+      "types": "./dist/types/password-toggle-field/index.d.ts",
+      "browser": "./dist/client/password-toggle-field.js",
+      "default": "./dist/server/password-toggle-field.js"
+    },
+    "./one-time-password-field": {
+      "types": "./dist/types/one-time-password-field/index.d.ts",
+      "browser": "./dist/client/one-time-password-field.js",
+      "default": "./dist/server/one-time-password-field.js"
+    },
+    "./slider": {
+      "types": "./dist/types/slider/index.d.ts",
+      "browser": "./dist/client/slider.js",
+      "default": "./dist/server/slider.js"
+    },
+    "./scroll-area": {
+      "types": "./dist/types/scroll-area/index.d.ts",
+      "browser": "./dist/client/scroll-area.js",
+      "default": "./dist/server/scroll-area.js"
+    },
+    "./form": {
+      "types": "./dist/types/form/index.d.ts",
+      "browser": "./dist/client/form.js",
+      "default": "./dist/server/form.js"
+    },
+    "./calendar": {
+      "types": "./dist/types/calendar/index.d.ts",
+      "browser": "./dist/client/calendar.js",
+      "default": "./dist/server/calendar.js"
+    },
+    "./date-picker": {
+      "types": "./dist/types/date-picker/index.d.ts",
+      "browser": "./dist/client/date-picker.js",
+      "default": "./dist/server/date-picker.js"
+    },
+    "./file-drop": {
+      "types": "./dist/types/file-drop/index.d.ts",
+      "browser": "./dist/client/file-drop.js",
+      "default": "./dist/server/file-drop.js"
+    },
+    "./toast": {
+      "types": "./dist/types/toast/index.d.ts",
+      "browser": "./dist/client/toast.js",
+      "default": "./dist/server/toast.js"
+    },
+    "./accessible-icon": {
+      "types": "./dist/types/accessible-icon/index.d.ts",
+      "browser": "./dist/client/accessible-icon.js",
+      "default": "./dist/server/accessible-icon.js"
+    },
+    "./aspect-ratio": {
+      "types": "./dist/types/aspect-ratio/index.d.ts",
+      "browser": "./dist/client/aspect-ratio.js",
+      "default": "./dist/server/aspect-ratio.js"
+    },
+    "./label": {
+      "types": "./dist/types/label/index.d.ts",
+      "browser": "./dist/client/label.js",
+      "default": "./dist/server/label.js"
+    },
+    "./progress": {
+      "types": "./dist/types/progress/index.d.ts",
+      "browser": "./dist/client/progress.js",
+      "default": "./dist/server/progress.js"
+    },
+    "./separator": {
+      "types": "./dist/types/separator/index.d.ts",
+      "browser": "./dist/client/separator.js",
+      "default": "./dist/server/separator.js"
+    },
+    "./avatar": {
+      "types": "./dist/types/avatar/index.d.ts",
+      "browser": "./dist/client/avatar.js",
+      "default": "./dist/server/avatar.js"
+    },
+    "./announce": {
+      "types": "./dist/types/announce/index.d.ts",
+      "browser": "./dist/client/announce.js",
+      "default": "./dist/server/announce.js"
+    },
+    "./collapsible": {
+      "types": "./dist/types/collapsible/index.d.ts",
+      "browser": "./dist/client/collapsible.js",
+      "default": "./dist/server/collapsible.js"
+    },
+    "./accordion": {
+      "types": "./dist/types/accordion/index.d.ts",
+      "browser": "./dist/client/accordion.js",
+      "default": "./dist/server/accordion.js"
+    },
+    "./checkbox": {
+      "types": "./dist/types/checkbox/index.d.ts",
+      "browser": "./dist/client/checkbox.js",
+      "default": "./dist/server/checkbox.js"
+    },
+    "./switch": {
+      "types": "./dist/types/switch/index.d.ts",
+      "browser": "./dist/client/switch.js",
+      "default": "./dist/server/switch.js"
+    },
+    "./radio-group": {
+      "types": "./dist/types/radio-group/index.d.ts",
+      "browser": "./dist/client/radio-group.js",
+      "default": "./dist/server/radio-group.js"
+    },
+    "./tabs": {
+      "types": "./dist/types/tabs/index.d.ts",
+      "browser": "./dist/client/tabs.js",
+      "default": "./dist/server/tabs.js"
+    },
+    "./toggle-group": {
+      "types": "./dist/types/toggle-group/index.d.ts",
+      "browser": "./dist/client/toggle-group.js",
+      "default": "./dist/server/toggle-group.js"
+    },
+    "./toolbar": {
+      "types": "./dist/types/toolbar/index.d.ts",
+      "browser": "./dist/client/toolbar.js",
+      "default": "./dist/server/toolbar.js"
+    },
     "./internal": {
       "types": "./dist/types/internal/index.d.ts",
       "browser": "./dist/client/internal.js",
       "default": "./dist/server/internal.js"
     }
   },
-  "peerDependencies": {
-    "@solidjs/web": "2.0.0-rc.15",
-    "solid-js": "2.0.0-rc.15"
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "tag": "next"
   },
   "scripts": {
     "build": "vite build && vite build --ssr && tsc -p tsconfig.json"
   },
   "dependencies": {
     "@floating-ui/dom": "1.8.0"
+  },
+  "peerDependencies": {
+    "@solidjs/web": "2.0.0-rc.15",
+    "solid-js": "2.0.0-rc.15"
   }
 }

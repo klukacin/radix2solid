@@ -1,15 +1,24 @@
 export {
-  Popover, Popover as Root,
-  PopoverTrigger, PopoverTrigger as Trigger,
-  PopoverPortal, PopoverPortal as Portal,
-  PopoverContent, PopoverContent as Content,
-  PopoverTitle, PopoverTitle as Title,
-  PopoverDescription, PopoverDescription as Description,
-  PopoverClose, PopoverClose as Close,
-  PopoverAnchor, PopoverAnchor as Anchor,
-  PopoverArrow, PopoverArrow as Arrow,
-  createPopoverScope
-} from './popover.js';
+  Popover,
+  Popover as Root,
+  PopoverTrigger,
+  PopoverTrigger as Trigger,
+  PopoverPortal,
+  PopoverPortal as Portal,
+  PopoverContent,
+  PopoverContent as Content,
+  PopoverTitle,
+  PopoverTitle as Title,
+  PopoverDescription,
+  PopoverDescription as Description,
+  PopoverClose,
+  PopoverClose as Close,
+  PopoverAnchor,
+  PopoverAnchor as Anchor,
+  PopoverArrow,
+  PopoverArrow as Arrow,
+  createPopoverScope,
+} from "./popover.js";
 export type {
   PopoverProps,
   PopoverTriggerProps,
@@ -19,5 +28,5 @@ export type {
   PopoverDescriptionProps,
   PopoverCloseProps,
   PopoverAnchorProps,
-  PopoverArrowProps
-} from './popover.js';
+  PopoverArrowProps,
+} from "./popover.js";

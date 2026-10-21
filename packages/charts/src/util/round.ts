@@ -4,7 +4,10 @@
 // if you go lower than 3, wild wild things happen during rendering
 const defaultRoundPrecision = 4;
 
-export function round(num: number, roundPrecision: number = defaultRoundPrecision): number {
+export function round(
+  num: number,
+  roundPrecision: number = defaultRoundPrecision,
+): number {
   const factor = 10 ** roundPrecision;
   const rounded = Math.round(num * factor) / factor;
   if (Object.is(rounded, -0)) {

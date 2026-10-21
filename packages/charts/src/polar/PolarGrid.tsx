@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/polar/PolarGrid.tsx (commit 7a23854).
 //
 // MINIMAL PORT — draws the polar grid: concentric polygons/circles (one per
@@ -11,11 +12,14 @@
 // defaults to "none"), generic SVG-prop passthrough beyond
 // stroke/strokeWidth/strokeDasharray.
 import { For, merge, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { useAppSelector } from "../state/hooks";
+
 import { AxisId } from "../state/cartesianAxisSlice";
-import { selectPolarGridAngles, selectPolarGridRadii } from "../state/selectors/polarGridSelectors";
+import { useAppSelector } from "../state/hooks";
 import { selectPolarViewBox } from "../state/selectors/polarAxisSelectors";
+import {
+  selectPolarGridAngles,
+  selectPolarGridRadii,
+} from "../state/selectors/polarGridSelectors";
 import { polarToCartesian } from "../util/PolarUtils";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 import { ZIndexLayer } from "../zIndex/ZIndexLayer";
@@ -88,7 +92,10 @@ interface GridCommon {
 // svgPropertiesNoEvents, so the rendered DOM carries cx/cy attributes that the
 // reference spec reads back. `cx`/`cy` are not part of the typed path
 // attributes, so build them as raw string attributes the JSX runtime forwards.
-const concentricPolygonAttrs = (cx: number, cy: number): Record<string, unknown> => ({
+const concentricPolygonAttrs = (
+  cx: number,
+  cy: number,
+): Record<string, unknown> => ({
   cx: String(cx),
   cy: String(cy),
 });
@@ -132,7 +139,11 @@ const ConcentricRing = (
 );
 
 const RadialLine = (
-  props: GridCommon & { angle: number; innerRadius: number; outerRadius: number },
+  props: GridCommon & {
+    angle: number;
+    innerRadius: number;
+    outerRadius: number;
+  },
 ): JSX.Element => {
   const start = (): { x: number; y: number } =>
     polarToCartesian(props.cx, props.cy, props.innerRadius, props.angle);
@@ -211,7 +222,13 @@ export const PolarGrid = (props: PolarGridProps): JSX.Element => {
             <g class="recharts-polar-grid-concentric">
               {/* Background fill = the outermost ring, drawn first so it sits behind
                   the stroked rings (recharts ConcentricGridPath). */}
-              <Show when={merged.fill != null && merged.fill !== "none" && g().radii.length > 0}>
+              <Show
+                when={
+                  merged.fill != null &&
+                  merged.fill !== "none" &&
+                  g().radii.length > 0
+                }
+              >
                 <ConcentricRing
                   cx={g().cx}
                   cy={g().cy}

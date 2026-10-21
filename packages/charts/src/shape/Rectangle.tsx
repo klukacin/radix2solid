@@ -1,3 +1,12 @@
+import type { JSX } from "@solidjs/web";
+import { createEffect, createSignal, Show, omit, untrack } from "solid-js";
+
+import type { EasingInput } from "../animation/easing";
+import { JavascriptAnimate } from "../animation/JavascriptAnimate";
+import { getTransitionVal } from "../animation/util";
+import { interpolate } from "../util/DataUtils";
+import { round, roundTemplateLiteral } from "../util/round";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 /**
  * @fileOverview Rectangle
  *
@@ -14,16 +23,8 @@
  * (e.g. Bar's rectangles) stays static — wiring is regression-safe.
  */
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { createEffect, createSignal, Show, omit, untrack } from "solid-js";
-import type { JSX } from "@solidjs/web";
 import type { AnimationDuration } from "../util/types";
-import type { EasingInput } from "../animation/easing";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
-import { round, roundTemplateLiteral } from "../util/round";
-import { interpolate } from "../util/DataUtils";
 import { useAnimationId } from "../util/useAnimationId";
-import { getTransitionVal } from "../animation/util";
-import { JavascriptAnimate } from "../animation/JavascriptAnimate";
 
 /**
  * @inline
@@ -39,11 +40,17 @@ const getRectanglePath = (
 ): string => {
   const roundedWidth = round(width);
   const roundedHeight = round(height);
-  const maxRadius = Math.min(Math.abs(roundedWidth) / 2, Math.abs(roundedHeight) / 2);
+  const maxRadius = Math.min(
+    Math.abs(roundedWidth) / 2,
+    Math.abs(roundedHeight) / 2,
+  );
   const ySign = roundedHeight >= 0 ? 1 : -1;
   const xSign = roundedWidth >= 0 ? 1 : -1;
   const clockWise =
-    (roundedHeight >= 0 && roundedWidth >= 0) || (roundedHeight < 0 && roundedWidth < 0) ? 1 : 0;
+    (roundedHeight >= 0 && roundedWidth >= 0) ||
+    (roundedHeight < 0 && roundedWidth < 0)
+      ? 1
+      : 0;
   let path;
 
   if (maxRadius > 0 && Array.isArray(radius)) {
@@ -148,20 +155,25 @@ export const Rectangle = (props: RectangleProps): JSX.Element => {
       height() === 0
     );
 
-  const isUpdateAnimationActive = (): boolean => props.isUpdateAnimationActive ?? false;
+  const isUpdateAnimationActive = (): boolean =>
+    props.isUpdateAnimationActive ?? false;
   const isAnimationActive = (): boolean => props.isAnimationActive ?? false;
   const animationDuration = (): number => props.animationDuration ?? 1500;
   const animationEasing = (): EasingInput => props.animationEasing ?? "ease";
   const animationBegin = (): number => props.animationBegin ?? 0;
 
-  const layerClass = (): Array<string | undefined> => ["recharts-rectangle", props.class];
+  const layerClass = (): Array<string | undefined> => [
+    "recharts-rectangle",
+    props.class,
+  ];
 
   // recharts renders x/y/width/height/radius on the <path> (React allows extra
   // attrs). Solid's PathSVGAttributes is stricter, so route them through the
   // (loosely-typed) svgPropertiesAndEvents spread rather than explicit attrs.
   // `radius` is rendered only when it's a number (array radius → undefined).
+  const forwardedProps = omit(props, "class", "style");
   const basePathProps = (): Record<string, unknown> => ({
-    ...omit(props, "class", "style"),
+    ...forwardedProps,
     radius: typeof radius() === "number" ? radius() : undefined,
   });
 
@@ -178,7 +190,13 @@ export const Rectangle = (props: RectangleProps): JSX.Element => {
     pathEl = el;
   };
   createEffect(
-    () => ({ x: x(), y: y(), width: width(), height: height(), radius: radius() }),
+    () => ({
+      x: x(),
+      y: y(),
+      width: width(),
+      height: height(),
+      radius: radius(),
+    }),
     () => {
       if (pathEl?.getTotalLength == null) {
         return;
@@ -196,7 +214,13 @@ export const Rectangle = (props: RectangleProps): JSX.Element => {
   );
 
   const animationId = useAnimationId(
-    () => ({ x: x(), y: y(), width: width(), height: height(), radius: radius() }),
+    () => ({
+      x: x(),
+      y: y(),
+      width: width(),
+      height: height(),
+      radius: radius(),
+    }),
     "rectangle-",
   );
 
@@ -222,12 +246,18 @@ export const Rectangle = (props: RectangleProps): JSX.Element => {
 
   return (
     <Show when={valid()}>
-      <Show when={isUpdateAnimationActive()} fallback={staticPath()}>
+      <Show
+        when={isUpdateAnimationActive()}
+        fallback={staticPath()}
+      >
         {/* Keyed on animationId: a prop change → new id → this recreates the
             JavascriptAnimate, restarting the animation from the (updated) prev
             values to the new ones. This is the Solid equivalent of recharts'
             `key={animationId}` remount. */}
-        <Show when={animationId()} keyed>
+        <Show
+          when={animationId()}
+          keyed
+        >
           {(animId) => (
             <JavascriptAnimate
               animationId={animId}
@@ -281,13 +311,21 @@ export const Rectangle = (props: RectangleProps): JSX.Element => {
                     : { "stroke-dasharray": from };
                 // `props.style` may be a string in Solid JSX; only merge object styles.
                 const userStyle: JSX.CSSProperties =
-                  typeof props.style === "object" && props.style != null ? props.style : {};
+                  typeof props.style === "object" && props.style != null
+                    ? props.style
+                    : {};
                 return (
                   <path
                     {...svgPropertiesAndEvents(basePathProps())}
                     ref={measurePath}
                     class={layerClass()}
-                    d={getRectanglePath(currX, currY, currWidth, currHeight, snap.r)}
+                    d={getRectanglePath(
+                      currX,
+                      currY,
+                      currWidth,
+                      currHeight,
+                      snap.r,
+                    )}
                     style={{ ...dashStyle, ...userStyle }}
                   />
                 );

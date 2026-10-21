@@ -1,3 +1,8 @@
+import type { JSX } from "@solidjs/web";
+import { Show, omit } from "solid-js";
+
+import { isNumber } from "../util/DataUtils";
+import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 /**
  * @fileOverview Cross
  *
@@ -7,10 +12,6 @@
  * accessors; `clsx` → `class={[...]}`; `return null` → `<Show>`.
  */
 import { type CamelSvgProps } from "../util/svgPropertiesNoEvents";
-import { Show, omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { isNumber } from "../util/DataUtils";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 
 interface CrossOwnProps {
   /** The x-coordinate of the vertical line of the cross in pixels. */
@@ -28,7 +29,10 @@ interface CrossOwnProps {
   class?: string;
 }
 
-export type CrossProps = Omit<CamelSvgProps<JSX.PathSVGAttributes<SVGPathElement>>, "class"> &
+export type CrossProps = Omit<
+  CamelSvgProps<JSX.PathSVGAttributes<SVGPathElement>>,
+  "class"
+> &
   CrossOwnProps;
 
 const getPath = (
@@ -61,8 +65,9 @@ export const Cross = (props: CrossProps): JSX.Element => {
   // recharts spreads `{ x, y, top, left, width, height, ...rest }` through the
   // SVG-prop filter; only allowlisted keys (x, y, width, height, …) survive onto
   // the <path>. `top`/`left`/`class` are filtered/handled separately.
+  const forwardedProps = omit(props, "class");
   const passthrough = (): Record<string, unknown> => ({
-    ...omit(props, "class"),
+    ...forwardedProps,
     x: x(),
     y: y(),
     top: top(),

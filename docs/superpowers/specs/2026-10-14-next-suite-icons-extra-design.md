@@ -16,26 +16,26 @@ A second icon package in the existing native monorepo. It ships icons that the R
 
 ## Package
 
-| Field | Value |
-| --- | --- |
-| Directory | `packages/icons-extra` (the publish workflow derives `@wsagency/radix2solid-<dir>` from the directory name) |
-| Name | `@wsagency/radix2solid-icons-extra` |
-| Version | the suite release version shared by all packages, chosen in the release PR |
-| `private`, `publishConfig`, `repository`, `type`, `sideEffects` | same values as `packages/icons/package.json`, with `repository.directory: packages/icons-extra` |
-| Peers | `solid-js` and `@solidjs/web` exactly `2.0.0-rc.15`, matching the suite |
-| Dependencies | none; in particular no dependency or peer on `@wsagency/radix2solid-icons` |
-| `files` | `dist`, `icons`, `LICENSE`, `README.md`, `CHANGELOG.md` |
-| `exports` | the same three shapes as icons: `.` (types/browser/default), `./*Icon` (types/browser/default), `./icons/*.svg` |
-| Build | `generate`, then client and SSR Vite builds, then `tsc` declarations. Same steps as icons; `vite.config.ts` and `tsconfig.json` copied from icons. |
-| Licence | MIT (see Artwork) |
+| Field                                                           | Value                                                                                                                                              |
+| --------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Directory                                                       | `packages/icons-extra` (the publish workflow derives `@wsagency/radix2solid-<dir>` from the directory name)                                        |
+| Name                                                            | `@wsagency/radix2solid-icons-extra`                                                                                                                |
+| Version                                                         | the suite release version shared by all packages, chosen in the release PR                                                                         |
+| `private`, `publishConfig`, `repository`, `type`, `sideEffects` | same values as `packages/icons/package.json`, with `repository.directory: packages/icons-extra`                                                    |
+| Peers                                                           | `solid-js` and `@solidjs/web` exactly `2.0.0-rc.15`, matching the suite                                                                            |
+| Dependencies                                                    | none; in particular no dependency or peer on `@wsagency/radix2solid-icons`                                                                         |
+| `files`                                                         | `dist`, `icons`, `LICENSE`, `README.md`, `CHANGELOG.md`                                                                                            |
+| `exports`                                                       | the same three shapes as icons: `.` (types/browser/default), `./*Icon` (types/browser/default), `./icons/*.svg`                                    |
+| Build                                                           | `generate`, then client and SSR Vite builds, then `tsc` declarations. Same steps as icons; `vite.config.ts` and `tsconfig.json` copied from icons. |
+| Licence                                                         | MIT (see Artwork)                                                                                                                                  |
 
 The published tarball is self-contained. Nothing in it refers to the icons package, a workspace path or a private path.
 
 ## Initial catalog
 
-| Export | Asset |
-| --- | --- |
-| `FolderIcon` | `icons/folder.svg` |
+| Export           | Asset                   |
+| ---------------- | ----------------------- |
+| `FolderIcon`     | `icons/folder.svg`      |
 | `FolderOpenIcon` | `icons/folder-open.svg` |
 
 `icons.json` holds the authoritative name→asset map, as it does in the icons package. Export names must not collide with any name in `packages/icons/icons.json`. The distribution check asserts this.
@@ -43,17 +43,20 @@ The published tarball is self-contained. Nothing in it refers to the icons packa
 ## Artwork
 
 **Origin**
+
 - Both assets are new original artwork, created during implementation of this specification. This specification draws nothing, and the user does not supply artwork.
 - Inline folder paths that already exist in a downstream application are **not** a source. Their authorship has not been established.
 - Nothing may be traced from or derived from another icon set (Radix Icons, Lucide, Feather, Heroicons or others), or from brand artwork. If an asset cannot be shown to be created for this package, it is not shipped.
 
 **Grid and style**
+
 - `viewBox="0 0 24 24"`. The root `<svg>` has `fill="none"`.
 - Each `<path>` carries `stroke="currentColor"`, `stroke-width="1.6"`, `stroke-linecap="round"` and `stroke-linejoin="round"`.
 - At the default 15 px size, a 1.6 stroke renders at 1.6 × 15/24 = 1.0 px. Before merge, both icons are reviewed next to existing icons in the gallery at 15 px; if the line weight is visibly heavier or lighter, the stroke width is adjusted.
 - Asset syntax stays within what the generator accepts: no comments, processing instructions, entities or braces, and unique IDs. Masks are allowed only if needed.
 
 **Provenance record (merge gate)**
+
 - Copyright default: new artwork and new code written for this package use the project's existing MIT notice, `Copyright (c) 2026 Radix2Solid contributors`. This is the same notice as the root `LICENSE` and `packages/icons/LICENSE`.
 - `packages/icons-extra/LICENSE` starts with that notice. Reused code keeps whatever notices apply to it: the generator's wrapper template and the `src/types.ts`/`src/title.ts` helpers copied from `packages/icons`, and any external code an implementation brings in. Each notice is carried over unchanged.
   - New artwork is not a reason to drop a notice from reused code.
@@ -65,6 +68,7 @@ The published tarball is self-contained. Nothing in it refers to the icons packa
 - The record never names a human creator who did not create the asset, and never states a legal clearance or copyright assurance beyond that factual record.
 
 **Licence vs. trademark**
+
 - The MIT licence covers the artwork as package content. It grants no trademark rights.
 - The package contains no WS Agency marks. "wsagency" appears only as the npm scope and in repository metadata.
 
@@ -77,6 +81,7 @@ The published tarball is self-contained. Nothing in it refers to the icons packa
 3. **Helpers.** The generator writes `src/types.ts` (`IconProps`) and `src/title.ts` (`IconTitle`) into the target package, with their current content, so each package is self-contained. It does not import across packages.
 
 Nothing else changes:
+
 - Stroke attributes live on the child elements, and the existing `(fill|stroke)="currentColor"` rewrite already maps them to the `color` prop. Root attributes are therefore not passed through.
 - The mask ID handling, accessibility attributes, prop spreading and the name/asset bijection checks stay as they are.
 
@@ -85,27 +90,32 @@ The generator stays in `packages/icons` under that package's existing licence. C
 ## Public contract (identical to the icons package)
 
 **Props and rendering**
+
 - `IconProps` is the native SVG element props plus `color`, `size` and `title`, and `children?: never`. It is exported from the package root.
 - `size` sets width and height; the default is 15. The viewBox stays `0 0 24 24`. Explicit native `width`, `height`, `viewBox`, class, style and other props take precedence.
 - `color` sets the `currentColor` strokes. When it's omitted, inherited CSS `color` applies.
 
 **Accessibility**
+
 - An icon with no nonempty `title`, `aria-label` or `aria-labelledby` is decorative and gets `aria-hidden="true"`.
 - A named icon gets `role="img"`. Explicit role and ARIA props take precedence.
 - `title` renders a real namespaced SVG `<title>`, including during fresh client rendering and reactive updates.
 
 **Behaviour**
+
 - Refs and events reach the native SVG element.
 - Any mask IDs are per instance and stable across SSR and hydration.
 - Client ESM, server ESM and shared declarations.
 
 **Imports**
+
 - Root named imports and per-icon deep imports, both named and default (`@wsagency/radix2solid-icons-extra/FolderIcon`).
 - The original SVG files are exported unchanged at `@wsagency/radix2solid-icons-extra/icons/<asset>.svg`.
 
 ## Integration (all required when implemented)
 
 Library repository:
+
 - `packages/icons-extra/`: `package.json`, `icons.json`, `icons/*.svg`, generated `src/`, `vite.config.ts`, `tsconfig.json`, `README.md`, `CHANGELOG.md`, `LICENSE`.
 - Root `package.json`: add the package to the build script and as a `workspace:*` devDependency.
 - `tests/consumer/run.ts`: add the package to the packed-package list and copy its `icons.json`.
@@ -133,6 +143,7 @@ Library repository:
   - The extra package adds no new way of composing with Primitives. Its components are native SVG components, like those of the icons package, so the existing guidance covers both.
 
 Website repository (documentation is part of this deliverable, not optional):
+
 - Icon catalogue (`apps/website/src/components/icons/all-icons.tsx`, `search-results.tsx`): a separate "Extra" group imported from the extra package. It is never counted in or mixed into the 332 Radix icons.
 - `apps/website/src/components/icons/icons-panel.tsx`: install command and a usage example for the extra package.
 - Website pin (`library-source.json`): updated after the library change merges, following the existing pin process.

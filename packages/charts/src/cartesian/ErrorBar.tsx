@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/cartesian/ErrorBar.tsx (commit 7a23854).
 //
 // Renders whiskers (|--|) for error margins on a graphical item's data points.
@@ -17,17 +18,23 @@
 //    & ErrorBarProps`, e.g. a bare `begin` attribute) rides through
 //    svgPropertiesNoEvents, filtered by the canonical allowlist.
 import { type Accessor, createMemo, For, merge, omit, Show } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { Layer } from "../container/Layer";
-import { ZIndexLayer } from "../zIndex/ZIndexLayer";
+
 import { CSSTransitionAnimate } from "../animation/CSSTransitionAnimate";
-import { EasingInput, RectangleCoordinate, DataKey } from "../util/types";
-import { ReportErrorBarSettings, useErrorBarContext } from "../context/ErrorBarContext";
-import { useAppSelector } from "../state/hooks";
-import { useIsPanorama } from "../context/PanoramaContext";
+import { Layer } from "../container/Layer";
 import { useChartLayout } from "../context/chartLayoutContext";
+import {
+  ReportErrorBarSettings,
+  useErrorBarContext,
+} from "../context/ErrorBarContext";
+import { useIsPanorama } from "../context/PanoramaContext";
+import { useAppSelector } from "../state/hooks";
 import { selectAxisWithScale } from "../state/selectors/axisSelectors";
-import { svgPropertiesNoEvents, type CamelSvgProps } from "../util/svgPropertiesNoEvents";
+import {
+  svgPropertiesNoEvents,
+  type CamelSvgProps,
+} from "../util/svgPropertiesNoEvents";
+import { EasingInput, RectangleCoordinate, DataKey } from "../util/types";
+import { ZIndexLayer } from "../zIndex/ZIndexLayer";
 
 export interface ErrorBarDataItem {
   x: number | undefined;
@@ -53,7 +60,14 @@ export type ErrorBarDataPointFormatter = (
 // key conflicts.
 type ErrorBarSvgProps = Omit<
   CamelSvgProps<JSX.LineSVGAttributes<SVGLineElement>>,
-  "class" | "direction" | "width" | "offset" | "stroke" | "strokeWidth" | "children" | "ref"
+  | "class"
+  | "direction"
+  | "width"
+  | "offset"
+  | "stroke"
+  | "strokeWidth"
+  | "children"
+  | "ref"
 > & {
   /** SVG animation-timing attribute (React's SVGProps exposes it; Solid's
    * LineSVGAttributes doesn't). Rides through to the whisker group like any
@@ -96,12 +110,13 @@ const errorBarDefaultProps = {
 } as const satisfies Partial<ErrorBarProps>;
 
 function useErrorBarDirection(
-  directionFromProps: ErrorBarDirection | undefined,
+  directionFromProps: Accessor<ErrorBarDirection | undefined>,
 ): Accessor<ErrorBarDirection> {
   const layout = useChartLayout();
   return (): ErrorBarDirection => {
-    if (directionFromProps != null) {
-      return directionFromProps;
+    const explicitDirection = directionFromProps();
+    if (explicitDirection != null) {
+      return explicitDirection;
     }
     const l = layout();
     if (l != null) {
@@ -130,7 +145,8 @@ function ErrorBarImpl(props: {
   zIndex: number | undefined;
   class?: string;
 }): JSX.Element {
-  const scaleDirection = (): string => (props.direction === "x" ? "scaleX" : "scaleY");
+  const scaleDirection = (): string =>
+    props.direction === "x" ? "scaleX" : "scaleY";
   const ctx = useErrorBarContext();
   const isPanorama = useIsPanorama();
   // Hooks at setup (not inside the memo); the axis id is read reactively inside
@@ -159,7 +175,11 @@ function ErrorBarImpl(props: {
     }
 
     return data.map((entry): ErrorBarLineGroup => {
-      const { x, y, value, errorVal } = dataPointFormatter(entry, props.dataKey, props.direction);
+      const { x, y, value, errorVal } = dataPointFormatter(
+        entry,
+        props.dataKey,
+        props.direction,
+      );
       if (!errorVal || x == null || y == null) {
         return { lines: [], transformOrigin: "" };
       }
@@ -219,12 +239,16 @@ function ErrorBarImpl(props: {
                 <Show when={group.lines.length > 0}>
                   {/* Raw <g> (mirrors Layer's `recharts-layer` class) so the Record
                     spread can carry the non-typed `offset` attribute. */}
-                  <g class={["recharts-layer", "recharts-errorBar"]} {...groupAttrs()}>
+                  <g
+                    class={["recharts-layer", "recharts-errorBar"]}
+                    {...groupAttrs()}
+                  >
                     <For each={group.lines}>
                       {(c) => {
-                        const lineStyle: JSX.CSSProperties | undefined = props.isAnimationActive
-                          ? { "transform-origin": group.transformOrigin }
-                          : undefined;
+                        const lineStyle: JSX.CSSProperties | undefined =
+                          props.isAnimationActive
+                            ? { "transform-origin": group.transformOrigin }
+                            : undefined;
                         return (
                           <CSSTransitionAnimate
                             animationId={`error-bar-${props.direction}_${c.x1}-${c.x2}-${c.y1}-${c.y2}`}
@@ -276,30 +300,32 @@ function ErrorBarImpl(props: {
  */
 export function ErrorBar(props: ErrorBarProps): JSX.Element {
   const merged = merge(errorBarDefaultProps, props);
-  const direction = useErrorBarDirection(props.direction);
+  const direction = useErrorBarDirection(() => props.direction);
   // Everything that isn't ErrorBar config is an SVG presentation prop for the
   // whisker group (recharts: `const { direction, width, dataKey, ...others } =
   // props; svgPropertiesNoEvents(others)`). The allowlist filter drops any
   // remaining non-SVG keys (and the merge proxy's symbols).
+  const svgAttributeSource = omit(
+    merged,
+    "dataKey",
+    "width",
+    "direction",
+    "isAnimationActive",
+    "animationBegin",
+    "animationDuration",
+    "animationEasing",
+    "zIndex",
+    "class",
+  );
   const groupSvgAttrs = createMemo<Record<string, unknown>>(() =>
-    svgPropertiesNoEvents({
-      ...omit(
-        merged,
-        "dataKey",
-        "width",
-        "direction",
-        "isAnimationActive",
-        "animationBegin",
-        "animationDuration",
-        "animationEasing",
-        "zIndex",
-        "class",
-      ),
-    }),
+    svgPropertiesNoEvents({ ...svgAttributeSource }),
   );
   return (
     <>
-      <ReportErrorBarSettings dataKey={merged.dataKey} direction={direction()} />
+      <ReportErrorBarSettings
+        dataKey={merged.dataKey}
+        direction={direction()}
+      />
       <ErrorBarImpl
         dataKey={merged.dataKey}
         width={merged.width}

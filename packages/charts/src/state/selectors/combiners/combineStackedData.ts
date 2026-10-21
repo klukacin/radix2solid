@@ -1,8 +1,12 @@
+import { getStackSeriesIdentifier } from "../../../util/stacks/getStackSeriesIdentifier";
 // Ported from recharts 3.8.1 src/state/selectors/combiners/combineStackedData.ts
 // (commit 7a23854).
-import { AllStackGroups, StackGroup, StackSeries } from "../../../util/stacks/stackTypes";
+import {
+  AllStackGroups,
+  StackGroup,
+  StackSeries,
+} from "../../../util/stacks/stackTypes";
 import { MaybeStackedGraphicalItem } from "../../types/StackedGraphicalItem";
-import { getStackSeriesIdentifier } from "../../../util/stacks/getStackSeriesIdentifier";
 
 export const combineStackedData = (
   stackGroups: AllStackGroups | undefined,

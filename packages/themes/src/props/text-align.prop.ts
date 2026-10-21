@@ -1,11 +1,11 @@
-import type { PropDef } from './prop-def.js';
+import type { PropDef } from "./prop-def.js";
 
-const textAlignValues = ['left', 'center', 'right'] as const;
+const textAlignValues = ["left", "center", "right"] as const;
 
 const textAlignPropDef = {
   align: {
-    type: 'enum',
-    className: 'rt-r-ta',
+    type: "enum",
+    className: "rt-r-ta",
     values: textAlignValues,
     responsive: true,
   },

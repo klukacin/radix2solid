@@ -1,30 +1,38 @@
-// Ported from recharts 3.8.1 src/state/selectors/radarSelectors.ts (commit 7a23854).
-//
-// FULL SOLID-NATIVE REWRITE: reselect `createSelector` → plain functions
-// (memoization via `useAppSelector`'s `createMemo`).
-import { RechartsRootState } from "../store";
-import { AxisId } from "../cartesianAxisSlice";
-import { GraphicalItemId } from "../graphicalItemsSlice";
+import { selectChartLayout } from "../../context/chartLayoutContext";
 import {
   AngleAxisForRadar,
   computeRadarPoints,
   RadarComposedData,
   RadiusAxisForRadar,
 } from "../../polar/Radar";
-import { BaseAxisWithScale } from "./axisSelectors";
-import { selectPolarAxisScale, selectPolarAxisTicks } from "./polarScaleSelectors";
-import { selectAngleAxis, selectPolarViewBox, selectRadiusAxis } from "./polarAxisSelectors";
-import { selectChartDataAndAlwaysIgnoreIndexes } from "./dataSelectors";
-import { DataKey, TickItem } from "../../util/types";
-import { selectChartLayout } from "../../context/chartLayoutContext";
 import { getBandSizeOfAxis, isCategoricalAxis } from "../../util/ChartUtils";
 import { RechartsScale } from "../../util/scale/RechartsScale";
+import { DataKey, TickItem } from "../../util/types";
+import { AxisId } from "../cartesianAxisSlice";
+import { GraphicalItemId } from "../graphicalItemsSlice";
+// Ported from recharts 3.8.1 src/state/selectors/radarSelectors.ts (commit 7a23854).
+//
+// FULL SOLID-NATIVE REWRITE: reselect `createSelector` → plain functions
+// (memoization via `useAppSelector`'s `createMemo`).
+import { RechartsRootState } from "../store";
+import { BaseAxisWithScale } from "./axisSelectors";
+import { selectChartDataAndAlwaysIgnoreIndexes } from "./dataSelectors";
+import {
+  selectAngleAxis,
+  selectPolarViewBox,
+  selectRadiusAxis,
+} from "./polarAxisSelectors";
+import {
+  selectPolarAxisScale,
+  selectPolarAxisTicks,
+} from "./polarScaleSelectors";
 import { selectUnfilteredPolarItems } from "./polarSelectors";
 
 const selectRadiusAxisScale = (
   state: RechartsRootState,
   radiusAxisId: AxisId,
-): RechartsScale | undefined => selectPolarAxisScale(state, "radiusAxis", radiusAxisId);
+): RechartsScale | undefined =>
+  selectPolarAxisScale(state, "radiusAxis", radiusAxisId);
 
 const selectRadiusAxisForRadar = (
   state: RechartsRootState,
@@ -56,7 +64,8 @@ const selectRadiusAxisTicks = (
 const selectPolarAxisScaleForAngle = (
   state: RechartsRootState,
   angleAxisId: AxisId,
-): RechartsScale | undefined => selectPolarAxisScale(state, "angleAxis", angleAxisId);
+): RechartsScale | undefined =>
+  selectPolarAxisScale(state, "angleAxis", angleAxisId);
 
 export const selectAngleAxisForBandSize = (
   state: RechartsRootState,
@@ -122,7 +131,9 @@ const selectSynchronisedRadarDataKey = (
   radarId: GraphicalItemId,
 ): DataKey<unknown> | undefined => {
   const items = selectUnfilteredPolarItems(state);
-  const pgis = items.find((item) => item.type === "radar" && radarId === item.id);
+  const pgis = items.find(
+    (item) => item.type === "radar" && radarId === item.id,
+  );
   return pgis?.dataKey;
 };
 
@@ -135,9 +146,15 @@ export const selectRadarPoints = (
 ): RadarComposedData | undefined => {
   const radiusAxis = selectRadiusAxisForRadar(state, radiusAxisId);
   const angleAxis = selectAngleAxisWithScaleAndViewport(state, angleAxisId);
-  const { chartData, dataStartIndex, dataEndIndex } = selectChartDataAndAlwaysIgnoreIndexes(state);
+  const { chartData, dataStartIndex, dataEndIndex } =
+    selectChartDataAndAlwaysIgnoreIndexes(state);
   const dataKey = selectSynchronisedRadarDataKey(state, radarId);
-  const bandSize = selectBandSizeOfAxis(state, radiusAxisId, angleAxisId, isPanorama);
+  const bandSize = selectBandSizeOfAxis(
+    state,
+    radiusAxisId,
+    angleAxisId,
+    isPanorama,
+  );
   if (
     radiusAxis == null ||
     angleAxis == null ||
@@ -148,5 +165,11 @@ export const selectRadarPoints = (
     return undefined;
   }
   const displayedData = chartData.slice(dataStartIndex, dataEndIndex + 1);
-  return computeRadarPoints({ radiusAxis, angleAxis, displayedData, dataKey, bandSize });
+  return computeRadarPoints({
+    radiusAxis,
+    angleAxis,
+    displayedData,
+    dataKey,
+    bandSize,
+  });
 };

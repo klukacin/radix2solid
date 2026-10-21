@@ -11,6 +11,7 @@ The five packages keep their native API under the `@wsagency` npm scope:
 - `@wsagency/radix2solid-charts` — SVG charts that read Themes tokens, with `d3-scale` and `d3-shape` as external dependencies: [`packages/charts`](packages/charts)
 
 This README describes prerelease `0.1.0-rc.4` for all five packages. Releases use the npm `next` dist-tag while Solid is prerelease. Calendar, DatePicker and FileDrop are introduced in rc.4 in Primitives and Themes; these new APIs are absent from rc.3. Install the five packages at the exact prerelease version:
+
 ```sh
 pnpm add -E @wsagency/radix2solid-primitives@0.1.0-rc.4 @wsagency/radix2solid-icons@0.1.0-rc.4 @wsagency/radix2solid-icons-extra@0.1.0-rc.4 @wsagency/radix2solid-themes@0.1.0-rc.4 @wsagency/radix2solid-charts@0.1.0-rc.4
 ```
@@ -68,22 +69,29 @@ pnpm dev
 
 Gallery: `http://127.0.0.1:4147/` for SSR/hydration, `/csr` for fresh client rendering. `pnpm --filter @radix-solid/gallery preview` serves the built production fixture, including extracted CSS. `pnpm test:consumer` packs the real native libraries, installs them under ignored `.artifacts/consumer` with independent node_modules and exact overrides, and runs server/type/graph/CSR/hydration checks. No workspace source alias is used there.
 
+`pnpm lint` runs Oxlint with `eslint-plugin-solid` as a JS plugin, configured in `oxlint.config.ts` from the plugin's `v2-strict` preset (Solid 2.0 settings and rules). Any error or warning fails it. `pnpm format` rewrites files with Oxfmt using `.oxfmtrc.json`, and `pnpm format:check` only reports unformatted files. Generated icon sources are excluded.
+
 ## Native distribution and release gates
 
 Exact current pins: `solid-js`, `@solidjs/web`, `@solidjs/signals`, `@solidjs/compiler` and `@solidjs/babel-plugin` **2.0.0-rc.15**; `@solidjs/vite-plugin` **3.0.0-next.50**; Vite **8.3.3**; TypeScript **7.0.2** for type checks and declaration emit, with `typescript5` (TypeScript **5.9.3**) for the consumer checks that use the compiler API; Playwright **1.64.0**; Radix Colors **3.0.0**. The runtime/compiler/Babel versions are pinned through workspace overrides. The workspace keeps pnpm's 24-hour `minimumReleaseAge` and excepts only these exact rc.15/next.50 releases until they age. This is an RC port, not a Solid-stable compatibility promise.
 
-`pnpm test:unit` runs the slider, splitter, calendar and file-drop unit tests. `pnpm test` runs those tests, the complete packed `pnpm test:consumer` suite and the full development Playwright suite; `pnpm check` runs the build and typecheck before that complete test contract. CI runs the complete modes independently: `pnpm check:packed` builds, typechecks, runs all four unit-test files and the unscoped all-package packed consumer checks; `pnpm check:dev` builds, typechecks, runs those same unit tests and the full six-project Playwright suite, preserving existing skips. Both local `test` and `check:dev` use the shared `test:dev` command with empty `GALLERY_PACKED` and `GALLERY_PRODUCTION` values. `tests/consumer/coverage-manifest.json` maps public declarations/parts to retained family checks. Packed validation covers public declaration and runtime availability, CSS/plugin/SVG resolution and real selective-import bundle inspection. Family checks are not certification of every exported symbol or of actual assistive-technology speech.
+`pnpm test:unit` runs the slider, splitter, calendar and file-drop unit tests. `pnpm test` runs those tests, the complete packed `pnpm test:consumer` suite and the full development Playwright suite; `pnpm check` runs `pnpm lint`, `pnpm format:check`, the build and typecheck before that complete test contract. CI runs the complete modes independently: `pnpm check:packed` lints, checks formatting, builds, typechecks, runs all four unit-test files and the unscoped all-package packed consumer checks; `pnpm check:dev` lints, checks formatting, builds, typechecks, runs those same unit tests and the full six-project Playwright suite, preserving existing skips. Both local `test` and `check:dev` use the shared `test:dev` command with empty `GALLERY_PACKED` and `GALLERY_PRODUCTION` values. `tests/consumer/coverage-manifest.json` maps public declarations/parts to retained family checks. Packed validation covers public declaration and runtime availability, CSS/plugin/SVG resolution and real selective-import bundle inspection. Family checks are not certification of every exported symbol or of actual assistive-technology speech.
 
 The gallery is a static fixture: its animatable chart marks set `isAnimationActive={false}`, and only the `#chart-responsive` Trend line is the dedicated motion fixture for animation and reduced-motion checks. Otherwise, an incidental animation started before a test installs Playwright's fake clock keeps a real-time start and spins fake animation frames until fake time catches up, and each fake frame is slow in WebKit. Browser checks that need a scroll to finish wait for the native `scrollend` event (Chromium, Firefox and WebKit) instead of sampling positions, because WebKit animates keyboard scrolling. Hydration checks that hold client scripts first release them, wait for normal document load within the existing navigation/test budget, then wait for the gallery's `#refs` output to read `same host`. Module loading and evaluation use the existing navigation/test budget; the host-ref identity assertion and later checks such as `ResizeObserver` measurement retain the normal 5s assertion timeout.
 
 Use native `class`, `for`, lowercase DOM attributes and `@solidjs/web` JSX types. Controlled props remain parent-authoritative. `asChild` takes a single-target factory, not a React element or a snapshot prop spread; native portals render no RC.13 server content and settle on the client. See the package migration notes for event cancellation, refs, owned effects, portal propagation and removed React-only helpers. Themes CSS is imported explicitly:
 
 ```tsx
-import { Theme, Button } from '@wsagency/radix2solid-themes';
-import '@wsagency/radix2solid-themes/styles.css';
+import { Theme, Button } from "@wsagency/radix2solid-themes";
+
+import "@wsagency/radix2solid-themes/styles.css";
 
 export default function App() {
-  return <Theme><Button>Save</Button></Theme>;
+  return (
+    <Theme>
+      <Button>Save</Button>
+    </Theme>
+  );
 }
 ```
 

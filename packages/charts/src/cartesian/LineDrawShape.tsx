@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.9.0 src/cartesian/LineDrawShape.tsx.
 //
 // The default shape for <Line>. During the entrance animation the line is
@@ -17,7 +18,7 @@
 //     (<Line>) can drive `shouldUpdatePreviousRef`/`getVisibleLength` off the same
 //     measured length.
 import { createEffect, createSignal, omit } from "solid-js";
-import type { JSX } from "@solidjs/web";
+
 import { Curve, type CurveProps } from "../shape/Curve";
 import type { ShapeAnimationProps } from "../util/types";
 
@@ -40,7 +41,10 @@ function getTotalLength(path: SVGPathElement | null | undefined): number {
  * floating-point precision artifact that can render a phantom dot at the path
  * endpoint with round or square strokeLinecap.
  */
-function generateSimpleStrokeDasharray(totalLength: number, length: number): string {
+function generateSimpleStrokeDasharray(
+  totalLength: number,
+  length: number,
+): string {
   return `${length}px ${totalLength}px`;
 }
 
@@ -65,7 +69,11 @@ function repeat(lines: number[], count: number): number[] {
  * Computes a stroke-dasharray string for a custom-dashed line draw effect: reveals
  * exactly `length` px of the user pattern, followed by a `totalLength` gap.
  */
-function getStrokeDasharray(length: number, totalLength: number, lines: number[]): string {
+function getStrokeDasharray(
+  length: number,
+  totalLength: number,
+  lines: number[],
+): string {
   const normalizedLines = normalizeDashPattern(lines);
   const lineLength = normalizedLines.reduce((pre, next) => pre + next, 0);
 
@@ -76,7 +84,11 @@ function getStrokeDasharray(length: number, totalLength: number, lines: number[]
   const count = Math.floor(length / lineLength);
   const remainLength = length % lineLength;
   let remainLines: number[] = [];
-  for (let i = 0, sum = 0; i < normalizedLines.length; sum += normalizedLines[i] ?? 0, ++i) {
+  for (
+    let i = 0, sum = 0;
+    i < normalizedLines.length;
+    sum += normalizedLines[i] ?? 0, ++i
+  ) {
     const lineValue = normalizedLines[i];
     if (lineValue != null && sum + lineValue > remainLength) {
       remainLines = [...normalizedLines.slice(0, i), remainLength - sum];
@@ -84,7 +96,8 @@ function getStrokeDasharray(length: number, totalLength: number, lines: number[]
     }
   }
 
-  const emptyLines = remainLines.length % 2 === 0 ? [0, totalLength] : [totalLength];
+  const emptyLines =
+    remainLines.length % 2 === 0 ? [0, totalLength] : [totalLength];
 
   return [...repeat(normalizedLines, count), ...remainLines, ...emptyLines]
     .map((line) => `${line}px`)
@@ -98,7 +111,9 @@ function computeAnimatedStrokeDasharray(
   visibleLength: number,
 ): string {
   if (userStrokeDasharray) {
-    const lines = `${userStrokeDasharray}`.split(/[,\s]+/gim).map((num) => parseFloat(num));
+    const lines = `${userStrokeDasharray}`
+      .split(/[,\s]+/gim)
+      .map((num) => parseFloat(num));
     return getStrokeDasharray(visibleLength, totalLength, lines);
   }
   return generateSimpleStrokeDasharray(totalLength, visibleLength);
@@ -159,7 +174,11 @@ export function LineDrawShape(props: LineDrawShapeProps): JSX.Element {
     const visibleLength = props.visibleLength;
     const userStrokeDasharray = props.strokeDasharray;
     if (visibleLength != null) {
-      return computeAnimatedStrokeDasharray(userStrokeDasharray, totalLength(), visibleLength);
+      return computeAnimatedStrokeDasharray(
+        userStrokeDasharray,
+        totalLength(),
+        visibleLength,
+      );
     }
     if (userStrokeDasharray != null) {
       return String(userStrokeDasharray);

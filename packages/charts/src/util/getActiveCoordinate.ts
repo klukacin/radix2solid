@@ -1,3 +1,6 @@
+import { AxisRange } from "../state/selectors/axisSelectors";
+import { mathSign } from "./DataUtils";
+import { polarToCartesian } from "./PolarUtils";
 // Ported from recharts 3.8.1 src/util/getActiveCoordinate.ts (commit 7a23854).
 // Deviations: strict-mode type annotations on locals the reference left to
 // inference (`diffInterval: number[]`, `sameDirectionCoord: number`).
@@ -12,9 +15,6 @@ import {
   RangeObj,
   TickItem,
 } from "./types";
-import { polarToCartesian } from "./PolarUtils";
-import { AxisRange } from "../state/selectors/axisSelectors";
-import { mathSign } from "./DataUtils";
 
 export const getActiveCartesianCoordinate = (
   layout: CartesianLayout,
@@ -88,7 +88,10 @@ export const getActivePolarCoordinate = (
   };
 };
 
-export function isInCartesianRange(pointer: RelativePointer, offset: ChartOffsetInternal): boolean {
+export function isInCartesianRange(
+  pointer: RelativePointer,
+  offset: ChartOffsetInternal,
+): boolean {
   const { relativeX: x, relativeY: y } = pointer;
   return (
     x >= offset.left &&
@@ -123,17 +126,28 @@ export const calculateActiveTickIndex = (
   ) {
     // ticks are distributed in a circle
     const span = range[1] - range[0];
-    const isInside = (lower: number, upper: number, inclusiveLower: boolean): boolean => {
+    const isInside = (
+      lower: number,
+      upper: number,
+      inclusiveLower: boolean,
+    ): boolean => {
       for (let turn = -1; turn <= 1; turn++) {
         const value = coordinate + turn * span;
-        if ((inclusiveLower ? value >= lower : value > lower) && value <= upper) return true;
+        if ((inclusiveLower ? value >= lower : value > lower) && value <= upper)
+          return true;
       }
       return false;
     };
     for (let i = 0; i < len; i++) {
-      const before = i > 0 ? unsortedTicks[i - 1]?.coordinate : unsortedTicks[len - 1]?.coordinate;
+      const before =
+        i > 0
+          ? unsortedTicks[i - 1]?.coordinate
+          : unsortedTicks[len - 1]?.coordinate;
       const cur = unsortedTicks[i]?.coordinate;
-      const after = i >= len - 1 ? unsortedTicks[0]?.coordinate : unsortedTicks[i + 1]?.coordinate;
+      const after =
+        i >= len - 1
+          ? unsortedTicks[0]?.coordinate
+          : unsortedTicks[i + 1]?.coordinate;
       let sameDirectionCoord: number;
 
       if (before == null || cur == null || after == null) {
@@ -162,7 +176,8 @@ export const calculateActiveTickIndex = (
 
         if (
           isInside(sameInterval[0], sameInterval[1], false) ||
-          (diffInterval[0] != null && diffInterval[1] != null &&
+          (diffInterval[0] != null &&
+            diffInterval[1] != null &&
             isInside(diffInterval[0], diffInterval[1], true))
         ) {
           return unsortedTicks[i]?.index;
@@ -186,11 +201,19 @@ export const calculateActiveTickIndex = (
       const next = ticks[i + 1];
       const prev = ticks[i - 1];
 
-      if (i === 0 && next != null && coordinate <= (curr.coordinate + next.coordinate) / 2) {
+      if (
+        i === 0 &&
+        next != null &&
+        coordinate <= (curr.coordinate + next.coordinate) / 2
+      ) {
         return curr.index;
       }
 
-      if (i === len - 1 && prev != null && coordinate > (curr.coordinate + prev.coordinate) / 2) {
+      if (
+        i === len - 1 &&
+        prev != null &&
+        coordinate > (curr.coordinate + prev.coordinate) / 2
+      ) {
         return curr.index;
       }
 

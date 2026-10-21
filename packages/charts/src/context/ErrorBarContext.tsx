@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/context/ErrorBarContext.tsx (commit 7a23854).
 //
 // The graphical item provides its data + a point formatter + axis ids via this
@@ -9,13 +10,13 @@
 // cleanup remove → createEffect + onCleanup. useGraphicalItemId provides the id.
 import { createContext, useContext } from "solid-js";
 import type { Accessor } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { AxisId } from "../state/cartesianAxisSlice";
+
 import type { ErrorBarDataPointFormatter } from "../cartesian/ErrorBar";
+import { AxisId } from "../state/cartesianAxisSlice";
 import type { ErrorBarsSettings } from "../state/errorBarSlice";
 import { useAppStore } from "../state/hooks";
-import { useGraphicalItemId } from "./RegisterGraphicalItemId";
 import { registerInStore } from "../state/registerInStore";
+import { useGraphicalItemId } from "./RegisterGraphicalItemId";
 
 export interface ErrorBarContextValue {
   data: ReadonlyArray<unknown> | undefined;
@@ -33,7 +34,9 @@ const initialContextState: ErrorBarContextValue = {
   errorBarOffset: 0,
 };
 
-const ErrorBarContext = createContext<Accessor<ErrorBarContextValue>>(() => initialContextState);
+const ErrorBarContext = createContext<Accessor<ErrorBarContextValue>>(
+  () => initialContextState,
+);
 
 export function SetErrorBarContext(
   props: ErrorBarContextValue & { children: JSX.Element },
@@ -48,7 +51,8 @@ export function SetErrorBarContext(
   return <ErrorBarContext value={value}>{props.children}</ErrorBarContext>;
 }
 
-export const useErrorBarContext = (): Accessor<ErrorBarContextValue> => useContext(ErrorBarContext);
+export const useErrorBarContext = (): Accessor<ErrorBarContextValue> =>
+  useContext(ErrorBarContext);
 
 /**
  * Registers an ErrorBar's settings in the store under its graphical item's id,
@@ -63,11 +67,21 @@ export function ReportErrorBarSettings(props: ErrorBarsSettings): JSX.Element {
       () => ({ dataKey: props.dataKey, direction: props.direction }),
       {
         add: (next) =>
-          store.actions.errorBars.addErrorBar({ itemId: graphicalItemId, errorBar: next }),
+          store.actions.errorBars.addErrorBar({
+            itemId: graphicalItemId,
+            errorBar: next,
+          }),
         replace: (prev, next) =>
-          store.actions.errorBars.replaceErrorBar({ itemId: graphicalItemId, prev, next }),
+          store.actions.errorBars.replaceErrorBar({
+            itemId: graphicalItemId,
+            prev,
+            next,
+          }),
         remove: (prev) =>
-          store.actions.errorBars.removeErrorBar({ itemId: graphicalItemId, errorBar: prev }),
+          store.actions.errorBars.removeErrorBar({
+            itemId: graphicalItemId,
+            errorBar: prev,
+          }),
       },
     );
   }

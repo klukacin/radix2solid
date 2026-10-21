@@ -1,7 +1,9 @@
 import type { CartesianViewBoxRequired, TrapezoidViewBox } from "../util/types";
 
 export function cartesianViewBoxToTrapezoid(box: undefined): undefined;
-export function cartesianViewBoxToTrapezoid(box: CartesianViewBoxRequired | TrapezoidViewBox): TrapezoidViewBox;
+export function cartesianViewBoxToTrapezoid(
+  box: CartesianViewBoxRequired | TrapezoidViewBox,
+): TrapezoidViewBox;
 export function cartesianViewBoxToTrapezoid(
   box: CartesianViewBoxRequired | TrapezoidViewBox | undefined,
 ): TrapezoidViewBox | undefined {

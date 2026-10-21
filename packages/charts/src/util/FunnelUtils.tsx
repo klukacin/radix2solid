@@ -9,14 +9,16 @@
 // `option` is typed as the wider `ActiveShape` the `<Shape>` helper accepts (the
 // `<Funnel>` `shape`/`activeShape` function-form props are assignable to it).
 import type { JSX } from "@solidjs/web";
+
+import type { FunnelTrapezoidItem } from "../cartesian/Funnel";
 import { Trapezoid } from "../shape/Trapezoid";
 import { Shape } from "./ActiveShapeUtils";
 import type { ActiveShape, ShapeAnimationProps } from "./types";
-import type { FunnelTrapezoidItem } from "../cartesian/Funnel";
 
 export const defaultFunnelShape = Trapezoid;
 
-type FunnelTrapezoidShapeProps = FunnelTrapezoidItem & ShapeAnimationProps & { isActive: boolean };
+type FunnelTrapezoidShapeProps = FunnelTrapezoidItem &
+  ShapeAnimationProps & { isActive: boolean };
 
 export type FunnelTrapezoidProps = {
   option: ActiveShape<FunnelTrapezoidShapeProps, SVGPathElement> | undefined;

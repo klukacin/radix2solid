@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/polar/Pie.tsx (commit 7a23854).
 //
 // MINIMAL PORT — renders one <Sector> per data slice with byte-identical
@@ -32,57 +33,76 @@
 // DEFERRED: `maxRadius`/`cornerRadius` rounding edge cases, float-precise per-frame
 // animation angle matrices.
 import { createEffect, createMemo, For, merge, Show, untrack } from "solid-js";
-import type { JSX } from "@solidjs/web";
-import { useAppSelector, useAppStore } from "../state/hooks";
-import { useUniqueId } from "../util/useUniqueId";
+
 import {
   AnimatedItems,
   type AnimationInterpolateFn,
   useAnimationCallbacks,
 } from "../animation/AnimatedItems";
+import type { EasingInput } from "../animation/easing";
 import { matchAppend, type AnimationMatchByProp } from "../animation/matchBy";
 import type { MutableRef } from "../animation/useAnimationStartSnapshot";
-import { useOffsetInternal, usePolarChartLayout } from "../context/chartLayoutContext";
-import type { EasingInput } from "../animation/easing";
-import type { AnimationDuration, PolarLayout } from "../util/types";
-import { Layer } from "../container/Layer";
-import { Sector } from "../shape/Sector";
-import { Text } from "../component/Text";
-import { PolarLabelContextProvider } from "../component/Label";
-import { Shape } from "../util/ActiveShapeUtils";
-import type { ActiveShape, ShapeAnimationProps } from "../util/types";
 import { type CellProps, createCellReader } from "../component/Cell";
-import { selectDisplayedData, selectPieSectors, selectPieLegend } from "../state/selectors/pieSelectors";
-import {
-  selectActiveTooltipIndex,
-  selectActiveTooltipDataKey,
-  selectActiveTooltipGraphicalItemId,
-} from "../state/selectors/tooltipSelectors";
-import {
-  DATA_ITEM_INDEX_ATTRIBUTE_NAME,
-  DATA_ITEM_GRAPHICAL_ITEM_ID_ATTRIBUTE_NAME,
-} from "../util/Constants";
-import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
 import type { Formatter } from "../component/DefaultTooltipContent";
-import { SetLegendPayload } from "../state/SetLegendPayload";
-import { TooltipPayloadConfiguration } from "../state/tooltipSlice";
+import { PolarLabelContextProvider } from "../component/Label";
+import { Text } from "../component/Text";
+import { Layer } from "../container/Layer";
+import {
+  useOffsetInternal,
+  usePolarChartLayout,
+} from "../context/chartLayoutContext";
 import {
   useMouseClickItemDispatch,
   useMouseEnterItemDispatch,
   useMouseLeaveItemDispatch,
 } from "../context/tooltipContext";
-import { getTooltipNameProp } from "../util/ChartUtils";
-import { PieSettings } from "../state/types/PieSettings";
+import { Sector } from "../shape/Sector";
 import { ChartData } from "../state/chartDataSlice";
 import { GraphicalItemId } from "../state/graphicalItemsSlice";
+import { useAppSelector, useAppStore } from "../state/hooks";
+import { registerInStore } from "../state/registerInStore";
+import {
+  selectDisplayedData,
+  selectPieSectors,
+  selectPieLegend,
+} from "../state/selectors/pieSelectors";
+import {
+  selectActiveTooltipIndex,
+  selectActiveTooltipDataKey,
+  selectActiveTooltipGraphicalItemId,
+} from "../state/selectors/tooltipSelectors";
+import { SetLegendPayload } from "../state/SetLegendPayload";
+import { SetTooltipEntrySettings } from "../state/SetTooltipEntrySettings";
+import { TooltipPayloadConfiguration } from "../state/tooltipSlice";
 import { TooltipPayload } from "../state/tooltipSlice";
-import { ChartOffsetInternal, Coordinate, DataKey, LegendType, TooltipType } from "../util/types";
+import { PieSettings } from "../state/types/PieSettings";
+import { Shape } from "../util/ActiveShapeUtils";
+import { getTooltipNameProp } from "../util/ChartUtils";
+import { getValueByDataKey } from "../util/ChartUtils";
+import {
+  DATA_ITEM_INDEX_ATTRIBUTE_NAME,
+  DATA_ITEM_GRAPHICAL_ITEM_ID_ATTRIBUTE_NAME,
+} from "../util/Constants";
+import {
+  getPercentValue,
+  interpolate,
+  isNumber,
+  isNumOrStr,
+  mathSign,
+} from "../util/DataUtils";
+import { getMaxRadius, polarToCartesian } from "../util/PolarUtils";
+import type { AnimationDuration, PolarLayout } from "../util/types";
+import type { ActiveShape, ShapeAnimationProps } from "../util/types";
+import {
+  ChartOffsetInternal,
+  Coordinate,
+  DataKey,
+  LegendType,
+  TooltipType,
+} from "../util/types";
+import { useUniqueId } from "../util/useUniqueId";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 import { ZIndexLayer } from "../zIndex/ZIndexLayer";
-import { getMaxRadius, polarToCartesian } from "../util/PolarUtils";
-import { getPercentValue, interpolate, isNumber, isNumOrStr, mathSign } from "../util/DataUtils";
-import { getValueByDataKey } from "../util/ChartUtils";
-import { registerInStore } from "../state/registerInStore";
 
 export type PieCoordinate = {
   cx: number;
@@ -150,7 +170,10 @@ export type PieLabel =
 export type PieLabelLine =
   | boolean
   | Record<string, unknown>
-  | ((props: { points?: ReadonlyArray<Coordinate>; [k: string]: unknown }) => JSX.Element);
+  | ((props: {
+      points?: ReadonlyArray<Coordinate>;
+      [k: string]: unknown;
+    }) => JSX.Element);
 
 /** Spread an unknown data entry into a plain record (`{}` for non-objects). */
 const toRecord = (entry: unknown): Record<string, unknown> =>
@@ -162,13 +185,20 @@ const getOuterRadius = (
   maxPieRadius: number,
 ): number => {
   if (typeof outerRadius === "function") {
-    return getPercentValue(outerRadius(dataPoint), maxPieRadius, maxPieRadius * 0.8);
+    return getPercentValue(
+      outerRadius(dataPoint),
+      maxPieRadius,
+      maxPieRadius * 0.8,
+    );
   }
   return getPercentValue(outerRadius, maxPieRadius, maxPieRadius * 0.8);
 };
 
 const parseCoordinateOfPie = (
-  pieSettings: Pick<PieSettings, "cx" | "cy" | "innerRadius" | "outerRadius" | "maxRadius">,
+  pieSettings: Pick<
+    PieSettings,
+    "cx" | "cy" | "innerRadius" | "outerRadius" | "maxRadius"
+  >,
   offset: ChartOffsetInternal,
   dataPoint: unknown,
 ): PieCoordinate => {
@@ -177,8 +207,13 @@ const parseCoordinateOfPie = (
   const cx = left + getPercentValue(pieSettings.cx, width, width / 2);
   const cy = top + getPercentValue(pieSettings.cy, height, height / 2);
   const innerRadius = getPercentValue(pieSettings.innerRadius, maxPieRadius, 0);
-  const outerRadius = getOuterRadius(dataPoint, pieSettings.outerRadius, maxPieRadius);
-  const maxRadius = pieSettings.maxRadius || Math.sqrt(width * width + height * height) / 2;
+  const outerRadius = getOuterRadius(
+    dataPoint,
+    pieSettings.outerRadius,
+    maxPieRadius,
+  );
+  const maxRadius =
+    pieSettings.maxRadius || Math.sqrt(width * width + height * height) / 2;
 
   return { cx, cy, innerRadius, outerRadius, maxRadius };
 };
@@ -202,17 +237,20 @@ export function computePieSectors({
   cells?: ReadonlyArray<CellProps> | undefined;
   offset: ChartOffsetInternal;
 }): ReadonlyArray<PieSectorDataItem> | undefined {
-  const { cornerRadius, startAngle, endAngle, dataKey, nameKey, tooltipType } = pieSettings;
+  const { cornerRadius, startAngle, endAngle, dataKey, nameKey, tooltipType } =
+    pieSettings;
   const minAngle = Math.abs(pieSettings.minAngle);
   const deltaAngle = parseDeltaAngle(startAngle, endAngle);
   const absDeltaAngle = Math.abs(deltaAngle);
-  const paddingAngle = displayedData.length <= 1 ? 0 : (pieSettings.paddingAngle ?? 0);
+  const paddingAngle =
+    displayedData.length <= 1 ? 0 : (pieSettings.paddingAngle ?? 0);
 
   const notZeroItemCount = displayedData.filter(
     (entry) => getValueByDataKey(entry, dataKey, 0) !== 0,
   ).length;
   const totalPaddingAngle =
-    (absDeltaAngle >= 360 ? notZeroItemCount : notZeroItemCount - 1) * paddingAngle;
+    (absDeltaAngle >= 360 ? notZeroItemCount : notZeroItemCount - 1) *
+    paddingAngle;
 
   const sum = displayedData.reduce<number>((result, entry) => {
     const val: unknown = getValueByDataKey(entry, dataKey, 0);
@@ -231,7 +269,8 @@ export function computePieSectors({
     });
   const effectiveMinAngle = needsMinAngleAdjustment ? minAngle : 0;
 
-  const realTotalAngle = absDeltaAngle - notZeroItemCount * effectiveMinAngle - totalPaddingAngle;
+  const realTotalAngle =
+    absDeltaAngle - notZeroItemCount * effectiveMinAngle - totalPaddingAngle;
 
   if (sum <= 0) {
     return undefined;
@@ -250,9 +289,13 @@ export function computePieSectors({
     // onto the entry); both can supply fill/stroke/class.
     const entryWithCellInfo = { ...toRecord(entry), ...toRecord(cells?.[i]) };
     const sectorColor =
-      typeof entryWithCellInfo.fill === "string" ? entryWithCellInfo.fill : pieSettings.fill;
+      typeof entryWithCellInfo.fill === "string"
+        ? entryWithCellInfo.fill
+        : pieSettings.fill;
     const sectorStroke =
-      typeof entryWithCellInfo.stroke === "string" ? entryWithCellInfo.stroke : pieSettings.stroke;
+      typeof entryWithCellInfo.stroke === "string"
+        ? entryWithCellInfo.stroke
+        : pieSettings.stroke;
     // PieSettings carries no strokeWidth (the presentationProps-reduced deviation,
     // see PieSettings.ts) — the component-level strokeWidth is applied at render.
     const sectorStrokeWidth =
@@ -261,7 +304,9 @@ export function computePieSectors({
         ? entryWithCellInfo.strokeWidth
         : undefined;
     const sectorClass =
-      typeof entryWithCellInfo.class === "string" ? entryWithCellInfo.class : undefined;
+      typeof entryWithCellInfo.class === "string"
+        ? entryWithCellInfo.class
+        : undefined;
 
     let tempStartAngle: number;
     if (i) {
@@ -275,7 +320,8 @@ export function computePieSectors({
 
     const tempEndAngle =
       tempStartAngle +
-      mathSign(deltaAngle) * ((valRaw !== 0 ? effectiveMinAngle : 0) + percent * realTotalAngle);
+      mathSign(deltaAngle) *
+        ((valRaw !== 0 ? effectiveMinAngle : 0) + percent * realTotalAngle);
     const midAngle = (tempStartAngle + tempEndAngle) / 2;
     const middleRadius = (coordinate.innerRadius + coordinate.outerRadius) / 2;
 
@@ -291,7 +337,12 @@ export function computePieSectors({
         graphicalItemId: pieSettings.id,
       },
     ];
-    const tooltipPosition = polarToCartesian(coordinate.cx, coordinate.cy, middleRadius, midAngle);
+    const tooltipPosition = polarToCartesian(
+      coordinate.cx,
+      coordinate.cy,
+      middleRadius,
+      midAngle,
+    );
 
     const sector: PieSectorDataItem = {
       // recharts spreads the raw data row (entryWithCellInfo) into the sector so
@@ -301,7 +352,10 @@ export function computePieSectors({
       ...entryWithCellInfo,
       ...coordinate,
       percent,
-      cornerRadius: typeof cornerRadius === "string" ? parseFloat(cornerRadius) : cornerRadius,
+      cornerRadius:
+        typeof cornerRadius === "string"
+          ? parseFloat(cornerRadius)
+          : cornerRadius,
       name,
       tooltipPayload,
       midAngle,
@@ -332,16 +386,17 @@ export function computePieSectors({
 // (t=1) frame is byte-identical to the reference (e.g. the closing sector lands at
 // 255.0003, not 255). Pie is POLAR, so the LayoutType is PolarLayout (unused here,
 // matching the reference — angle accumulation is layout-independent).
-export const defaultPieAnimateItems: AnimationInterpolateFn<PieSectorDataItem, PolarLayout> = (
-  items,
-  animationElapsedTime,
-) => {
+export const defaultPieAnimateItems: AnimationInterpolateFn<
+  PieSectorDataItem,
+  PolarLayout
+> = (items, animationElapsedTime) => {
   if (items == null) return [];
   const stepData: PieSectorDataItem[] = [];
   // The arrow predicate is an inferred type guard (TS 5.5+), so `firstNonRemoved`
   // is already narrowed to a non-`removed` item — both `added` and `matched` carry `next`.
   const firstNonRemoved = items.find((item) => item.status !== "removed");
-  let curAngle: number = firstNonRemoved != null ? firstNonRemoved.next.startAngle : 0;
+  let curAngle: number =
+    firstNonRemoved != null ? firstNonRemoved.next.startAngle : 0;
 
   items.forEach((item, index) => {
     if (item.status === "removed") return;
@@ -379,7 +434,10 @@ export const defaultPieAnimateItems: AnimationInterpolateFn<PieSectorDataItem, P
   return stepData;
 };
 
-export interface PieProps<DataPointType = Record<string, unknown>, DataValueType = unknown> {
+export interface PieProps<
+  DataPointType = Record<string, unknown>,
+  DataValueType = unknown,
+> {
   cx?: number | string;
   cy?: number | string;
   startAngle?: number;
@@ -426,22 +484,65 @@ export interface PieProps<DataPointType = Record<string, unknown>, DataValueType
   onAnimationEnd?: () => void;
   /** Per-sector pointer/touch handlers, called `(sector, index, event)`. */
   onClick?: (data: PieSectorDataItem, index: number, event: MouseEvent) => void;
-  onMouseDown?: (data: PieSectorDataItem, index: number, event: MouseEvent) => void;
-  onMouseUp?: (data: PieSectorDataItem, index: number, event: MouseEvent) => void;
-  onMouseMove?: (data: PieSectorDataItem, index: number, event: MouseEvent) => void;
-  onMouseOver?: (data: PieSectorDataItem, index: number, event: MouseEvent) => void;
-  onMouseOut?: (data: PieSectorDataItem, index: number, event: MouseEvent) => void;
-  onMouseEnter?: (data: PieSectorDataItem, index: number, event: MouseEvent) => void;
-  onMouseLeave?: (data: PieSectorDataItem, index: number, event: MouseEvent) => void;
-  onTouchStart?: (data: PieSectorDataItem, index: number, event: TouchEvent) => void;
-  onTouchMove?: (data: PieSectorDataItem, index: number, event: TouchEvent) => void;
-  onTouchEnd?: (data: PieSectorDataItem, index: number, event: TouchEvent) => void;
+  onMouseDown?: (
+    data: PieSectorDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onMouseUp?: (
+    data: PieSectorDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onMouseMove?: (
+    data: PieSectorDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onMouseOver?: (
+    data: PieSectorDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onMouseOut?: (
+    data: PieSectorDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onMouseEnter?: (
+    data: PieSectorDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onMouseLeave?: (
+    data: PieSectorDataItem,
+    index: number,
+    event: MouseEvent,
+  ) => void;
+  onTouchStart?: (
+    data: PieSectorDataItem,
+    index: number,
+    event: TouchEvent,
+  ) => void;
+  onTouchMove?: (
+    data: PieSectorDataItem,
+    index: number,
+    event: TouchEvent,
+  ) => void;
+  onTouchEnd?: (
+    data: PieSectorDataItem,
+    index: number,
+    event: TouchEvent,
+  ) => void;
   isAnimationActive?: boolean | "auto";
   animationBegin?: number;
   animationDuration?: AnimationDuration;
   animationEasing?: EasingInput;
   /** Custom per-frame interpolation for the pie sectors (v3.9). */
-  animationInterpolateFn?: AnimationInterpolateFn<PieSectorDataItem, PolarLayout>;
+  animationInterpolateFn?: AnimationInterpolateFn<
+    PieSectorDataItem,
+    PolarLayout
+  >;
   /** How prev/next sectors are matched across data updates (v3.9). @defaultValue matchAppend */
   animationMatchBy?: AnimationMatchByProp<PieSectorDataItem>;
   /**
@@ -501,7 +602,14 @@ function renderLabelLineItem(
   // STRICT_READ inside the label <For>).
   const [p0, p1] = lineProps.points;
   const d = p0 != null && p1 != null ? `M${p0.x},${p0.y}L${p1.x},${p1.y}` : "";
-  return <path class={cls} fill="none" stroke={lineProps.stroke} d={d} />;
+  return (
+    <path
+      class={cls}
+      fill="none"
+      stroke={lineProps.stroke}
+      d={d}
+    />
+  );
 }
 
 const isTextAnchor = (v: string): v is "start" | "middle" | "end" | "inherit" =>
@@ -535,9 +643,13 @@ function renderLabelItem(
   const cls = ["recharts-pie-label-text", getClassFromOption(option)]
     .filter((c): c is string => Boolean(c))
     .join(" ");
-  const text = typeof label === "string" || typeof label === "number" ? label : undefined;
-  const fill = typeof labelProps.fill === "string" ? labelProps.fill : undefined;
-  const textAnchor = isTextAnchor(labelProps.textAnchor) ? labelProps.textAnchor : "middle";
+  const text =
+    typeof label === "string" || typeof label === "number" ? label : undefined;
+  const fill =
+    typeof labelProps.fill === "string" ? labelProps.fill : undefined;
+  const textAnchor = isTextAnchor(labelProps.textAnchor)
+    ? labelProps.textAnchor
+    : "middle";
   return (
     <Text
       x={labelProps.x}
@@ -577,12 +689,16 @@ export const pieDefaultProps = {
   zIndex: DefaultZIndexes.area,
 } as const satisfies Partial<PieProps>;
 
-export function Pie<DataPointType = Record<string, unknown>, DataValueType = unknown>(
-  props: PieProps<DataPointType, DataValueType>,
-): JSX.Element {
+export function Pie<
+  DataPointType = Record<string, unknown>,
+  DataValueType = unknown,
+>(props: PieProps<DataPointType, DataValueType>): JSX.Element {
   const store = useAppStore();
   const merged = merge(pieDefaultProps, props);
-  const id = useUniqueId("recharts-pie", props.id);
+  const id = useUniqueId(
+    "recharts-pie",
+    untrack(() => props.id),
+  );
 
   if (store != null) {
     registerInStore<PieSettings>(
@@ -614,57 +730,82 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
       {
         add: (next) => store.actions.graphicalItems.addPolarGraphicalItem(next),
         replace: (prev, next) =>
-          store.actions.graphicalItems.replacePolarGraphicalItem({ prev, next }),
-        remove: (prev) => store.actions.graphicalItems.removePolarGraphicalItem(prev),
+          store.actions.graphicalItems.replacePolarGraphicalItem({
+            prev,
+            next,
+          }),
+        remove: (prev) =>
+          store.actions.graphicalItems.removePolarGraphicalItem(prev),
       },
     );
   }
 
   // Per-slice <Cell> overrides (collected from children, in data order).
   const { cells, resolve: resolveChildren } = createCellReader();
-  const sectors = useAppSelector((state) => selectPieSectors(state, id, cells()));
+  const sectors = useAppSelector((state) =>
+    selectPieSectors(state, id, cells()),
+  );
   const chartOffset = useOffsetInternal();
-  const firstDataPoint = useAppSelector(state => selectDisplayedData(state, id, cells())?.[0]);
-  const childCoordinates = createMemo(() => sectors()?.[0] ?? parseCoordinateOfPie({
-    cx: merged.cx,
-    cy: merged.cy,
-    innerRadius: merged.innerRadius,
-    outerRadius: merged.outerRadius,
-    maxRadius: merged.maxRadius,
-  }, chartOffset(), firstDataPoint()));
+  const firstDataPoint = useAppSelector(
+    (state) => selectDisplayedData(state, id, cells())?.[0],
+  );
+  const childCoordinates = createMemo(
+    () =>
+      sectors()?.[0] ??
+      parseCoordinateOfPie(
+        {
+          cx: merged.cx,
+          cy: merged.cy,
+          innerRadius: merged.innerRadius,
+          outerRadius: merged.outerRadius,
+          maxRadius: merged.maxRadius,
+        },
+        chartOffset(),
+        firstDataPoint(),
+      ),
+  );
 
   // Layer takes a single class string (user-class forwarding parity with clsx).
   const layerClass = (): string =>
-    ["recharts-pie", merged.class].filter((c): c is string => Boolean(c)).join(" ");
+    ["recharts-pie", merged.class]
+      .filter((c): c is string => Boolean(c))
+      .join(" ");
 
   // Item-type tooltip: one payload per sector, positioned at the sector's middle.
-  const tooltipConfig = createMemo<TooltipPayloadConfiguration>(() => ({
-    dataDefinedOnItem: sectors()?.map((s) => s.tooltipPayload),
-    getPosition: (index) => sectors()?.[Number(index)]?.tooltipPosition,
-    settings: {
-      stroke: merged.stroke,
-      strokeWidth: merged.strokeWidth,
-      fill: merged.fill,
-      dataKey: merged.dataKey,
-      nameKey: merged.nameKey,
-      name: getTooltipNameProp(merged.name, merged.dataKey),
-      hide: merged.hide,
-      type: merged.tooltipType,
-      color: merged.fill,
-      unit: "",
-      formatter: merged.formatter,
-      graphicalItemId: id,
-    },
-  }), { lazy: true });
+  const tooltipConfig = createMemo<TooltipPayloadConfiguration>(
+    () => ({
+      dataDefinedOnItem: sectors()?.map((s) => s.tooltipPayload),
+      getPosition: (index) => sectors()?.[Number(index)]?.tooltipPosition,
+      settings: {
+        stroke: merged.stroke,
+        strokeWidth: merged.strokeWidth,
+        fill: merged.fill,
+        dataKey: merged.dataKey,
+        nameKey: merged.nameKey,
+        name: getTooltipNameProp(merged.name, merged.dataKey),
+        hide: merged.hide,
+        type: merged.tooltipType,
+        color: merged.fill,
+        unit: "",
+        formatter: merged.formatter,
+        graphicalItemId: id,
+      },
+    }),
+    { lazy: true },
+  );
 
   // Legend: one entry per displayed-data row (selectPieLegend) — independent of
   // the sectors, so it still renders when every value is zero (sum<=0 → no sectors).
-  const legendPayload = useAppSelector((state) => selectPieLegend(state, id, cells()) ?? []);
+  const legendPayload = useAppSelector(
+    (state) => selectPieLegend(state, id, cells()) ?? [],
+  );
 
   // Active-sector tracking (hover/touch/keyboard) drives activeShape/inactiveShape.
   const activeIndex = useAppSelector(selectActiveTooltipIndex);
   const activeDataKey = useAppSelector(selectActiveTooltipDataKey);
-  const activeGraphicalItemId = useAppSelector(selectActiveTooltipGraphicalItemId);
+  const activeGraphicalItemId = useAppSelector(
+    selectActiveTooltipGraphicalItemId,
+  );
 
   // Per-sector item-hover dispatch, chained with the user handlers (data, index, event).
   // Getter args: the hooks read handler/dataKey at event time (fresh, never stale).
@@ -673,7 +814,9 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
     () => merged.dataKey,
     id,
   );
-  const onItemLeave = useMouseLeaveItemDispatch<PieSectorDataItem>(() => props.onMouseLeave);
+  const onItemLeave = useMouseLeaveItemDispatch<PieSectorDataItem>(
+    () => props.onMouseLeave,
+  );
   const onItemClick = useMouseClickItemDispatch<PieSectorDataItem>(
     () => props.onClick,
     () => merged.dataKey,
@@ -683,7 +826,9 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
   // Plain per-sector handlers (no tooltip dispatch) forwarded to the wrapping Layer.
   const fwdMouse =
     (
-      handler: ((data: PieSectorDataItem, index: number, e: MouseEvent) => void) | undefined,
+      handler:
+        | ((data: PieSectorDataItem, index: number, e: MouseEvent) => void)
+        | undefined,
       entry: PieSectorDataItem,
       index: number,
     ) =>
@@ -691,7 +836,9 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
       handler?.(entry, index, event);
   const fwdTouch =
     (
-      handler: ((data: PieSectorDataItem, index: number, e: TouchEvent) => void) | undefined,
+      handler:
+        | ((data: PieSectorDataItem, index: number, e: TouchEvent) => void)
+        | undefined,
       entry: PieSectorDataItem,
       index: number,
     ) =>
@@ -705,7 +852,9 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
   // Pie is POLAR — the AnimatedItems LayoutType is PolarLayout ("centric" for a
   // PieChart). At isAnimationActive=false the engine jumps to t=1 →
   // defaultPieAnimateItems(_, 1) === the byte-identical final frame.
-  const previousSectorsRef: MutableRef<ReadonlyArray<PieSectorDataItem> | null | undefined> = {
+  const previousSectorsRef: MutableRef<
+    ReadonlyArray<PieSectorDataItem> | null | undefined
+  > = {
     current: null,
   };
   // recharts parity (Pie.tsx PieImpl: `if (hide || sectors == null) previousSectorsRef.current
@@ -725,10 +874,11 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
   // Tracks animation in-progress (gates the labels). ownedWrite: handleAnimationEnd
   // can fire from the driver's effect-cleanup when a mid-animation chart is disposed
   // (route/soft navigation) — a legal teardown write.
-  const { isAnimating, handleAnimationStart, handleAnimationEnd } = useAnimationCallbacks(
-    () => props.onAnimationStart?.(),
-    () => props.onAnimationEnd?.(),
-  );
+  const { isAnimating, handleAnimationStart, handleAnimationEnd } =
+    useAnimationCallbacks(
+      () => props.onAnimationStart?.(),
+      () => props.onAnimationEnd?.(),
+    );
 
   const rootTabIndex = (): number => merged.rootTabIndex ?? 0;
 
@@ -743,7 +893,9 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
 
   const showLabels = (): boolean => !isAnimating();
 
-  const renderLabels = (secs: ReadonlyArray<PieSectorDataItem>): JSX.Element => {
+  const renderLabels = (
+    secs: ReadonlyArray<PieSectorDataItem>,
+  ): JSX.Element => {
     // Capture reactive props ONCE here (this fn runs inside a tracking scope);
     // the <For> child below must not read reactive values directly (STRICT_READ).
     const label = merged.label;
@@ -776,7 +928,10 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
       const lineProps = {
         stroke: entry.fill,
         ...(typeof labelLine !== "function" ? optionProps(labelLine) : {}),
-        points: [polarToCartesian(entry.cx, entry.cy, entry.outerRadius, midAngle), endPoint],
+        points: [
+          polarToCartesian(entry.cx, entry.cy, entry.outerRadius, midAngle),
+          endPoint,
+        ],
       };
       return (
         <Layer>
@@ -813,17 +968,25 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
     <>
       {renderedChildren()}
       <SetTooltipEntrySettings tooltipEntrySettings={tooltipConfig()} />
-      <SetLegendPayload id={id} legendPayload={legendPayload() ?? []} />
+      <SetLegendPayload
+        id={id}
+        legendPayload={legendPayload() ?? []}
+      />
       <Show
         when={!merged.hide && polarLayout() ? sectors() : undefined}
         fallback={
-          <Layer tabIndex={rootTabIndex()} class={layerClass()}>
-          </Layer>
+          <Layer
+            tabIndex={rootTabIndex()}
+            class={layerClass()}
+          />
         }
       >
         {(secs) => (
           <ZIndexLayer zIndex={merged.zIndex}>
-            <Layer tabIndex={rootTabIndex()} class={layerClass()}>
+            <Layer
+              tabIndex={rootTabIndex()}
+              class={layerClass()}
+            >
               <AnimatedItems
                 animationInput={secs()}
                 animationIdPrefix="recharts-pie-"
@@ -846,7 +1009,11 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
                         // recharts skips fully-collapsed sectors (start === end
                         // === 0) unless it is the only one — the first entrance
                         // frame renders no sectors at all (reference Pie L722).
-                        if (entry.startAngle === 0 && entry.endAngle === 0 && frame.length !== 1) {
+                        if (
+                          entry.startAngle === 0 &&
+                          entry.endAngle === 0 &&
+                          frame.length !== 1
+                        ) {
                           return null;
                         }
                         const isActive = (): boolean => isSectorActive(i());
@@ -880,7 +1047,8 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
                           // flag, and isAnimating combined per upstream (still true
                           // until the settled t=1 frame).
                           animationElapsedTime,
-                          isAnimating: isAnimating() || animationElapsedTime < 1,
+                          isAnimating:
+                            isAnimating() || animationElapsedTime < 1,
                           isEntrance,
                           [DATA_ITEM_INDEX_ATTRIBUTE_NAME]: i(),
                           [DATA_ITEM_GRAPHICAL_ITEM_ID_ATTRIBUTE_NAME]: id,
@@ -892,13 +1060,33 @@ export function Pie<DataPointType = Record<string, unknown>, DataValueType = unk
                             onMouseEnter={onItemEnter(entry, i())}
                             onMouseLeave={onItemLeave(entry, i())}
                             onClick={onItemClick(entry, i())}
-                            onMouseDown={fwdMouse(props.onMouseDown, entry, i())}
+                            onMouseDown={fwdMouse(
+                              props.onMouseDown,
+                              entry,
+                              i(),
+                            )}
                             onMouseUp={fwdMouse(props.onMouseUp, entry, i())}
-                            onMouseMove={fwdMouse(props.onMouseMove, entry, i())}
-                            onMouseOver={fwdMouse(props.onMouseOver, entry, i())}
+                            onMouseMove={fwdMouse(
+                              props.onMouseMove,
+                              entry,
+                              i(),
+                            )}
+                            onMouseOver={fwdMouse(
+                              props.onMouseOver,
+                              entry,
+                              i(),
+                            )}
                             onMouseOut={fwdMouse(props.onMouseOut, entry, i())}
-                            onTouchStart={fwdTouch(props.onTouchStart, entry, i())}
-                            onTouchMove={fwdTouch(props.onTouchMove, entry, i())}
+                            onTouchStart={fwdTouch(
+                              props.onTouchStart,
+                              entry,
+                              i(),
+                            )}
+                            onTouchMove={fwdTouch(
+                              props.onTouchMove,
+                              entry,
+                              i(),
+                            )}
                             onTouchEnd={fwdTouch(props.onTouchEnd, entry, i())}
                           >
                             <Shape<PieSectorShapeProps, SVGPathElement>

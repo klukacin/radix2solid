@@ -7,9 +7,10 @@
 // camelCase keys, matching recharts. Everything else (DOM measurement span,
 // LRUCache, Global SSR guard) is framework-agnostic.
 import type { Properties as CSSProperties } from "csstype";
+
 import { Global } from "./Global";
-import { Size } from "./types";
 import { LRUCache } from "./LRUCache";
+import { Size } from "./types";
 
 export interface TextMeasurementConfig {
   /** Maximum number of items to cache */
@@ -55,7 +56,10 @@ function createCacheKey(text: string | number, style: CSSProperties): string {
  * @param style - CSS style properties to apply
  * @returns The size of the text
  */
-const measureTextWithDOM = (text: string | number, style: CSSProperties): Size => {
+const measureTextWithDOM = (
+  text: string | number,
+  style: CSSProperties,
+): Size => {
   try {
     let measurementSpan = document.getElementById(MEASUREMENT_SPAN_ID);
     if (!measurementSpan) {
@@ -76,7 +80,10 @@ const measureTextWithDOM = (text: string | number, style: CSSProperties): Size =
   }
 };
 
-export const getStringSize = (text: string | number, style: CSSProperties = {}): Size => {
+export const getStringSize = (
+  text: string | number,
+  style: CSSProperties = {},
+): Size => {
   if (text === undefined || text === null || Global.isSsr) {
     return { width: 0, height: 0 };
   }
@@ -107,7 +114,9 @@ export const getStringSize = (text: string | number, style: CSSProperties = {}):
  * @param config - Partial configuration to apply
  * @returns void
  */
-export const configureTextMeasurement = (config: Partial<TextMeasurementConfig>): void => {
+export const configureTextMeasurement = (
+  config: Partial<TextMeasurementConfig>,
+): void => {
   const newConfig = { ...currentConfig, ...config };
 
   if (newConfig.cacheSize !== currentConfig.cacheSize) {
@@ -121,7 +130,9 @@ export const configureTextMeasurement = (config: Partial<TextMeasurementConfig>)
  * Get current text measurement configuration
  * @returns Current configuration
  */
-export const getTextMeasurementConfig = (): TextMeasurementConfig => ({ ...currentConfig });
+export const getTextMeasurementConfig = (): TextMeasurementConfig => ({
+  ...currentConfig,
+});
 
 /**
  * Clear the string size cache. Useful for testing or memory management.
