@@ -1,0 +1,257 @@
+.rt-CalendarRoot,
+.rt-DatePickerCalendar {
+  --calendar-day-size: calc(var(--space-7) + 4px);
+  box-sizing: border-box;
+  display: block;
+  inline-size: 25rem;
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  padding: var(--space-3);
+  color: var(--gray-12);
+  background-color: var(--color-panel);
+  border: 1px solid var(--gray-a6);
+  border-radius: var(--radius-4);
+  font-family: var(--default-font-family);
+}
+
+@breakpoints {
+  .rt-CalendarRoot,
+  .rt-DatePickerCalendar {
+    &:where(.rt-r-size-1) { --calendar-day-size: var(--space-7); }
+    &:where(.rt-r-size-2) { --calendar-day-size: calc(var(--space-7) + 4px); }
+    &:where(.rt-r-size-3) { --calendar-day-size: var(--space-8); }
+  }
+}
+
+.rt-CalendarRoot.rt-variant-classic,
+.rt-DatePickerCalendar.rt-variant-classic {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 1px var(--gray-a6);
+}
+
+.rt-CalendarRoot.rt-variant-soft,
+.rt-DatePickerCalendar.rt-variant-soft {
+  background-color: var(--gray-a2);
+  border-color: transparent;
+}
+
+.rt-CalendarHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-block-end: var(--space-2);
+}
+
+.rt-CalendarHeading {
+  flex: 1;
+  margin: 0;
+  color: var(--gray-12);
+  font-size: var(--font-size-3);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-3);
+  text-align: center;
+}
+
+.rt-CalendarPrevTrigger,
+.rt-CalendarNextTrigger {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  min-inline-size: 44px;
+  min-block-size: 44px;
+  padding: 0;
+  border: 1px solid var(--gray-a6);
+  border-radius: var(--radius-2);
+  color: var(--gray-12);
+  background: var(--color-surface);
+  font: inherit;
+  cursor: pointer;
+}
+
+.rt-CalendarPrevTrigger:where(:focus-visible),
+.rt-CalendarNextTrigger:where(:focus-visible) {
+  outline: 2px solid var(--focus-8);
+  outline-offset: 2px;
+}
+
+.rt-CalendarPrevTrigger:where(:disabled),
+.rt-CalendarNextTrigger:where(:disabled) {
+  color: var(--gray-a8);
+  cursor: default;
+}
+
+.rt-CalendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  inline-size: 100%;
+  min-inline-size: 0;
+  gap: var(--space-1);
+}
+
+.rt-CalendarRow {
+  display: contents;
+}
+
+.rt-CalendarHeaderCell,
+.rt-CalendarCell {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: 0;
+  text-align: center;
+}
+
+.rt-CalendarCell {
+  border: 1px solid transparent;
+  border-radius: var(--radius-2);
+}
+
+.rt-CalendarCell:where([data-selected]) {
+  background-color: var(--accent-12);
+  border-color: var(--accent-12);
+}
+
+.rt-CalendarCell:where([data-today]:not([data-selected])) {
+  background-color: var(--gray-a2);
+  border-color: var(--accent-8);
+}
+
+.rt-CalendarHeaderCell {
+  min-block-size: var(--space-6);
+  color: var(--gray-a11);
+  font-size: var(--font-size-1);
+  font-weight: var(--font-weight-medium);
+}
+
+.rt-CalendarDay {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--calendar-day-size);
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: var(--radius-2);
+  color: var(--gray-12);
+  background: transparent;
+  font: inherit;
+  line-height: 1;
+  cursor: pointer;
+  scroll-margin-block: var(--space-2);
+}
+
+.rt-CalendarDay:where(:focus-visible) {
+  outline: 2px solid var(--focus-8);
+  outline-offset: 1px;
+  position: relative;
+  z-index: 1;
+}
+
+.rt-CalendarDay:where([data-outside-month]) {
+  color: var(--gray-11);
+}
+
+.rt-CalendarDay:where([data-today]:not([data-selected])) {
+  color: var(--accent-12);
+  border-color: var(--accent-8);
+  font-weight: var(--font-weight-medium);
+}
+
+.rt-CalendarDay:where([data-selected]) {
+  color: var(--gray-1);
+  background-color: var(--accent-12);
+  border-color: var(--accent-12);
+  font-weight: var(--font-weight-medium);
+}
+
+.rt-CalendarDay:where([aria-disabled='true']) {
+  color: var(--gray-a10);
+  background-image: repeating-linear-gradient(135deg, transparent 0 4px, var(--gray-a3) 4px 5px);
+  cursor: not-allowed;
+}
+
+.rt-CalendarDay:where(:disabled) {
+  cursor: not-allowed;
+}
+
+.rt-CalendarDay:where(:not([data-disabled], [data-selected])):hover {
+  background-color: var(--gray-a3);
+}
+
+@media (max-width: 480px) {
+  .rt-CalendarRoot,
+  .rt-DatePickerCalendar {
+    padding: var(--space-2);
+  }
+
+  .rt-CalendarGrid {
+    gap: 2px;
+  }
+
+  .rt-CalendarDay {
+    min-block-size: 24px;
+  }
+
+  .rt-CalendarPrevTrigger,
+  .rt-CalendarNextTrigger {
+    min-inline-size: 32px;
+    min-block-size: 32px;
+  }
+}
+
+@media (forced-colors: active) {
+  .rt-CalendarRoot,
+  .rt-DatePickerCalendar {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+  }
+
+  .rt-CalendarPrevTrigger,
+  .rt-CalendarNextTrigger,
+  .rt-CalendarDay {
+    color: CanvasText;
+    background: Canvas;
+    border-color: CanvasText;
+  }
+
+  .rt-CalendarCell:where([data-selected]) {
+    background: Highlight;
+    border-color: Highlight;
+  }
+
+  .rt-CalendarCell:where([data-today]:not([data-selected])) {
+    background: Canvas;
+    border-color: CanvasText;
+  }
+
+  .rt-CalendarDay:where([data-selected]) {
+    color: HighlightText;
+    background: Highlight;
+    border-color: Highlight;
+  }
+
+  .rt-CalendarDay:where([data-today]:not([data-selected])) {
+    outline: 1px dashed CanvasText;
+    outline-offset: -3px;
+  }
+
+  .rt-CalendarPrevTrigger:where(:focus-visible),
+  .rt-CalendarNextTrigger:where(:focus-visible),
+  .rt-CalendarDay:where(:focus-visible) {
+    outline: 2px solid Highlight;
+    outline-offset: 2px;
+  }
+
+  .rt-CalendarDay:where([aria-disabled='true']) {
+    color: GrayText;
+    background-image: repeating-linear-gradient(135deg, transparent 0 4px, GrayText 4px 5px);
+  }
+}

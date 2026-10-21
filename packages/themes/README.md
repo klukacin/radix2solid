@@ -1,9 +1,15 @@
 # Native Solid 2 Themes
 
-Native fork, not an official Radix product. **Source candidate `@wsagency/radix2solid-themes@0.1.0-rc.3` — not yet published.** Consume `pnpm pack` tarballs until release-maintainer publication. Existing Themes wrappers are unchanged; Combobox, Command, Tree and Splitter are native primitive APIs, not new Themes exports.
+Native fork, not an official Radix product. This README describes prerelease `@wsagency/radix2solid-themes@0.1.0-rc.4`, which introduces the Calendar, DatePicker and FileDrop Themes families. Install the exact version with `pnpm add -E @wsagency/radix2solid-themes@0.1.0-rc.4`. Releases use the npm `next` dist-tag while Solid is prerelease. Combobox, Command, Tree and Splitter remain native primitive APIs, not Themes exports; source-checkout packing is an optional development alternative.
 
 Solid `2.0.0-rc.15` and `@solidjs/web` `2.0.0-rc.15` are peers; they require Node `>=22.12.0`. Browser export conditions select native client ESM; the default selects native server ESM. Declarations are shared. No React runtime, React types or element-cloning compatibility layer.
 CSS imports use the application's bundler declarations, e.g. `vite/client` with Vite; TypeScript alone does not define stylesheet modules.
+
+Calendar, DatePicker and FileDrop are new project extensions introduced in the rc.4 release and absent from rc.3. The rc.4 API exports the `Calendar`, `DatePicker` and `FileDrop` namespaces from the package root and `@wsagency/radix2solid-themes/components/{calendar,date-picker,file-drop}`. Their roots accept responsive `size: '1' | '2' | '3'`; Calendar and DatePicker variants are `surface | classic | soft`, while FileDrop variants are `surface | soft | outline`. They also follow existing color, radius, Theme propagation (including portals), dark mode, RTL, custom accent and local scaling patterns. For source-checkout development, pack Primitives and Themes from the same checkout and configure Themes' transitive Primitives dependency to the same physical Primitives tarball.
+
+For the full CSS entry, import `@wsagency/radix2solid-themes/styles.css`. Selective CSS uses the same pipeline as existing components: tokens (`tokens/base.css` plus the palettes used, or `tokens.css`), `css/common.css`, the component stylesheet(s), then `css/utilities.css`. The rc.4 release provides `css/calendar.css`, `css/date-picker.css` and `css/file-drop.css`, each with a `.layer.css` sibling; these paths were introduced in rc.4 and are absent from rc.3. Calendar-only styling needs only `css/calendar.css`; DatePicker's stylesheet closure includes Calendar and Popover but not Button; FileDrop needs only `css/file-drop.css`. Use layered or unlayered copies consistently and never import both.
+
+The rc.4 release exports Calendar parts `Root`, `Header`, `Heading`, `PrevTrigger`, `NextTrigger`, `Grid`, `Row`, `HeaderCell`, `Cell` and `Day`; DatePicker parts `Root`, `Trigger`, `Value`, `Portal`, `Content`, `Title`, `Description`, `Close`, `Clear`, `Calendar` and `FormControl`; and FileDrop parts `Root`, `Input` and `Trigger`. Each namespace also exports its scope creator and public part-prop types. These are real themed component exports with native Solid parts/props, not CSS-only recipes. The themed `DatePicker.Portal` is client-only and renders no server children; SSR content guidance follows below.
 
 
 ## Usage
@@ -55,7 +61,7 @@ Color props accept `"custom"`. With `grayColor="auto"`, a custom accent resolves
 
 `scaling` accepts the preset values or any positive finite `` `${number}%` `` (for example `"115%"`). Nested scaling is absolute, not multiplied: `<Theme scaling="90%">` inside `<Theme scaling="120%">` renders at 90%. Unitless numbers are rejected and values are not clamped. A caller `style` may override `--scaling` locally, but that does not propagate as a Theme setting.
 
-The public `Portal` preserves native portal lifecycle: no server children; client mounting after hydration settles. It does **not** copy ancestor Theme CSS attributes onto physically relocated DOM. Wrap relocated presentation in Theme when needed.
+The public `Portal` preserves native portal lifecycle: no server children; client mounting after hydration settles. It does **not** copy ancestor Theme CSS attributes onto physically relocated DOM. Wrap relocated presentation in Theme when needed. For initially-open `DatePicker` content that must be present in SSR with stable hydration node identity, render `DatePicker.Content` inline on both server and client without `DatePicker.Portal`; do not use an SSR portal fallback or adaptively switch between inline and portal hosts.
 
 ## Presentational components
 
@@ -114,7 +120,7 @@ Compound component subpaths expose their upstream short parts and Props, not acc
 
 `postcss-breakpoints` and `postcss-whitespace` support both ESM imports and CommonJS requires, including explicit `.js`/`.cjs` subpaths. Breakpoint assets resolve relative to the installed plugin, not caller cwd. The original import/nesting/breakpoint/custom-media/selector-combination/empty-rule/whitespace/autoprefixer processing order is retained. `postcss` is an optional peer (`^8.5.9`): install it (`pnpm add -D postcss@^8.5.9`) only if you use these plugins.
 
-Until this source candidate is published, tarball consumers must override `@wsagency/radix2solid-primitives` to the same packed primitives file used by the direct dependency. The packed Themes manifest depends on exactly `@wsagency/radix2solid-primitives@0.1.0-rc.3`. The repository's independent consumer runner pins content-addressed tarballs, not workspace source aliases. Published rc.2 remains untouched.
+The rc.4 packed Themes manifest resolves `@wsagency/radix2solid-primitives` to exactly `0.1.0-rc.4`. In a source workspace, the manifest remains `workspace:*`; for local source-checkout tarballs only, override Themes' transitive Primitives dependency to the same packed primitives file used by the direct dependency. The repository's independent consumer runner pins content-addressed tarballs, not workspace source aliases. Published rc.2 remains untouched.
 
 ## Attribution
 

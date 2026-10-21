@@ -818,3 +818,63 @@ test('packed Themes server preserves frozen responsive defaults, nested gray inh
   assert.ok(skeleton, html); assert.match(skeleton, /\binert(?:=""|\s|>)/); assert.match(skeleton, /aria-hidden="true"/);
   assert.match(html, /Original content/); assert.match(html, /aria-valuenow="0"/); assert.match(html, /aria-valuemax="80"/);
 });
+
+test('packed Themes Calendar, DatePicker and FileDrop use public native parts on the server', () => {
+  assert.equal(typeof document, 'undefined');
+  const html = renderToString(() => createComponent(Themes.Theme, {
+    accentColor: 'indigo',
+    get children() { return [
+      createComponent(Themes.Calendar.Root, {
+        id: 'packed-themed-calendar', today: '2026-10-18', value: '2026-10-18', variant: 'classic',
+        get children() { return createComponent(Themes.Calendar.Header, {
+          get children() { return createComponent(Themes.Calendar.Heading, {}); }
+        }); }
+      }),
+      createComponent(Form.Root, {
+        id: 'packed-themed-date-form',
+        get children() { return createComponent(Form.Field, {
+          name: 'appointmentDate',
+          get children() { return [
+            createComponent(Form.Label, { for: 'packed-themed-date-input', children: 'Appointment date' }),
+            createComponent(Themes.DatePicker.Root, {
+              name: 'appointmentDate', required: true, today: '2026-10-18', variant: 'soft',
+              get children() { return [
+                createComponent(Themes.DatePicker.Trigger, {
+                  'aria-label': 'Appointment date',
+                  children: createComponent(Themes.DatePicker.Value, { placeholder: 'Choose a date' })
+                }),
+                createComponent(Form.Control, {
+                  name: 'appointmentDate', asChild: true,
+                  children: target => target(Themes.DatePicker.FormControl, { id: 'packed-themed-date-input' })
+                }),
+                createComponent(Themes.DatePicker.Clear, { children: 'Clear date' })
+              ]; }
+            })
+          ]; }
+        }); }
+      }),
+      createComponent(Themes.DatePicker.Root, {
+        name: 'rootOnlyDate', today: '2026-10-18',
+        get children() { return createComponent(Themes.DatePicker.Trigger, {
+          'aria-label': 'Root-only date',
+          get children() { return createComponent(Themes.DatePicker.Value, {}); }
+        }); }
+      }),
+      createComponent(Themes.FileDrop.Root, {
+        id: 'packed-themed-file-drop', name: 'attachments', accept: '.txt', required: true, variant: 'outline',
+        get children() { return [
+          createComponent(Themes.FileDrop.Input, { id: 'packed-themed-file-input' }),
+          createComponent(Themes.FileDrop.Trigger, { children: 'Browse files' })
+        ]; }
+      })
+    ]; }
+  }), { renderId: 'themed-families-packed-' });
+  const dateInputs = [...html.matchAll(/<input\b[^>]*type="date"[^>]*>/g)].map(match => match[0]);
+  assert.equal(dateInputs.length, 1, html);
+  assert.match(dateInputs[0], /\bname="appointmentDate"/);
+  assert.match(dateInputs[0], /id="packed-themed-date-input"/);
+  assert.match(dateInputs[0], /\brequired(?:=""|(?=\s|\/?>))/);
+  const fileInput = html.match(/<input\b[^>]*type="file"[^>]*>/)?.[0];
+  assert.ok(fileInput, html);
+  assert.match(fileInput, /\bname="attachments"/);
+});

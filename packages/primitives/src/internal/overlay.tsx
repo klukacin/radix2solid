@@ -90,6 +90,10 @@ export function createOverlay(name: 'Dialog' | 'Popover', defaultModal: boolean)
             return typeof label === 'string' && label.trim() ? undefined : root.titleId;
           },
           get ['aria-describedby']() { return 'aria-describedby' in props ? props['aria-describedby'] : root.descriptionId; },
+          get ['aria-modal']() {
+            if ('aria-modal' in props) return props['aria-modal'];
+            return root.open() && root.modal() ? 'true' : undefined;
+          },
           get ['data-state']() { return root.open() ? 'open' : 'closed'; },
           get ref() { return composeRefs(props.ref, ref, presence.ref); }
         }) as PrimitiveProps<'div'>;

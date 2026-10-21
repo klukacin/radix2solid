@@ -704,6 +704,13 @@ import * as Themes from '@wsagency/radix2solid-themes';
 import { Root as ThemedCalloutRoot, type RootProps as ThemedCalloutRootProps } from '@wsagency/radix2solid-themes/components/callout';
 import { buttonPropDefs as themedButtonProps, breakpoints as themedBreakpoints } from '@wsagency/radix2solid-themes/props';
 import { extractProps as extractThemeProps } from '@wsagency/radix2solid-themes/helpers';
+import { Calendar as PrimitiveCalendar, DatePicker as PrimitiveDatePicker, FileDrop as PrimitiveFileDrop } from '@wsagency/radix2solid-primitives';
+import * as PrimitiveCalendarParts from '@wsagency/radix2solid-primitives/calendar';
+import * as PrimitiveDatePickerParts from '@wsagency/radix2solid-primitives/date-picker';
+import * as PrimitiveFileDropParts from '@wsagency/radix2solid-primitives/file-drop';
+import * as ThemedCalendarParts from '@wsagency/radix2solid-themes/components/calendar';
+import * as ThemedDatePickerParts from '@wsagency/radix2solid-themes/components/date-picker';
+import * as ThemedFileDropParts from '@wsagency/radix2solid-themes/components/file-drop';
 const standalonePanelProps: Themes.unstable_ThemePanelContentProps = { as: 'span', gap: '4' };
 const themedCalloutProps: ThemedCalloutRootProps = { size: Object.freeze({ md: '3' }), m: '-2' };
 void extractThemeProps({ size: '2' }, themedButtonProps); void themedBreakpoints.includes('md');
@@ -779,3 +786,119 @@ export const nativeSankey = <Charts.Sankey width={500} height={300} accessibilit
   data={{ nodes: [{ name: 'Source' }, { name: 'Target' }], links: [{ source: 0, target: 1, value: 10 }] }} />;
 // @ts-expect-error Legend positions use the public CartesianPosition union.
 export const invalidLegendPosition = <Charts.Legend position="unknown" />;
+const familyDate: PrimitiveCalendarParts.DateValue = '2026-10-18';
+const familyCalendarProps: PrimitiveCalendarParts.CalendarProps = { today: familyDate };
+const familyDatePickerProps: PrimitiveDatePickerParts.DatePickerProps = { today: familyDate, name: 'appointmentDate' };
+const familyFileDropProps: PrimitiveFileDropParts.FileDropProps = { name: 'attachments', value: [] };
+export const themedFamilyParts = [
+  PrimitiveCalendar.Root, PrimitiveCalendar.Grid, PrimitiveCalendar.Day, PrimitiveCalendar.createCalendarScope,
+  PrimitiveDatePicker.Root, PrimitiveDatePicker.Trigger, PrimitiveDatePicker.Value, PrimitiveDatePicker.Clear,
+  PrimitiveDatePicker.FormControl, PrimitiveDatePicker.createDatePickerScope,
+  PrimitiveFileDrop.Root, PrimitiveFileDrop.Input, PrimitiveFileDrop.Trigger, PrimitiveFileDrop.createFileDropScope,
+  ThemedCalendarParts.Root, ThemedCalendarParts.Grid, ThemedCalendarParts.Day, ThemedCalendarParts.createCalendarScope,
+  ThemedDatePickerParts.Root, ThemedDatePickerParts.Value, ThemedDatePickerParts.Clear, ThemedDatePickerParts.FormControl,
+  ThemedDatePickerParts.createDatePickerScope,
+  ThemedFileDropParts.Root, ThemedFileDropParts.Input, ThemedFileDropParts.Trigger, ThemedFileDropParts.createFileDropScope,
+];
+void familyCalendarProps; void familyDatePickerProps; void familyFileDropProps;
+
+export const nativePrimitiveDatePicker = <FormRoot>
+  <FormParts.Field name="primitive-appointmentDate">
+    <PrimitiveDatePicker.Root name="primitive-appointmentDate" today={familyDate} required
+      onValueChange={requested => { const accepted: PrimitiveCalendarParts.DateValue | null = requested; void accepted; }}>
+      <PrimitiveDatePicker.Trigger aria-label="Primitive appointment date">
+        <PrimitiveDatePicker.Value placeholder="Choose a date" />
+      </PrimitiveDatePicker.Trigger>
+      <PrimitiveDatePicker.FormControl id="primitive-appointmentDate"
+        ref={node => { const input: HTMLInputElement = node; void input; }} />
+      <PrimitiveDatePicker.Clear asChild>
+        {target => target(CustomTarget, { token: 'primitive-clear-date', href: '#primitive-clear-date', children: 'Clear date' })}
+      </PrimitiveDatePicker.Clear>
+    </PrimitiveDatePicker.Root>
+  </FormParts.Field>
+</FormRoot>;
+
+export const nativeStyledFamilies = <Themes.Theme accentColor="indigo" appearance="light">
+  <Themes.Calendar.Root id="typed-calendar" today={familyDate} value={familyDate} size={{ md: '3' }} variant="classic">
+    <Themes.Calendar.Header>
+      <Themes.Calendar.PrevTrigger aria-label="Previous month" />
+      <Themes.Calendar.Heading />
+      <Themes.Calendar.NextTrigger aria-label="Next month" />
+    </Themes.Calendar.Header>
+  </Themes.Calendar.Root>
+  <FormParts.Root>
+    <FormParts.Field name="appointmentDate">
+      <FormParts.Label for="typed-date-picker">Appointment date</FormParts.Label>
+      <Themes.DatePicker.Root id="typed-date-picker-root" name="appointmentDate" today={familyDate}
+        size={{ md: '3' }} variant="soft" required
+        onValueChange={requested => { const accepted: PrimitiveCalendarParts.DateValue | null = requested; void accepted; }}>
+        <Themes.DatePicker.Trigger aria-label="Appointment date">
+          <Themes.DatePicker.Value placeholder="Choose a date" />
+        </Themes.DatePicker.Trigger>
+        <FormParts.Control name="appointmentDate" asChild>
+          {target => target(Themes.DatePicker.FormControl, {
+            id: 'typed-date-picker', ref: node => { const input: HTMLInputElement = node; void input; }
+          })}
+        </FormParts.Control>
+        <Themes.DatePicker.Clear asChild>
+          {target => target(CustomTarget, { token: 'clear-date', href: '#clear-date', children: 'Clear date' })}
+        </Themes.DatePicker.Clear>
+        <Themes.DatePicker.Portal>
+          <Themes.DatePicker.Content aria-label="Appointment date">
+            <Themes.DatePicker.Title>Appointment date</Themes.DatePicker.Title>
+            <Themes.DatePicker.Calendar />
+          </Themes.DatePicker.Content>
+        </Themes.DatePicker.Portal>
+      </Themes.DatePicker.Root>
+    </FormParts.Field>
+  </FormParts.Root>
+  <Themes.FileDrop.Root name="attachments" accept=".txt" required value={[]}
+    size="2" variant="outline" onValueChange={files => { const accepted: readonly File[] = files; void accepted; }}>
+    <Themes.FileDrop.Input ref={node => { const input: HTMLInputElement = node; void input; }} />
+    <Themes.FileDrop.Trigger>Browse files</Themes.FileDrop.Trigger>
+  </Themes.FileDrop.Root>
+  {/* @ts-expect-error Calendar variants are only surface, classic, or soft. */}
+  <Themes.Calendar.Root today={familyDate} variant="outline" />
+  {/* @ts-expect-error DatePicker variants are only surface, classic, or soft. */}
+  <Themes.DatePicker.Root today={familyDate} variant="outline" />
+  {/* @ts-expect-error FileDrop does not support readOnly. */}
+  <Themes.FileDrop.Root readOnly />
+  {/* @ts-expect-error The real FileDrop input also excludes readOnly. */}
+  <Themes.FileDrop.Input readOnly />
+</Themes.Theme>;
+const c5DateObject = new Date('2026-10-18T00:00:00.000Z');
+const c5Timestamp = Date.parse('2026-10-18T00:00:00.000Z');
+const c5DateRange = ['2026-10-18', '2026-10-19'] as const;
+
+// @ts-expect-error Calendar values are canonical date-only strings, not Date objects.
+export const invalidPrimitiveCalendarDateObject = <PrimitiveCalendarParts.Root today={familyDate} value={c5DateObject} />;
+// @ts-expect-error Calendar values are not epoch timestamps.
+export const invalidPrimitiveCalendarTimestamp = <PrimitiveCalendarParts.Root today={familyDate} value={c5Timestamp} />;
+// @ts-expect-error Calendar selects one date, not a range.
+export const invalidPrimitiveCalendarRange = <PrimitiveCalendarParts.Root today={familyDate} value={c5DateRange} />;
+// @ts-expect-error DatePicker values are canonical date-only strings, not Date objects.
+export const invalidPrimitiveDatePickerDateObject = <PrimitiveDatePickerParts.Root today={familyDate} value={c5DateObject} />;
+// @ts-expect-error DatePicker values are not epoch timestamps.
+export const invalidPrimitiveDatePickerTimestamp = <PrimitiveDatePickerParts.Root today={familyDate} value={c5Timestamp} />;
+// @ts-expect-error DatePicker selects one date, not a range.
+export const invalidPrimitiveDatePickerRange = <PrimitiveDatePickerParts.Root today={familyDate} value={c5DateRange} />;
+// @ts-expect-error DatePicker does not expose editable text entry.
+export const invalidPrimitiveDatePickerEditable = <PrimitiveDatePickerParts.Root today={familyDate} editable />;
+// @ts-expect-error DatePicker does not expose a custom date parser.
+export const invalidPrimitiveDatePickerParser = <PrimitiveDatePickerParts.Root today={familyDate} parseDate={(text: string) => text} />;
+// @ts-expect-error The themed Calendar also accepts date-only strings, not Date objects.
+export const invalidThemedCalendarDateObject = <ThemedCalendarParts.Root today={familyDate} value={c5DateObject} />;
+// @ts-expect-error The themed Calendar does not accept epoch timestamps.
+export const invalidThemedCalendarTimestamp = <ThemedCalendarParts.Root today={familyDate} value={c5Timestamp} />;
+// @ts-expect-error The themed Calendar selects one date, not a range.
+export const invalidThemedCalendarRange = <ThemedCalendarParts.Root today={familyDate} value={c5DateRange} />;
+// @ts-expect-error The themed DatePicker also accepts date-only strings, not Date objects.
+export const invalidThemedDatePickerDateObject = <ThemedDatePickerParts.Root today={familyDate} value={c5DateObject} />;
+// @ts-expect-error The themed DatePicker does not accept epoch timestamps.
+export const invalidThemedDatePickerTimestamp = <ThemedDatePickerParts.Root today={familyDate} value={c5Timestamp} />;
+// @ts-expect-error The themed DatePicker selects one date, not a range.
+export const invalidThemedDatePickerRange = <ThemedDatePickerParts.Root today={familyDate} value={c5DateRange} />;
+// @ts-expect-error The themed DatePicker does not expose editable text entry.
+export const invalidThemedDatePickerEditable = <ThemedDatePickerParts.Root today={familyDate} editable />;
+// @ts-expect-error The themed DatePicker does not expose a custom date parser.
+export const invalidThemedDatePickerParser = <ThemedDatePickerParts.Root today={familyDate} parseDate={(text: string) => text} />;

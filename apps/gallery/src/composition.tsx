@@ -15,6 +15,9 @@ import { Charts } from './charts.js';
 import { Inputs } from './inputs.js';
 import { Trees } from './tree.js';
 import { Splitters } from './splitter.js';
+import { CalendarExamples } from './calendar.js';
+import { DatePickerExamples } from './date-picker.js';
+import { FileDropExamples } from './file-drop.js';
 
 function CustomLink(props: JSX.AnchorHTMLAttributes<HTMLAnchorElement>) {
   return <a data-custom-target="true" {...props} />;
@@ -98,7 +101,7 @@ function RefComposition(): Element {
   </section>;
 }
 
-export function Composition(): Element {
+export function Composition(props: { initiallyOpenDatePicker: boolean }): Element {
   const [parent, accept] = createSignal(false);
   const [requests, setRequests] = createSignal<string[]>([]);
   const [callback, replace] = createSignal<(value: boolean) => void>(() => value => setRequests(previous => [...previous, `old:${value}`]));
@@ -244,6 +247,9 @@ export function Composition(): Element {
     <Trees />
     <Splitters />
     <Advanced />
+    <CalendarExamples />
+    <DatePickerExamples initiallyOpenDatePicker={props.initiallyOpenDatePicker} />
+    <FileDropExamples />
     <Assets />
     <Themes />
     <ThemeInteractions />

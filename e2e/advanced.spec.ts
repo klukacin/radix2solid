@@ -386,18 +386,69 @@ test('toast hotkey and native tab order visit newest roots first, focused Escape
 });
 
 test('toast announces priority and action alternatives without hidden or close text, while parent rejection remains authoritative', async ({ page }) => {
-  await page.getByRole('button', { name: 'Show stacked notifications', exact: true }).click();
-  const assertiveAnnouncement = page.locator('[role="status"][aria-live="assertive"]').filter({ hasText: 'First notification' });
-  await expect(assertiveAnnouncement).toContainText('Undo from history');
-  await expect(assertiveAnnouncement).not.toContainText('Hidden announcement');
-  await expect(assertiveAnnouncement).not.toContainText('Close');
-  await expect(page.locator('[role="status"][aria-live="polite"]').filter({ hasText: 'Second notification' })).toContainText('Saved second record');
-  await page.getByRole('button', { name: 'Show controlled notification', exact: true }).click();
-  await page.getByRole('button', { name: 'Dismiss controlled notification', exact: true }).click();
-  await expect(page.locator('[data-toast-controlled]')).toBeVisible(); await expect(page.locator('#toast-requests')).toHaveText('false');
-  await page.getByLabel('Accept notification requests', { exact: true }).check();
-  await page.getByRole('button', { name: 'Dismiss controlled notification', exact: true }).click();
-  await expect(page.locator('[data-toast-controlled]')).toHaveCount(0); await expect(page.locator('#toast-requests')).toHaveText('false,false');
+  type Announcement = { role: string; priority: string | null; text: string };
+  type ToastTraceWindow = typeof window & { __toastAnnouncementTrace: { announcements: Announcement[]; observer: MutationObserver } };
+  const readAnnouncement = async (needle: string): Promise<Announcement | null> => {
+    return await page.evaluate(text => (window as ToastTraceWindow).__toastAnnouncementTrace.announcements.find(item => item.text.includes(text)) ?? null, needle);
+  };
+  await page.evaluate(() => {
+    const announcements: Announcement[] = [];
+    const captured = new WeakSet<Element>();
+    const capture = (element: Element) => {
+      if (element.getAttribute('role') !== 'status' || captured.has(element)) return;
+      const text = element.textContent ?? '';
+      if (!text) return;
+      captured.add(element);
+      announcements.push({ role: 'status', priority: element.getAttribute('aria-live'), text });
+    };
+    const statusAncestor = (node: Node): Element | null => {
+      let element = node instanceof Element ? node : node.parentElement;
+      while (element && element !== document.body) {
+        if (element.getAttribute('role') === 'status') return element;
+        element = element.parentElement;
+      }
+      return null;
+    };
+    const captureAdded = (node: Node) => {
+      if (!(node instanceof Element)) return;
+      capture(node);
+      for (const child of node.children) captureAdded(child);
+    };
+    const observer = new MutationObserver(records => {
+      for (const record of records) {
+        const target = statusAncestor(record.target);
+        if (target) capture(target);
+        for (const node of record.addedNodes) captureAdded(node);
+      }
+    });
+    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    Object.assign(window, { __toastAnnouncementTrace: { announcements, observer } });
+  });
+  try {
+    await page.getByRole('button', { name: 'Show stacked notifications', exact: true }).click();
+    await expect.poll(() => readAnnouncement('First notification')).not.toBeNull();
+    const assertiveAnnouncement = await readAnnouncement('First notification');
+    expect(assertiveAnnouncement).not.toBeNull();
+    expect(assertiveAnnouncement!.role).toBe('status');
+    expect(assertiveAnnouncement!.priority).toBe('assertive');
+    expect(assertiveAnnouncement!.text).toContain('Undo from history');
+    expect(assertiveAnnouncement!.text).not.toContain('Hidden announcement');
+    expect(assertiveAnnouncement!.text).not.toContain('Close');
+    await expect.poll(() => readAnnouncement('Second notification')).not.toBeNull();
+    const politeAnnouncement = await readAnnouncement('Second notification');
+    expect(politeAnnouncement).not.toBeNull();
+    expect(politeAnnouncement!.role).toBe('status');
+    expect(politeAnnouncement!.priority).toBe('polite');
+    expect(politeAnnouncement!.text).toContain('Saved second record');
+    await page.getByRole('button', { name: 'Show controlled notification', exact: true }).click();
+    await page.getByRole('button', { name: 'Dismiss controlled notification', exact: true }).click();
+    await expect(page.locator('[data-toast-controlled]')).toBeVisible(); await expect(page.locator('#toast-requests')).toHaveText('false');
+    await page.getByLabel('Accept notification requests', { exact: true }).check();
+    await page.getByRole('button', { name: 'Dismiss controlled notification', exact: true }).click();
+    await expect(page.locator('[data-toast-controlled]')).toHaveCount(0); await expect(page.locator('#toast-requests')).toHaveText('false,false');
+  } finally {
+    await page.evaluate(() => (window as typeof window & { __toastAnnouncementTrace: { observer: MutationObserver } }).__toastAnnouncementTrace.observer.disconnect());
+  }
 });
 
 test('toast Infinity-to-finite duration stays paused by focus then resumes its remaining native timer', async ({ page }) => {

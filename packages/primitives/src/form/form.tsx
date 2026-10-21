@@ -8,6 +8,7 @@ import { composeRefs } from '../internal/refs.js';
 import { focus } from '../internal/focus-scope.js';
 import { Label, type LabelProps } from '../label/label.js';
 import { concatAriaIds } from '../slot/slot.js';
+import { FormFieldMetadataProvider, FormValidityProvider, type FormFieldMetadata, type FormValidityOwner, type FormValiditySource } from '../internal/form-validity.js';
 
 type Scoped = { __scopeForm?: Scope };
 type BuiltinMatcher = Exclude<keyof ValidityState, 'customError'>;
@@ -34,7 +35,7 @@ interface FormState {
   data: (name: string) => FieldData; read: (name: string) => FieldData; notify: () => void;
   controls: Map<HTMLInputElement, () => void>;
 }
-interface FieldState { name: () => string; id: string }
+interface FieldState extends FormFieldMetadata { id: string }
 const [createFormContext, createFormScope] = createContextScope('Form');
 const [Provider, useForm] = createFormContext<FormState>('Form.Root');
 const [FieldProvider, useField] = createFormContext<FieldState>('Form.Field');
@@ -106,15 +107,16 @@ export function Form(props: FormProps): Element {
       timers.set(timer, view);
     }
   });
-  return <Provider scope={props.__scopeForm} value={state}><Primitive as="form" {...forwarded as PrimitiveProps<'form'>} /></Provider>;
+  return <Provider scope={props.__scopeForm} value={state}><FormFieldMetadataProvider value={null}><Primitive as="form" {...forwarded as PrimitiveProps<'form'>} /></FormFieldMetadataProvider></Provider>;
 }
 
 export function FormField(props: FormFieldProps): Element {
   const root = useForm('Form.Field', props.__scopeForm), id = createUniqueId();
-  const field: FieldState = { name: () => props.name, id };
-  if (isServer) untrack(() => { root.data(props.name).serverInvalid = () => props.serverInvalid ?? false; });
+  const serverInvalid = () => props.serverInvalid ?? false;
+  const field: FieldState = { name: () => props.name, id, serverInvalid };
+  if (isServer) untrack(() => { root.data(props.name).serverInvalid = serverInvalid; });
   else createEffect(() => [props.name, props.serverInvalid] as const, ([name]) => {
-    const data = root.data(name), serverInvalid = () => props.serverInvalid ?? false;
+    const data = root.data(name);
     data.serverInvalid = serverInvalid; root.notify();
     return () => { if (data.serverInvalid === serverInvalid) { data.serverInvalid = () => false; root.notify(); } };
   }, { transparent: true });
@@ -122,7 +124,7 @@ export function FormField(props: FormFieldProps): Element {
     get ['data-valid']() { return validAttribute(root.read(props.name)); },
     get ['data-invalid']() { return invalidAttribute(root.read(props.name)); }
   });
-  return <FieldProvider scope={props.__scopeForm} value={field}><Primitive as="div" {...forwarded as PrimitiveProps<'div'>} /></FieldProvider>;
+  return <FormFieldMetadataProvider value={field}><FieldProvider scope={props.__scopeForm} value={field}><Primitive as="div" {...forwarded as PrimitiveProps<'div'>} /></FieldProvider></FormFieldMetadataProvider>;
 }
 
 export function FormLabel(props: FormLabelProps): Element {
@@ -140,17 +142,25 @@ export function FormControl(props: FormControlProps): Element {
   const root = useForm('Form.Control', props.__scopeForm), field = useField('Form.Control', props.__scopeForm, true);
   const name = resolveName(props, field, 'Form.Control'), generatedId = createUniqueId();
   const [node, ref] = createSignal<HTMLInputElement | undefined>();
+  const [registeredSource, setRegisteredSource] = createSignal<FormValiditySource | undefined>();
   const serverInvalid = createMemo(() => root.read(name()).serverInvalid());
   let generation = 0, alive = true;
+  let observedSource: FormValiditySource | undefined, observedBaseline = '';
   onCleanup(() => { alive = false; generation++; });
   const clear = () => {
-    generation++; const control = node(); control?.setCustomValidity('');
-    const data = root.data(name()); data.validity = undefined; data.errors.clear(); root.notify();
+    generation++;
+    const control = node();
+    const source = registeredSource(), baseline = source?.baseline() ?? '';
+    control?.setCustomValidity(baseline);
+    const data = root.data(name());
+    data.validity = control && source && baseline ? validitySnapshot(control.validity) : undefined;
+    data.errors.clear(); root.notify();
   };
-  const validate = () => {
+  function validate() {
     const control = node(); if (!control) return;
     const fieldName = name(), data = root.data(fieldName), value = control.value, version = data.version, request = ++generation;
-    control.setCustomValidity('');
+    const source = registeredSource(), baseline = source?.baseline() ?? '', revision = source?.revision() ?? 0;
+    control.setCustomValidity(baseline);
     const native = validitySnapshot(control.validity);
     if (builtinKeys.some(key => native[key])) { data.errors.clear(); data.validity = native; root.notify(); return; }
     const formData = control.form ? new control.ownerDocument.defaultView!.FormData(control.form) : new control.ownerDocument.defaultView!.FormData();
@@ -160,20 +170,58 @@ export function FormControl(props: FormControlProps): Element {
       const result = match(value, formData);
       if (typeof result === 'boolean') { errors.set(key, result); syncError ||= result; } else pending.push(Promise.resolve(result).then(invalid => [key, invalid] as const));
     }
-    const current = () => alive && request === generation && node() === control && root.controls.has(control) && name() === fieldName && control.value === value && data.version === version && builtinKeys.every(key => control.validity[key] === native[key]);
+    const current = () => alive && request === generation && node() === control && root.controls.has(control) && name() === fieldName &&
+      control.value === value && data.version === version && registeredSource() === source &&
+      (source?.baseline() ?? '') === baseline && (source?.revision() ?? 0) === revision &&
+      builtinKeys.every(key => control.validity[key] === native[key]);
     const publish = () => {
       let invalid = false; for (const error of errors.values()) invalid ||= error;
-      control.setCustomValidity(invalid ? invalidMessage : ''); data.errors = errors; data.validity = validitySnapshot(control.validity); root.notify();
+      control.setCustomValidity(baseline || (invalid ? invalidMessage : '')); data.errors = errors; data.validity = validitySnapshot(control.validity); root.notify();
     };
     publish();
     if (pending.length) void Promise.all(pending).then(results => {
       if (!current() || syncError) return;
       for (const [key, invalid] of results) errors.set(key, invalid); publish();
     });
+  }
+  const revalidate = () => { generation++; const control = untrack(node); if (control && root.controls.has(control)) untrack(validate); };
+  const owner: FormValidityOwner = {
+    name: () => name(),
+    form: () => typeof props.form === 'string' ? props.form : undefined,
+    register(source) {
+      if (untrack(registeredSource)) throw new Error('Form.Control supports only one live validity source.');
+      setRegisteredSource(source);
+      observedSource = source; observedBaseline = untrack(source.baseline);
+      revalidate();
+      let active = true;
+      return () => {
+        if (!active) return;
+        active = false;
+        if (untrack(registeredSource) !== source) return;
+        setRegisteredSource(undefined);
+        observedSource = undefined; observedBaseline = '';
+        generation++;
+        if (alive) revalidate();
+      };
+    },
+    revalidate
   };
+  if (!isServer) createEffect(
+    () => {
+      const source = registeredSource();
+      return [source, source?.baseline() ?? ''] as const;
+    },
+    ([source, baseline]) => {
+      if (source === observedSource && baseline === observedBaseline) return;
+      observedSource = source; observedBaseline = baseline;
+      untrack(revalidate);
+    },
+    { transparent: true }
+  );
   if (!isServer) createEffect(() => [node(), name(), props.value, props.type, props.required, props.pattern, props.min, props.max, props.step, props.minlength, props.maxlength] as const, ([control, fieldName]) => {
     if (!control) return;
     const data = root.data(fieldName); data.control = control; root.controls.set(control, clear); untrack(clear);
+    if (untrack(registeredSource)) untrack(validate);
     const observer = new control.ownerDocument.defaultView!.MutationObserver(() => root.notify());
     observer.observe(control, { attributes: true, attributeFilter: ['id'] });
     return () => { observer.disconnect(); generation++; root.controls.delete(control); if (data.control === control) { data.control = undefined; data.validity = undefined; data.errors.clear(); root.notify(); } };
@@ -198,7 +246,7 @@ export function FormControl(props: FormControlProps): Element {
     onChange: composeEventHandlers(() => props.onChange, () => untrack(validate)),
     onInvalid: composeEventHandlers(() => props.onInvalid, event => { untrack(validate); event.preventDefault(); })
   });
-  return <Primitive as="input" {...forwarded as PrimitiveProps<'input'>} />;
+  return <FormValidityProvider value={owner}><Primitive as="input" {...forwarded as PrimitiveProps<'input'>} /></FormValidityProvider>;
 }
 
 export function FormMessage(props: FormMessageProps): Element {
@@ -235,7 +283,8 @@ export function FormMessage(props: FormMessageProps): Element {
 export function FormValidityState(props: FormValidityStateProps): Element {
   const root = useForm('Form.ValidityState', props.__scopeForm), field = useField('Form.ValidityState', props.__scopeForm, true);
   const name = resolveName(props, field, 'Form.ValidityState');
-  return <>{props.children(root.read(name()).validity)}</>;
+  const validity = createMemo(() => root.read(name()).validity);
+  return <>{props.children(validity())}</>;
 }
 export function FormSubmit(props: FormSubmitProps): Element {
   return <Primitive as="button" {...merge({ type: 'submit' as const }, omit(props, '__scopeForm')) as PrimitiveProps<'button'>} />;

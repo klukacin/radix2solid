@@ -10,7 +10,10 @@ The five packages keep their native API under the `@wsagency` npm scope:
 - `@wsagency/radix2solid-themes` — all native Themes families, themed portals, ThemePanel, responsive styling, custom accents, percentage scaling, per-component and cascade-layer CSS: [`packages/themes/README.md`](packages/themes/README.md)
 - `@wsagency/radix2solid-charts` — SVG charts that read Themes tokens, with `d3-scale` and `d3-shape` as external dependencies: [`packages/charts`](packages/charts)
 
-**Source candidate `0.1.0-rc.3` — not yet published.** All five source packages share this version. Published `0.1.0-rc.2` remains unchanged and does not provide the new Combobox, Command, Tree, Splitter or extra-icons APIs. Consume builds from the implementation source and `pnpm pack` tarballs until DevOps publishes through the existing npm workflow; source availability is not npm availability. No implementation commit is claimed here before review/merge.
+This README describes prerelease `0.1.0-rc.4` for all five packages. Releases use the npm `next` dist-tag while Solid is prerelease. Calendar, DatePicker and FileDrop are introduced in rc.4 in Primitives and Themes; these new APIs are absent from rc.3. Install the five packages at the exact prerelease version:
+```sh
+pnpm add -E @wsagency/radix2solid-primitives@0.1.0-rc.4 @wsagency/radix2solid-icons@0.1.0-rc.4 @wsagency/radix2solid-icons-extra@0.1.0-rc.4 @wsagency/radix2solid-themes@0.1.0-rc.4 @wsagency/radix2solid-charts@0.1.0-rc.4
+```
 
 ```sh
 # From the reviewed source checkout, with pinned Node 24 and pnpm 11:
@@ -20,7 +23,16 @@ pnpm --dir packages/primitives pack
 pnpm --dir packages/icons-extra pack
 ```
 
-Pack the other needed packages in the same way; install the resulting tarballs in your application and override Themes' primitives dependency to the same primitives tarball. Source-pinned website deployment is independent of npm publication. The eventual five-package release uses the `next` dist-tag, subject to release-maintainer authorization; first publication and Trusted Publisher configuration for icons-extra remain DevOps-owned.
+Source-checkout packing is an optional development alternative; when using it, override Themes' primitives dependency to the same primitives tarball. Source-pinned website deployment remains independent of npm publication. The five packages share version `0.1.0-rc.4`.
+
+Calendar, DatePicker and FileDrop are new project extensions, not official Radix components or ports. They are introduced in the rc.4 prerelease and absent from rc.3. For source-checkout development, build and pack Primitives; if using Themes, pack it from the same checkout and resolve its transitive Primitives dependency to the **same physical Primitives tarball**:
+
+```sh
+pnpm --dir packages/primitives pack
+pnpm --dir packages/themes pack
+```
+
+These source-checkout packs are optional development artifacts; versioned npm installs use the rc.4 package versions above.
 
 Consumers need Node `>=22.12.0` (required by Solid rc.15). If you use the Themes PostCSS plugins, also install `postcss@^8.5.9`; it is an optional peer.
 
@@ -60,9 +72,9 @@ Gallery: `http://127.0.0.1:4147/` for SSR/hydration, `/csr` for fresh client ren
 
 Exact current pins: `solid-js`, `@solidjs/web`, `@solidjs/signals`, `@solidjs/compiler` and `@solidjs/babel-plugin` **2.0.0-rc.15**; `@solidjs/vite-plugin` **3.0.0-next.50**; Vite **8.3.3**; TypeScript **7.0.2** for type checks and declaration emit, with `typescript5` (TypeScript **5.9.3**) for the consumer checks that use the compiler API; Playwright **1.64.0**; Radix Colors **3.0.0**. The runtime/compiler/Babel versions are pinned through workspace overrides. The workspace keeps pnpm's 24-hour `minimumReleaseAge` and excepts only these exact rc.15/next.50 releases until they age. This is an RC port, not a Solid-stable compatibility promise.
 
-`pnpm check` builds producers before consumers, compiles workspace types, runs the slider unit test, then independent packed and development browser scenarios in Chromium, Firefox and WebKit. `tests/consumer/coverage-manifest.json` maps public declarations/parts to retained family checks. Packed validation covers public declaration and runtime availability, CSS/plugin/SVG resolution and real selective-import bundle inspection. Family checks are not certification of every exported symbol or of actual assistive-technology speech.
+`pnpm test:unit` runs the slider, splitter, calendar and file-drop unit tests. `pnpm test` runs those tests, the complete packed `pnpm test:consumer` suite and the full development Playwright suite; `pnpm check` runs the build and typecheck before that complete test contract. CI runs the complete modes independently: `pnpm check:packed` builds, typechecks, runs all four unit-test files and the unscoped all-package packed consumer checks; `pnpm check:dev` builds, typechecks, runs those same unit tests and the full six-project Playwright suite, preserving existing skips. Both local `test` and `check:dev` use the shared `test:dev` command with empty `GALLERY_PACKED` and `GALLERY_PRODUCTION` values. `tests/consumer/coverage-manifest.json` maps public declarations/parts to retained family checks. Packed validation covers public declaration and runtime availability, CSS/plugin/SVG resolution and real selective-import bundle inspection. Family checks are not certification of every exported symbol or of actual assistive-technology speech.
 
-The gallery is a static fixture: its animatable chart marks set `isAnimationActive={false}`, and only the `#chart-responsive` Trend line is the dedicated motion fixture for animation and reduced-motion checks. Otherwise, an incidental animation started before a test installs Playwright's fake clock keeps a real-time start and spins fake animation frames until fake time catches up, and each fake frame is slow in WebKit. Browser checks that need a scroll to finish wait for the native `scrollend` event (Chromium, Firefox and WebKit) instead of sampling positions, because WebKit animates keyboard scrolling. Hydration checks that hold client scripts first wait for the gallery's `#refs` output to read `same host` after release. Client bootstrap (loading and evaluating the scripts, then hydrating) can take several seconds on a loaded runner, so that wait uses the test's existing budget. Only later steps such as `ResizeObserver` measurement are held to the normal 5s assertion timeout.
+The gallery is a static fixture: its animatable chart marks set `isAnimationActive={false}`, and only the `#chart-responsive` Trend line is the dedicated motion fixture for animation and reduced-motion checks. Otherwise, an incidental animation started before a test installs Playwright's fake clock keeps a real-time start and spins fake animation frames until fake time catches up, and each fake frame is slow in WebKit. Browser checks that need a scroll to finish wait for the native `scrollend` event (Chromium, Firefox and WebKit) instead of sampling positions, because WebKit animates keyboard scrolling. Hydration checks that hold client scripts first release them, wait for normal document load within the existing navigation/test budget, then wait for the gallery's `#refs` output to read `same host`. Module loading and evaluation use the existing navigation/test budget; the host-ref identity assertion and later checks such as `ResizeObserver` measurement retain the normal 5s assertion timeout.
 
 Use native `class`, `for`, lowercase DOM attributes and `@solidjs/web` JSX types. Controlled props remain parent-authoritative. `asChild` takes a single-target factory, not a React element or a snapshot prop spread; native portals render no RC.13 server content and settle on the client. See the package migration notes for event cancellation, refs, owned effects, portal propagation and removed React-only helpers. Themes CSS is imported explicitly:
 

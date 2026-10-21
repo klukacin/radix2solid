@@ -38,4 +38,7 @@ export * as unstable_OneTimePasswordField from './one-time-password-field/index.
 export * as Slider from './slider/index.js';
 export * as ScrollArea from './scroll-area/index.js';
 export * as Form from './form/index.js';
+export * as Calendar from './calendar/index.js';
+export * as DatePicker from './date-picker/index.js';
+export * as FileDrop from './file-drop/index.js';
 export * as Toast from './toast/index.js';

@@ -863,6 +863,7 @@ test('ssr-hydration: data-defined labels and stale-key omission survive node-pre
       await expect(page.getByRole('listbox', { name: `Server ${state} ${family}`, exact: true }).getByRole('option')).toHaveCount(count);
     }
     release();
+    await page.waitForLoadState('load');
     // The existing gallery ref output is the hydration boundary, not a test-only timer.
     await expect(page.locator('#refs')).toHaveText('same host');
     expect(await input.evaluate((current, server) => current === server, node)).toBe(true);

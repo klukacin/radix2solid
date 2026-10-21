@@ -595,6 +595,7 @@ test('tree-ssr: server hierarchy, labels, selected state and IDs survive hydrati
     }));
     expect(await server.evaluate(snapshot => snapshot.ids.length)).toBeGreaterThan(0);
     release();
+    await page.waitForLoadState('load');
     await expect(page.locator('#refs')).toHaveText('same host');
     await expectHierarchy(tree);
     expect(await tree.evaluate((node, snapshot) => {

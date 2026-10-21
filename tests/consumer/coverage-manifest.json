@@ -1,6 +1,6 @@
 {
   "scope": "Public part/type availability is checked separately from the mapped family behavior. Isolated real-reader Announce/Toast/layer speech has separate observed evidence; automated availability checks do not certify every reader/platform or release ownership.",
-  "publicCounts": { "modules": 155, "declarations": 1698, "css": 94, "plugins": 6, "icons": 332, "iconsExtra": 2 },
+  "publicCounts": { "modules": 164, "declarations": 1841, "css": 97, "plugins": 6, "icons": 332, "iconsExtra": 2 },
   "modules": [
     {
       "module": "@wsagency/radix2solid-primitives/combobox",
@@ -356,8 +356,23 @@
       ]
     },
     {
+      "module": "@wsagency/radix2solid-primitives/calendar",
+      "exports": "createCalendarScope Calendar Root CalendarHeader Header CalendarHeading Heading CalendarPrevTrigger PrevTrigger CalendarNextTrigger NextTrigger CalendarGrid Grid CalendarRow Row CalendarHeaderCell HeaderCell CalendarCell Cell CalendarDay Day DateValue MonthValue CalendarProps CalendarHeaderProps CalendarHeadingProps CalendarPrevTriggerProps CalendarNextTriggerProps CalendarGridProps CalendarGridState CalendarRowProps CalendarHeaderCellProps CalendarCellProps CalendarDayProps",
+      "checks": ["packed", "types", "calendar"]
+    },
+    {
+      "module": "@wsagency/radix2solid-primitives/date-picker",
+      "exports": "createDatePickerScope DatePicker Root DatePickerTrigger Trigger DatePickerValue Value DatePickerPortal Portal DatePickerContent Content DatePickerTitle Title DatePickerDescription Description DatePickerClose Close DatePickerClear Clear DatePickerCalendar Calendar DatePickerFormControl FormControl DatePickerProps DatePickerTriggerProps DatePickerValueProps DatePickerPortalProps DatePickerContentProps DatePickerTitleProps DatePickerDescriptionProps DatePickerCloseProps DatePickerClearProps DatePickerCalendarProps DatePickerFormControlProps",
+      "checks": ["packed", "types", "date-picker"]
+    },
+    {
+      "module": "@wsagency/radix2solid-primitives/file-drop",
+      "exports": "FileDrop Root FileDropInput Input FileDropTrigger Trigger createFileDropScope FileDropProps FileDropInputProps FileDropTriggerProps FileDropRejection",
+      "checks": ["packed", "types", "file-drop"]
+    },
+    {
       "module": "@wsagency/radix2solid-primitives",
-      "exports": "AccessibleIcon Accordion AlertDialog Announce Arrow AspectRatio Avatar Checkbox Collapsible Combobox Command ContextMenu Dialog Direction DropdownMenu Form HoverCard Label Menubar NavigationMenu Popover Portal Progress RadioGroup ScrollArea Select Separator Slider Slot Splitter Switch Tabs Toast Toggle ToggleGroup Toolbar Tooltip Tree VisuallyHidden unstable_OneTimePasswordField unstable_PasswordToggleField",
+      "exports": "AccessibleIcon Accordion AlertDialog Announce Arrow AspectRatio Avatar Calendar Checkbox Collapsible Combobox Command ContextMenu DatePicker Dialog Direction DropdownMenu FileDrop Form HoverCard Label Menubar NavigationMenu Popover Portal Progress RadioGroup ScrollArea Select Separator Slider Slot Splitter Switch Tabs Toast Toggle ToggleGroup Toolbar Tooltip Tree VisuallyHidden unstable_OneTimePasswordField unstable_PasswordToggleField",
       "checks": [
         "packed",
         "types"
@@ -378,7 +393,7 @@
     },
     {
       "module": "@wsagency/radix2solid-themes",
-      "exports": "AccessibleIcon AccessibleIconProps AlertDialog AspectRatio AspectRatioProps Avatar AvatarProps Badge BadgeProps Blockquote BlockquoteProps Box BoxProps Button ButtonProps Callout Card CardProps Checkbox CheckboxCards CheckboxGroup CheckboxProps ChevronDownIcon Code CodeProps Container ContainerProps ContextMenu DataList Dialog DropdownMenu Em EmProps Flex FlexProps Grid GridProps Heading HeadingProps HoverCard IconButton IconButtonProps IconProps Inset InsetProps Kbd KbdProps Link LinkProps Popover Portal PortalProps Progress ProgressProps Quote QuoteProps Radio RadioCards RadioGroup RadioProps Reset ResetProps ScrollArea ScrollAreaProps Section SectionProps SegmentedControl Select Separator SeparatorProps Skeleton SkeletonProps Slider SliderProps Slot Slottable Spinner SpinnerProps Strong StrongProps Switch SwitchProps Table TabNav Tabs Text TextArea TextAreaProps TextField TextProps Theme ThemeContext ThemePanel ThemePanelProps ThemeProps ThemeScaling ThickCheckIcon ThickChevronRightIcon ThickDividerHorizontalIcon Tooltip TooltipProps unstable_ThemePanelContent unstable_ThemePanelContentProps useThemeContext VisuallyHidden VisuallyHiddenProps",
+      "exports": "AccessibleIcon AccessibleIconProps AlertDialog AspectRatio AspectRatioProps Avatar AvatarProps Badge BadgeProps Blockquote BlockquoteProps Box BoxProps Button ButtonProps Calendar Callout Card CardProps Checkbox CheckboxCards CheckboxGroup CheckboxProps ChevronDownIcon Code CodeProps Container ContainerProps ContextMenu DataList DatePicker Dialog DropdownMenu Em EmProps FileDrop Flex FlexProps Grid GridProps Heading HeadingProps HoverCard IconButton IconButtonProps IconProps Inset InsetProps Kbd KbdProps Link LinkProps Popover Portal PortalProps Progress ProgressProps Quote QuoteProps Radio RadioCards RadioGroup RadioProps Reset ResetProps ScrollArea ScrollAreaProps Section SectionProps SegmentedControl Select Separator SeparatorProps Skeleton SkeletonProps Slider SliderProps Slot Slottable Spinner SpinnerProps Strong StrongProps Switch SwitchProps Table TabNav Tabs Text TextArea TextAreaProps TextField TextProps Theme ThemeContext ThemePanel ThemePanelProps ThemeProps ThemeScaling ThickCheckIcon ThickChevronRightIcon ThickDividerHorizontalIcon Tooltip TooltipProps unstable_ThemePanelContent unstable_ThemePanelContentProps useThemeContext VisuallyHidden VisuallyHiddenProps",
       "checks": [
         "themes",
         "theme-interactions",
@@ -906,6 +921,36 @@
         "theme-interactions",
         "types"
       ]
+    },
+    {
+      "module": "@wsagency/radix2solid-themes/components/calendar",
+      "exports": "createCalendarScope Root Header Heading PrevTrigger NextTrigger Grid Row HeaderCell Cell Day DateValue MonthValue CalendarGridState RootProps HeaderProps HeadingProps PrevTriggerProps NextTriggerProps GridProps RowProps HeaderCellProps CellProps DayProps",
+      "checks": ["packed", "types", "calendar", "theme-css"]
+    },
+    {
+      "module": "@wsagency/radix2solid-themes/components/date-picker",
+      "exports": "createDatePickerScope Root Trigger Value Portal Content Title Description Close Clear Calendar FormControl RootProps TriggerProps ValueProps PortalProps ContentProps TitleProps DescriptionProps CloseProps ClearProps CalendarProps FormControlProps",
+      "checks": ["packed", "types", "date-picker", "theme-css"]
+    },
+    {
+      "module": "@wsagency/radix2solid-themes/components/file-drop",
+      "exports": "createFileDropScope Root Input Trigger RootProps InputProps TriggerProps FileDropRejection",
+      "checks": ["packed", "types", "file-drop", "theme-css"]
+    },
+    {
+      "module": "@wsagency/radix2solid-themes/components/calendar.props",
+      "exports": "calendarRootPropDefs",
+      "checks": ["types", "theme-css"]
+    },
+    {
+      "module": "@wsagency/radix2solid-themes/components/date-picker.props",
+      "exports": "datePickerRootPropDefs",
+      "checks": ["types", "theme-css"]
+    },
+    {
+      "module": "@wsagency/radix2solid-themes/components/file-drop.props",
+      "exports": "fileDropRootPropDefs",
+      "checks": ["types", "theme-css"]
     },
     {
       "module": "@wsagency/radix2solid-themes/helpers",
@@ -1453,7 +1498,11 @@
     "advanced": "e2e/advanced.spec.ts",
     "assets": "e2e/assets.spec.ts",
     "themes": "e2e/themes.spec.ts",
-    "theme-interactions": "e2e/theme-interactions.spec.ts"
+    "theme-interactions": "e2e/theme-interactions.spec.ts",
+    "calendar": "e2e/calendar.spec.ts",
+    "date-picker": "e2e/date-picker.spec.ts",
+    "file-drop": "e2e/file-drop.spec.ts",
+    "theme-css": "e2e/theme-css.spec.ts"
   },
   "icons": {
     "names": "packages/icons/icons.json",
@@ -1476,6 +1525,7 @@
     "@wsagency/radix2solid-themes/css/blockquote.css",
     "@wsagency/radix2solid-themes/css/box.css",
     "@wsagency/radix2solid-themes/css/button.css",
+    "@wsagency/radix2solid-themes/css/calendar.css",
     "@wsagency/radix2solid-themes/css/callout.css",
     "@wsagency/radix2solid-themes/css/card.css",
     "@wsagency/radix2solid-themes/css/checkbox-cards.css",
@@ -1486,9 +1536,11 @@
     "@wsagency/radix2solid-themes/css/container.css",
     "@wsagency/radix2solid-themes/css/context-menu.css",
     "@wsagency/radix2solid-themes/css/data-list.css",
+    "@wsagency/radix2solid-themes/css/date-picker.css",
     "@wsagency/radix2solid-themes/css/dialog.css",
     "@wsagency/radix2solid-themes/css/dropdown-menu.css",
     "@wsagency/radix2solid-themes/css/em.css",
+    "@wsagency/radix2solid-themes/css/file-drop.css",
     "@wsagency/radix2solid-themes/css/flex.css",
     "@wsagency/radix2solid-themes/css/grid.css",
     "@wsagency/radix2solid-themes/css/heading.css",

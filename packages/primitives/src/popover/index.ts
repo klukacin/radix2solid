@@ -1,2 +1,23 @@
-export * from './popover.js';
-export { Popover as Root, PopoverTrigger as Trigger, PopoverPortal as Portal, PopoverContent as Content, PopoverAnchor as Anchor, PopoverArrow as Arrow, PopoverTitle as Title, PopoverDescription as Description, PopoverClose as Close } from './popover.js';
+export {
+  Popover, Popover as Root,
+  PopoverTrigger, PopoverTrigger as Trigger,
+  PopoverPortal, PopoverPortal as Portal,
+  PopoverContent, PopoverContent as Content,
+  PopoverTitle, PopoverTitle as Title,
+  PopoverDescription, PopoverDescription as Description,
+  PopoverClose, PopoverClose as Close,
+  PopoverAnchor, PopoverAnchor as Anchor,
+  PopoverArrow, PopoverArrow as Arrow,
+  createPopoverScope
+} from './popover.js';
+export type {
+  PopoverProps,
+  PopoverTriggerProps,
+  PopoverPortalProps,
+  PopoverContentProps,
+  PopoverTitleProps,
+  PopoverDescriptionProps,
+  PopoverCloseProps,
+  PopoverAnchorProps,
+  PopoverArrowProps
+} from './popover.js';

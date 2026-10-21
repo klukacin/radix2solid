@@ -52,6 +52,7 @@ test('packed server renders without window and hydrates two CSP roots without re
   expect(new Set(serverSlotDialogs.flatMap(dialog => [dialog.titleId, dialog.descriptionId])).size).toBe(4);
   expect(await page.evaluate(() => window.__serverAvatarTrigger?.map(node => node?.tagName ?? null)), 'server renders the Avatar inside the IconButton trigger').toEqual(['BUTTON', 'SPAN']);
   release();
+  await page.waitForLoadState('load');
   await expect(page.locator('#refs')).toHaveText('same host');
   // Check hydration before the outside click intentionally disposes open navigation content.
   expect(await page.evaluate(() => window.__serverNodes?.every(node => node.isConnected && document.querySelector(`#${node.closest('[id^="root-"]')?.id}`)?.contains(node)))).toBe(true);

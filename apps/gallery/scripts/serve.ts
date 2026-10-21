@@ -5,15 +5,17 @@ import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createServer } from 'vite';
 
-type Renderer = { renderPage: (nonce: string, entry?: string, mode?: 'ssr' | 'csr', stylesheets?: readonly string[]) => string };
+type Renderer = { renderPage: (nonce: string, entry?: string, mode?: 'ssr' | 'csr', stylesheets?: readonly string[], initiallyOpenDatePicker?: boolean) => string };
 const production = process.argv.includes('--production');
 const root = resolve(import.meta.dirname, '..');
 const vite = production ? undefined : await createServer({ root, server: { middlewareMode: true } });
 const server = createHttpServer(async (request, response) => {
-  if (request.url === '/favicon.ico') { response.writeHead(204); response.end(); return; }
-  if (request.url !== '/' && request.url !== '/csr') {
+  const requestUrl = new URL(request.url ?? '/', 'http://localhost');
+  const pathname = requestUrl.pathname;
+  const initiallyOpenDatePicker = requestUrl.searchParams.get('date-picker-initially-open') === '1';
+  if (pathname === '/favicon.ico') { response.writeHead(204); response.end(); return; }
+  if (pathname !== '/' && pathname !== '/csr') {
     if (vite) { vite.middlewares(request, response); return; }
-    const pathname = new URL(request.url ?? '/', 'http://localhost').pathname;
     const assets = resolve(root, 'dist/client');
     const file = resolve(assets, `.${pathname}`);
     if (!pathname.startsWith('/assets/') || !file.startsWith(`${assets}/`)) {
@@ -48,7 +50,7 @@ const server = createHttpServer(async (request, response) => {
       renderer = await vite.ssrLoadModule('/src/entry-server.tsx') as Renderer;
     }
     const nonce = randomBytes(24).toString('base64');
-    const html = renderer.renderPage(nonce, entry, request.url === '/csr' ? 'csr' : 'ssr', stylesheets);
+    const html = renderer.renderPage(nonce, entry, pathname === '/csr' ? 'csr' : 'ssr', stylesheets, initiallyOpenDatePicker);
     response.writeHead(200, {
       'Content-Type': 'text/html; charset=utf-8',
       'Content-Security-Policy': `script-src 'nonce-${nonce}' 'strict-dynamic'; style-src 'self' 'unsafe-inline'; object-src 'none'; base-uri 'none'`
@@ -60,5 +62,6 @@ const server = createHttpServer(async (request, response) => {
     response.end('Gallery rendering failed.');
   }
 });
-server.listen(4147, '127.0.0.1', () => console.log('Gallery ready http://127.0.0.1:4147'));
+const port = Number(process.env.GALLERY_PORT ?? 4147);
+server.listen(port, '127.0.0.1', () => console.log(`Gallery ready http://127.0.0.1:${port}`));
 process.on('SIGTERM', () => { server.close(); void vite?.close(); });
