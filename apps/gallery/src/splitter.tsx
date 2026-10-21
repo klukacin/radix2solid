@@ -4,7 +4,9 @@ import {
   createContext,
   createSignal,
   Errored,
+  For,
   Show,
+  untrack,
   useContext,
   type Element,
 } from "solid-js";
@@ -94,24 +96,26 @@ export function Splitters(): Element {
             onChange={(event) => setInvalid(event.currentTarget.value)}
           >
             <option value="">Choose configuration</option>
-            {[
-              "missing-px-size",
-              "negative-size",
-              "nonfinite-size",
-              "percent-over-100",
-              "zero-step",
-              "reversed-bounds",
-              "collapsed-rail",
-              "secondary-collapse",
-              "noncollapsible",
-              "duplicate-primary",
-              "missing-secondary",
-              "wrong-order",
-              "unnamed-handle",
-              "valid-false-collapsed",
-            ].map((name) => (
-              <option value={name}>{name}</option>
-            ))}
+            <For
+              each={[
+                "missing-px-size",
+                "negative-size",
+                "nonfinite-size",
+                "percent-over-100",
+                "zero-step",
+                "reversed-bounds",
+                "collapsed-rail",
+                "secondary-collapse",
+                "noncollapsible",
+                "duplicate-primary",
+                "missing-secondary",
+                "wrong-order",
+                "unnamed-handle",
+                "valid-false-collapsed",
+              ]}
+            >
+              {(name) => <option value={name}>{name}</option>}
+            </For>
           </select>
         </label>
         <Show
@@ -566,7 +570,7 @@ export function Splitters(): Element {
 }
 
 function ConfigurationExample(props: { kind: string }): Element {
-  const kind = props.kind;
+  const kind = untrack(() => props.kind);
   return (
     <Splitter.Root
       unit={kind === "missing-px-size" ? "px" : "%"}

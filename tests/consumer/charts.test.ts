@@ -634,19 +634,24 @@ test("selected Charts SSR Pie children retain configured geometry for positive a
               return [
                 createComponent(Label, {
                   position: "center",
-                  content: (props) => {
-                    const box = props.viewBox as {
-                      cx?: number;
-                      cy?: number;
-                      innerRadius?: number;
-                      outerRadius?: number;
-                    };
-                    return createComponent(Text, {
-                      x: props.x,
-                      y: props.y,
-                      children: `pie:${box.cx}:${box.cy}:${box.innerRadius}:${box.outerRadius}`,
-                    });
-                  },
+                  content: (props) =>
+                    createComponent(Text, {
+                      get x() {
+                        return props.x;
+                      },
+                      get y() {
+                        return props.y;
+                      },
+                      get children() {
+                        const box = props.viewBox as {
+                          cx?: number;
+                          cy?: number;
+                          innerRadius?: number;
+                          outerRadius?: number;
+                        };
+                        return `pie:${box.cx}:${box.cy}:${box.innerRadius}:${box.outerRadius}`;
+                      },
+                    }),
                 }),
                 createComponent(Label, { position: "center", value: 0 }),
               ];
@@ -787,9 +792,15 @@ test("selected Charts SSR custom Label computes coordinates without overriding e
           : {}),
         content: (props) =>
           createComponent(Text, {
-            x: props.x,
-            y: props.y,
-            children: `label:${props.x}:${props.y}:${props.textAnchor ?? "absent"}:${props.verticalAnchor ?? "absent"}:${props.viewBox && "width" in props.viewBox ? props.viewBox.width : "absent"}`,
+            get x() {
+              return props.x;
+            },
+            get y() {
+              return props.y;
+            },
+            get children() {
+              return `label:${props.x}:${props.y}:${props.textAnchor ?? "absent"}:${props.verticalAnchor ?? "absent"}:${props.viewBox && "width" in props.viewBox ? props.viewBox.width : "absent"}`;
+            },
           }),
       }),
     );

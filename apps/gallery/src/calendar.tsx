@@ -58,7 +58,7 @@ type SceneProps = {
 };
 
 function CalendarScene(props: SceneProps): Element {
-  const today = props.today ?? "2026-10-18";
+  const today = untrack(() => props.today ?? "2026-10-18");
   const [mounted, setMounted] = createSignal(true);
   const [value, setValue] = createSignal<DateValue | null>(
     props.initialValue === undefined ? today : props.initialValue,
@@ -69,13 +69,17 @@ function CalendarScene(props: SceneProps): Element {
   const [requestedMonth, setRequestedMonth] = createSignal("");
   const [min, setMin] = createSignal<DateValue | undefined>(props.initialMin);
   const [max, setMax] = createSignal<DateValue | undefined>(props.initialMax);
-  const [locale, setLocale] = createSignal(props.locale ?? "en-US");
-  const [weekStartsOn, setWeekStartsOn] = createSignal<CalendarWeekStart>(
-    props.weekStartsOn ?? 0,
+  const [locale, setLocale] = createSignal(
+    untrack(() => props.locale ?? "en-US"),
   );
-  const [dir, setDir] = createSignal<CalendarDirection>(props.dir ?? "ltr");
+  const [weekStartsOn, setWeekStartsOn] = createSignal<CalendarWeekStart>(
+    untrack(() => props.weekStartsOn ?? 0),
+  );
+  const [dir, setDir] = createSignal<CalendarDirection>(
+    untrack(() => props.dir ?? "ltr"),
+  );
   const [allUnavailable, setAllUnavailable] = createSignal(
-    props.allUnavailable ?? false,
+    untrack(() => props.allUnavailable ?? false),
   );
   const scope = useCalendarScope();
   const actions: SceneActions = {
@@ -136,8 +140,12 @@ function CalendarScene(props: SceneProps): Element {
     get isDateUnavailable() {
       return (_date: DateValue) => allUnavailable();
     },
-    disabled: props.disabled,
-    readOnly: props.readOnly,
+    get disabled() {
+      return props.disabled;
+    },
+    get readOnly() {
+      return props.readOnly;
+    },
   };
   return (
     <section
@@ -240,14 +248,16 @@ function GridContents(props: {
   return (
     <>
       <Calendar.Row {...props.scope}>
-        {props.state.weekdays.map((weekday) => (
-          <Calendar.HeaderCell
-            {...props.scope}
-            weekday={weekday.index}
-          >
-            {weekday.shortLabel}
-          </Calendar.HeaderCell>
-        ))}
+        <For each={props.state.weekdays}>
+          {(weekday) => (
+            <Calendar.HeaderCell
+              {...props.scope}
+              weekday={weekday.index}
+            >
+              {weekday.shortLabel}
+            </Calendar.HeaderCell>
+          )}
+        </For>
       </Calendar.Row>
       <For
         each={props.state.weeks}

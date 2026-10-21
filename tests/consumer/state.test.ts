@@ -67,7 +67,7 @@ test("controlled cleanup compares with the current parent in either unmount writ
     const { accept, unmount, dispose } = createRoot((dispose) => {
       const [parent, accept] = createSignal(true);
       const [mounted, setMounted] = createSignal(true);
-      createMemo(() => {
+      const _mountScope = createMemo(() => {
         if (!mounted()) return;
         const [, request] = createControllableState({
           value: parent,
@@ -98,7 +98,7 @@ test("effect-callback requests read compiled conditional props freshly and dispo
   const calls: (string | null)[] = [];
   const memos = { created: 0, disposed: 0 };
   const { request, dispose } = createRoot((dispose) => {
-    const [override] = createSignal(true),
+    const override = true,
       [parent, accept] = createSignal<string | null>("alpha");
     const [next, request] = createSignal<string | null | undefined>(undefined);
     const handlers = {
@@ -109,17 +109,19 @@ test("effect-callback requests read compiled conditional props freshly and dispo
       ignore: () => {},
     };
     // Mirror the compiler's `prop={cond() ? x() : y}` getters: one memo per read.
-    const condition = () =>
+    const createCondition = () =>
       createMemo(() => {
         memos.created++;
         onCleanup(() => memos.disposed++);
-        return override();
-      })();
+        return override;
+      });
     const props = {
       get value() {
+        const condition = createCondition();
         return condition() ? parent() : undefined;
       },
       get onValueChange() {
+        const condition = createCondition();
         return condition() ? handlers.accept : handlers.ignore;
       },
     };

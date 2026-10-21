@@ -695,9 +695,10 @@ export function CalendarStateProvider(props: {
   scope?: Scope;
   children?: Element;
 }): Element {
+  const state = untrack(() => props.state as CalendarStateInternal);
   return (
     <CalendarProvider
-      value={props.state as CalendarStateInternal}
+      value={state}
       scope={props.scope}
     >
       {props.children}
@@ -765,10 +766,14 @@ export function CalendarHeader(props: CalendarHeaderProps): Element {
     "CalendarHeader",
     untrack(() => props.__scopeCalendar),
   );
+  const forwarded = merge(
+    { "data-calendar-header": "" },
+    omit(props, "__scopeCalendar"),
+  );
   return (
     <Primitive
       as="div"
-      {...merge({ "data-calendar-header": "" }, omit(props, "__scopeCalendar"))}
+      {...forwarded}
     />
   );
 }
@@ -1015,10 +1020,14 @@ export function CalendarRow(props: CalendarRowProps): Element {
     "CalendarRow",
     untrack(() => props.__scopeCalendar),
   );
+  const forwarded = merge(
+    { role: "row" as const },
+    omit(props, "__scopeCalendar"),
+  );
   return (
     <Primitive
       as="div"
-      {...merge({ role: "row" as const }, omit(props, "__scopeCalendar"))}
+      {...forwarded}
     />
   );
 }

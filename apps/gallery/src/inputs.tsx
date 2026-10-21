@@ -734,15 +734,16 @@ function Commands(): Element {
               <Command.List aria-label="Command results">
                 <Command.Group>
                   <Command.Label>Available commands</Command.Label>
-                  {items()
-                    .filter(
+                  <For
+                    each={items().filter(
                       (item) =>
                         !filter() ||
                         item.label
                           .toLowerCase()
                           .includes(search().toLowerCase()),
-                    )
-                    .map((item) => (
+                    )}
+                  >
+                    {(item) => (
                       <Command.Item
                         value={item.value}
                         id={
@@ -761,7 +762,8 @@ function Commands(): Element {
                       >
                         {item.label}
                       </Command.Item>
-                    ))}
+                    )}
+                  </For>
                 </Command.Group>
               </Command.List>
             )}

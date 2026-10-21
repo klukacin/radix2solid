@@ -35,10 +35,9 @@ function rootSettings(props: Settings): Settings {
   };
 }
 function styledProps<P extends object>(props: P, className: string) {
-  const parsed = extractProps(
-    merge(useContext(FileDropSettings), props) as P & Settings,
-    fileDropRootPropDefs,
-  );
+  const mergedProps = merge(useContext(FileDropSettings), props) as P &
+    Settings;
+  const parsed = extractProps(mergedProps, fileDropRootPropDefs);
   return merge(omit(parsed as Record<string, unknown>, "color", "radius"), {
     get ["data-accent-color"]() {
       return parsed.color;

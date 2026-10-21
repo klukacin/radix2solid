@@ -240,11 +240,11 @@ export function FileDrop(props: FileDropProps): Element {
       pendingSource = undefined;
       pendingFiles = undefined;
       pendingCandidate = false;
-      const node = input();
+      const node = untrack(input);
       if (!node) return;
-      const accepted = value();
-      const countMode = multiple();
-      const parsedTokens = tokens();
+      const accepted = untrack(value);
+      const countMode = untrack(multiple);
+      const parsedTokens = untrack(tokens);
       const owner = untrack(formValidityOwner);
       const nextBaseline = failureMessage(
         rejectCandidate(accepted, "picker", countMode, parsedTokens),
@@ -616,32 +616,30 @@ export function FileDropInput(props: FileDropInputProps): Element {
           },
           { transparent: true },
         );
-      return target(
-        component,
-        merge(
-          omit(
-            childProps,
-            "value",
-            "defaultValue",
-            "files",
-            "readOnly",
-            "readonly",
-            "type",
-            "name",
-            "form",
-            "multiple",
-            "accept",
-            "required",
-            "disabled",
-          ),
-          {
-            get id() {
-              return props.id ?? childProps.id;
-            },
+      const forwarded = merge(
+        omit(
+          childProps,
+          "value",
+          "defaultValue",
+          "files",
+          "readOnly",
+          "readonly",
+          "type",
+          "name",
+          "form",
+          "multiple",
+          "accept",
+          "required",
+          "disabled",
+        ),
+        {
+          get id() {
+            return props.id ?? childProps.id;
           },
-          canonical,
-        ) as ComponentProps<typeof component>,
-      );
+        },
+        canonical,
+      ) as ComponentProps<typeof component>;
+      return target(component, forwarded);
     });
   const hostProps = merge(
     omit(

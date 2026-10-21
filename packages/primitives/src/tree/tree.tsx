@@ -636,10 +636,11 @@ export function TreeItemText(props: TreeItemTextProps): Element {
     "TreeItemText",
     untrack(() => props.__scopeTree),
   )!;
+  const forwarded = merge(omit(props, "__scopeTree"), { id: item.textId });
   return (
     <Primitive
       as="span"
-      {...merge(omit(props, "__scopeTree"), { id: item.textId })}
+      {...forwarded}
     />
   );
 }
@@ -648,24 +649,21 @@ export function TreeItemIndicator(props: TreeItemIndicatorProps): Element {
   const scope = untrack(() => props.__scopeTree),
     item = useItem("TreeItemIndicator", scope)!,
     root = useTree("TreeItemIndicator", scope);
+  const forwarded = merge(omit(props, "__scopeTree"), {
+    "aria-hidden": "true" as const,
+    get ["data-state"]() {
+      return item.branch() ? (item.expanded() ? "open" : "closed") : undefined;
+    },
+    get ["data-selected"]() {
+      return root.mode() === "single" && root.value() === item.key()
+        ? ""
+        : undefined;
+    },
+  });
   return (
     <Primitive
       as="span"
-      {...merge(omit(props, "__scopeTree"), {
-        "aria-hidden": "true" as const,
-        get ["data-state"]() {
-          return item.branch()
-            ? item.expanded()
-              ? "open"
-              : "closed"
-            : undefined;
-        },
-        get ["data-selected"]() {
-          return root.mode() === "single" && root.value() === item.key()
-            ? ""
-            : undefined;
-        },
-      })}
+      {...forwarded}
     />
   );
 }
@@ -708,6 +706,7 @@ export function TreeItemGroup(props: TreeItemGroupProps): Element {
     );
   }
   const asChild = untrack(() => props.asChild);
+  const groupProps = omit(forwarded, "children", "asChild");
   return (
     <ParentProvider
       scope={scope}
@@ -720,7 +719,7 @@ export function TreeItemGroup(props: TreeItemGroupProps): Element {
       ) : (
         <Primitive
           as="div"
-          {...omit(forwarded, "children", "asChild")}
+          {...groupProps}
           asChild={false}
         >
           <Show when={presence.mounted()}>
@@ -736,45 +735,38 @@ export function TreeExpandTrigger(props: TreeExpandTriggerProps): Element {
   const scope = untrack(() => props.__scopeTree),
     item = useItem("TreeExpandTrigger", scope)!,
     root = useTree("TreeExpandTrigger", scope);
-  return (
-    <Primitive
-      {...merge(omit(props, "__scopeTree"), {
-        type: "button" as const,
-        tabIndex: -1,
-        "data-radix-tree-expand-trigger": "",
-        get disabled() {
-          return props.disabled || item.disabled() || !item.branch();
-        },
-        get ["aria-expanded"](): "true" | "false" | undefined {
-          return item.branch()
-            ? item.expanded()
-              ? "true"
-              : "false"
-            : undefined;
-        },
-        get ["data-state"]() {
-          return item.expanded() ? "open" : "closed";
-        },
-        onKeyDown: composeEventHandlers<KeyboardEvent>(
-          () => props.onKeyDown,
-          (event) => {
-            if (
-              (event.isComposing || root.composing) &&
-              (event.key === "Enter" || event.key === " ")
-            )
-              event.preventDefault();
-          },
-        ),
-        onClick: composeEventHandlers<MouseEvent>(
-          () => props.onClick,
-          (event) => {
-            event.stopPropagation();
-            event.preventDefault();
-            if (!props.disabled && !root.composing)
-              root.expand(item, !item.expanded());
-          },
-        ),
-      })}
-    />
-  );
+  const forwarded = merge(omit(props, "__scopeTree"), {
+    type: "button" as const,
+    tabIndex: -1,
+    "data-radix-tree-expand-trigger": "",
+    get disabled() {
+      return props.disabled || item.disabled() || !item.branch();
+    },
+    get ["aria-expanded"](): "true" | "false" | undefined {
+      return item.branch() ? (item.expanded() ? "true" : "false") : undefined;
+    },
+    get ["data-state"]() {
+      return item.expanded() ? "open" : "closed";
+    },
+    onKeyDown: composeEventHandlers<KeyboardEvent>(
+      () => props.onKeyDown,
+      (event) => {
+        if (
+          (event.isComposing || root.composing) &&
+          (event.key === "Enter" || event.key === " ")
+        )
+          event.preventDefault();
+      },
+    ),
+    onClick: composeEventHandlers<MouseEvent>(
+      () => props.onClick,
+      (event) => {
+        event.stopPropagation();
+        event.preventDefault();
+        if (!props.disabled && !root.composing)
+          root.expand(item, !item.expanded());
+      },
+    ),
+  });
+  return <Primitive {...forwarded} />;
 }

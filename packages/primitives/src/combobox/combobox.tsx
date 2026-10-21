@@ -445,48 +445,14 @@ export function ComboboxInput(props: ComboboxInputProps): Element {
     );
   }
   const render: SlotRender = (target) =>
-    untrack(() => props.children as SlotRender)((component, childProps) =>
-      target(
-        component,
-        merge(childProps, {
-          name: undefined,
-          get form() {
-            return root.props.form;
-          },
-          get value() {
-            return root.query();
-          },
-          get disabled() {
-            return root.props.disabled;
-          },
-          get readOnly() {
-            return root.props.readOnly;
-          },
-          get required() {
-            return root.props.required;
-          },
-        }) as ComponentProps<typeof component>,
-      ),
-    );
-  return (
-    <Primitive
-      as="input"
-      {...(merge(omit(props, "__scopeCombobox"), {
-        id: props.id || createUniqueId(),
-        role: "combobox" as const,
-        "aria-autocomplete": "list" as const,
-        get autocomplete() {
-          return props.autocomplete ?? "off";
-        },
+    untrack(() => props.children as SlotRender)((component, childProps) => {
+      const slotted = merge(childProps, {
         name: undefined,
         get form() {
           return root.props.form;
         },
         get value() {
           return root.query();
-        },
-        get dir() {
-          return root.dir();
         },
         get disabled() {
           return root.props.disabled;
@@ -497,107 +463,143 @@ export function ComboboxInput(props: ComboboxInputProps): Element {
         get required() {
           return root.props.required;
         },
-        get ["aria-invalid"]() {
-          return root.invalid() ? ("true" as const) : undefined;
-        },
-        get ["aria-expanded"]() {
-          return root.open() ? ("true" as const) : ("false" as const);
-        },
-        get ["aria-controls"]() {
-          return root.open() ? root.listId : undefined;
-        },
-        get ["aria-activedescendant"]() {
-          return root.open() ? root.cursor.activeId() : undefined;
-        },
-        get ref() {
-          return composeRefs(props.ref, root.setInput);
-        },
-        get children() {
-          return props.asChild ? render : props.children;
-        },
-        onInput(event: InputEvent) {
-          callEventHandler(props.onInput, event);
-          if (!event.defaultPrevented && !root.locked()) {
-            root.setQuery((event.currentTarget as HTMLInputElement).value);
-            root.setOpen(true);
-          }
-          invalidate((n) => n + 1);
-        },
-        onCompositionStart: composeEventHandlers<CompositionEvent>(
-          () => props.onCompositionStart,
-          () => {
-            composing = true;
-          },
-        ),
-        onCompositionEnd: composeEventHandlers<CompositionEvent>(
-          () => props.onCompositionEnd,
-          () => {
-            composing = false;
-          },
-        ),
-        onBlur: composeEventHandlers<FocusEvent>(
-          () => props.onBlur,
-          (event) => {
-            const next = event.relatedTarget as Node | null;
-            if (
-              next &&
-              (root.list()?.contains(next) ||
-                [...root.surfaces].some((node) => node.contains(next)))
-            )
-              return;
-            // Let a native submit attempt validate the draft before any blur reconciliation.
-            const form = root.input()?.form;
-            if (
-              form &&
-              next instanceof HTMLButtonElement &&
-              next.type === "submit" &&
-              next.form === form
-            )
-              return;
-            if (
-              form &&
-              next instanceof HTMLInputElement &&
-              ["submit", "image"].includes(next.type) &&
-              next.form === form
-            )
-              return;
-            if (root.open() && root.list()) return; // The layer owns cancellable outside interactions while open.
-            root.resolve();
-          },
-        ),
-        onKeyDown: composeEventHandlers<KeyboardEvent>(
-          () => props.onKeyDown,
-          (event) => {
-            if (
-              root.locked() ||
-              composing ||
-              event.isComposing ||
-              event.keyCode === 229 ||
-              event.ctrlKey ||
-              event.metaKey ||
-              event.altKey
-            )
-              return;
-            if (
-              !event.shiftKey &&
-              (event.key === "ArrowDown" || event.key === "ArrowUp")
-            ) {
-              event.preventDefault();
-              root.navigate(event.key === "ArrowDown" ? "first" : "last");
-            } else if (
-              event.key === "Enter" &&
-              root.open() &&
-              root.cursor.activeId()
-            ) {
-              event.preventDefault();
-              root.commit(root.cursor.active()!, event);
-            } else if (event.key === "Escape") {
-              if (root.open()) event.preventDefault();
-              root.resolve();
-            }
-          },
-        ),
-      }) as PrimitiveProps<"input">)}
+      }) as ComponentProps<typeof component>;
+      return target(component, slotted);
+    });
+  const inputId = createMemo(() => props.id || createUniqueId());
+  const forwarded = merge(omit(props, "__scopeCombobox"), {
+    get id() {
+      return inputId();
+    },
+    role: "combobox" as const,
+    "aria-autocomplete": "list" as const,
+    get autocomplete() {
+      return props.autocomplete ?? "off";
+    },
+    name: undefined,
+    get form() {
+      return root.props.form;
+    },
+    get value() {
+      return root.query();
+    },
+    get dir() {
+      return root.dir();
+    },
+    get disabled() {
+      return root.props.disabled;
+    },
+    get readOnly() {
+      return root.props.readOnly;
+    },
+    get required() {
+      return root.props.required;
+    },
+    get ["aria-invalid"]() {
+      return root.invalid() ? ("true" as const) : undefined;
+    },
+    get ["aria-expanded"]() {
+      return root.open() ? ("true" as const) : ("false" as const);
+    },
+    get ["aria-controls"]() {
+      return root.open() ? root.listId : undefined;
+    },
+    get ["aria-activedescendant"]() {
+      return root.open() ? root.cursor.activeId() : undefined;
+    },
+    get ref() {
+      return composeRefs(props.ref, root.setInput);
+    },
+    get children() {
+      return props.asChild ? render : props.children;
+    },
+    onInput(event: InputEvent) {
+      callEventHandler(props.onInput, event);
+      if (!event.defaultPrevented && !root.locked()) {
+        root.setQuery((event.currentTarget as HTMLInputElement).value);
+        root.setOpen(true);
+      }
+      invalidate((n) => n + 1);
+    },
+    onCompositionStart: composeEventHandlers<CompositionEvent>(
+      () => props.onCompositionStart,
+      () => {
+        composing = true;
+      },
+    ),
+    onCompositionEnd: composeEventHandlers<CompositionEvent>(
+      () => props.onCompositionEnd,
+      () => {
+        composing = false;
+      },
+    ),
+    onBlur: composeEventHandlers<FocusEvent>(
+      () => props.onBlur,
+      (event) => {
+        const next = event.relatedTarget as Node | null;
+        if (
+          next &&
+          (root.list()?.contains(next) ||
+            [...root.surfaces].some((node) => node.contains(next)))
+        )
+          return;
+        // Let a native submit attempt validate the draft before any blur reconciliation.
+        const form = root.input()?.form;
+        if (
+          form &&
+          next instanceof HTMLButtonElement &&
+          next.type === "submit" &&
+          next.form === form
+        )
+          return;
+        if (
+          form &&
+          next instanceof HTMLInputElement &&
+          ["submit", "image"].includes(next.type) &&
+          next.form === form
+        )
+          return;
+        if (root.open() && root.list()) return; // The layer owns cancellable outside interactions while open.
+        root.resolve();
+      },
+    ),
+    onKeyDown: composeEventHandlers<KeyboardEvent>(
+      () => props.onKeyDown,
+      (event) => {
+        if (
+          root.locked() ||
+          composing ||
+          event.isComposing ||
+          event.keyCode === 229 ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.altKey
+        )
+          return;
+        if (
+          !event.shiftKey &&
+          (event.key === "ArrowDown" || event.key === "ArrowUp")
+        ) {
+          event.preventDefault();
+          root.navigate(event.key === "ArrowDown" ? "first" : "last");
+        } else if (
+          event.key === "Enter" &&
+          root.open() &&
+          root.cursor.activeId()
+        ) {
+          event.preventDefault();
+          root.commit(root.cursor.active()!, event);
+        } else if (event.key === "Escape") {
+          if (root.open()) event.preventDefault();
+          root.resolve();
+        }
+      },
+    ),
+  }) as PrimitiveProps<"input">;
+  return (
+    <Primitive
+      as="input"
+      {...forwarded}
     />
   );
 }
@@ -620,50 +622,49 @@ export function ComboboxTrigger(props: ComboboxTriggerProps): Element {
       { transparent: true },
     );
   const render: SlotRender = (target) =>
-    untrack(() => props.children as SlotRender)((component, childProps) =>
-      target(
-        component,
-        merge(childProps, {
-          type: "button",
-          tabIndex: -1,
-          get disabled() {
-            return root.locked() || props.disabled;
-          },
-        }) as ComponentProps<typeof component>,
-      ),
-    );
-  return (
-    <Primitive
-      as="button"
-      {...(merge(omit(props, "__scopeCombobox"), {
-        type: "button" as const,
+    untrack(() => props.children as SlotRender)((component, childProps) => {
+      const slotted = merge(childProps, {
+        type: "button",
         tabIndex: -1,
         get disabled() {
           return root.locked() || props.disabled;
         },
-        get ref() {
-          return composeRefs(props.ref, ref);
-        },
-        get children() {
-          return props.asChild ? render : props.children;
-        },
-        onPointerDown: composeEventHandlers<PointerEvent>(
-          () => props.onPointerDown,
-          (event) => {
-            if (event.button === 0 && event.pointerType === "mouse")
-              event.preventDefault();
-          },
-        ),
-        onClick: composeEventHandlers<MouseEvent>(
-          () => props.onClick,
-          () => {
-            if (!root.locked()) {
-              root.setOpen(!root.open());
-              root.input()?.focus({ preventScroll: true });
-            }
-          },
-        ),
-      }) as PrimitiveProps<"button">)}
+      }) as ComponentProps<typeof component>;
+      return target(component, slotted);
+    });
+  const forwarded = merge(omit(props, "__scopeCombobox"), {
+    type: "button" as const,
+    tabIndex: -1,
+    get disabled() {
+      return root.locked() || props.disabled;
+    },
+    get ref() {
+      return composeRefs(props.ref, ref);
+    },
+    get children() {
+      return props.asChild ? render : props.children;
+    },
+    onPointerDown: composeEventHandlers<PointerEvent>(
+      () => props.onPointerDown,
+      (event) => {
+        if (event.button === 0 && event.pointerType === "mouse")
+          event.preventDefault();
+      },
+    ),
+    onClick: composeEventHandlers<MouseEvent>(
+      () => props.onClick,
+      () => {
+        if (!root.locked()) {
+          root.setOpen(!root.open());
+          root.input()?.focus({ preventScroll: true });
+        }
+      },
+    ),
+  }) as PrimitiveProps<"button">;
+  return (
+    <Primitive
+      as="button"
+      {...forwarded}
     />
   );
 }
@@ -673,42 +674,38 @@ export function ComboboxClear(props: ComboboxClearProps): Element {
     untrack(() => props.__scopeCombobox),
   );
   const render: SlotRender = (target) =>
-    untrack(() => props.children as SlotRender)((component, childProps) =>
-      target(
-        component,
-        merge(childProps, {
-          type: "button",
-          tabIndex: -1,
-          get disabled() {
-            return root.locked() || props.disabled;
-          },
-        }) as ComponentProps<typeof component>,
-      ),
-    );
-  return (
-    <Primitive
-      as="button"
-      {...(merge(omit(props, "__scopeCombobox"), {
-        type: "button" as const,
+    untrack(() => props.children as SlotRender)((component, childProps) => {
+      const slotted = merge(childProps, {
+        type: "button",
         tabIndex: -1,
         get disabled() {
           return root.locked() || props.disabled;
         },
-        get children() {
-          return props.asChild ? render : props.children;
-        },
-        onPointerDown: composeEventHandlers<PointerEvent>(
-          () => props.onPointerDown,
-          (event) => {
-            if (event.button === 0 && event.pointerType === "mouse")
-              event.preventDefault();
-          },
-        ),
-        onClick: composeEventHandlers<MouseEvent>(
-          () => props.onClick,
-          root.clear,
-        ),
-      }) as PrimitiveProps<"button">)}
+      }) as ComponentProps<typeof component>;
+      return target(component, slotted);
+    });
+  const forwarded = merge(omit(props, "__scopeCombobox"), {
+    type: "button" as const,
+    tabIndex: -1,
+    get disabled() {
+      return root.locked() || props.disabled;
+    },
+    get children() {
+      return props.asChild ? render : props.children;
+    },
+    onPointerDown: composeEventHandlers<PointerEvent>(
+      () => props.onPointerDown,
+      (event) => {
+        if (event.button === 0 && event.pointerType === "mouse")
+          event.preventDefault();
+      },
+    ),
+    onClick: composeEventHandlers<MouseEvent>(() => props.onClick, root.clear),
+  }) as PrimitiveProps<"button">;
+  return (
+    <Primitive
+      as="button"
+      {...forwarded}
     />
   );
 }
@@ -786,35 +783,34 @@ export function ComboboxContent(props: ComboboxContentProps): Element {
       },
     });
     onCleanup(() => presence.ref(undefined));
+    const forwarded = merge(
+      omit(
+        props,
+        "__scopeCombobox",
+        "forceMount",
+        "onEscapeKeyDown",
+        "onPointerDownOutside",
+        "onFocusOutside",
+        "onInteractOutside",
+        "onOpenAutoFocus",
+        "onCloseAutoFocus",
+      ),
+      {
+        __scopePopper: scope,
+        get ref() {
+          return composeRefs(props.ref, ref, presence.ref);
+        },
+        get ["data-state"]() {
+          return root.open() ? "open" : "closed";
+        },
+        get dir() {
+          return root.dir();
+        },
+      },
+    );
     return (
       <LayerContext value={layer}>
-        <PopperContent
-          {...merge(
-            omit(
-              props,
-              "__scopeCombobox",
-              "forceMount",
-              "onEscapeKeyDown",
-              "onPointerDownOutside",
-              "onFocusOutside",
-              "onInteractOutside",
-              "onOpenAutoFocus",
-              "onCloseAutoFocus",
-            ),
-            {
-              __scopePopper: scope,
-              get ref() {
-                return composeRefs(props.ref, ref, presence.ref);
-              },
-              get ["data-state"]() {
-                return root.open() ? "open" : "closed";
-              },
-              get dir() {
-                return root.dir();
-              },
-            },
-          )}
-        />
+        <PopperContent {...forwarded} />
       </LayerContext>
     );
   }
@@ -859,27 +855,26 @@ export function ComboboxList(props: ComboboxListProps): Element {
       { transparent: true },
     );
   const render: SlotRender = (target) =>
-    untrack(() => props.children as SlotRender)((component, childProps) =>
-      target(
-        component,
-        merge(childProps, { id: root.listId }) as ComponentProps<
-          typeof component
-        >,
-      ),
-    );
+    untrack(() => props.children as SlotRender)((component, childProps) => {
+      const slotted = merge(childProps, { id: root.listId }) as ComponentProps<
+        typeof component
+      >;
+      return target(component, slotted);
+    });
+  const forwarded = merge(omit(props, "__scopeCombobox"), {
+    role: "listbox" as const,
+    id: root.listId,
+    get ref() {
+      return composeRefs(props.ref, ref);
+    },
+    get children() {
+      return props.asChild ? render : props.children;
+    },
+  }) as PrimitiveProps<"div">;
   return (
     <Primitive
       as="div"
-      {...(merge(omit(props, "__scopeCombobox"), {
-        role: "listbox" as const,
-        id: root.listId,
-        get ref() {
-          return composeRefs(props.ref, ref);
-        },
-        get children() {
-          return props.asChild ? render : props.children;
-        },
-      }) as PrimitiveProps<"div">)}
+      {...forwarded}
     />
   );
 }
@@ -909,63 +904,62 @@ export function ComboboxItem(props: ComboboxItemProps): Element {
       { transparent: true },
     );
   const render: SlotRender = (target) =>
-    untrack(() => props.children as SlotRender)((component, childProps) =>
-      target(
-        component,
-        merge(childProps, { id }) as ComponentProps<typeof component>,
-      ),
-    );
+    untrack(() => props.children as SlotRender)((component, childProps) => {
+      const slotted = merge(childProps, { id }) as ComponentProps<
+        typeof component
+      >;
+      return target(component, slotted);
+    });
+  const itemKey = () => props.value;
+  const forwarded = merge(omit(props, "__scopeCombobox", "value"), {
+    id,
+    role: "option" as const,
+    tabIndex: -1,
+    get ["aria-label"]() {
+      return props["aria-label"] ?? root.records().get(props.value)?.label;
+    },
+    get ["aria-disabled"]() {
+      return root.records().get(props.value)?.disabled
+        ? ("true" as const)
+        : undefined;
+    },
+    get ["aria-selected"]() {
+      return root.cursor.active() === props.value
+        ? ("true" as const)
+        : ("false" as const);
+    },
+    get ["data-state"]() {
+      return root.value() === props.value ? "checked" : "unchecked";
+    },
+    get ref() {
+      return composeRefs(props.ref, ref);
+    },
+    get children() {
+      return props.asChild ? render : props.children;
+    },
+    onPointerDown: composeEventHandlers<PointerEvent>(
+      () => props.onPointerDown,
+      (event) => {
+        if (event.pointerType === "mouse" && event.button === 0)
+          event.preventDefault();
+      },
+    ),
+    onClick(event: MouseEvent) {
+      callEventHandler(props.onClick, event);
+      const cancelled = event.defaultPrevented;
+      event.preventDefault();
+      if (!cancelled && event.button === 0) root.commit(props.value, event);
+    },
+  }) as PrimitiveProps<"div">;
   return (
     <Show when={root.matches(props.value)}>
       <ItemProvider
         scope={props.__scopeCombobox}
-        value={() => props.value}
+        value={itemKey}
       >
         <Primitive
           as="div"
-          {...(merge(omit(props, "__scopeCombobox", "value"), {
-            id,
-            role: "option" as const,
-            tabIndex: -1,
-            get ["aria-label"]() {
-              return (
-                props["aria-label"] ?? root.records().get(props.value)?.label
-              );
-            },
-            get ["aria-disabled"]() {
-              return root.records().get(props.value)?.disabled
-                ? ("true" as const)
-                : undefined;
-            },
-            get ["aria-selected"]() {
-              return root.cursor.active() === props.value
-                ? ("true" as const)
-                : ("false" as const);
-            },
-            get ["data-state"]() {
-              return root.value() === props.value ? "checked" : "unchecked";
-            },
-            get ref() {
-              return composeRefs(props.ref, ref);
-            },
-            get children() {
-              return props.asChild ? render : props.children;
-            },
-            onPointerDown: composeEventHandlers<PointerEvent>(
-              () => props.onPointerDown,
-              (event) => {
-                if (event.pointerType === "mouse" && event.button === 0)
-                  event.preventDefault();
-              },
-            ),
-            onClick(event: MouseEvent) {
-              callEventHandler(props.onClick, event);
-              const cancelled = event.defaultPrevented;
-              event.preventDefault();
-              if (!cancelled && event.button === 0)
-                root.commit(props.value, event);
-            },
-          }) as PrimitiveProps<"div">)}
+          {...forwarded}
         />
       </ItemProvider>
     </Show>
@@ -980,14 +974,15 @@ export function ComboboxItemText(props: ComboboxItemTextProps): Element {
       "ComboboxItemText",
       untrack(() => props.__scopeCombobox),
     );
+  const forwarded = merge(omit(props, "__scopeCombobox"), {
+    get children() {
+      return props.children ?? root.records().get(key())?.label;
+    },
+  }) as PrimitiveProps<"span">;
   return (
     <Primitive
       as="span"
-      {...(merge(omit(props, "__scopeCombobox"), {
-        get children() {
-          return props.children ?? root.records().get(key())?.label;
-        },
-      }) as PrimitiveProps<"span">)}
+      {...forwarded}
     />
   );
 }
@@ -1002,19 +997,24 @@ export function ComboboxItemIndicator(
       "ComboboxItemIndicator",
       untrack(() => props.__scopeCombobox),
     );
+  const forwarded = merge(omit(props, "__scopeCombobox"), {
+    "aria-hidden": "true" as const,
+  });
   return (
     <Show when={root.value() === key()}>
       <Primitive
         as="span"
-        {...merge(omit(props, "__scopeCombobox"), {
-          "aria-hidden": "true" as const,
-        })}
+        {...forwarded}
       />
     </Show>
   );
 }
 export function ComboboxGroup(props: ComboboxGroupProps): Element {
   const id = createUniqueId();
+  const forwarded = merge(
+    { role: "group" as const, "aria-labelledby": id },
+    omit(props, "__scopeCombobox"),
+  );
   return (
     <GroupProvider
       scope={props.__scopeCombobox}
@@ -1022,10 +1022,7 @@ export function ComboboxGroup(props: ComboboxGroupProps): Element {
     >
       <Primitive
         as="div"
-        {...merge(
-          { role: "group" as const, "aria-labelledby": id },
-          omit(props, "__scopeCombobox"),
-        )}
+        {...forwarded}
       />
     </GroupProvider>
   );
@@ -1036,21 +1033,22 @@ export function ComboboxLabel(props: ComboboxLabelProps): Element {
     untrack(() => props.__scopeCombobox),
   );
   const render: SlotRender = (target) =>
-    untrack(() => props.children as SlotRender)((component, childProps) =>
-      target(
-        component,
-        merge(childProps, { id }) as ComponentProps<typeof component>,
-      ),
-    );
+    untrack(() => props.children as SlotRender)((component, childProps) => {
+      const slotted = merge(childProps, { id }) as ComponentProps<
+        typeof component
+      >;
+      return target(component, slotted);
+    });
+  const forwarded = merge(omit(props, "__scopeCombobox"), {
+    id,
+    get children() {
+      return props.asChild ? render : props.children;
+    },
+  }) as PrimitiveProps<"div">;
   return (
     <Primitive
       as="div"
-      {...(merge(omit(props, "__scopeCombobox"), {
-        id,
-        get children() {
-          return props.asChild ? render : props.children;
-        },
-      }) as PrimitiveProps<"div">)}
+      {...forwarded}
     />
   );
 }
@@ -1059,11 +1057,15 @@ export function ComboboxEmpty(props: ComboboxEmptyProps): Element {
     "ComboboxEmpty",
     untrack(() => props.__scopeCombobox),
   );
+  const forwarded = merge(
+    { role: "status" as const },
+    omit(props, "__scopeCombobox"),
+  );
   return (
     <Show when={!!root.list() && !root.rows().length}>
       <Primitive
         as="div"
-        {...merge({ role: "status" as const }, omit(props, "__scopeCombobox"))}
+        {...forwarded}
       />
     </Show>
   );

@@ -5,7 +5,7 @@ import {
   FileDropTrigger,
 } from "@wsagency/radix2solid-primitives/file-drop";
 import * as Form from "@wsagency/radix2solid-primitives/form";
-import { createSignal, Errored, Show, type Element } from "solid-js";
+import { createSignal, Errored, Show, untrack, type Element } from "solid-js";
 
 type DynamicConflictKind =
   | "root-name"
@@ -19,20 +19,14 @@ function DynamicConflictProbe(props: {
   kind: DynamicConflictKind;
   label: string;
 }): Element {
-  const [rootName, setRootName] = createSignal("docs");
-  const [rootForm, setRootForm] = createSignal(
-    `file-drop-f2-dynamic-${props.kind}-form`,
-  );
-  const [ownerName, setOwnerName] = createSignal("docs");
-  const [ownerForm, setOwnerForm] = createSignal(
-    `file-drop-f2-dynamic-${props.kind}-form`,
-  );
-  const [childName, setChildName] = createSignal("docs");
-  const [childForm, setChildForm] = createSignal(
-    `file-drop-f2-dynamic-${props.kind}-form`,
-  );
-  const formId = `file-drop-f2-dynamic-${props.kind}-form`;
+  const formId = untrack(() => `file-drop-f2-dynamic-${props.kind}-form`);
   const otherFormId = `${formId}-other`;
+  const [rootName, setRootName] = createSignal("docs");
+  const [rootForm, setRootForm] = createSignal(formId);
+  const [ownerName, setOwnerName] = createSignal("docs");
+  const [ownerForm, setOwnerForm] = createSignal(formId);
+  const [childName, setChildName] = createSignal("docs");
+  const [childForm, setChildForm] = createSignal(formId);
   const makeConflict = () => {
     switch (props.kind) {
       case "root-name":
@@ -180,7 +174,7 @@ export function FileDropExamples(): Element {
   const [defaultMounted, setDefaultMounted] = createSignal(true);
   const [defaultProposals, setDefaultProposals] = createSignal(0);
   const [defaultEvents, setDefaultEvents] = createSignal(0);
-  const [disposedFiles] = createSignal<readonly File[]>([]);
+  const disposedFiles: readonly File[] = [];
   const [configConflict, setConfigConflict] = createSignal<
     "target-name" | "field-name" | "target-form" | "control-form"
   >();
@@ -192,26 +186,22 @@ export function FileDropExamples(): Element {
   const [publicMatcherMounted, setPublicMatcherMounted] = createSignal(true);
   const sameMetadataFile = (contents: string) =>
     new File([contents], "same.txt", { type: "text/plain", lastModified: 0 });
-  const [defaultA] = createSignal<readonly File[]>(
-    isServer
-      ? []
-      : [
-          new File(["alpha"], "alpha.txt", {
-            type: "text/plain",
-            lastModified: 0,
-          }),
-        ],
-  );
-  const [defaultB] = createSignal<readonly File[]>(
-    isServer
-      ? []
-      : [
-          new File(["bravo"], "bravo.txt", {
-            type: "text/plain",
-            lastModified: 0,
-          }),
-        ],
-  );
+  const defaultA: readonly File[] = isServer
+    ? []
+    : [
+        new File(["alpha"], "alpha.txt", {
+          type: "text/plain",
+          lastModified: 0,
+        }),
+      ];
+  const defaultB: readonly File[] = isServer
+    ? []
+    : [
+        new File(["bravo"], "bravo.txt", {
+          type: "text/plain",
+          lastModified: 0,
+        }),
+      ];
   return (
     <section aria-label="Native FileDrop">
       <form id="file-drop-form">
@@ -604,7 +594,7 @@ export function FileDropExamples(): Element {
             <FileDrop
               id="file-drop-f2-default-a"
               name="default-a-files"
-              defaultValue={defaultA()}
+              defaultValue={defaultA}
               onValueChange={() => setDefaultProposals((count) => count + 1)}
             >
               <FileDropInput
@@ -617,7 +607,7 @@ export function FileDropExamples(): Element {
             <FileDrop
               id="file-drop-f2-default-b"
               name="default-b-files"
-              defaultValue={defaultB()}
+              defaultValue={defaultB}
               onValueChange={() => setDefaultProposals((count) => count + 1)}
             >
               <FileDropInput
@@ -657,7 +647,7 @@ export function FileDropExamples(): Element {
             <FileDrop
               id="file-drop-f2-disposed"
               name="disposed-files"
-              value={disposedFiles()}
+              value={disposedFiles}
               onValueChange={() => setPendingProposals((count) => count + 1)}
             >
               <FileDropInput

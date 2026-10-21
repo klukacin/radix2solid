@@ -10,6 +10,7 @@ import {
   Errored,
   For,
   Show,
+  untrack,
   type Accessor,
   type Element,
 } from "solid-js";
@@ -228,20 +229,14 @@ function DynamicConflictProbe(props: {
   kind: DynamicConflictKind;
   label: string;
 }): Element {
-  const [rootName, setRootName] = createSignal("scheduled");
-  const [rootForm, setRootForm] = createSignal(
-    `date-picker-dynamic-${props.kind}-form`,
-  );
-  const [ownerName, setOwnerName] = createSignal("scheduled");
-  const [ownerForm, setOwnerForm] = createSignal(
-    `date-picker-dynamic-${props.kind}-form`,
-  );
-  const [childName, setChildName] = createSignal("scheduled");
-  const [childForm, setChildForm] = createSignal(
-    `date-picker-dynamic-${props.kind}-form`,
-  );
-  const formId = `date-picker-dynamic-${props.kind}-form`;
+  const formId = untrack(() => `date-picker-dynamic-${props.kind}-form`);
   const otherFormId = `${formId}-other`;
+  const [rootName, setRootName] = createSignal("scheduled");
+  const [rootForm, setRootForm] = createSignal(formId);
+  const [ownerName, setOwnerName] = createSignal("scheduled");
+  const [ownerForm, setOwnerForm] = createSignal(formId);
+  const [childName, setChildName] = createSignal("scheduled");
+  const [childForm, setChildForm] = createSignal(formId);
   const makeConflict = () => {
     switch (props.kind) {
       case "root-name":
@@ -333,13 +328,14 @@ function InitialConflictProbe(props: {
   label: string;
 }): Element {
   const [mounted, setMounted] = createSignal(false);
-  const formId = `date-picker-initial-${props.kind}-form`;
+  const kind = untrack(() => props.kind);
+  const formId = `date-picker-initial-${kind}-form`;
   const otherFormId = `${formId}-other`;
-  const fieldName = props.kind === "masked-field-name" ? "other" : "due";
+  const fieldName = kind === "masked-field-name" ? "other" : "due";
   const targetProps =
-    props.kind === "raw-name"
+    kind === "raw-name"
       ? { name: "other" }
-      : props.kind === "raw-form"
+      : kind === "raw-form"
         ? { form: otherFormId }
         : { name: "due" };
   return (
@@ -913,9 +909,9 @@ export function DatePickerExamples(
                   if (value !== null) setManagedDate(value);
                 },
                 get isDateUnavailable() {
-                  const unavailable = managedUnavailable();
-                  return (date: DateValue) =>
-                    unavailable && date < "2026-10-20";
+                  return managedUnavailable()
+                    ? (date: DateValue) => date < "2026-10-20"
+                    : (_date: DateValue) => false;
                 },
               }}
               bridge={(scope: PickerScope) => (

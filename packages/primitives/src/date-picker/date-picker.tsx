@@ -254,9 +254,9 @@ function DatePickerState(props: {
   props: DatePickerProps;
   scope?: Scope;
 }): Element {
-  const root = props.props;
+  const root = untrack(() => props.props);
   const popover = usePopoverContext(
-    { __scopePopover: props.scope },
+    { __scopePopover: untrack(() => props.scope) },
     "DatePicker",
   );
   const [bridgeNode, setBridgeNode] = createSignal<
@@ -558,38 +558,39 @@ function DatePickerState(props: {
     candidate = undefined;
   });
 
+  const rootForwardedProps = omit(
+    root,
+    "__scopeDatePicker",
+    "value",
+    "defaultValue",
+    "onValueChange",
+    "viewMonth",
+    "defaultViewMonth",
+    "onViewMonthChange",
+    "today",
+    "locale",
+    "weekStartsOn",
+    "dir",
+    "min",
+    "max",
+    "isDateUnavailable",
+    "disabled",
+    "readOnly",
+    "open",
+    "defaultOpen",
+    "onOpenChange",
+    "modal",
+    "name",
+    "form",
+    "required",
+  ) as DatePickerHostProps;
   const rootHostProps = merge(
     {
       get dir() {
         return state.dir();
       },
     },
-    omit(
-      root,
-      "__scopeDatePicker",
-      "value",
-      "defaultValue",
-      "onValueChange",
-      "viewMonth",
-      "defaultViewMonth",
-      "onViewMonthChange",
-      "today",
-      "locale",
-      "weekStartsOn",
-      "dir",
-      "min",
-      "max",
-      "isDateUnavailable",
-      "disabled",
-      "readOnly",
-      "open",
-      "defaultOpen",
-      "onOpenChange",
-      "modal",
-      "name",
-      "form",
-      "required",
-    ) as DatePickerHostProps,
+    rootForwardedProps,
   );
   return (
     <DatePickerProvider
@@ -681,15 +682,12 @@ export type DatePickerPortalProps = Omit<
   "__scopePopover"
 > & { __scopeDatePicker?: Scope };
 export function DatePickerPortal(props: DatePickerPortalProps): Element {
-  return (
-    <PopoverPortal
-      {...(merge(omit(props, "__scopeDatePicker"), {
-        get __scopePopover() {
-          return props.__scopeDatePicker;
-        },
-      }) as PopoverPortalProps)}
-    />
-  );
+  const forwarded = merge(omit(props, "__scopeDatePicker"), {
+    get __scopePopover() {
+      return props.__scopeDatePicker;
+    },
+  }) as PopoverPortalProps;
+  return <PopoverPortal {...forwarded} />;
 }
 export type DatePickerContentProps = Omit<
   PopoverContentProps,
@@ -713,52 +711,42 @@ export function DatePickerContent(props: DatePickerContentProps): Element {
   onCleanup(() => {
     if (ownedContent) context.clearContent(ownedContent);
   });
-  return (
-    <PopoverContent
-      {...(merge(omit(props, "__scopeDatePicker", "dir", "onFocusIn"), {
-        get __scopePopover() {
-          return props.__scopeDatePicker;
-        },
-        get dir() {
-          return context.state.dir();
-        },
-        get ref() {
-          return composeRefs(props.ref, setContentRef);
-        },
-        onFocusIn: (event: FocusEvent) =>
-          handleDatePickerContentFocus(
-            context.content(),
-            event,
-            props.onFocusIn,
-          ),
-        get onPlaced() {
-          return () => {
-            props.onPlaced?.();
-            const content = context.content();
-            if (content)
-              revealFocusedElement(
-                content,
-                content.ownerDocument.activeElement,
-              );
-          };
-        },
-      }) as PopoverContentProps)}
-    />
-  );
+  const forwarded = merge(
+    omit(props, "__scopeDatePicker", "dir", "onFocusIn"),
+    {
+      get __scopePopover() {
+        return props.__scopeDatePicker;
+      },
+      get dir() {
+        return context.state.dir();
+      },
+      get ref() {
+        return composeRefs(props.ref, setContentRef);
+      },
+      onFocusIn: (event: FocusEvent) =>
+        handleDatePickerContentFocus(context.content(), event, props.onFocusIn),
+      get onPlaced() {
+        return () => {
+          props.onPlaced?.();
+          const content = context.content();
+          if (content)
+            revealFocusedElement(content, content.ownerDocument.activeElement);
+        };
+      },
+    },
+  ) as PopoverContentProps;
+  return <PopoverContent {...forwarded} />;
 }
 export type DatePickerTitleProps = Omit<PopoverTitleProps, "__scopePopover"> & {
   __scopeDatePicker?: Scope;
 };
 export function DatePickerTitle(props: DatePickerTitleProps): Element {
-  return (
-    <PopoverTitle
-      {...(merge(omit(props, "__scopeDatePicker"), {
-        get __scopePopover() {
-          return props.__scopeDatePicker;
-        },
-      }) as PopoverTitleProps)}
-    />
-  );
+  const forwarded = merge(omit(props, "__scopeDatePicker"), {
+    get __scopePopover() {
+      return props.__scopeDatePicker;
+    },
+  }) as PopoverTitleProps;
+  return <PopoverTitle {...forwarded} />;
 }
 export type DatePickerDescriptionProps = Omit<
   PopoverDescriptionProps,
@@ -767,29 +755,23 @@ export type DatePickerDescriptionProps = Omit<
 export function DatePickerDescription(
   props: DatePickerDescriptionProps,
 ): Element {
-  return (
-    <PopoverDescription
-      {...(merge(omit(props, "__scopeDatePicker"), {
-        get __scopePopover() {
-          return props.__scopeDatePicker;
-        },
-      }) as PopoverDescriptionProps)}
-    />
-  );
+  const forwarded = merge(omit(props, "__scopeDatePicker"), {
+    get __scopePopover() {
+      return props.__scopeDatePicker;
+    },
+  }) as PopoverDescriptionProps;
+  return <PopoverDescription {...forwarded} />;
 }
 export type DatePickerCloseProps = Omit<PopoverCloseProps, "__scopePopover"> & {
   __scopeDatePicker?: Scope;
 };
 export function DatePickerClose(props: DatePickerCloseProps): Element {
-  return (
-    <PopoverClose
-      {...(merge(omit(props, "__scopeDatePicker"), {
-        get __scopePopover() {
-          return props.__scopeDatePicker;
-        },
-      }) as PopoverCloseProps)}
-    />
-  );
+  const forwarded = merge(omit(props, "__scopeDatePicker"), {
+    get __scopePopover() {
+      return props.__scopeDatePicker;
+    },
+  }) as PopoverCloseProps;
+  return <PopoverClose {...forwarded} />;
 }
 
 export type DatePickerClearProps = Without<
@@ -837,6 +819,11 @@ export function DatePickerCalendar(props: DatePickerCalendarProps): Element {
     "DatePicker.Calendar",
     untrack(() => props.__scopeDatePicker),
   );
+  const forwarded = merge(omit(props, "__scopeDatePicker", "dir"), {
+    get dir() {
+      return context.state.dir();
+    },
+  });
   return (
     <CalendarStateProvider
       state={context.state}
@@ -844,11 +831,7 @@ export function DatePickerCalendar(props: DatePickerCalendarProps): Element {
     >
       <Primitive
         as="div"
-        {...merge(omit(props, "__scopeDatePicker", "dir"), {
-          get dir() {
-            return context.state.dir();
-          },
-        })}
+        {...forwarded}
       />
     </CalendarStateProvider>
   );
@@ -898,14 +881,22 @@ export function DatePickerFormControl(
         const dataInvalid = runtimeProps["data-invalid"];
         const describedBy = runtimeProps["aria-describedby"];
         const targetDescription = targetDescriptionReader()?.();
-        context.state.value();
-        context.props.required;
-        context.state.props.min;
-        context.state.props.max;
-        context.state.props.disabled;
-        context.state.props.readOnly;
-        context.state.props.isDateUnavailable;
-        return [element, dataInvalid, describedBy, targetDescription] as const;
+        const constraintInputs = [
+          context.state.value(),
+          context.props.required,
+          context.state.props.min,
+          context.state.props.max,
+          context.state.props.disabled,
+          context.state.props.readOnly,
+          context.state.props.isDateUnavailable,
+        ];
+        return [
+          element,
+          dataInvalid,
+          describedBy,
+          targetDescription,
+          constraintInputs,
+        ] as const;
       },
       ([element, dataInvalid, describedBy, targetDescription]) => {
         if (!element) return;

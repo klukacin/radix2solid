@@ -67,7 +67,7 @@ const scenes = [
     excluded: (id: string) =>
       unrelatedEngine(id) ||
       id.includes("/radix2solid-icons/") ||
-      /\/radix2solid-icons-extra\/dist\/client\/FolderOpenIcon\.js$/.test(id),
+      id.endsWith("/radix2solid-icons-extra/dist/client/FolderOpenIcon.js"),
   })),
   {
     name: "Theme/Button",

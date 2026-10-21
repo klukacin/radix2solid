@@ -344,9 +344,9 @@ export const Legend = (props: LegendProps): JSX.Element => {
   };
 
   const renderLegend = (): JSX.Element => {
-    const positioned = useOutlet();
+    const initialPositioned = useOutlet();
     let element: HTMLDivElement | null = null;
-    if (positioned) {
+    if (initialPositioned) {
       createEffect(
         () => undefined,
         () => {
@@ -360,7 +360,7 @@ export const Legend = (props: LegendProps): JSX.Element => {
         class="recharts-legend-wrapper"
         style={outerStyle()}
         ref={(node) => {
-          if (positioned) element = node;
+          if (initialPositioned) element = node;
           else updateBoundingBox(node);
         }}
       >

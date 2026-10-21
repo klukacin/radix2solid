@@ -2,6 +2,7 @@ import { isServer } from "@solidjs/web";
 import type { ComponentProps } from "@solidjs/web";
 import {
   createEffect,
+  createMemo,
   createRenderEffect,
   createSignal,
   createUniqueId,
@@ -173,86 +174,88 @@ export function CommandInput(props: CommandInputProps): Element {
       { transparent: true },
     );
   const render: SlotRender = (target) =>
-    untrack(() => props.children as SlotRender)((component, childProps) =>
-      target(
-        component,
-        merge(childProps, {
-          name: undefined,
-          get value() {
-            return root.search();
-          },
-        }) as ComponentProps<typeof component>,
-      ),
-    );
-  return (
-    <Primitive
-      as="input"
-      {...(merge(omit(props, "__scopeCommand"), {
-        id: props.id || createUniqueId(),
-        role: "combobox" as const,
-        "aria-autocomplete": "list" as const,
-        "aria-expanded": "true" as const,
-        "aria-controls": root.listId,
+    untrack(() => props.children as SlotRender)((component, childProps) => {
+      const slotted = merge(childProps, {
         name: undefined,
         get value() {
           return root.search();
         },
-        get ["aria-activedescendant"]() {
-          return root.cursor.activeId();
-        },
-        get ref() {
-          return composeRefs(props.ref, root.setInput);
-        },
-        get children() {
-          return props.asChild ? render : props.children;
-        },
-        onInput(event: InputEvent) {
-          callEventHandler(props.onInput, event);
-          if (!event.defaultPrevented)
-            root.setSearch((event.currentTarget as HTMLInputElement).value);
-          invalidate((n) => n + 1);
-        },
-        onCompositionStart: composeEventHandlers<CompositionEvent>(
-          () => props.onCompositionStart,
-          () => {
-            composing = true;
-          },
-        ),
-        onCompositionEnd: composeEventHandlers<CompositionEvent>(
-          () => props.onCompositionEnd,
-          () => {
-            composing = false;
-          },
-        ),
-        onKeyDown: composeEventHandlers<KeyboardEvent>(
-          () => props.onKeyDown,
-          (event) => {
-            if (
-              composing ||
-              event.isComposing ||
-              event.keyCode === 229 ||
-              event.ctrlKey ||
-              event.metaKey ||
-              event.altKey
-            )
-              return;
-            if (
-              !event.shiftKey &&
-              (event.key === "ArrowDown" || event.key === "ArrowUp")
-            ) {
-              event.preventDefault();
-              root.cursor.move(event.key === "ArrowDown" ? "next" : "previous");
-            }
-            if (event.key === "Enter") {
-              event.preventDefault();
-              root
-                .rows()
-                .find((item) => item.value.key() === root.cursor.active())
-                ?.value.select();
-            }
-          },
-        ),
-      }) as PrimitiveProps<"input">)}
+      }) as ComponentProps<typeof component>;
+      return target(component, slotted);
+    });
+  const inputId = createMemo(() => props.id || createUniqueId());
+  const forwarded = merge(omit(props, "__scopeCommand"), {
+    get id() {
+      return inputId();
+    },
+    role: "combobox" as const,
+    "aria-autocomplete": "list" as const,
+    "aria-expanded": "true" as const,
+    "aria-controls": root.listId,
+    name: undefined,
+    get value() {
+      return root.search();
+    },
+    get ["aria-activedescendant"]() {
+      return root.cursor.activeId();
+    },
+    get ref() {
+      return composeRefs(props.ref, root.setInput);
+    },
+    get children() {
+      return props.asChild ? render : props.children;
+    },
+    onInput(event: InputEvent) {
+      callEventHandler(props.onInput, event);
+      if (!event.defaultPrevented)
+        root.setSearch((event.currentTarget as HTMLInputElement).value);
+      invalidate((n) => n + 1);
+    },
+    onCompositionStart: composeEventHandlers<CompositionEvent>(
+      () => props.onCompositionStart,
+      () => {
+        composing = true;
+      },
+    ),
+    onCompositionEnd: composeEventHandlers<CompositionEvent>(
+      () => props.onCompositionEnd,
+      () => {
+        composing = false;
+      },
+    ),
+    onKeyDown: composeEventHandlers<KeyboardEvent>(
+      () => props.onKeyDown,
+      (event) => {
+        if (
+          composing ||
+          event.isComposing ||
+          event.keyCode === 229 ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.altKey
+        )
+          return;
+        if (
+          !event.shiftKey &&
+          (event.key === "ArrowDown" || event.key === "ArrowUp")
+        ) {
+          event.preventDefault();
+          root.cursor.move(event.key === "ArrowDown" ? "next" : "previous");
+        }
+        if (event.key === "Enter") {
+          event.preventDefault();
+          root
+            .rows()
+            .find((item) => item.value.key() === root.cursor.active())
+            ?.value.select();
+        }
+      },
+    ),
+  }) as PrimitiveProps<"input">;
+  return (
+    <Primitive
+      as="input"
+      {...forwarded}
     />
   );
 }
@@ -290,27 +293,26 @@ export function CommandList(props: CommandListProps): Element {
       { transparent: true },
     );
   const render: SlotRender = (target) =>
-    untrack(() => props.children as SlotRender)((component, childProps) =>
-      target(
-        component,
-        merge(childProps, { id: root.listId }) as ComponentProps<
-          typeof component
-        >,
-      ),
-    );
+    untrack(() => props.children as SlotRender)((component, childProps) => {
+      const slotted = merge(childProps, { id: root.listId }) as ComponentProps<
+        typeof component
+      >;
+      return target(component, slotted);
+    });
+  const forwarded = merge(omit(props, "__scopeCommand"), {
+    role: "listbox" as const,
+    id: root.listId,
+    get ref() {
+      return composeRefs(props.ref, ref);
+    },
+    get children() {
+      return props.asChild ? render : props.children;
+    },
+  }) as PrimitiveProps<"div">;
   return (
     <Primitive
       as="div"
-      {...(merge(omit(props, "__scopeCommand"), {
-        role: "listbox" as const,
-        id: root.listId,
-        get ref() {
-          return composeRefs(props.ref, ref);
-        },
-        get children() {
-          return props.asChild ? render : props.children;
-        },
-      }) as PrimitiveProps<"div">)}
+      {...forwarded}
     />
   );
 }
@@ -356,72 +358,70 @@ export function CommandItem(props: CommandItemProps): Element {
       { transparent: true },
     );
   const render: SlotRender = (target) =>
-    untrack(() => props.children as SlotRender)((component, childProps) =>
-      target(
-        component,
-        merge(childProps, { id }) as ComponentProps<typeof component>,
+    untrack(() => props.children as SlotRender)((component, childProps) => {
+      const slotted = merge(childProps, { id }) as ComponentProps<
+        typeof component
+      >;
+      return target(component, slotted);
+    });
+  const forwarded = merge(
+    omit(props, "__scopeCommand", "value", "textValue", "disabled", "onSelect"),
+    {
+      role: "option" as const,
+      id,
+      tabIndex: -1,
+      get ["aria-label"]() {
+        return props["aria-label"] ?? props.textValue;
+      },
+      get ["aria-disabled"]() {
+        return props.disabled ? ("true" as const) : undefined;
+      },
+      get ["data-disabled"]() {
+        return props.disabled ? "" : undefined;
+      },
+      get ["aria-selected"]() {
+        return root.cursor.active() === props.value
+          ? ("true" as const)
+          : ("false" as const);
+      },
+      get ref() {
+        return composeRefs(props.ref, ref);
+      },
+      get children() {
+        return props.asChild ? render : props.children;
+      },
+      onPointerDown: composeEventHandlers<PointerEvent>(
+        () => props.onPointerDown,
+        (event) => {
+          if (event.pointerType === "mouse" && event.button === 0)
+            event.preventDefault();
+        },
       ),
-    );
+      onClick(event: MouseEvent) {
+        callEventHandler(props.onClick, event);
+        const cancelled = event.defaultPrevented;
+        event.preventDefault();
+        if (!cancelled && event.button === 0 && !props.disabled) {
+          root.cursor.setActive(props.value);
+          root.input()?.focus({ preventScroll: true });
+          select();
+        }
+      },
+    },
+  ) as PrimitiveProps<"div">;
   return (
     <Primitive
       as="div"
-      {...(merge(
-        omit(
-          props,
-          "__scopeCommand",
-          "value",
-          "textValue",
-          "disabled",
-          "onSelect",
-        ),
-        {
-          role: "option" as const,
-          id,
-          tabIndex: -1,
-          get ["aria-label"]() {
-            return props["aria-label"] ?? props.textValue;
-          },
-          get ["aria-disabled"]() {
-            return props.disabled ? ("true" as const) : undefined;
-          },
-          get ["data-disabled"]() {
-            return props.disabled ? "" : undefined;
-          },
-          get ["aria-selected"]() {
-            return root.cursor.active() === props.value
-              ? ("true" as const)
-              : ("false" as const);
-          },
-          get ref() {
-            return composeRefs(props.ref, ref);
-          },
-          get children() {
-            return props.asChild ? render : props.children;
-          },
-          onPointerDown: composeEventHandlers<PointerEvent>(
-            () => props.onPointerDown,
-            (event) => {
-              if (event.pointerType === "mouse" && event.button === 0)
-                event.preventDefault();
-            },
-          ),
-          onClick(event: MouseEvent) {
-            callEventHandler(props.onClick, event);
-            const cancelled = event.defaultPrevented;
-            event.preventDefault();
-            if (!cancelled && event.button === 0 && !props.disabled) {
-              root.cursor.setActive(props.value);
-              root.input()?.focus({ preventScroll: true });
-              select();
-            }
-          },
-        },
-      ) as PrimitiveProps<"div">)}
+      {...forwarded}
     />
   );
 }
 export function CommandGroup(props: CommandGroupProps): Element {
   const id = createUniqueId();
+  const forwarded = merge(
+    { role: "group" as const, "aria-labelledby": id },
+    omit(props, "__scopeCommand"),
+  );
   return (
     <GroupProvider
       scope={props.__scopeCommand}
@@ -429,10 +429,7 @@ export function CommandGroup(props: CommandGroupProps): Element {
     >
       <Primitive
         as="div"
-        {...merge(
-          { role: "group" as const, "aria-labelledby": id },
-          omit(props, "__scopeCommand"),
-        )}
+        {...forwarded}
       />
     </GroupProvider>
   );
@@ -443,21 +440,22 @@ export function CommandLabel(props: CommandLabelProps): Element {
     untrack(() => props.__scopeCommand),
   );
   const render: SlotRender = (target) =>
-    untrack(() => props.children as SlotRender)((component, childProps) =>
-      target(
-        component,
-        merge(childProps, { id }) as ComponentProps<typeof component>,
-      ),
-    );
+    untrack(() => props.children as SlotRender)((component, childProps) => {
+      const slotted = merge(childProps, { id }) as ComponentProps<
+        typeof component
+      >;
+      return target(component, slotted);
+    });
+  const forwarded = merge(omit(props, "__scopeCommand"), {
+    id,
+    get children() {
+      return props.asChild ? render : props.children;
+    },
+  }) as PrimitiveProps<"div">;
   return (
     <Primitive
       as="div"
-      {...(merge(omit(props, "__scopeCommand"), {
-        id,
-        get children() {
-          return props.asChild ? render : props.children;
-        },
-      }) as PrimitiveProps<"div">)}
+      {...forwarded}
     />
   );
 }
@@ -466,11 +464,15 @@ export function CommandEmpty(props: CommandEmptyProps): Element {
     "CommandEmpty",
     untrack(() => props.__scopeCommand),
   );
+  const forwarded = merge(
+    { role: "status" as const },
+    omit(props, "__scopeCommand"),
+  );
   return (
     <Show when={!!root.list() && !root.rows().length}>
       <Primitive
         as="div"
-        {...merge({ role: "status" as const }, omit(props, "__scopeCommand"))}
+        {...forwarded}
       />
     </Show>
   );

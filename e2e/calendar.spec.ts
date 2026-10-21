@@ -257,10 +257,10 @@ test("calendar hydration date-only timezone", async ({
         };
         return (
           state.__calendarServerGrid ===
-            document.querySelector('#calendar-hydration [role=\"grid\"]') &&
+            document.querySelector('#calendar-hydration [role="grid"]') &&
           state.__calendarServerDay ===
             document.querySelector(
-              '#calendar-hydration [aria-label=\"October 18, 2026\"]',
+              '#calendar-hydration [aria-label="October 18, 2026"]',
             )
         );
       }),

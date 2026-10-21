@@ -94,10 +94,8 @@ function styledProps<P extends object>(
       return "radius" in propDefs ? settings.radius : undefined;
     },
   };
-  const parsed = extractProps(
-    merge(inherited, props) as P & Settings,
-    propDefs,
-  );
+  const mergedProps = merge(inherited, props) as P & Settings;
+  const parsed = extractProps(mergedProps, propDefs);
   const unsupported = (["size", "variant", "color", "radius"] as const).filter(
     (key) => !(key in propDefs),
   );

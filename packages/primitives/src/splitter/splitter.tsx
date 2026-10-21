@@ -630,13 +630,16 @@ export function Splitter(props: SplitterProps): Element {
       />
     );
     // Only server metadata validation needs an initial resolution of the native host.
-    if (isServer) {
-      const rendered = untrack(children(() => host));
-      validateParts(parts.map((part) => part.kind));
-      configuration();
-      return rendered;
-    }
-    return host;
+    const resolveHost = () => {
+      if (isServer) {
+        const rendered = untrack(children(() => host));
+        validateParts(parts.map((part) => part.kind));
+        configuration();
+        return rendered;
+      }
+      return host;
+    };
+    return resolveHost();
   }
   return (
     <Provider
@@ -654,9 +657,10 @@ export function SplitterPanel(props: SplitterPanelProps): Element {
     untrack(() => props.__scopeSplitter),
   );
   const [node, ref] = createSignal<HTMLElement | undefined>();
-  if (props.side !== "primary" && props.side !== "secondary")
+  const side = untrack(() => props.side);
+  if (side !== "primary" && side !== "secondary")
     throw new Error("Splitter Panel side must be primary or secondary.");
-  context.register({ kind: untrack(() => props.side), node, props });
+  context.register({ kind: side, node, props });
   const hidden = () => {
     const value = props.side === "primary" && context.collapsed();
     if (value && !isServer) context.evacuate();
@@ -749,7 +753,7 @@ export function SplitterHandle(props: SplitterHandleProps): Element {
       untrack(() => props.__scopeSplitter),
     ),
     [node, ref] = createSignal<HTMLElement | undefined>();
-  if (!props["aria-label"] && !props["aria-labelledby"])
+  if (untrack(() => !props["aria-label"] && !props["aria-labelledby"]))
     throw new Error("Splitter Handle requires an accessible name.");
   context.register({ kind: "handle", node });
   const forwarded = merge(omit(props, "__scopeSplitter"), {

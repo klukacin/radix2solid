@@ -92,11 +92,13 @@ export function Charts() {
   const [selectedPieZero, setSelectedPieZero] = createSignal(false);
   const [selectedUnsupportedLabel, setSelectedUnsupportedLabel] =
     createSignal<ImplicitLabelType>();
-  const selectedRows = () =>
-    Array.from({ length: 10 }, (_, index) => ({
+  const selectedRows = () => {
+    const revision = selectedRevision();
+    return Array.from({ length: 10 }, (_, index) => ({
       name: `Category ${index}`,
-      value: 10 + index + selectedRevision(),
+      value: 10 + index + revision,
     }));
+  };
   return (
     <section
       aria-label="Native Charts"

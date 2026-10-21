@@ -44,7 +44,7 @@ import {
 } from "@wsagency/radix2solid-themes";
 
 import "@wsagency/radix2solid-themes/styles.css";
-import { createSignal, Show, type Element } from "solid-js";
+import { createSignal, For, Show, untrack, type Element } from "solid-js";
 
 const frozenSize = Object.freeze({ md: "3" as const });
 const pixel =
@@ -59,57 +59,63 @@ function ThemeCalendarGrid(props: {
   focusDate?: string;
   focusId?: string;
 }): Element {
-  const scope = props.scope;
+  const scope = untrack(() => props.scope);
   return (
     <Calendar.Grid __scopeCalendar={scope}>
       {(state) => (
         <>
           <Calendar.Row __scopeCalendar={scope}>
-            {state.weekdays.map((day) => (
-              <Calendar.HeaderCell
-                __scopeCalendar={scope}
-                weekday={day.index}
-              />
-            ))}
-          </Calendar.Row>
-          {state.weeks.map((week) => (
-            <Calendar.Row __scopeCalendar={scope}>
-              {week.map((day) =>
-                day === null ? (
-                  <div
-                    role="gridcell"
-                    aria-disabled="true"
-                  />
-                ) : (
-                  <Calendar.Cell
-                    __scopeCalendar={scope}
-                    date={day.date}
-                    data-testid={
-                      day.date === "2026-10-19"
-                        ? "calendar-selected-day"
-                        : day.date === "2026-10-18"
-                          ? "calendar-today-day"
-                          : undefined
-                    }
-                  >
-                    <Calendar.Day
-                      __scopeCalendar={scope}
-                      date={day.date}
-                      data-testid={
-                        day.date === props.focusDate
-                          ? (props.focusId ?? "calendar-focus-day")
-                          : day.date === "2026-10-20"
-                            ? "calendar-unavailable-day"
-                            : undefined
-                      }
-                    >
-                      {Number(day.date.slice(-2))}
-                    </Calendar.Day>
-                  </Calendar.Cell>
-                ),
+            <For each={state.weekdays}>
+              {(day) => (
+                <Calendar.HeaderCell
+                  __scopeCalendar={scope}
+                  weekday={day.index}
+                />
               )}
-            </Calendar.Row>
-          ))}
+            </For>
+          </Calendar.Row>
+          <For each={state.weeks}>
+            {(week) => (
+              <Calendar.Row __scopeCalendar={scope}>
+                <For each={week}>
+                  {(day) =>
+                    day === null ? (
+                      <div
+                        role="gridcell"
+                        aria-disabled="true"
+                      />
+                    ) : (
+                      <Calendar.Cell
+                        __scopeCalendar={scope}
+                        date={day.date}
+                        data-testid={
+                          day.date === "2026-10-19"
+                            ? "calendar-selected-day"
+                            : day.date === "2026-10-18"
+                              ? "calendar-today-day"
+                              : undefined
+                        }
+                      >
+                        <Calendar.Day
+                          __scopeCalendar={scope}
+                          date={day.date}
+                          data-testid={
+                            day.date === props.focusDate
+                              ? (props.focusId ?? "calendar-focus-day")
+                              : day.date === "2026-10-20"
+                                ? "calendar-unavailable-day"
+                                : undefined
+                          }
+                        >
+                          {Number(day.date.slice(-2))}
+                        </Calendar.Day>
+                      </Calendar.Cell>
+                    )
+                  }
+                </For>
+              </Calendar.Row>
+            )}
+          </For>
         </>
       )}
     </Calendar.Grid>
@@ -185,7 +191,7 @@ export function Themes(): Element {
   const [datePickerAppearance, setDatePickerAppearance] = createSignal<
     "light" | "dark"
   >("light");
-  const [datePickerScale] = createSignal<"110%">("110%");
+  const datePickerScale = "110%";
   const datePickerScope = useDatePickerScope();
   const rootOnlyDatePickerScope = useDatePickerScope();
   const [fileDropAccent, setFileDropAccent] = createSignal<"jade" | "tomato">(
@@ -566,7 +572,7 @@ export function Themes(): Element {
               id="theme-date-picker-theme"
               accentColor={datePickerAccent()}
               appearance={datePickerAppearance()}
-              scaling={datePickerScale()}
+              scaling={datePickerScale}
             >
               <Form.Root id="theme-date-picker-form">
                 <Form.Field name="appointmentDate">

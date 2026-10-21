@@ -460,18 +460,16 @@ export function Label(outerProps: Props): JSX.Element {
             clamp: true,
           });
     // Only coordinates are inherited; a nested Label computes its own anchors.
-    return {
-      content,
-      args: omit(
-        {
-          ...(position?.x !== undefined ? { x: position.x } : {}),
-          ...(position?.y !== undefined ? { y: position.y } : {}),
-          ...props,
-          viewBox: vb,
-        },
-        "content",
-      ),
-    };
+    const args = omit(
+      {
+        ...(position?.x !== undefined ? { x: position.x } : {}),
+        ...(position?.y !== undefined ? { y: position.y } : {}),
+        ...props,
+        viewBox: vb,
+      },
+      "content",
+    );
+    return { content, args };
   });
 
   // Render the default/polar/radial text labels inline under <Show> (their render

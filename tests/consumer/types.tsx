@@ -256,11 +256,11 @@ export const extraIconConsumer = (
 export const invalidExtraIcon = <FolderIcon>replacement</FolderIcon>;
 // @ts-expect-error Tree does not have a multiple selection mode.
 export const invalidTreeMode = <Tree.Root selectionMode="multiple" />;
-// @ts-expect-error Tree has no checked-state alias.
 export const invalidTreeProp = (
   <Tree.Item
     value="leaf"
     textValue="Leaf"
+    // @ts-expect-error Tree has no checked-state alias.
     checked
   />
 );
@@ -494,20 +494,20 @@ export const inputDefault = <Combobox.Input defaultValue="text" />;
 export const inputName = <Combobox.Input name="choice" />;
 // @ts-expect-error Root owns Input form association.
 export const inputForm = <Combobox.Input form="external" />;
-// @ts-expect-error Query is text.
 export const numericQuery = (
   <Combobox.Root
     items={choiceItems}
+    // @ts-expect-error Query is text.
     query={1}
   />
 );
 // @ts-expect-error Search is text.
 export const numericSearch = <Command.Root search={1} />;
-// @ts-expect-error Command selection is a cancellable Event.
 export const invalidCommandAction = (
   <Command.Item
     value="run"
     textValue="Run"
+    // @ts-expect-error Command selection is a cancellable Event.
     onSelect={(value: string) => {
       void value;
     }}
@@ -3168,14 +3168,14 @@ export const nativeStyledFamilies = (
       />
       <Themes.FileDrop.Trigger>Browse files</Themes.FileDrop.Trigger>
     </Themes.FileDrop.Root>
-    {/* @ts-expect-error Calendar variants are only surface, classic, or soft. */}
     <Themes.Calendar.Root
       today={familyDate}
+      // @ts-expect-error Calendar variants are only surface, classic, or soft.
       variant="outline"
     />
-    {/* @ts-expect-error DatePicker variants are only surface, classic, or soft. */}
     <Themes.DatePicker.Root
       today={familyDate}
+      // @ts-expect-error DatePicker variants are only surface, classic, or soft.
       variant="outline"
     />
     {/* @ts-expect-error FileDrop does not support readOnly. */}
@@ -3188,115 +3188,115 @@ const c5DateObject = new Date("2026-10-18T00:00:00.000Z");
 const c5Timestamp = Date.parse("2026-10-18T00:00:00.000Z");
 const c5DateRange = ["2026-10-18", "2026-10-19"] as const;
 
-// @ts-expect-error Calendar values are canonical date-only strings, not Date objects.
 export const invalidPrimitiveCalendarDateObject = (
   <PrimitiveCalendarParts.Root
     today={familyDate}
+    // @ts-expect-error Calendar values are canonical date-only strings, not Date objects.
     value={c5DateObject}
   />
 );
-// @ts-expect-error Calendar values are not epoch timestamps.
 export const invalidPrimitiveCalendarTimestamp = (
   <PrimitiveCalendarParts.Root
     today={familyDate}
+    // @ts-expect-error Calendar values are not epoch timestamps.
     value={c5Timestamp}
   />
 );
-// @ts-expect-error Calendar selects one date, not a range.
 export const invalidPrimitiveCalendarRange = (
   <PrimitiveCalendarParts.Root
     today={familyDate}
+    // @ts-expect-error Calendar selects one date, not a range.
     value={c5DateRange}
   />
 );
-// @ts-expect-error DatePicker values are canonical date-only strings, not Date objects.
 export const invalidPrimitiveDatePickerDateObject = (
   <PrimitiveDatePickerParts.Root
     today={familyDate}
+    // @ts-expect-error DatePicker values are canonical date-only strings, not Date objects.
     value={c5DateObject}
   />
 );
-// @ts-expect-error DatePicker values are not epoch timestamps.
 export const invalidPrimitiveDatePickerTimestamp = (
   <PrimitiveDatePickerParts.Root
     today={familyDate}
+    // @ts-expect-error DatePicker values are not epoch timestamps.
     value={c5Timestamp}
   />
 );
-// @ts-expect-error DatePicker selects one date, not a range.
 export const invalidPrimitiveDatePickerRange = (
   <PrimitiveDatePickerParts.Root
     today={familyDate}
+    // @ts-expect-error DatePicker selects one date, not a range.
     value={c5DateRange}
   />
 );
-// @ts-expect-error DatePicker does not expose editable text entry.
 export const invalidPrimitiveDatePickerEditable = (
   <PrimitiveDatePickerParts.Root
     today={familyDate}
+    // @ts-expect-error DatePicker does not expose editable text entry.
     editable
   />
 );
-// @ts-expect-error DatePicker does not expose a custom date parser.
 export const invalidPrimitiveDatePickerParser = (
   <PrimitiveDatePickerParts.Root
     today={familyDate}
+    // @ts-expect-error DatePicker does not expose a custom date parser.
     parseDate={(text: string) => text}
   />
 );
-// @ts-expect-error The themed Calendar also accepts date-only strings, not Date objects.
 export const invalidThemedCalendarDateObject = (
   <ThemedCalendarParts.Root
     today={familyDate}
+    // @ts-expect-error The themed Calendar also accepts date-only strings, not Date objects.
     value={c5DateObject}
   />
 );
-// @ts-expect-error The themed Calendar does not accept epoch timestamps.
 export const invalidThemedCalendarTimestamp = (
   <ThemedCalendarParts.Root
     today={familyDate}
+    // @ts-expect-error The themed Calendar does not accept epoch timestamps.
     value={c5Timestamp}
   />
 );
-// @ts-expect-error The themed Calendar selects one date, not a range.
 export const invalidThemedCalendarRange = (
   <ThemedCalendarParts.Root
     today={familyDate}
+    // @ts-expect-error The themed Calendar selects one date, not a range.
     value={c5DateRange}
   />
 );
-// @ts-expect-error The themed DatePicker also accepts date-only strings, not Date objects.
 export const invalidThemedDatePickerDateObject = (
   <ThemedDatePickerParts.Root
     today={familyDate}
+    // @ts-expect-error The themed DatePicker also accepts date-only strings, not Date objects.
     value={c5DateObject}
   />
 );
-// @ts-expect-error The themed DatePicker does not accept epoch timestamps.
 export const invalidThemedDatePickerTimestamp = (
   <ThemedDatePickerParts.Root
     today={familyDate}
+    // @ts-expect-error The themed DatePicker does not accept epoch timestamps.
     value={c5Timestamp}
   />
 );
-// @ts-expect-error The themed DatePicker selects one date, not a range.
 export const invalidThemedDatePickerRange = (
   <ThemedDatePickerParts.Root
     today={familyDate}
+    // @ts-expect-error The themed DatePicker selects one date, not a range.
     value={c5DateRange}
   />
 );
-// @ts-expect-error The themed DatePicker does not expose editable text entry.
 export const invalidThemedDatePickerEditable = (
   <ThemedDatePickerParts.Root
     today={familyDate}
+    // @ts-expect-error The themed DatePicker does not expose editable text entry.
     editable
   />
 );
-// @ts-expect-error The themed DatePicker does not expose a custom date parser.
 export const invalidThemedDatePickerParser = (
   <ThemedDatePickerParts.Root
     today={familyDate}
+    // @ts-expect-error The themed DatePicker does not expose a custom date parser.
     parseDate={(text: string) => text}
   />
 );

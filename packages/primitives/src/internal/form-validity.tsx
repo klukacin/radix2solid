@@ -1,5 +1,6 @@
 import {
   createContext,
+  untrack,
   useContext,
   type Accessor,
   type Element,
@@ -29,10 +30,9 @@ export function FormValidityProvider(props: {
   value: FormValidityOwner;
   children?: Element;
 }): Element {
+  const owner = untrack(() => props.value);
   return (
-    <FormValidityContext value={props.value}>
-      {props.children}
-    </FormValidityContext>
+    <FormValidityContext value={owner}>{props.children}</FormValidityContext>
   );
 }
 
@@ -44,8 +44,9 @@ export function FormFieldMetadataProvider(props: {
   value: FormFieldMetadata | null;
   children?: Element;
 }): Element {
+  const metadata = untrack(() => props.value);
   return (
-    <FormFieldMetadataContext value={props.value}>
+    <FormFieldMetadataContext value={metadata}>
       {props.children}
     </FormFieldMetadataContext>
   );
