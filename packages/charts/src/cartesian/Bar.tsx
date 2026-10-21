@@ -618,19 +618,25 @@ function BarRectangleWithActiveState(props: {
     entry: BarRectangleItem,
     dataKey: DataKey<unknown> | undefined,
   ) => boolean;
+  isAnotherBarActive: (
+    entry: BarRectangleItem,
+    dataKey: DataKey<unknown> | undefined,
+  ) => boolean;
   onMouseMove?: (event: MouseEvent) => void;
   onMouseDown?: (event: MouseEvent) => void;
   onMouseUp?: (event: MouseEvent) => void;
 }): JSX.Element {
   const isActive = (): boolean =>
     props.isEntryActive(props.entry, props.dataKey);
+  const isAnotherBarActive = (): boolean =>
+    props.isAnotherBarActive(props.entry, props.dataKey);
 
   const [stayInLayer, setStayInLayer] = createSignal(false);
   const [hasMountedActive, setHasMountedActive] = createSignal(false);
 
   createEffect(
-    () => isActive(),
-    (active) => {
+    () => ({ active: isActive(), anotherBarActive: isAnotherBarActive() }),
+    ({ active, anotherBarActive }) => {
       let rafId: number | undefined;
       if (active) {
         setStayInLayer(true);
@@ -639,6 +645,9 @@ function BarRectangleWithActiveState(props: {
         });
       } else {
         setHasMountedActive(false);
+        if (anotherBarActive) {
+          setStayInLayer(false);
+        }
       }
       return () => {
         if (rafId != null) {
@@ -722,6 +731,10 @@ function BarRectangleLayer(props: {
     entry: BarRectangleItem,
     dataKey: DataKey<unknown> | undefined,
   ) => boolean;
+  isAnotherBarActive: (
+    entry: BarRectangleItem,
+    dataKey: DataKey<unknown> | undefined,
+  ) => boolean;
   onMouseEnter: (event: MouseEvent) => void;
   onMouseLeave: (event: MouseEvent) => void;
   onClick: (event: MouseEvent) => void;
@@ -763,6 +776,7 @@ function BarRectangleLayer(props: {
           isAnimating={props.isAnimating}
           isEntrance={props.isEntrance}
           isEntryActive={props.isEntryActive}
+          isAnotherBarActive={props.isAnotherBarActive}
           onMouseMove={props.onMouseMove}
           onMouseDown={props.onMouseDown}
           onMouseUp={props.onMouseUp}
@@ -1043,6 +1057,19 @@ export const Bar = (props: BarProps): JSX.Element => {
       String(entry.originalDataIndex) === idx && (dk == null || dataKey === dk)
     );
   };
+  const isAnotherBarActive = (
+    entry: BarRectangleItem,
+    dataKey: DataKey<unknown> | undefined,
+  ): boolean => {
+    const idx = activeTooltipIndex();
+    if (idx == null) {
+      return false;
+    }
+    const dk = activeTooltipDataKey();
+    return (
+      String(entry.originalDataIndex) !== idx || (dk != null && dataKey !== dk)
+    );
+  };
 
   // One LabelList entry per rectangle (its trapezoid viewBox + value/payload),
   // provided to LabelList via context.
@@ -1182,63 +1209,67 @@ export const Bar = (props: BarProps): JSX.Element => {
         id={id}
         legendPayload={legendPayload()}
       />
-      <Show when={renderableRects()}>
-        {(rects) => (
-          <ZIndexLayer zIndex={merged.zIndex}>
-            <Layer
-              id={id}
-              class={
-                merged.class ? `recharts-bar ${merged.class}` : "recharts-bar"
-              }
-            >
-              <Show when={needClip()}>
-                <defs>
-                  <GraphicalItemClipPath
-                    clipPathId={id}
-                    xAxisId={merged.xAxisId}
-                    yAxisId={merged.yAxisId}
-                  />
-                </defs>
-              </Show>
+      {/* Defer the Show's initial condition until sibling series have registered. */}
+      {() => (
+        <Show when={renderableRects()}>
+          {(rects) => (
+            <ZIndexLayer zIndex={merged.zIndex}>
               <Layer
-                class="recharts-bar-rectangles"
-                clipPath={barClipPath()}
+                id={id}
+                class={
+                  merged.class ? `recharts-bar ${merged.class}` : "recharts-bar"
+                }
               >
-                <BarBackground
-                  background={merged.background}
-                  data={rects()}
-                  dataKey={merged.dataKey}
-                  graphicalItemId={id}
-                  onClick={props.onClick}
-                  onMouseEnter={props.onMouseEnter}
-                  onMouseLeave={props.onMouseLeave}
-                  onMouseMove={props.onMouseMove}
-                  onMouseDown={props.onMouseDown}
-                  onMouseUp={props.onMouseUp}
-                  onMouseOver={props.onMouseOver}
-                  onMouseOut={props.onMouseOut}
-                  onTouchMove={props.onTouchMove}
-                  onTouchEnd={props.onTouchEnd}
-                />
-                <CartesianLabelListContextProvider value={labelContextEntries}>
-                  <AnimatedItems
-                    animationInput={rects()}
-                    animationIdPrefix="recharts-bar-"
-                    items={rects()}
-                    previousItemsRef={previousRectanglesRef}
-                    isAnimationActive={merged.isAnimationActive}
-                    animationBegin={merged.animationBegin}
-                    animationDuration={merged.animationDuration}
-                    animationEasing={merged.animationEasing}
-                    onAnimationStart={handleAnimationStart}
-                    onAnimationEnd={handleAnimationEnd}
-                    animationInterpolateFn={merged.animationInterpolateFn}
-                    animationMatchBy={merged.animationMatchBy}
-                    layout={cartesianLayout()}
+                <Show when={needClip()}>
+                  <defs>
+                    <GraphicalItemClipPath
+                      clipPathId={id}
+                      xAxisId={merged.xAxisId}
+                      yAxisId={merged.yAxisId}
+                    />
+                  </defs>
+                </Show>
+                <Layer
+                  class="recharts-bar-rectangles"
+                  clipPath={barClipPath()}
+                >
+                  <BarBackground
+                    background={merged.background}
+                    data={rects()}
+                    dataKey={merged.dataKey}
+                    graphicalItemId={id}
+                    onClick={props.onClick}
+                    onMouseEnter={props.onMouseEnter}
+                    onMouseLeave={props.onMouseLeave}
+                    onMouseMove={props.onMouseMove}
+                    onMouseDown={props.onMouseDown}
+                    onMouseUp={props.onMouseUp}
+                    onMouseOver={props.onMouseOver}
+                    onMouseOut={props.onMouseOut}
+                    onTouchMove={props.onTouchMove}
+                    onTouchEnd={props.onTouchEnd}
+                  />
+                  <CartesianLabelListContextProvider
+                    value={labelContextEntries}
                   >
-                    {(frame, animationElapsedTime, isEntrance) => (
-                      <Layer>
-                        {/* keyed={false} (index-keyed): `frame` is a fresh array of
+                    <AnimatedItems
+                      animationInput={rects()}
+                      animationIdPrefix="recharts-bar-"
+                      items={rects()}
+                      previousItemsRef={previousRectanglesRef}
+                      isAnimationActive={merged.isAnimationActive}
+                      animationBegin={merged.animationBegin}
+                      animationDuration={merged.animationDuration}
+                      animationEasing={merged.animationEasing}
+                      onAnimationStart={handleAnimationStart}
+                      onAnimationEnd={handleAnimationEnd}
+                      animationInterpolateFn={merged.animationInterpolateFn}
+                      animationMatchBy={merged.animationMatchBy}
+                      layout={cartesianLayout()}
+                    >
+                      {(frame, animationElapsedTime, isEntrance) => (
+                        <Layer>
+                          {/* keyed={false} (index-keyed): `frame` is a fresh array of
                             fresh rect objects every animation tick; reference-keyed
                             <For> would dispose+recreate every bar's DOM node and
                             rebuild its ~10 event closures per frame. Index-keying
@@ -1246,125 +1277,131 @@ export const Bar = (props: BarProps): JSX.Element => {
                             getter-wrapped props) and builds the handlers once per
                             slot. `r` is now an accessor — event handlers read `r()`
                             at dispatch time so they see the current frame's rect. */}
-                        <For
-                          each={frame}
-                          keyed={false}
-                        >
-                          {(r, i) => (
-                            // Render every selector-output rectangle, matching recharts
-                            // (zero-dimension genuinely-empty bars are already dropped at
-                            // the selector level — selectBarRectangles). We must NOT also
-                            // filter on width/height here: mid-animation a growing bar is
-                            // momentarily collapsed (t≈0 → height/width 0) and recharts
-                            // keeps that element in the DOM, so the rectangles render while
-                            // the chart animates (e.g. a Brush window narrowing). Filtering
-                            // here suppressed all animated bars until the animation was
-                            // driven to a non-zero frame.
-                            <BarRectangleLayer
-                              entry={r()}
-                              displayIndex={i}
-                              dataKey={merged.dataKey}
-                              activeBar={activeBar}
-                              fill={r().fill ?? r().cell?.fill ?? merged.fill}
-                              stroke={
-                                r().stroke ?? r().cell?.stroke ?? merged.stroke
-                              }
-                              radius={merged.radius}
-                              shape={shape}
-                              animationElapsedTime={animationElapsedTime}
-                              // Mirror upstream's `isAnimating || animationElapsedTime < 1`.
-                              isAnimating={
-                                isAnimating() || animationElapsedTime < 1
-                              }
-                              isEntrance={isEntrance}
-                              isEntryActive={isEntryActive}
-                              cellClass={
-                                typeof r().class === "string"
-                                  ? r().class
-                                  : undefined
-                              }
-                              onMouseEnter={(event) =>
-                                onItemEnter(r(), r().originalDataIndex)(event)
-                              }
-                              onMouseLeave={(event) =>
-                                onItemLeave(r(), r().originalDataIndex)(event)
-                              }
-                              onClick={(event) =>
-                                onItemClick(r(), r().originalDataIndex)(event)
-                              }
-                              onMouseOver={
-                                onMouseOverHandler != null
-                                  ? (event) =>
-                                      onMouseOverHandler(
-                                        r(),
-                                        r().originalDataIndex,
-                                        event,
-                                      )
-                                  : undefined
-                              }
-                              onMouseOut={
-                                onMouseOutHandler != null
-                                  ? (event) =>
-                                      onMouseOutHandler(
-                                        r(),
-                                        r().originalDataIndex,
-                                        event,
-                                      )
-                                  : undefined
-                              }
-                              onMouseMove={
-                                onMouseMoveHandler != null
-                                  ? (event) =>
-                                      onMouseMoveHandler(
-                                        r(),
-                                        r().originalDataIndex,
-                                        event,
-                                      )
-                                  : undefined
-                              }
-                              onMouseDown={
-                                onMouseDownHandler != null
-                                  ? (event) =>
-                                      onMouseDownHandler(
-                                        r(),
-                                        r().originalDataIndex,
-                                        event,
-                                      )
-                                  : undefined
-                              }
-                              onMouseUp={
-                                onMouseUpHandler != null
-                                  ? (event) =>
-                                      onMouseUpHandler(
-                                        r(),
-                                        r().originalDataIndex,
-                                        event,
-                                      )
-                                  : undefined
-                              }
-                              onTouchMove={
-                                onTouchMoveHandler != null
-                                  ? (event) => onTouchMoveHandler(r(), i, event)
-                                  : undefined
-                              }
-                              onTouchEnd={
-                                onTouchEndHandler != null
-                                  ? (event) => onTouchEndHandler(r(), i, event)
-                                  : undefined
-                              }
-                            />
-                          )}
-                        </For>
-                      </Layer>
-                    )}
-                  </AnimatedItems>
-                  <LabelListFromLabelProp label={merged.label} />
-                </CartesianLabelListContextProvider>
+                          <For
+                            each={frame}
+                            keyed={false}
+                          >
+                            {(r, i) => (
+                              // Render every selector-output rectangle, matching recharts
+                              // (zero-dimension genuinely-empty bars are already dropped at
+                              // the selector level — selectBarRectangles). We must NOT also
+                              // filter on width/height here: mid-animation a growing bar is
+                              // momentarily collapsed (t≈0 → height/width 0) and recharts
+                              // keeps that element in the DOM, so the rectangles render while
+                              // the chart animates (e.g. a Brush window narrowing). Filtering
+                              // here suppressed all animated bars until the animation was
+                              // driven to a non-zero frame.
+                              <BarRectangleLayer
+                                entry={r()}
+                                displayIndex={i}
+                                dataKey={merged.dataKey}
+                                activeBar={activeBar}
+                                fill={r().fill ?? r().cell?.fill ?? merged.fill}
+                                stroke={
+                                  r().stroke ??
+                                  r().cell?.stroke ??
+                                  merged.stroke
+                                }
+                                radius={merged.radius}
+                                shape={shape}
+                                animationElapsedTime={animationElapsedTime}
+                                // Mirror upstream's `isAnimating || animationElapsedTime < 1`.
+                                isAnimating={
+                                  isAnimating() || animationElapsedTime < 1
+                                }
+                                isEntrance={isEntrance}
+                                isEntryActive={isEntryActive}
+                                isAnotherBarActive={isAnotherBarActive}
+                                cellClass={
+                                  typeof r().class === "string"
+                                    ? r().class
+                                    : undefined
+                                }
+                                onMouseEnter={(event) =>
+                                  onItemEnter(r(), r().originalDataIndex)(event)
+                                }
+                                onMouseLeave={(event) =>
+                                  onItemLeave(r(), r().originalDataIndex)(event)
+                                }
+                                onClick={(event) =>
+                                  onItemClick(r(), r().originalDataIndex)(event)
+                                }
+                                onMouseOver={
+                                  onMouseOverHandler != null
+                                    ? (event) =>
+                                        onMouseOverHandler(
+                                          r(),
+                                          r().originalDataIndex,
+                                          event,
+                                        )
+                                    : undefined
+                                }
+                                onMouseOut={
+                                  onMouseOutHandler != null
+                                    ? (event) =>
+                                        onMouseOutHandler(
+                                          r(),
+                                          r().originalDataIndex,
+                                          event,
+                                        )
+                                    : undefined
+                                }
+                                onMouseMove={
+                                  onMouseMoveHandler != null
+                                    ? (event) =>
+                                        onMouseMoveHandler(
+                                          r(),
+                                          r().originalDataIndex,
+                                          event,
+                                        )
+                                    : undefined
+                                }
+                                onMouseDown={
+                                  onMouseDownHandler != null
+                                    ? (event) =>
+                                        onMouseDownHandler(
+                                          r(),
+                                          r().originalDataIndex,
+                                          event,
+                                        )
+                                    : undefined
+                                }
+                                onMouseUp={
+                                  onMouseUpHandler != null
+                                    ? (event) =>
+                                        onMouseUpHandler(
+                                          r(),
+                                          r().originalDataIndex,
+                                          event,
+                                        )
+                                    : undefined
+                                }
+                                onTouchMove={
+                                  onTouchMoveHandler != null
+                                    ? (event) =>
+                                        onTouchMoveHandler(r(), i, event)
+                                    : undefined
+                                }
+                                onTouchEnd={
+                                  onTouchEndHandler != null
+                                    ? (event) =>
+                                        onTouchEndHandler(r(), i, event)
+                                    : undefined
+                                }
+                              />
+                            )}
+                          </For>
+                        </Layer>
+                      )}
+                    </AnimatedItems>
+                    <LabelListFromLabelProp label={merged.label} />
+                  </CartesianLabelListContextProvider>
+                </Layer>
               </Layer>
-            </Layer>
-          </ZIndexLayer>
-        )}
-      </Show>
+            </ZIndexLayer>
+          )}
+        </Show>
+      )}
     </>
   );
 };

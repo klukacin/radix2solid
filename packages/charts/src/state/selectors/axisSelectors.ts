@@ -115,7 +115,10 @@ const pickRenderableAxisType = (
   axisType: RenderableAxisType,
 ): RenderableAxisType => axisType;
 import type { InverseScaleFunction } from "../../hooks";
-import { DEFAULT_Y_AXIS_WIDTH } from "../../util/Constants";
+import {
+  DEFAULT_X_AXIS_HEIGHT,
+  DEFAULT_Y_AXIS_WIDTH,
+} from "../../util/Constants";
 import { getNiceTickValues, getTickValuesFixedDomain } from "../../util/scale";
 import { CustomScaleDefinition } from "../../util/scale/CustomScaleDefinition";
 import {
@@ -2106,7 +2109,10 @@ const getXAxisSize = (
   axisSettings: XAxisSettings,
 ): Size => ({
   width: offset.width,
-  height: axisSettings.height,
+  height:
+    typeof axisSettings.height === "number"
+      ? axisSettings.height
+      : DEFAULT_X_AXIS_HEIGHT,
 });
 
 const getYAxisSize = (

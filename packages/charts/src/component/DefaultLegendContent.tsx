@@ -152,6 +152,7 @@ export const DefaultLegendContent = (props: Props): JSX.Element => {
   const itemStyle = (): JSX.CSSProperties => ({
     display: merged.layout === "horizontal" ? "inline-block" : "block",
     "margin-right": "10px",
+    "white-space": "nowrap",
   });
   const svgStyle: JSX.CSSProperties = {
     display: "inline-block",
@@ -177,6 +178,8 @@ export const DefaultLegendContent = (props: Props): JSX.Element => {
     color: entry.inactive
       ? merged.inactiveColor
       : (merged.labelStyle?.color ?? entry.color),
+    "white-space": merged.labelStyle?.["white-space"] ?? "normal",
+    "overflow-wrap": merged.labelStyle?.["overflow-wrap"] ?? "break-word",
   });
 
   return (

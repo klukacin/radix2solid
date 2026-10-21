@@ -1,9 +1,13 @@
-import { TextAnchor, TextVerticalAnchor } from "../component/Text";
-import { cartesianViewBoxToTrapezoid } from "../context/chartLayoutContext";
+import type { TextAnchor, TextVerticalAnchor } from "../component/Text";
 // Ported from recharts 3.8.1 src/cartesian/getCartesianPosition.tsx (commit 7a23854).
 // Pure geometry — no framework surface — so behavior is byte-identical to recharts.
 import { getPercentValue, isNumber, isPercent } from "../util/DataUtils";
-import { CartesianViewBoxRequired, TrapezoidViewBox } from "../util/types";
+import type {
+  CartesianViewBoxRequired,
+  Percent,
+  TrapezoidViewBox,
+} from "../util/types";
+import { cartesianViewBoxToTrapezoid } from "./cartesianViewBoxToTrapezoid";
 
 export type CartesianLabelPosition =
   | "top"
@@ -32,6 +36,22 @@ export type CartesianLabelPosition =
       y?: number | string;
     };
 
+export type CartesianPosition =
+  | "top"
+  | "left"
+  | "right"
+  | "bottom"
+  | "center"
+  | "insideLeft"
+  | "insideRight"
+  | "insideTop"
+  | "insideBottom"
+  | "insideTopLeft"
+  | "insideBottomLeft"
+  | "insideTopRight"
+  | "insideBottomRight"
+  | { x: number | Percent; y: number | Percent };
+
 export type GetCartesianPositionOptions = {
   viewBox: TrapezoidViewBox | CartesianViewBoxRequired;
   parentViewBox?: CartesianViewBoxRequired;
@@ -46,7 +66,7 @@ export type GetCartesianPositionOptions = {
   clamp?: boolean;
 };
 
-export type CartesianPosition = {
+export type CalculatedCartesianPosition = {
   x: number;
   y: number;
   horizontalAnchor: TextAnchor;
@@ -61,7 +81,7 @@ export type CartesianPosition = {
  */
 export const getCartesianPosition = (
   options: GetCartesianPositionOptions,
-): CartesianPosition => {
+): CalculatedCartesianPosition => {
   const {
     viewBox,
     position,
@@ -100,7 +120,7 @@ export const getCartesianPosition = (
   const parentViewBox = parentViewBoxFromOptions;
 
   if (position === "top") {
-    const result: CartesianPosition = {
+    const result: CalculatedCartesianPosition = {
       x: upperX + upperWidth / 2,
       y: y - verticalOffset,
       horizontalAnchor: "middle",
@@ -114,7 +134,7 @@ export const getCartesianPosition = (
   }
 
   if (position === "bottom") {
-    const result: CartesianPosition = {
+    const result: CalculatedCartesianPosition = {
       x: lowerX + lowerWidth / 2,
       y: y + height + verticalOffset,
       horizontalAnchor: "middle",
@@ -131,7 +151,7 @@ export const getCartesianPosition = (
   }
 
   if (position === "left") {
-    const result: CartesianPosition = {
+    const result: CalculatedCartesianPosition = {
       x: middleX - horizontalOffset,
       y: y + height / 2,
       horizontalAnchor: horizontalEnd,
@@ -145,7 +165,7 @@ export const getCartesianPosition = (
   }
 
   if (position === "right") {
-    const result: CartesianPosition = {
+    const result: CalculatedCartesianPosition = {
       x: middleX + midHeightWidth + horizontalOffset,
       y: y + height / 2,
       horizontalAnchor: horizontalStart,
@@ -269,3 +289,16 @@ export const getCartesianPosition = (
     ...sizeAttrs,
   };
 };
+
+export function isOutsidePosition(
+  position: CartesianPosition | undefined,
+): boolean {
+  return (
+    position != null &&
+    (typeof position === "object" ||
+      position === "top" ||
+      position === "bottom" ||
+      position === "left" ||
+      position === "right")
+  );
+}

@@ -1,5 +1,36 @@
 # Changelog
 
+Registry status before rc.4 publication (2026-10-20): `0.1.0-rc.3` is published under the `next` dist-tag. The versioned rc.4 prerelease notes follow; earlier entries retain their historical preparation-time wording.
+
+## 0.1.0-rc.4
+
+- Add Calendar and DatePicker project extensions for bounded date-only selection, localized six-week grids, keyboard navigation, controlled month/selection/open state, Popover composition and explicit native date-form participation.
+- Add FileDrop selection through one native chooser/drop input, whole-batch accept/count UX filtering, accepted-state form projection and reset.
+- Extend Form validity coordination for date baselines and FileDrop File-reference revisions while preserving one custom-validity writer and existing matcher/server-error behavior.
+- Repair nested `Form.Message` loops in `Form.ValidityState` by memoizing the validity snapshot before invoking its render callback.
+- Give each FileDrop gallery regression input a specific accessible name, including managed, external-form, default-value, disabled-precedence and dynamic-conflict cases.
+- Verify Toast live-region emissions and controlled-parent rejection across Chromium, Firefox and WebKit in SSR/CSR, preserving priority, Action alt-text, hidden/Close exclusion, and refusal/acceptance assertions.
+- Set the shared Overlay default to expose `aria-modal="true"` only for open modal layers; preserve explicit caller-supplied `aria-modal` values.
+
+## 0.1.0-rc.3 — source candidate, not yet published
+
+- Add data-driven Combobox with independent selection/query/open, draft-safe native form participation and client-only portal options; add caller-filtered Command with cancellable action selection and no form/value channel.
+- Default Combobox.Input's native HTML autocomplete to off, preventing competing browser form-history suggestions from consuming Enter; preserve explicit consumer and target-factory overrides.
+- Correct the Command gallery's keyed Show callback signature for native Solid 2 type checking; public Command item types and target-factory usage are unchanged.
+- Preserve Combobox/Command active identity across caller object replacement by registering rows in the native render phase before post-render reconciliation; retain Command search reset intent through empty or disabled-only results.
+- Keep target-factory List/Item/Label IDs connected to their ARIA owners, preserve native Shift+Up/Down selection, and resolve Empty only after client list registration instead of announcing false server-side emptiness.
+- Correct gallery and type-consumer composition by placing Empty and loading statuses beside their List rather than inside the listbox; retain status announcements and client-resolved server/hydration behavior without changing the primitive API.
+- Mark Combobox/Command initialization, post-render cursor reconciliation and disposal reads as intentional snapshots for native Solid 2 diagnostics; keep record/filter derivations and shared collection, active-descendant and controlled-state accessors tracked.
+- Keep collection unregister invalidation and Combobox/Command List teardown writes outside ambient list-computation ownership, so dynamic row disposal does not halt native development reactivity; registration ordering and tracked collection reads are unchanged.
+- Read controlled values and change-callback props freshly inside a short-lived owned scope, so requests from effect callbacks or unmount cleanups no longer halt native development reactivity on compiled conditional props; the callback itself runs outside that scope and unchanged requests remain no-ops.
+- Add two-pane Splitter with both-panel constraints, accepted size commits, independent collapse, native pointer/keyboard handling and provisional server layout reconciled after measurement without user callbacks.
+- Add native Tree parts, scope and types with independent controlled selection/expansion, cancellable activation, visible enabled preorder focus, explicit typeahead and collapse/removal focus repair.
+- Track Splitter available space through inherited or changed CSS gaps with one private hidden, inert measurement node appended after the semantic parts; reconciliation emits no size proposals or commits.
+- Follow Tree subtree focus ownership through native `focusout`, so explicit blur or outside focus ends ownership and later repair updates the tab stop without stealing focus; restoring items hands a focused fallback Root to the preferred item.
+- Preserve native target-factory composition and server-rendered hierarchy/selection; retained closed groups remain excluded from navigation. Prefer disclosure lists for ordinary navigation.
+- Stabilize controlled render reads across conditional JSX with an identity-compared tuple memo, preserving raw Promise/AsyncIterable values. Setters continue reading fresh parent authority, preserving existing no-op suppression and Menu submenu teardown notifications, including simultaneous parent close and unmount. The duplicate notification found during candidate development was an unreleased regression, not a defect in rc.1.
+- This source candidate is not an npm publication or screen-reader interoperability certification.
+
 ## 0.1.0-rc.2 — prepared candidate, not yet published
 
 - Require exactly `solid-js` and `@solidjs/web` `2.0.0-rc.15` as peers (was `2.0.0-rc.13`). The repository builds with `@solidjs/vite-plugin` `3.0.0-next.50`; Solid rc.15 requires Node `>=22.12.0`.

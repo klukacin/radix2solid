@@ -12,6 +12,7 @@
     "@solidjs/web": "2.0.0-rc.15",
     "@wsagency/radix2solid-charts": "workspace:*",
     "@wsagency/radix2solid-icons": "workspace:*",
+    "@wsagency/radix2solid-icons-extra": "workspace:*",
     "@wsagency/radix2solid-primitives": "workspace:*",
     "@wsagency/radix2solid-themes": "workspace:*",
     "solid-js": "2.0.0-rc.15"

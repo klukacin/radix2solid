@@ -8,7 +8,9 @@
   "ignorePatterns": [
     "pnpm-lock.yaml",
     "packages/icons/src/*Icon.tsx",
-    "packages/icons/src/index.ts"
+    "packages/icons/src/index.ts",
+    "packages/icons-extra/src/*Icon.tsx",
+    "packages/icons-extra/src/index.ts"
   ],
   "sortImports": {
     "newlinesBetween": true,

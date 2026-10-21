@@ -6,11 +6,22 @@ import type { JSX } from "@solidjs/web";
 // ResponsiveContainer-context sizing, and the tooltip/legend portal contexts.
 // Renders the `recharts-wrapper` div + `ReportChartSize` (which drives the
 // Surface dimensions) + children.
-import { createMemo, createSignal, flush, onCleanup, untrack } from "solid-js";
+import {
+  createMemo,
+  createSignal,
+  flush,
+  For,
+  onCleanup,
+  untrack,
+} from "solid-js";
 
 import { useResponsiveContainerContext } from "../component/ResponsiveContainer";
 import { ReportChartSize } from "../context/chartLayoutContext";
-import { LegendPortalContext } from "../context/legendPortalContext";
+import {
+  LegendOutletContext,
+  LegendPortalContext,
+  type LegendOutletRenderer,
+} from "../context/legendPortalContext";
 import { TooltipPortalContext } from "../context/tooltipPortalContext";
 import { dispatchExternalEvent } from "../state/externalEventsMiddleware";
 import type { ExternalEventActionPayload } from "../state/externalEventsMiddleware";
@@ -30,6 +41,7 @@ import {
   selectAllGraphicalItemsSettings,
 } from "../state/selectors/tooltipSelectors";
 import { selectTooltipCoordinate } from "../state/selectors/touchSelectors";
+import { unregisterCleanup } from "../state/unregisterOnCleanup";
 import {
   useBrushChartSynchronisation,
   useSynchronisedEventsFromOtherCharts,
@@ -126,6 +138,24 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
   let resizeObserver: ResizeObserver | null = null;
 
   const store = useAppStore();
+  const legendOutlet = store?.createState<{
+    renderers: ReadonlyArray<LegendOutletRenderer>;
+  }>({ renderers: [] });
+  const registerLegend =
+    legendOutlet == null
+      ? undefined
+      : (render: LegendOutletRenderer) => {
+          legendOutlet[1]((state) => {
+            state.renderers = [...state.renderers, render];
+          });
+          return unregisterCleanup(() => {
+            legendOutlet[1]((state) => {
+              state.renderers = state.renderers.filter(
+                (entry) => entry !== render,
+              );
+            });
+          });
+        };
   const responsiveContainerCalculations = useResponsiveContainerContext();
 
   // Subscribe this chart to cross-chart synchronisation (tooltip + brush). No-op
@@ -521,36 +551,44 @@ export const RechartsWrapper = (props: RechartsWrapperProps): JSX.Element => {
   return (
     <TooltipPortalContext value={tooltipPortal}>
       <LegendPortalContext value={tooltipPortal}>
-        <ReportChartSize
-          width={reportedWidth()}
-          height={reportedHeight()}
-        />
-        <div
-          class={["recharts-wrapper", props.class]}
-          style={wrapperStyle()}
-          ref={(el) => {
-            setWrapperRef(el);
-            attachWrapperListeners(el);
-          }}
-          onClick={handleClick}
-          onContextMenu={handleContextMenu}
-          onDblClick={handleDoubleClick}
-          onMouseDown={handleMouseDown}
-          onMouseEnter={handleMouseEnter}
-          onMouseMove={handleMouseMove}
-          onMouseOut={handleMouseOut}
-          onMouseLeave={handleMouseLeave}
-          onMouseUp={handleMouseUp}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-          onKeyDown={handleKeyDown}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          tabindex={0}
-        >
-          {props.children}
-        </div>
+        <LegendOutletContext value={registerLegend}>
+          <ReportChartSize
+            width={reportedWidth()}
+            height={reportedHeight()}
+          />
+          <div
+            class={["recharts-wrapper", props.class]}
+            style={wrapperStyle()}
+            ref={(el) => {
+              setWrapperRef(el);
+              attachWrapperListeners(el);
+            }}
+            onClick={handleClick}
+            onContextMenu={handleContextMenu}
+            onDblClick={handleDoubleClick}
+            onMouseDown={handleMouseDown}
+            onMouseEnter={handleMouseEnter}
+            onMouseMove={handleMouseMove}
+            onMouseOut={handleMouseOut}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onKeyDown={handleKeyDown}
+            onFocus={onFocus}
+            onBlur={onBlur}
+            tabindex={0}
+          >
+            {props.children}
+            {/* Create the list after ordinary children register, not while SSR builds their slots. */}
+            {() => (
+              <For each={legendOutlet?.[0]().renderers}>
+                {(render) => render()}
+              </For>
+            )}
+          </div>
+        </LegendOutletContext>
       </LegendPortalContext>
     </TooltipPortalContext>
   );

@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web";
 import type { Properties as CSSProperties } from "csstype";
-import { createMemo, For, merge, omit, Show } from "solid-js";
+import { createMemo, For, merge, omit, Show, untrack } from "solid-js";
 
 import { isNullish, isNumber, isNumOrStr } from "../util/DataUtils";
 import { getStringSize } from "../util/DOMUtils";
@@ -11,7 +11,8 @@ import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
 // Ported from recharts 3.8.1 src/component/Text.tsx (commit 7a23854).
 //
 // The word-measurement/wrapping helpers are pure (getStringSize/reduceCSSCalc/
-// Global) and ported verbatim. Solid deviations on the component: forwardRef →
+// Global); reduceCSSCalc includes the selected Recharts #7610/#7620 adaptations.
+// Solid deviations on the component: forwardRef →
 // (ref forwarding deferred — axis tick labels don't need it); useMemo →
 // createMemo; resolveDefaultProps → merge; `className`→`class`, clsx → array
 // `class`; React CSSProperties → csstype Properties (matches getStringSize); the
@@ -350,6 +351,7 @@ const HANDLED_KEYS = [
   "maxLines",
   "width",
   "style",
+  "ref",
 ] as const;
 
 export const Text = (props: Props): JSX.Element => {
@@ -465,6 +467,8 @@ export const Text = (props: Props): JSX.Element => {
           class={["recharts-text", g().class]}
           text-anchor={g().textAnchor}
           fill={g().fill}
+          // The ref is sampled once when this text node attaches, not derived with its geometry.
+          ref={untrack(() => props.ref)}
         >
           <For each={wordsByLines()}>
             {(line, index) => (

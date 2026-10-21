@@ -100,6 +100,7 @@ test("packed server renders without window and hydrates two CSP roots without re
     "server renders the Avatar inside the IconButton trigger",
   ).toEqual(["BUTTON", "SPAN"]);
   release();
+  await page.waitForLoadState("load");
   await expect(page.locator("#refs")).toHaveText("same host");
   // Check hydration before the outside click intentionally disposes open navigation content.
   expect(

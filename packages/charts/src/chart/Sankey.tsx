@@ -781,6 +781,12 @@ export interface SankeyProps extends EventThrottlingProps {
   sort?: boolean;
   align?: SankeyHorizontalAlign;
   verticalAlign?: SankeyVerticalAlign;
+  /** Enable root SVG keyboard and screen-reader attributes. @defaultValue true */
+  accessibilityLayer?: boolean;
+  title?: string;
+  desc?: string;
+  role?: JSX.AriaAttributes["role"];
+  tabIndex?: number;
   /** Custom node renderer (function form). Receives the laid-out node props. */
   node?: SankeyNodeOptions;
   /** Custom link renderer (function form). Receives the laid-out link props. */
@@ -810,6 +816,7 @@ export interface SankeyProps extends EventThrottlingProps {
 }
 
 export const sankeyDefaultProps = {
+  accessibilityLayer: true,
   align: "justify",
   dataKey: "value",
   iterations: 32,
@@ -939,6 +946,19 @@ const SankeyImpl = (props: SankeyProps & { id: string }): JSX.Element => {
         <Surface
           width={d().width}
           height={d().height}
+          title={props.title}
+          desc={props.desc}
+          role={
+            props.role ??
+            (merged.accessibilityLayer ? "application" : undefined)
+          }
+          tabIndex={
+            typeof props.tabIndex === "number"
+              ? props.tabIndex
+              : merged.accessibilityLayer
+                ? 0
+                : undefined
+          }
         >
           <Layer class={layerClass()}>
             <Layer class="recharts-sankey-links">

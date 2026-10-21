@@ -125,6 +125,19 @@ export const calculateActiveTickIndex = (
     Math.abs(Math.abs(range[1] - range[0]) - 360) <= 1e-6
   ) {
     // ticks are distributed in a circle
+    const span = range[1] - range[0];
+    const isInside = (
+      lower: number,
+      upper: number,
+      inclusiveLower: boolean,
+    ): boolean => {
+      for (let turn = -1; turn <= 1; turn++) {
+        const value = coordinate + turn * span;
+        if ((inclusiveLower ? value >= lower : value > lower) && value <= upper)
+          return true;
+      }
+      return false;
+    };
     for (let i = 0; i < len; i++) {
       const before =
         i > 0
@@ -162,11 +175,10 @@ export const calculateActiveTickIndex = (
         ];
 
         if (
-          (coordinate > sameInterval[0] && coordinate <= sameInterval[1]) ||
+          isInside(sameInterval[0], sameInterval[1], false) ||
           (diffInterval[0] != null &&
             diffInterval[1] != null &&
-            coordinate >= diffInterval[0] &&
-            coordinate <= diffInterval[1])
+            isInside(diffInterval[0], diffInterval[1], true))
         ) {
           return unsortedTicks[i]?.index;
         }
@@ -174,10 +186,7 @@ export const calculateActiveTickIndex = (
         const minValue = Math.min(before, after);
         const maxValue = Math.max(before, after);
 
-        if (
-          coordinate > (minValue + cur) / 2 &&
-          coordinate <= (maxValue + cur) / 2
-        ) {
+        if (isInside((minValue + cur) / 2, (maxValue + cur) / 2, false)) {
           return unsortedTicks[i]?.index;
         }
       }

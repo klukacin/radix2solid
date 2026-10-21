@@ -1,0 +1,50 @@
+{
+  "name": "@wsagency/radix2solid-icons-extra",
+  "version": "0.1.0-rc.4",
+  "private": false,
+  "homepage": "https://github.com/wsagency/radix2solid/tree/main/packages/icons-extra#readme",
+  "bugs": {
+    "url": "https://github.com/wsagency/radix2solid/issues"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wsagency/radix2solid.git",
+    "directory": "packages/icons-extra"
+  },
+  "files": [
+    "dist",
+    "icons",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "browser": "./dist/client/index.js",
+      "default": "./dist/server/index.js"
+    },
+    "./icons/*.svg": "./icons/*.svg",
+    "./*Icon": {
+      "types": "./dist/types/*Icon.d.ts",
+      "browser": "./dist/client/*Icon.js",
+      "default": "./dist/server/*Icon.js"
+    }
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/",
+    "tag": "next"
+  },
+  "scripts": {
+    "generate": "node ../icons/scripts/generate.ts .",
+    "build": "pnpm generate && vite build && vite build --ssr && tsc -p tsconfig.json"
+  },
+  "peerDependencies": {
+    "@solidjs/web": "2.0.0-rc.15",
+    "solid-js": "2.0.0-rc.15"
+  }
+}

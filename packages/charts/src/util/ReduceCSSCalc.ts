@@ -1,5 +1,7 @@
 // Ported from recharts 3.8.1 src/util/ReduceCSSCalc.ts (commit 7a23854).
-// Pure CSS-calc parser — no framework surface — so behavior is byte-identical to recharts.
+// Pure CSS-calc parser; literal replacement adapted from Recharts #7610
+// (commit 945fc2816b0a8eb824188a57ba393db5ed3c68b5) and input-length guard from
+// #7620 (commit 0778d4875fdb5f50bd643e494734dd2a1808116a), not byte-identical.
 
 import { isNan } from "./DataUtils";
 
@@ -157,16 +159,22 @@ function calculateParentheses(expr: string): string {
   let match: ReturnType<typeof RegExp.prototype.exec> | null;
   while ((match = PARENTHESES_REGEX.exec(newExpr)) != null) {
     const [, parentheticalExpression] = match;
-    newExpr = newExpr.replace(
-      PARENTHESES_REGEX,
-      calculateArithmetic(parentheticalExpression),
-    );
+    // A replacement string interprets dollar tokens; a function preserves them literally.
+    const replacement = calculateArithmetic(parentheticalExpression);
+    newExpr = newExpr.replace(PARENTHESES_REGEX, () => replacement);
   }
 
   return newExpr;
 }
 
+// Bound the inner expression before whitespace removal or operand regex evaluation.
+const MAX_EXPRESSION_LENGTH = 1000;
+
 function evaluateExpression(expression: string): string {
+  if (expression.length > MAX_EXPRESSION_LENGTH) {
+    return STR_NAN;
+  }
+
   let newExpr = expression.replace(/\s+/g, "");
   newExpr = calculateParentheses(newExpr);
   newExpr = calculateArithmetic(newExpr);

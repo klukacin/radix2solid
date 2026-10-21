@@ -475,16 +475,22 @@ export const getBandSizeOfAxis = (
     const orderedTicks: ReadonlyArray<TickItem> = sortBy(ticks, [
       (o: TickItem) => o.coordinate,
     ]);
-    let bandSize = Infinity;
-
-    for (let i = 1, len = orderedTicks.length; i < len; i++) {
-      const cur = orderedTicks[i];
-      const prev = orderedTicks[i - 1];
-
-      bandSize = Math.min(
-        (cur?.coordinate || 0) - (prev?.coordinate || 0),
-        bandSize,
+    let maxGap = 0;
+    for (let i = 1; i < orderedTicks.length; i++) {
+      maxGap = Math.max(
+        maxGap,
+        (orderedTicks[i]?.coordinate || 0) -
+          (orderedTicks[i - 1]?.coordinate || 0),
       );
+    }
+    // Near-coincident float ticks share a category slot, not a new bar-sized band.
+    const minMeaningfulGap = maxGap * 1e-4;
+    let bandSize = Infinity;
+    for (let i = 1; i < orderedTicks.length; i++) {
+      const gap =
+        (orderedTicks[i]?.coordinate || 0) -
+        (orderedTicks[i - 1]?.coordinate || 0);
+      if (gap > minMeaningfulGap) bandSize = Math.min(gap, bandSize);
     }
 
     return bandSize === Infinity ? 0 : bandSize;
@@ -556,7 +562,28 @@ export const appendOffsetOfLegend = (
   legendSize: Size,
 ): OffsetSides => {
   const { width: boxWidth, height: boxHeight } = legendSize;
-  const { align, verticalAlign, layout } = legendSettings;
+  const {
+    align,
+    verticalAlign,
+    layout,
+    position,
+    offset: legendOffset = 0,
+  } = legendSettings;
+  if (position != null) {
+    if (position === "top" || position === "bottom") {
+      return {
+        ...offset,
+        [position]: offset[position] + (boxHeight || 0) + legendOffset,
+      };
+    }
+    if (position === "left" || position === "right") {
+      return {
+        ...offset,
+        [position]: offset[position] + (boxWidth || 0) + legendOffset,
+      };
+    }
+    return offset;
+  }
 
   if (
     (layout === "vertical" ||

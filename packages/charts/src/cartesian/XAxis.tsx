@@ -1,5 +1,5 @@
-import type { JSX } from "@solidjs/web";
-import { createMemo, Show } from "solid-js";
+import { isServer, type JSX } from "@solidjs/web";
+import { createEffect, createMemo, createSignal, Show } from "solid-js";
 
 import type { ImplicitLabelType } from "../component/Label";
 import { useCartesianChartLayout } from "../context/chartLayoutContext";
@@ -43,6 +43,7 @@ import {
   TickFormatter,
   TickProp,
 } from "../util/types";
+import { getCalculatedXAxisHeight } from "../util/XAxisUtils";
 import { CartesianAxis, type CartesianTickEventHandler } from "./CartesianAxis";
 import { RenderedTicksReporter } from "./RenderedTicksReporter";
 
@@ -62,7 +63,7 @@ export interface XAxisProps<DataPointType = unknown, DataValueType = unknown> {
   tickCount?: number;
   tickFormatter?: TickFormatter;
   padding?: XAxisPadding;
-  height?: number;
+  height?: number | "auto";
   orientation?: XAxisOrientation;
   mirror?: boolean;
   minTickGap?: number;
@@ -249,62 +250,151 @@ export function XAxis<DataPointType = unknown, DataValueType = unknown>(
     return { position: p, size: s, ticks: ticks() ?? [] };
   });
 
+  let layerEl: SVGGElement | null = null;
+  let labelEl: SVGTextElement | null = null;
+  const [fontRevision, setFontRevision] = createSignal(0);
+  createEffect(
+    () => ({
+      ticks: ticks(),
+      size: size(),
+      height: props.height,
+      label: props.label,
+      id: xAxisId(),
+      tickSize: props.tickSize ?? 6,
+      tickMargin: props.tickMargin ?? 2,
+      fontSize: props.fontSize,
+      letterSpacing: props.letterSpacing,
+      fontRevision: fontRevision(),
+    }),
+    (inputs) => {
+      if (
+        isServer ||
+        inputs.height !== "auto" ||
+        typeof inputs.label === "function" ||
+        Array.isArray(inputs.label) ||
+        (typeof Node !== "undefined" && inputs.label instanceof Node) ||
+        layerEl == null ||
+        inputs.ticks == null ||
+        inputs.size == null ||
+        store == null
+      )
+        return;
+      const tickNodes = layerEl.getElementsByClassName(
+        "recharts-cartesian-axis-tick-label",
+      );
+      const height = getCalculatedXAxisHeight({
+        ticks: tickNodes,
+        label: labelEl?.isConnected ? labelEl : undefined,
+        labelGapWithTick: 5,
+        tickSize: inputs.tickSize,
+        tickMargin: inputs.tickMargin,
+      });
+      if (Math.round(inputs.size.height) !== height) {
+        store.actions.cartesianAxis.updateXAxisHeight({
+          id: inputs.id,
+          height,
+        });
+      }
+    },
+  );
+
   return (
     <Show when={!isPanorama && !hide() && axisRender()}>
-      {(ar) => (
-        <>
-          <RenderedTicksReporter
-            axisType="xAxis"
-            axisId={xAxisId()}
-            ticks={ar().ticks}
-          />
-          <CartesianAxis
-            axisType="xAxis"
-            x={ar().position.x}
-            y={ar().position.y}
-            width={ar().size.width}
-            height={ar().size.height}
-            orientation={orientation()}
-            ticks={ar().ticks}
-            tick={tick()}
-            tickFormatter={tickFormatter()}
-            interval={withDefault(props.interval, xAxisDefaultProps.interval)}
-            minTickGap={withDefault(
-              props.minTickGap,
-              xAxisDefaultProps.minTickGap,
-            )}
-            unit={unit()}
-            mirror={mirror()}
-            class={props.class}
-            fontSize={props.fontSize}
-            letterSpacing={props.letterSpacing}
-            axisLine={props.axisLine ?? true}
-            tickLine={props.tickLine ?? true}
-            tickSize={props.tickSize ?? 6}
-            tickMargin={props.tickMargin ?? 2}
-            stroke={props.stroke}
-            strokeOpacity={props.strokeOpacity}
-            zIndex={props.zIndex}
-            onClick={props.onClick}
-            onMouseEnter={props.onMouseEnter}
-            onMouseLeave={props.onMouseLeave}
-            onMouseOver={props.onMouseOver}
-            onMouseOut={props.onMouseOut}
-            onMouseMove={props.onMouseMove}
-            onMouseDown={props.onMouseDown}
-            onMouseUp={props.onMouseUp}
-            onTouchStart={props.onTouchStart}
-            onTouchMove={props.onTouchMove}
-            onTouchEnd={props.onTouchEnd}
-            label={props.label}
-            name={props.name}
-            angle={props.angle}
-            padding={props.padding}
-          >
-            {props.children}
-          </CartesianAxis>
-        </>
-      )}
+      {(ar) => {
+        let renderedHost: SVGGElement | null = null;
+        const autoHeightActive = createMemo(() => {
+          if (props.height !== "auto") return false;
+          const label = props.label;
+          return (
+            typeof label !== "function" &&
+            !Array.isArray(label) &&
+            !(typeof Node !== "undefined" && label instanceof Node)
+          );
+        });
+        createEffect(autoHeightActive, (active) => {
+          if (isServer || !active || renderedHost == null) return;
+          // This branch owns the axis host; geometry updates do not renew its font subscription.
+          const fonts = renderedHost.ownerDocument.fonts;
+          if (fonts == null) return;
+          let disposed = false;
+          let pendingReady: Promise<FontFaceSet> | undefined;
+          const watchFontCompletion = () => {
+            const ready = fonts.ready;
+            if (ready === pendingReady) return;
+            pendingReady = ready;
+            void ready.then(() => {
+              if (!disposed) setFontRevision((revision) => revision + 1);
+            });
+          };
+          fonts.addEventListener("loading", watchFontCompletion);
+          if (fonts.status === "loading") watchFontCompletion();
+          return () => {
+            disposed = true;
+            fonts.removeEventListener("loading", watchFontCompletion);
+          };
+        });
+        return (
+          <>
+            <RenderedTicksReporter
+              axisType="xAxis"
+              axisId={xAxisId()}
+              ticks={ar().ticks}
+            />
+            <CartesianAxis
+              axisType="xAxis"
+              layerRef={(el) => {
+                layerEl = el;
+                renderedHost = el;
+              }}
+              labelRef={(el) => {
+                labelEl = el;
+              }}
+              x={ar().position.x}
+              y={ar().position.y}
+              width={ar().size.width}
+              height={ar().size.height}
+              orientation={orientation()}
+              ticks={ar().ticks}
+              tick={tick()}
+              tickFormatter={tickFormatter()}
+              interval={withDefault(props.interval, xAxisDefaultProps.interval)}
+              minTickGap={withDefault(
+                props.minTickGap,
+                xAxisDefaultProps.minTickGap,
+              )}
+              unit={unit()}
+              mirror={mirror()}
+              class={props.class}
+              fontSize={props.fontSize}
+              letterSpacing={props.letterSpacing}
+              axisLine={props.axisLine ?? true}
+              tickLine={props.tickLine ?? true}
+              tickSize={props.tickSize ?? 6}
+              tickMargin={props.tickMargin ?? 2}
+              stroke={props.stroke}
+              strokeOpacity={props.strokeOpacity}
+              zIndex={props.zIndex}
+              onClick={props.onClick}
+              onMouseEnter={props.onMouseEnter}
+              onMouseLeave={props.onMouseLeave}
+              onMouseOver={props.onMouseOver}
+              onMouseOut={props.onMouseOut}
+              onMouseMove={props.onMouseMove}
+              onMouseDown={props.onMouseDown}
+              onMouseUp={props.onMouseUp}
+              onTouchStart={props.onTouchStart}
+              onTouchMove={props.onTouchMove}
+              onTouchEnd={props.onTouchEnd}
+              label={props.label}
+              name={props.name}
+              angle={props.angle}
+              padding={props.padding}
+            >
+              {props.children}
+            </CartesianAxis>
+          </>
+        );
+      }}
     </Show>
   );
 }

@@ -92,8 +92,8 @@ function getBarPositions(
           position: {
             offset:
               offset +
-              (originalSize + realBarGap) * i +
-              (originalSize - size) / 2,
+              (len * (originalSize - size)) / 2 +
+              (size + realBarGap) * i,
             size,
           },
         },

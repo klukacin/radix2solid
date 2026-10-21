@@ -36,6 +36,9 @@ importers:
       '@wsagency/radix2solid-icons':
         specifier: workspace:*
         version: link:packages/icons
+      '@wsagency/radix2solid-icons-extra':
+        specifier: workspace:*
+        version: link:packages/icons-extra
       '@wsagency/radix2solid-primitives':
         specifier: workspace:*
         version: link:packages/primitives
@@ -81,6 +84,9 @@ importers:
       '@wsagency/radix2solid-icons':
         specifier: workspace:*
         version: link:../../packages/icons
+      '@wsagency/radix2solid-icons-extra':
+        specifier: workspace:*
+        version: link:../../packages/icons-extra
       '@wsagency/radix2solid-primitives':
         specifier: workspace:*
         version: link:../../packages/primitives
@@ -116,6 +122,15 @@ importers:
         version: 2.0.0-rc.15
 
   packages/icons:
+    dependencies:
+      '@solidjs/web':
+        specifier: 2.0.0-rc.15
+        version: 2.0.0-rc.15(solid-js@2.0.0-rc.15)
+      solid-js:
+        specifier: 2.0.0-rc.15
+        version: 2.0.0-rc.15
+
+  packages/icons-extra:
     dependencies:
       '@solidjs/web':
         specifier: 2.0.0-rc.15

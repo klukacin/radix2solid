@@ -169,6 +169,14 @@ export const combineTooltipPayload = (
           tooltipAxisDataKey,
           activeLabel,
         );
+        if (tooltipPayload == null) {
+          tooltipPayload = tooltipPayloadSearcher(
+            sliced,
+            activeIndex,
+            computedData,
+            finalNameKey,
+          );
+        }
       } else {
         tooltipPayload = tooltipPayloadSearcher(
           sliced,

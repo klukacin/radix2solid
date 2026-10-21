@@ -224,6 +224,7 @@ export interface CartesianAxisProps {
    * threads this through a `CartesianAxisRef.getCalculatedWidth`).
    */
   layerRef?: (el: SVGGElement) => void;
+  labelRef?: (el: SVGTextElement) => void;
   /** Per-tick pointer handlers, called props-first `(tickItem, index, event)`. */
   onClick?: CartesianTickEventHandler<MouseEvent>;
   onMouseEnter?: CartesianTickEventHandler<MouseEvent>;
@@ -588,6 +589,7 @@ export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
                           fill={tickSettings()?.fill ?? strokeColor()}
                           fontSize={merged.fontSize}
                           letterSpacing={merged.letterSpacing}
+                          angle={merged.angle}
                           // `tickTextProps` wins over the computed tick props
                           // (recharts spreads it last); the tick-value class stays
                           // fixed after it, matching recharts' explicit className.
@@ -616,7 +618,10 @@ export const CartesianAxis = (props: CartesianAxisProps): JSX.Element => {
             lowerWidth={merged.width}
             upperWidth={merged.width}
           >
-            <CartesianLabelFromLabelProp label={merged.label} />
+            <CartesianLabelFromLabelProp
+              label={merged.label}
+              labelRef={props.labelRef}
+            />
             {merged.children}
           </CartesianLabelContextProvider>
         </Layer>

@@ -17,6 +17,7 @@ type Coverage = {
     css: number;
     plugins: number;
     icons: number;
+    iconsExtra: number;
   };
 };
 type ExportTarget = string | null | { [condition: string]: ExportTarget };
@@ -25,6 +26,22 @@ const coverage: Coverage = JSON.parse(
 );
 const iconNames: Record<string, string> = JSON.parse(
   await readFile(new URL("./icons.json", import.meta.url), "utf8"),
+);
+const extraIconNames: Record<string, string> = JSON.parse(
+  await readFile(new URL("./icons-extra.json", import.meta.url), "utf8"),
+);
+assert.equal(Object.keys(extraIconNames).length, 2);
+assert.deepEqual(
+  Object.keys(extraIconNames).filter((name) => name in iconNames),
+  [],
+  "Extra icon names must not collide",
+);
+assert.deepEqual(
+  Object.values(extraIconNames).filter((asset) =>
+    Object.values(iconNames).includes(asset),
+  ),
+  [],
+  "Extra SVG names must not collide",
 );
 const reachableChecks: string[] = JSON.parse(
   await readFile(resolve("consumer-check-files.json"), "utf8"),
@@ -52,15 +69,35 @@ function targets(value: ExportTarget): string[] {
       : Object.values(value).flatMap(targets);
 }
 const publicPaths = new Set<string>();
-for (const name of ["primitives", "themes", "icons", "charts"]) {
+for (const name of ["primitives", "themes", "icons", "icons-extra", "charts"]) {
   const packageName = `@wsagency/radix2solid-${name}`;
   const packageRoot = resolve(
     dirname(await realpath(fileURLToPath(import.meta.resolve(packageName)))),
     "../..",
   );
-  const manifest: { exports: Record<string, ExportTarget> } = JSON.parse(
-    await readFile(resolve(packageRoot, "package.json"), "utf8"),
-  );
+  const manifest: {
+    exports: Record<string, ExportTarget>;
+    dependencies?: Record<string, string>;
+    peerDependencies?: Record<string, string>;
+  } = JSON.parse(await readFile(resolve(packageRoot, "package.json"), "utf8"));
+  for (const [dependency, version] of Object.entries({
+    ...manifest.dependencies,
+    ...manifest.peerDependencies,
+  })) {
+    assert(
+      !/^(?:workspace:|file:|link:)/.test(version),
+      `${packageName}: local dependency ${dependency}`,
+    );
+    assert(
+      !/^(?:react|react-dom|recharts|@radix-solid\/)/.test(dependency),
+      `${packageName}: non-native dependency ${dependency}`,
+    );
+    if (name === "icons-extra")
+      assert(
+        !dependency.startsWith("@wsagency/radix2solid-"),
+        "Extra icons must remain package-independent",
+      );
+  }
   const files = (
     await readdir(packageRoot, { recursive: true, withFileTypes: true })
   )
@@ -69,6 +106,32 @@ for (const name of ["primitives", "themes", "icons", "charts"]) {
       (entry) =>
         `./${resolve(entry.parentPath, entry.name).slice(packageRoot.length + 1)}`,
     );
+  for (const file of files.filter(
+    (file) =>
+      file.startsWith("./dist/") && /\.(?:js|mjs|cjs|d\.ts)$/.test(file),
+  )) {
+    const source = await readFile(resolve(packageRoot, file), "utf8");
+    for (const match of source.matchAll(
+      /(?:from\s*|import\s*\(|import\s*|require\s*\()\s*['"]([^'"]+)['"]/g,
+    )) {
+      const specifier = match[1];
+      assert(
+        !/^(?:react(?:\/|$)|react-dom(?:\/|$)|recharts(?:\/|$)|@radix-solid\/|workspace:|file:|link:)/.test(
+          specifier,
+        ),
+        `${packageName}${file}: forbidden import ${specifier}`,
+      );
+      assert(
+        !/(?:^|\/)(?:upstream|packages|src)\//.test(specifier),
+        `${packageName}${file}: source import ${specifier}`,
+      );
+      if (name === "icons-extra")
+        assert(
+          !specifier.startsWith("@wsagency/radix2solid-"),
+          `${file}: cross-package icon import`,
+        );
+    }
+  }
   const keys = Object.keys(manifest.exports).sort((a, b) => {
     if (!a.includes("*")) return b.includes("*") ? -1 : 0;
     if (!b.includes("*")) return 1;
@@ -127,6 +190,13 @@ const expectedPaths = [
   ...Object.values(iconNames).map(
     (asset) => `@wsagency/radix2solid-icons/icons/${asset}`,
   ),
+  "@wsagency/radix2solid-icons-extra",
+  ...Object.keys(extraIconNames).map(
+    (name) => `@wsagency/radix2solid-icons-extra/${name}`,
+  ),
+  ...Object.values(extraIconNames).map(
+    (asset) => `@wsagency/radix2solid-icons-extra/icons/${asset}`,
+  ),
 ];
 assert.deepEqual(
   [...publicPaths].sort(),
@@ -151,6 +221,16 @@ const contracts = [
   },
   ...Object.keys(iconNames).map((name) => ({
     module: `@wsagency/radix2solid-icons/${name}`,
+    exports: `${name} default`,
+    checks: ["assets", "types"],
+  })),
+  {
+    module: "@wsagency/radix2solid-icons-extra",
+    exports: ["IconProps", ...Object.keys(extraIconNames)].join(" "),
+    checks: ["assets", "types"],
+  },
+  ...Object.keys(extraIconNames).map((name) => ({
+    module: `@wsagency/radix2solid-icons-extra/${name}`,
     exports: `${name} default`,
     checks: ["assets", "types"],
   })),
@@ -240,6 +320,7 @@ assert.deepEqual(
     css: coverage.css.length,
     plugins: coverage.plugins.length,
     icons: Object.keys(iconNames).length,
+    iconsExtra: Object.keys(extraIconNames).length,
   },
   coverage.publicCounts,
   "Exact intentional public counts",

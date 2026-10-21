@@ -25,19 +25,21 @@ export const ClipPathProvider = (props: {
   // change (selectors return fresh objects), churning the subtree.
   return (
     <Show when={plotArea()}>
-      {(area) => (
+      {(_plotArea) => (
         <ClipPathIdContext value={clipPathId}>
+          {props.children}
+          {/* Declarations register during ordinary child rendering. Read their final
+              initial plot here, not the outer Show's pre-registration snapshot. */}
           <defs>
             <clipPath id={clipPathId}>
               <rect
-                x={area().x}
-                y={area().y}
-                height={area().height}
-                width={area().width}
+                x={plotArea()?.x}
+                y={plotArea()?.y}
+                height={plotArea()?.height}
+                width={plotArea()?.width}
               />
             </clipPath>
           </defs>
-          {props.children}
         </ClipPathIdContext>
       )}
     </Show>

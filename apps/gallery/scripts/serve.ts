@@ -12,6 +12,7 @@ type Renderer = {
     entry?: string,
     mode?: "ssr" | "csr",
     stylesheets?: readonly string[],
+    initiallyOpenDatePicker?: boolean,
   ) => string;
 };
 const production = process.argv.includes("--production");
@@ -20,17 +21,20 @@ const vite = production
   ? undefined
   : await createServer({ root, server: { middlewareMode: true } });
 const server = createHttpServer(async (request, response) => {
-  if (request.url === "/favicon.ico") {
+  const requestUrl = new URL(request.url ?? "/", "http://localhost");
+  const pathname = requestUrl.pathname;
+  const initiallyOpenDatePicker =
+    requestUrl.searchParams.get("date-picker-initially-open") === "1";
+  if (pathname === "/favicon.ico") {
     response.writeHead(204);
     response.end();
     return;
   }
-  if (request.url !== "/" && request.url !== "/csr") {
+  if (pathname !== "/" && pathname !== "/csr") {
     if (vite) {
       vite.middlewares(request, response);
       return;
     }
-    const pathname = new URL(request.url ?? "/", "http://localhost").pathname;
     const assets = resolve(root, "dist/client");
     const file = resolve(assets, `.${pathname}`);
     if (!pathname.startsWith("/assets/") || !file.startsWith(`${assets}/`)) {
@@ -99,8 +103,9 @@ const server = createHttpServer(async (request, response) => {
     const html = renderer.renderPage(
       nonce,
       entry,
-      request.url === "/csr" ? "csr" : "ssr",
+      pathname === "/csr" ? "csr" : "ssr",
       stylesheets,
+      initiallyOpenDatePicker,
     );
     response.writeHead(200, {
       "Content-Type": "text/html; charset=utf-8",
@@ -113,8 +118,9 @@ const server = createHttpServer(async (request, response) => {
     response.end("Gallery rendering failed.");
   }
 });
-server.listen(4147, "127.0.0.1", () =>
-  console.log("Gallery ready http://127.0.0.1:4147"),
+const port = Number(process.env.GALLERY_PORT ?? 4147);
+server.listen(port, "127.0.0.1", () =>
+  console.log(`Gallery ready http://127.0.0.1:${port}`),
 );
 process.on("SIGTERM", () => {
   server.close();

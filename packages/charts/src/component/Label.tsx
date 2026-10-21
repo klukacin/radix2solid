@@ -5,18 +5,17 @@ import {
   merge,
   omit,
   Show,
+  untrack,
   useContext,
 } from "solid-js";
 import type { Accessor } from "solid-js";
 
+import { cartesianViewBoxToTrapezoid } from "../cartesian/cartesianViewBoxToTrapezoid";
 import {
   type CartesianLabelPosition,
   getCartesianPosition,
 } from "../cartesian/getCartesianPosition";
-import {
-  cartesianViewBoxToTrapezoid,
-  useViewBox,
-} from "../context/chartLayoutContext";
+import { useViewBox } from "../context/chartLayoutContext";
 import { useAppSelector } from "../state/hooks";
 import { selectPolarViewBox } from "../state/selectors/polarAxisSelectors";
 import { isNullish, isNumber, isNumOrStr } from "../util/DataUtils";
@@ -50,7 +49,12 @@ import {
 import { useUniqueId } from "../util/useUniqueId";
 import { DefaultZIndexes } from "../zIndex/DefaultZIndexes";
 import { ZIndexLayer } from "../zIndex/ZIndexLayer";
-import { type RenderableText, Text } from "./Text";
+import {
+  type RenderableText,
+  type TextAnchor,
+  type TextVerticalAnchor,
+  Text,
+} from "./Text";
 
 /** @inline */
 export type LabelContentType = (props: Props) => RenderableText | JSX.Element;
@@ -84,16 +88,19 @@ interface LabelProps {
   textBreakAll?: boolean;
   /** Text rotation angle in degrees. @defaultValue 0 */
   angle?: number;
+  textAnchor?: TextAnchor;
+  verticalAnchor?: TextVerticalAnchor;
   index?: number;
   /** HTML id attribute. */
   id?: string;
   /** @defaultValue 0 — LabelList passes 0 so labels stay in the bar layer. */
   zIndex?: number;
+  labelRef?: (node: SVGTextElement) => void;
 }
 
 export type Props = Omit<
   CamelSvgProps<JSX.TextSVGAttributes<SVGTextElement>>,
-  "viewBox" | "class" | "children"
+  "viewBox" | "class" | "children" | "textAnchor" | "verticalAnchor"
 > &
   LabelProps;
 
@@ -306,6 +313,8 @@ export function Label(outerProps: Props): JSX.Element {
         "index",
         "id",
         "class",
+        "labelRef",
+        "ref",
       ),
     ),
   );
@@ -426,18 +435,43 @@ export function Label(outerProps: Props): JSX.Element {
   // receives); the <Show> below invokes it inline so this memo never returns JSX.
   // (Element-form `content` is N/A by design — Solid has no cloneElement.)
   const customLabel = createMemo(() => {
-    // recharts: a `position="center"` label resolves against the CARTESIAN viewBox
-    // even inside a polar chart (PieChart center label), otherwise polar wins.
-    const vb =
-      props.position === "center"
-        ? (viewBox() ?? cartesianViewBox())
-        : (polarViewBox() ?? viewBox() ?? cartesianViewBox());
+    const vb = polarViewBox() ?? viewBox();
     const content = props.content;
     if (vb == null || typeof content !== "function") {
       return undefined;
     }
-    const args = omit({ ...props, viewBox: vb }, "content");
-    return { content, args };
+    const radial =
+      isPolarViewBox(vb) &&
+      (props.position === "insideStart" ||
+        props.position === "insideEnd" ||
+        props.position === "end");
+    const position = radial
+      ? undefined
+      : isPolarViewBox(vb)
+        ? getAttrsOfPolarLabel(vb, props.offset, props.position)
+        : getCartesianPosition({
+            viewBox: vb,
+            position: props.position,
+            offset: props.offset,
+            parentViewBox:
+              props.parentViewBox != null && "cx" in props.parentViewBox
+                ? undefined
+                : props.parentViewBox,
+            clamp: true,
+          });
+    // Only coordinates are inherited; a nested Label computes its own anchors.
+    return {
+      content,
+      args: omit(
+        {
+          ...(position?.x !== undefined ? { x: position.x } : {}),
+          ...(position?.y !== undefined ? { y: position.y } : {}),
+          ...props,
+          viewBox: vb,
+        },
+        "content",
+      ),
+    };
   });
 
   // Render the default/polar/radial text labels inline under <Show> (their render
@@ -445,18 +479,24 @@ export function Label(outerProps: Props): JSX.Element {
   // JSX). Returning JSX from a memo and feeding it into <ZIndexLayer> (a Portal)
   // leaks ownerless render-effects on recompute — see Bar.tsx. A non-keyed <Show>
   // keeps each subtree stable and reads the narrowed accessor inside JSX (tracked).
+  // Ref callbacks are attachment-time snapshots; all label geometry and content stay tracked.
   return (
     <>
       <Show when={textRender()}>
         {(d) => (
           <ZIndexLayer zIndex={props.zIndex}>
             <Text
+              ref={(node) => {
+                untrack(() => props.labelRef)?.(node);
+                const ref = untrack(() => props.ref);
+                if (typeof ref === "function") ref(node);
+              }}
               {...d().svgProps}
               class={d().class}
-              x={d().pos.x}
-              y={d().pos.y}
-              textAnchor={d().pos.horizontalAnchor}
-              verticalAnchor={d().pos.verticalAnchor}
+              x={props.x ?? d().pos.x}
+              y={props.y ?? d().pos.y}
+              textAnchor={props.textAnchor ?? d().pos.horizontalAnchor}
+              verticalAnchor={props.verticalAnchor ?? d().pos.verticalAnchor}
               angle={d().angle}
               breakAll={d().breakAll}
             >
@@ -469,12 +509,17 @@ export function Label(outerProps: Props): JSX.Element {
         {(d) => (
           <ZIndexLayer zIndex={props.zIndex}>
             <Text
+              ref={(node) => {
+                untrack(() => props.labelRef)?.(node);
+                const ref = untrack(() => props.ref);
+                if (typeof ref === "function") ref(node);
+              }}
               {...textSvgProps()}
               class={d().class}
-              x={d().attrs.x}
-              y={d().attrs.y}
-              textAnchor={d().attrs.textAnchor}
-              verticalAnchor={d().attrs.verticalAnchor}
+              x={props.x ?? d().attrs.x}
+              y={props.y ?? d().attrs.y}
+              textAnchor={props.textAnchor ?? d().attrs.textAnchor}
+              verticalAnchor={props.verticalAnchor ?? d().attrs.verticalAnchor}
               angle={d().angle}
               breakAll={d().breakAll}
             >
@@ -514,18 +559,25 @@ Label.displayName = "Label";
 function parseLabel(
   label: ImplicitLabelType | undefined,
   viewBox: TrapezoidViewBox | PolarViewBoxRequired | undefined,
+  labelRef?: (node: SVGTextElement) => void,
 ): JSX.Element {
   if (!label) {
     return null;
   }
   if (label === true) {
-    return <Label viewBox={viewBox} />;
+    return (
+      <Label
+        viewBox={viewBox}
+        labelRef={labelRef}
+      />
+    );
   }
   if (isNumOrStr(label)) {
     return (
       <Label
         value={label}
         viewBox={viewBox}
+        labelRef={labelRef}
       />
     );
   }
@@ -534,14 +586,21 @@ function parseLabel(
       <Label
         content={label}
         viewBox={viewBox}
+        labelRef={labelRef}
       />
     );
   }
-  if (typeof label === "object") {
+  // Rendered elements/arrays are not settings objects; their DOM children are not label text.
+  if (
+    typeof label === "object" &&
+    !Array.isArray(label) &&
+    !(typeof Node !== "undefined" && label instanceof Node)
+  ) {
     return (
       <Label
         {...label}
         viewBox={viewBox}
+        labelRef={labelRef}
       />
     );
   }
@@ -554,9 +613,12 @@ function parseLabel(
  */
 export function CartesianLabelFromLabelProp(props: {
   label: ImplicitLabelType | undefined;
+  labelRef?: (node: SVGTextElement) => void;
 }): JSX.Element {
   const viewBox = useCartesianLabelContext();
-  const label = createMemo(() => parseLabel(props.label, viewBox()));
+  const label = createMemo(() =>
+    parseLabel(props.label, viewBox(), props.labelRef),
+  );
   return <>{label()}</>;
 }
 

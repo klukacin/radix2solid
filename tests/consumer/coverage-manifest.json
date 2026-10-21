@@ -1,13 +1,34 @@
 {
   "scope": "Public part/type availability is checked separately from the mapped family behavior. Isolated real-reader Announce/Toast/layer speech has separate observed evidence; automated availability checks do not certify every reader/platform or release ownership.",
   "publicCounts": {
-    "modules": 151,
-    "declarations": 1602,
-    "css": 94,
+    "modules": 164,
+    "declarations": 1841,
+    "css": 97,
     "plugins": 6,
-    "icons": 332
+    "icons": 332,
+    "iconsExtra": 2
   },
   "modules": [
+    {
+      "module": "@wsagency/radix2solid-primitives/combobox",
+      "exports": "Combobox Root ComboboxInput Input ComboboxTrigger Trigger ComboboxPortal Portal ComboboxContent Content ComboboxList List ComboboxItem Item ComboboxItemText ItemText ComboboxItemIndicator ItemIndicator ComboboxGroup Group ComboboxLabel Label ComboboxEmpty Empty ComboboxClear Clear createComboboxScope ComboboxProps ComboboxInputProps ComboboxTriggerProps ComboboxPortalProps ComboboxContentProps ComboboxListProps ComboboxItemProps ComboboxItemTextProps ComboboxItemIndicatorProps ComboboxGroupProps ComboboxLabelProps ComboboxEmptyProps ComboboxClearProps",
+      "checks": ["types", "inputs"]
+    },
+    {
+      "module": "@wsagency/radix2solid-primitives/command",
+      "exports": "Command Root CommandInput Input CommandList List CommandGroup Group CommandLabel Label CommandItem Item CommandEmpty Empty createCommandScope CommandProps CommandInputProps CommandListProps CommandGroupProps CommandLabelProps CommandItemProps CommandEmptyProps",
+      "checks": ["types", "inputs"]
+    },
+    {
+      "module": "@wsagency/radix2solid-primitives/splitter",
+      "exports": "Splitter Root SplitterPanel Panel SplitterHandle Handle createSplitterScope SplitterProps SplitterPanelProps SplitterHandleProps",
+      "checks": ["types", "splitter"]
+    },
+    {
+      "module": "@wsagency/radix2solid-primitives/tree",
+      "exports": "createTreeScope Tree Root TreeItem Item TreeItemText ItemText TreeItemIndicator ItemIndicator TreeItemGroup ItemGroup TreeExpandTrigger ExpandTrigger TreeProps TreeItemProps TreeItemTextProps TreeItemIndicatorProps TreeItemGroupProps TreeExpandTriggerProps",
+      "checks": ["types", "tree"]
+    },
     {
       "module": "@wsagency/radix2solid-primitives/slot",
       "exports": "createSlot createSlottable Root Slot SlotProps SlotRender Slottable SlottableProps SlotTarget",
@@ -194,8 +215,23 @@
       "checks": ["packed", "types", "advanced"]
     },
     {
+      "module": "@wsagency/radix2solid-primitives/calendar",
+      "exports": "createCalendarScope Calendar Root CalendarHeader Header CalendarHeading Heading CalendarPrevTrigger PrevTrigger CalendarNextTrigger NextTrigger CalendarGrid Grid CalendarRow Row CalendarHeaderCell HeaderCell CalendarCell Cell CalendarDay Day DateValue MonthValue CalendarProps CalendarHeaderProps CalendarHeadingProps CalendarPrevTriggerProps CalendarNextTriggerProps CalendarGridProps CalendarGridState CalendarRowProps CalendarHeaderCellProps CalendarCellProps CalendarDayProps",
+      "checks": ["packed", "types", "calendar"]
+    },
+    {
+      "module": "@wsagency/radix2solid-primitives/date-picker",
+      "exports": "createDatePickerScope DatePicker Root DatePickerTrigger Trigger DatePickerValue Value DatePickerPortal Portal DatePickerContent Content DatePickerTitle Title DatePickerDescription Description DatePickerClose Close DatePickerClear Clear DatePickerCalendar Calendar DatePickerFormControl FormControl DatePickerProps DatePickerTriggerProps DatePickerValueProps DatePickerPortalProps DatePickerContentProps DatePickerTitleProps DatePickerDescriptionProps DatePickerCloseProps DatePickerClearProps DatePickerCalendarProps DatePickerFormControlProps",
+      "checks": ["packed", "types", "date-picker"]
+    },
+    {
+      "module": "@wsagency/radix2solid-primitives/file-drop",
+      "exports": "FileDrop Root FileDropInput Input FileDropTrigger Trigger createFileDropScope FileDropProps FileDropInputProps FileDropTriggerProps FileDropRejection",
+      "checks": ["packed", "types", "file-drop"]
+    },
+    {
       "module": "@wsagency/radix2solid-primitives",
-      "exports": "AccessibleIcon Accordion AlertDialog Announce Arrow AspectRatio Avatar Checkbox Collapsible ContextMenu Dialog Direction DropdownMenu Form HoverCard Label Menubar NavigationMenu Popover Portal Progress RadioGroup ScrollArea Select Separator Slider Slot Switch Tabs Toast Toggle ToggleGroup Toolbar Tooltip VisuallyHidden unstable_OneTimePasswordField unstable_PasswordToggleField",
+      "exports": "AccessibleIcon Accordion AlertDialog Announce Arrow AspectRatio Avatar Calendar Checkbox Collapsible Combobox Command ContextMenu DatePicker Dialog Direction DropdownMenu FileDrop Form HoverCard Label Menubar NavigationMenu Popover Portal Progress RadioGroup ScrollArea Select Separator Slider Slot Splitter Switch Tabs Toast Toggle ToggleGroup Toolbar Tooltip Tree VisuallyHidden unstable_OneTimePasswordField unstable_PasswordToggleField",
       "checks": ["packed", "types"]
     },
     {
@@ -213,7 +249,7 @@
     },
     {
       "module": "@wsagency/radix2solid-themes",
-      "exports": "AccessibleIcon AccessibleIconProps AlertDialog AspectRatio AspectRatioProps Avatar AvatarProps Badge BadgeProps Blockquote BlockquoteProps Box BoxProps Button ButtonProps Callout Card CardProps Checkbox CheckboxCards CheckboxGroup CheckboxProps ChevronDownIcon Code CodeProps Container ContainerProps ContextMenu DataList Dialog DropdownMenu Em EmProps Flex FlexProps Grid GridProps Heading HeadingProps HoverCard IconButton IconButtonProps IconProps Inset InsetProps Kbd KbdProps Link LinkProps Popover Portal PortalProps Progress ProgressProps Quote QuoteProps Radio RadioCards RadioGroup RadioProps Reset ResetProps ScrollArea ScrollAreaProps Section SectionProps SegmentedControl Select Separator SeparatorProps Skeleton SkeletonProps Slider SliderProps Slot Slottable Spinner SpinnerProps Strong StrongProps Switch SwitchProps Table TabNav Tabs Text TextArea TextAreaProps TextField TextProps Theme ThemeContext ThemePanel ThemePanelProps ThemeProps ThemeScaling ThickCheckIcon ThickChevronRightIcon ThickDividerHorizontalIcon Tooltip TooltipProps unstable_ThemePanelContent unstable_ThemePanelContentProps useThemeContext VisuallyHidden VisuallyHiddenProps",
+      "exports": "AccessibleIcon AccessibleIconProps AlertDialog AspectRatio AspectRatioProps Avatar AvatarProps Badge BadgeProps Blockquote BlockquoteProps Box BoxProps Button ButtonProps Calendar Callout Card CardProps Checkbox CheckboxCards CheckboxGroup CheckboxProps ChevronDownIcon Code CodeProps Container ContainerProps ContextMenu DataList DatePicker Dialog DropdownMenu Em EmProps FileDrop Flex FlexProps Grid GridProps Heading HeadingProps HoverCard IconButton IconButtonProps IconProps Inset InsetProps Kbd KbdProps Link LinkProps Popover Portal PortalProps Progress ProgressProps Quote QuoteProps Radio RadioCards RadioGroup RadioProps Reset ResetProps ScrollArea ScrollAreaProps Section SectionProps SegmentedControl Select Separator SeparatorProps Skeleton SkeletonProps Slider SliderProps Slot Slottable Spinner SpinnerProps Strong StrongProps Switch SwitchProps Table TabNav Tabs Text TextArea TextAreaProps TextField TextProps Theme ThemeContext ThemePanel ThemePanelProps ThemeProps ThemeScaling ThickCheckIcon ThickChevronRightIcon ThickDividerHorizontalIcon Tooltip TooltipProps unstable_ThemePanelContent unstable_ThemePanelContentProps useThemeContext VisuallyHidden VisuallyHiddenProps",
       "checks": ["themes", "theme-interactions", "types"]
     },
     {
@@ -507,6 +543,36 @@
       "checks": ["themes", "theme-interactions", "types"]
     },
     {
+      "module": "@wsagency/radix2solid-themes/components/calendar",
+      "exports": "createCalendarScope Root Header Heading PrevTrigger NextTrigger Grid Row HeaderCell Cell Day DateValue MonthValue CalendarGridState RootProps HeaderProps HeadingProps PrevTriggerProps NextTriggerProps GridProps RowProps HeaderCellProps CellProps DayProps",
+      "checks": ["packed", "types", "calendar", "theme-css"]
+    },
+    {
+      "module": "@wsagency/radix2solid-themes/components/date-picker",
+      "exports": "createDatePickerScope Root Trigger Value Portal Content Title Description Close Clear Calendar FormControl RootProps TriggerProps ValueProps PortalProps ContentProps TitleProps DescriptionProps CloseProps ClearProps CalendarProps FormControlProps",
+      "checks": ["packed", "types", "date-picker", "theme-css"]
+    },
+    {
+      "module": "@wsagency/radix2solid-themes/components/file-drop",
+      "exports": "createFileDropScope Root Input Trigger RootProps InputProps TriggerProps FileDropRejection",
+      "checks": ["packed", "types", "file-drop", "theme-css"]
+    },
+    {
+      "module": "@wsagency/radix2solid-themes/components/calendar.props",
+      "exports": "calendarRootPropDefs",
+      "checks": ["types", "theme-css"]
+    },
+    {
+      "module": "@wsagency/radix2solid-themes/components/date-picker.props",
+      "exports": "datePickerRootPropDefs",
+      "checks": ["types", "theme-css"]
+    },
+    {
+      "module": "@wsagency/radix2solid-themes/components/file-drop.props",
+      "exports": "fileDropRootPropDefs",
+      "checks": ["types", "theme-css"]
+    },
+    {
       "module": "@wsagency/radix2solid-themes/helpers",
       "exports": "ComponentPropsAs ComponentPropsWithout ComposedProps extractMarginProps extractProps getMarginStyles getMatchingGrayColor getResponsiveClassNames getResponsiveCustomProperties getResponsiveStyles hasOwnProperty inert InputAttributes InputRadioAttributes InputTextualAttributes isResponsiveObject mapButtonSizeToSpinnerSize mapCalloutSizeToTextSize mapResponsiveProp mergeStyles NotInputRadioAttributes NotInputTextualAttributes RemovedProps",
       "checks": ["responsive", "themes", "theme-interactions", "types"]
@@ -768,11 +834,14 @@
     },
     {
       "module": "@wsagency/radix2solid-charts",
-      "exports": "ActiveDotProps ActiveLabel AnimationController AnimationControllerProvider AnimationHandle AnimationInterpolateFn AnimationItem AnimationMatchBy AnimationMatchByProp Area AreaChart AreaChartProps AreaPointItem AreaProps AreaRevealShape AreaRevealShapeProps AxisDomainItem AxisId AxisInterval AxisRange BandPosition Bar BarChart BarChartProps BarProps BarRectangleItem BarShapeProps BarStack BarStackProps BaseLineType BaseTickContentProps Brush BrushProps CSSTransitionAnimation CancelableTimeout CartesianAxis CartesianAxisProps CartesianDataPoint CartesianGrid CartesianGridProps CartesianLabelContextProvider CartesianLabelFromLabelProp CartesianLabelListEntry CartesianLayout CartesianTickContentProps CartesianTickItem CartesianViewBox Cell CellProps ChartOffset ComposedChart ComposedChartProps Coordinate Cross CrossProps Cursor CursorDefinition CursorProps Curve CurveProps CurveType CustomScaleDefinition DataKey DefaultLegendContent DefaultLegendContentProps DefaultTooltipContent DefaultTooltipContentProps DefaultZIndexes Dot DotItemDotProps DotProps EasingInput ErrorBar ErrorBarDirection ErrorBarProps Funnel FunnelChart FunnelChartProps FunnelProps FunnelTrapezoid FunnelTrapezoidItem FunnelTrapezoidProps Global HTMLMousePointer HTMLTouchPointer IfOverflow ImplicitLabelListType ImplicitLabelType InverseScaleFunction JavascriptAnimation Label LabelList LabelListEntry LabelListFromLabelProp LabelListProps LabelListPropsWithPosition LabelPosition LabelProps Layer LayerProps LayoutType Legend LegendPayload LegendProps LegendType Line LineChart LineChartProps LineDrawShape LineDrawShapeProps LinePointItem LineProps Margin MouseHandlerDataParam MousePointer NiceTicksAlgorithm NoCentric NoFunnel NoRadial NumberDomain OnAnimationStateUpdate Padding Pie PieChart PieChartProps PieLabel PieLabelRenderProps PieProps PieSectorDataItem PieSectorShapeProps PieShape PlotArea PolarAngleAxis PolarAngleAxisProps PolarAngleTickContentProps PolarCoordinate PolarGrid PolarGridProps PolarLabelContextProvider PolarLabelFromLabelProp PolarLayout PolarRadiusAxis PolarRadiusAxisProps PolarRadiusTickContentProps Polygon PolygonProps Radar RadarChart RadarChartProps RadarPoint RadarProps RadialBar RadialBarChart RadialBarChartProps RadialBarDataItem RadialBarProps RadialBarSectorProps RectRadius Rectangle RectangleProps ReferenceArea ReferenceAreaProps ReferenceDot ReferenceDotEventHandler ReferenceDotProps ReferenceDotTouchEventHandler ReferenceLine ReferenceLineProps ReferenceLineSegment RelativePointer RenderableText ResponsiveContainer ResponsiveContainerCalculations ResponsiveContainerProps SVGMousePointer SVGTouchPointer Sankey SankeyData SankeyElementType SankeyLink SankeyLinkProps SankeyNode SankeyNodeOptions SankeyNodeProps SankeyProps ScaleFunction Scatter ScatterChart ScatterChartProps ScatterPointItem ScatterPointNode ScatterProps ScatterShapeProps Sector SectorProps ShapeAnimationProps SunburstChart SunburstChartProps SunburstData Surface SurfaceProps SymbolType Symbols SymbolsProps Text TextAnchor TextProps TextVerticalAnchor TickItem TimeoutController Tooltip TooltipContentProps TooltipIndex TooltipItemSorter TooltipPayload TooltipPayloadEntry TooltipProps TooltipValueType TouchPointer Trapezoid TrapezoidProps Treemap TreemapContentType TreemapDataType TreemapNode TreemapProps TypedCentricChartContext TypedHorizontalChartContext TypedRadialChartContext TypedVerticalChartContext XAxis XAxisOrientation XAxisPadding XAxisProps XAxisTickContentProps YAxis YAxisOrientation YAxisPadding YAxisProps YAxisTickContentProps ZAxis ZAxisProps ZIndexLayer createCentricChart createHorizontalChart createRadialChart createVerticalChart defaultCurveProps defaultFunnelShape getNiceTickValues getPath getRelativeCoordinate interpolate matchAppend matchByDataKey matchByIndex useActiveTooltipCoordinate useActiveTooltipDataPoints useActiveTooltipLabel useCartesianChartLayout useCartesianScale useChartHeight useChartLayout useChartWidth useIsTooltipActive useMargin useOffset usePlotArea usePolarChartLayout useResponsiveContainerContext useXAxis useXAxisDomain useXAxisInverseDataSnapScale useXAxisInverseScale useXAxisInverseTickSnapScale useXAxisScale useXAxisTicks useYAxis useYAxisDomain useYAxisInverseDataSnapScale useYAxisInverseScale useYAxisInverseTickSnapScale useYAxisScale useYAxisTicks",
+      "exports": "ActiveDotProps ActiveLabel AnimationController AnimationControllerProvider AnimationHandle AnimationInterpolateFn AnimationItem AnimationMatchBy AnimationMatchByProp Area AreaChart AreaChartProps AreaPointItem AreaProps AreaRevealShape AreaRevealShapeProps AxisDomainItem AxisId AxisInterval AxisRange BandPosition Bar BarChart BarChartProps BarProps BarRectangleItem BarShapeProps BarStack BarStackProps BaseLineType BaseTickContentProps Brush BrushProps CSSTransitionAnimation CancelableTimeout CartesianAxis CartesianAxisProps CartesianDataPoint CartesianGrid CartesianGridProps CartesianLabelContextProvider CartesianLabelFromLabelProp CartesianLabelListEntry CartesianLayout CartesianPosition CartesianTickContentProps CartesianTickItem CartesianViewBox Cell CellProps ChartOffset ComposedChart ComposedChartProps Coordinate Cross CrossProps Cursor CursorDefinition CursorProps Curve CurveProps CurveType CustomScaleDefinition DataKey DefaultLegendContent DefaultLegendContentProps DefaultTooltipContent DefaultTooltipContentProps DefaultZIndexes Dot DotItemDotProps DotProps EasingInput ErrorBar ErrorBarDirection ErrorBarProps Funnel FunnelChart FunnelChartProps FunnelProps FunnelTrapezoid FunnelTrapezoidItem FunnelTrapezoidProps Global HTMLMousePointer HTMLTouchPointer IfOverflow ImplicitLabelListType ImplicitLabelType InverseScaleFunction JavascriptAnimation Label LabelList LabelListEntry LabelListFromLabelProp LabelListProps LabelListPropsWithPosition LabelPosition LabelProps Layer LayerProps LayoutType Legend LegendPayload LegendProps LegendType Line LineChart LineChartProps LineDrawShape LineDrawShapeProps LinePointItem LineProps Margin MouseHandlerDataParam MousePointer NiceTicksAlgorithm NoCentric NoFunnel NoRadial NumberDomain OnAnimationStateUpdate Padding Pie PieChart PieChartProps PieLabel PieLabelRenderProps PieProps PieSectorDataItem PieSectorShapeProps PieShape PlotArea PolarAngleAxis PolarAngleAxisProps PolarAngleTickContentProps PolarCoordinate PolarGrid PolarGridProps PolarLabelContextProvider PolarLabelFromLabelProp PolarLayout PolarRadiusAxis PolarRadiusAxisProps PolarRadiusTickContentProps Polygon PolygonProps Radar RadarChart RadarChartProps RadarPoint RadarProps RadialBar RadialBarChart RadialBarChartProps RadialBarDataItem RadialBarProps RadialBarSectorProps RectRadius Rectangle RectangleProps ReferenceArea ReferenceAreaProps ReferenceDot ReferenceDotEventHandler ReferenceDotProps ReferenceDotTouchEventHandler ReferenceLine ReferenceLineProps ReferenceLineSegment RelativePointer RenderableText ResponsiveContainer ResponsiveContainerCalculations ResponsiveContainerProps SVGMousePointer SVGTouchPointer Sankey SankeyData SankeyElementType SankeyLink SankeyLinkProps SankeyNode SankeyNodeOptions SankeyNodeProps SankeyProps ScaleFunction Scatter ScatterChart ScatterChartProps ScatterPointItem ScatterPointNode ScatterProps ScatterShapeProps Sector SectorProps ShapeAnimationProps SunburstChart SunburstChartProps SunburstData Surface SurfaceProps SymbolType Symbols SymbolsProps Text TextAnchor TextProps TextVerticalAnchor TickItem TimeoutController Tooltip TooltipContentProps TooltipIndex TooltipItemSorter TooltipPayload TooltipPayloadEntry TooltipProps TooltipValueType TouchPointer Trapezoid TrapezoidProps Treemap TreemapContentType TreemapDataType TreemapNode TreemapProps TypedCentricChartContext TypedHorizontalChartContext TypedRadialChartContext TypedVerticalChartContext XAxis XAxisOrientation XAxisPadding XAxisProps XAxisTickContentProps YAxis YAxisOrientation YAxisPadding YAxisProps YAxisTickContentProps ZAxis ZAxisProps ZIndexLayer createCentricChart createHorizontalChart createRadialChart createVerticalChart defaultCurveProps defaultFunnelShape getNiceTickValues getPath getRelativeCoordinate interpolate matchAppend matchByDataKey matchByIndex useActiveTooltipCoordinate useActiveTooltipDataPoints useActiveTooltipLabel useCartesianChartLayout useCartesianScale useChartHeight useChartLayout useChartWidth useIsTooltipActive useMargin useOffset usePlotArea usePolarChartLayout useResponsiveContainerContext useXAxis useXAxisDomain useXAxisInverseDataSnapScale useXAxisInverseScale useXAxisInverseTickSnapScale useXAxisScale useXAxisTicks useYAxis useYAxisDomain useYAxisInverseDataSnapScale useYAxisInverseScale useYAxisInverseTickSnapScale useYAxisScale useYAxisTicks",
       "checks": ["packed", "types"]
     }
   ],
   "checks": {
+    "inputs": "e2e/inputs.spec.ts",
+    "tree": "e2e/tree.spec.ts",
+    "splitter": "e2e/splitter.spec.ts",
     "packed": "tests/consumer/packed.test.ts",
     "types": "tests/consumer/types.tsx",
     "state": "tests/consumer/state.test.ts",
@@ -785,10 +854,19 @@
     "advanced": "e2e/advanced.spec.ts",
     "assets": "e2e/assets.spec.ts",
     "themes": "e2e/themes.spec.ts",
-    "theme-interactions": "e2e/theme-interactions.spec.ts"
+    "theme-interactions": "e2e/theme-interactions.spec.ts",
+    "calendar": "e2e/calendar.spec.ts",
+    "date-picker": "e2e/date-picker.spec.ts",
+    "file-drop": "e2e/file-drop.spec.ts",
+    "theme-css": "e2e/theme-css.spec.ts"
   },
   "icons": {
     "names": "packages/icons/icons.json",
+    "check": "packages/icons/scripts/generate.ts",
+    "behavior": ["assets", "types"]
+  },
+  "iconsExtra": {
+    "names": "packages/icons-extra/icons.json",
     "check": "packages/icons/scripts/generate.ts",
     "behavior": ["assets", "types"]
   },
@@ -800,6 +878,7 @@
     "@wsagency/radix2solid-themes/css/blockquote.css",
     "@wsagency/radix2solid-themes/css/box.css",
     "@wsagency/radix2solid-themes/css/button.css",
+    "@wsagency/radix2solid-themes/css/calendar.css",
     "@wsagency/radix2solid-themes/css/callout.css",
     "@wsagency/radix2solid-themes/css/card.css",
     "@wsagency/radix2solid-themes/css/checkbox-cards.css",
@@ -810,9 +889,11 @@
     "@wsagency/radix2solid-themes/css/container.css",
     "@wsagency/radix2solid-themes/css/context-menu.css",
     "@wsagency/radix2solid-themes/css/data-list.css",
+    "@wsagency/radix2solid-themes/css/date-picker.css",
     "@wsagency/radix2solid-themes/css/dialog.css",
     "@wsagency/radix2solid-themes/css/dropdown-menu.css",
     "@wsagency/radix2solid-themes/css/em.css",
+    "@wsagency/radix2solid-themes/css/file-drop.css",
     "@wsagency/radix2solid-themes/css/flex.css",
     "@wsagency/radix2solid-themes/css/grid.css",
     "@wsagency/radix2solid-themes/css/heading.css",

@@ -38,7 +38,13 @@ import {
   Cell,
   Rectangle,
 } from "@wsagency/radix2solid-charts";
-import { createSignal, For, Show } from "solid-js";
+import { Label, type ImplicitLabelType } from "@wsagency/radix2solid-charts";
+import { createContext, createSignal, For, Show, useContext } from "solid-js";
+
+const SelectedLegendOwner = createContext("missing");
+const selectedLegendFormatter = (value: string | undefined) => (
+  <span data-legend-owner={useContext(SelectedLegendOwner)}>{value}</span>
+);
 
 export function Charts() {
   const [revision, setRevision] = createSignal(0);
@@ -78,6 +84,19 @@ export function Charts() {
   const [cellRows, setCellRows] = createSignal(originalCellRows);
   const [cellEvent, setCellEvent] = createSignal("");
   let cellEvents = 0;
+  const [selectedRevision, setSelectedRevision] = createSignal(0);
+  const [selectedLegends, setSelectedLegends] = createSignal(true);
+  const [selectedExtraLegend, setSelectedExtraLegend] = createSignal(true);
+  const [selectedFontSize, setSelectedFontSize] = createSignal(12);
+  const [selectedLetterSpacing, setSelectedLetterSpacing] = createSignal(0);
+  const [selectedPieZero, setSelectedPieZero] = createSignal(false);
+  const [selectedUnsupportedLabel, setSelectedUnsupportedLabel] =
+    createSignal<ImplicitLabelType>();
+  const selectedRows = () =>
+    Array.from({ length: 10 }, (_, index) => ({
+      name: `Category ${index}`,
+      value: 10 + index + selectedRevision(),
+    }));
   return (
     <section
       aria-label="Native Charts"
@@ -126,7 +145,446 @@ export function Charts() {
         id="chart-tooltip-target"
         ref={setTarget}
       />
+      <button onClick={() => setSelectedRevision((value) => value + 1)}>
+        Replace selected chart data
+      </button>
+      <button onClick={() => setSelectedLegends((value) => !value)}>
+        Toggle selected Legends
+      </button>
+      <button onClick={() => setSelectedExtraLegend((value) => !value)}>
+        Toggle additional Legend
+      </button>
+      <button onClick={() => setSelectedFontSize(40)}>
+        Enlarge selected axis font
+      </button>
+      <button onClick={() => setSelectedLetterSpacing(2)}>
+        Space selected axis letters
+      </button>
+      <button onClick={() => setSelectedPieZero(true)}>
+        Zero selected Pie data
+      </button>
+      <button
+        onClick={() => {
+          if (selectedUnsupportedLabel()) {
+            setSelectedUnsupportedLabel(undefined);
+            return;
+          }
+          const label = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "text",
+          );
+          label.textContent = "Unsupported raw label";
+          // @ts-expect-error Exercise an invalid JavaScript-consumer input after mounting, without allocating hydration JSX.
+          setSelectedUnsupportedLabel(label);
+        }}
+      >
+        Toggle unsupported axis label
+      </button>
       <Show when={mounted()}>
+        <div id="chart-selected-brush">
+          <LineChart
+            width={500}
+            height={300}
+            data={selectedRows()}
+          >
+            <XAxis dataKey="name" />
+            <Line
+              dataKey="value"
+              isAnimationActive={false}
+            />
+            <Brush
+              startIndex={3}
+              endIndex={6}
+              dataKey="name"
+            />
+          </LineChart>
+        </div>
+        <div id="chart-selected-active">
+          <BarChart
+            width={500}
+            height={300}
+            data={selectedRevision() ? [] : selectedRows()}
+          >
+            <XAxis dataKey="name" />
+            <Bar
+              dataKey="value"
+              isAnimationActive={false}
+              activeBar={(shape) => (
+                <Rectangle
+                  {...shape}
+                  class="selected-active-bar"
+                />
+              )}
+            />
+            <Tooltip />
+          </BarChart>
+        </div>
+        <div id="chart-selected-sankey">
+          <Sankey
+            width={500}
+            height={300}
+            title="Selected flows"
+            desc="Source sends ten units"
+            accessibilityLayer
+            data={{
+              nodes: [{ name: "Source" }, { name: "Target" }],
+              links: [{ source: 0, target: 1, value: 10 }],
+            }}
+          />
+        </div>
+        <For
+          each={
+            [
+              "top",
+              "bottom",
+              "left",
+              "right",
+              "insideBottomRight",
+              "legacy",
+            ] as const
+          }
+        >
+          {(position) => (
+            <div id={`chart-selected-legend-${position}`}>
+              <LineChart
+                width={500}
+                height={500}
+                data={data()}
+              >
+                <Line
+                  dataKey="value"
+                  isAnimationActive={false}
+                />
+                <SelectedLegendOwner value={`primary:${position}`}>
+                  <Show when={position === "legacy" || selectedLegends()}>
+                    <Legend
+                      {...(position === "legacy"
+                        ? {}
+                        : {
+                            position,
+                            offset: 10,
+                            align: "left" as const,
+                            verticalAlign: "middle" as const,
+                            formatter: selectedLegendFormatter,
+                          })}
+                    />
+                  </Show>
+                </SelectedLegendOwner>
+                <SelectedLegendOwner value="secondary:insideTopLeft">
+                  <Show
+                    when={
+                      position === "insideBottomRight" && selectedExtraLegend()
+                    }
+                  >
+                    <Legend
+                      position="insideTopLeft"
+                      offset={10}
+                      formatter={selectedLegendFormatter}
+                    />
+                  </Show>
+                </SelectedLegendOwner>
+              </LineChart>
+            </div>
+          )}
+        </For>
+        <For
+          each={
+            [
+              "plain",
+              "string",
+              "multiline",
+              "function",
+              "jsx",
+              "numeric",
+            ] as const
+          }
+        >
+          {(kind) => {
+            return (
+              <div id={`chart-selected-axis-${kind}`}>
+                <LineChart
+                  width={500}
+                  height={300}
+                  data={selectedRows()}
+                >
+                  <XAxis
+                    dataKey="name"
+                    interval={0}
+                    angle={-45}
+                    tickSize={6}
+                    tickMargin={2}
+                    height={kind === "numeric" ? 30 : "auto"}
+                    fontSize={kind === "plain" ? selectedFontSize() : undefined}
+                    letterSpacing={
+                      kind === "plain" ? selectedLetterSpacing() : undefined
+                    }
+                    tick={
+                      kind === "multiline"
+                        ? (props) => (
+                            <text
+                              class="recharts-cartesian-axis-tick-value"
+                              x={props.x}
+                              y={props.y}
+                            >
+                              <tspan x={props.x}>Category</tspan>
+                              <tspan
+                                x={props.x}
+                                dy={24}
+                              >
+                                {props.index}
+                              </tspan>
+                            </text>
+                          )
+                        : undefined
+                    }
+                    label={
+                      kind === "string"
+                        ? "Revenue categories"
+                        : kind === "function"
+                          ? () => <text>Custom categories</text>
+                          : kind === "jsx"
+                            ? (selectedUnsupportedLabel() ??
+                              ((props) => (
+                                <text
+                                  class="selected-jsx-label"
+                                  x={props.x}
+                                  y={props.y}
+                                >
+                                  {selectedRevision()
+                                    ? `JSX categories ${selectedRevision()}`
+                                    : "JSX categories"}
+                                </text>
+                              )))
+                            : undefined
+                    }
+                  />
+                  <Line
+                    dataKey="value"
+                    isAnimationActive={false}
+                  />
+                </LineChart>
+              </div>
+            );
+          }}
+        </For>
+        <div id="chart-selected-pie">
+          <PieChart
+            width={400}
+            height={400}
+          >
+            <Pie
+              data={selectedPieZero() ? [{ value: 0 }] : data()}
+              dataKey="value"
+              cx="25%"
+              cy="40%"
+              innerRadius="40%"
+              outerRadius="80%"
+              isAnimationActive={false}
+            >
+              <Label
+                position="center"
+                content={(props) => {
+                  const box = props.viewBox as {
+                    cx?: number;
+                    cy?: number;
+                    innerRadius?: number;
+                    outerRadius?: number;
+                  };
+                  return (
+                    <text
+                      class="selected-pie-label"
+                      x={props.x}
+                      y={props.y}
+                    >{`pie:${box.cx}:${box.cy}:${box.innerRadius}:${box.outerRadius}`}</text>
+                  );
+                }}
+              />
+              <Label
+                class="selected-zero-pie-label"
+                position="center"
+                value={0}
+              />
+            </Pie>
+          </PieChart>
+        </div>
+        <div id="chart-selected-null">
+          <AreaChart
+            width={100}
+            height={50}
+            data={[
+              { name: "Page A", uv: 400, pv: 2400, amt: 2400 },
+              { name: "Page B" },
+              { name: "Page C", uv: 300, pv: 1398, amt: 2400 },
+            ]}
+          >
+            <For each={["uv", "pv", "amt"]}>
+              {(dataKey) => (
+                <Area
+                  dataKey={dataKey}
+                  stackId="1"
+                  connectNulls
+                  type="monotone"
+                  isAnimationActive={false}
+                />
+              )}
+            </For>
+          </AreaChart>
+        </div>
+        <div id="chart-selected-tooltip">
+          <LineChart
+            width={500}
+            height={300}
+          >
+            <XAxis
+              dataKey="name"
+              allowDuplicatedCategory={false}
+              interval={0}
+            />
+            <Line
+              dataKey="uv"
+              data={[
+                { name: "Page A", uv: 10 },
+                { name: "NonExistent", uv: 20 },
+                { name: "Page C", uv: 30 },
+              ]}
+              isAnimationActive={false}
+            />
+            <Line
+              dataKey="pv"
+              data={[
+                { name: "Page A", pv: 100 },
+                { name: "Page B", pv: 200 },
+                { name: "Page A", pv: 300 },
+              ]}
+              isAnimationActive={false}
+            />
+            <Tooltip
+              defaultIndex={1}
+              content={(props) => (
+                <div
+                  id="selected-tooltip-payload"
+                  data-label={props.label}
+                >
+                  <For each={props.payload}>
+                    {(entry) => (
+                      <span data-series={String(entry.dataKey)}>
+                        {entry.value}
+                      </span>
+                    )}
+                  </For>
+                </div>
+              )}
+            />
+          </LineChart>
+        </div>
+        {/* Four 90° bands apply a -90° tick offset: this public range yields -4°,86°,176°,266°. */}
+        <div id="chart-selected-wrap">
+          <RadarChart
+            width={400}
+            height={400}
+            startAngle={86}
+            endAngle={446}
+            data={["a", "b", "c", "d"].map((name) => ({ name, value: 10 }))}
+          >
+            <PolarAngleAxis dataKey="name" />
+            <Radar
+              dataKey="value"
+              isAnimationActive={false}
+            />
+            <Tooltip
+              content={(props) => (
+                <div
+                  id="selected-wrap-payload"
+                  data-x={props.coordinate?.x}
+                  data-y={props.coordinate?.y}
+                >
+                  {props.active ? props.label : ""}
+                </div>
+              )}
+            />
+          </RadarChart>
+        </div>
+        <For each={[false, true]}>
+          {(explicit) => (
+            <svg
+              id={`chart-selected-label-${explicit}`}
+              width={400}
+              height={400}
+            >
+              <Label
+                viewBox={{ x: 50, y: 50, width: 200, height: 200 }}
+                position="center"
+                {...(explicit
+                  ? {
+                      x: 17,
+                      y: 23,
+                      textAnchor: "start" as const,
+                      verticalAnchor: "end" as const,
+                    }
+                  : {})}
+                content={(props) => (
+                  <g>
+                    <text
+                      class="selected-custom-label"
+                      x={props.x}
+                      y={props.y}
+                    >{`label:${props.x}:${props.y}:${props.textAnchor ?? "absent"}:${props.verticalAnchor ?? "absent"}`}</text>
+                    <Label
+                      {...props}
+                      content={undefined}
+                      value="Nested label"
+                    />
+                  </g>
+                )}
+              />
+            </svg>
+          )}
+        </For>
+        <For each={[true, false]}>
+          {(floating) => (
+            <div id={`chart-selected-bars-${floating}`}>
+              <BarChart
+                width={floating ? 40 : 400}
+                height={200}
+                margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+                barCategoryGap={0}
+                barGap={floating ? 0 : 7}
+                data={(floating
+                  ? [0, 10, 20, 30, 30.00008318614652580436]
+                  : [0, 10]
+                ).map((x) => ({ x, value: 10, other: 20 }))}
+              >
+                <XAxis
+                  dataKey="x"
+                  type="number"
+                  domain={[0, floating ? 40 : 20]}
+                  allowDataOverflow
+                  height={0}
+                  ticks={
+                    floating
+                      ? [0, 10, 20, 30, 30.00008318614652580436]
+                      : [0, 10]
+                  }
+                />
+                <YAxis width={0} />
+                <Bar
+                  dataKey="value"
+                  maxBarSize={floating ? undefined : 20}
+                  fill="#123456"
+                  isAnimationActive={false}
+                />
+                <Show when={!floating}>
+                  <Bar
+                    dataKey="other"
+                    maxBarSize={20}
+                    fill="#654321"
+                    isAnimationActive={false}
+                  />
+                </Show>
+              </BarChart>
+            </div>
+          )}
+        </For>
         <div
           id="chart-axis-hydration"
           style={{ width: "500px", height: "120px" }}
@@ -212,7 +670,10 @@ export function Charts() {
                 fill="#52725e"
                 isAnimationActive={false}
               >
-                <ErrorBar dataKey="error" />
+                <ErrorBar
+                  dataKey="error"
+                  isAnimationActive={false}
+                />
                 <LabelList dataKey="value" />
               </Bar>
               <Line

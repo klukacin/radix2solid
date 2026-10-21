@@ -41,6 +41,10 @@ export default defineConfig(({ isSsrBuild }) => ({
           "src/navigation-menu/index.ts",
         ),
         select: resolve(import.meta.dirname, "src/select/index.ts"),
+        combobox: resolve(import.meta.dirname, "src/combobox/index.ts"),
+        command: resolve(import.meta.dirname, "src/command/index.ts"),
+        tree: resolve(import.meta.dirname, "src/tree/index.ts"),
+        splitter: resolve(import.meta.dirname, "src/splitter/index.ts"),
         "password-toggle-field": resolve(
           import.meta.dirname,
           "src/password-toggle-field/index.ts",
@@ -52,6 +56,9 @@ export default defineConfig(({ isSsrBuild }) => ({
         slider: resolve(import.meta.dirname, "src/slider/index.ts"),
         "scroll-area": resolve(import.meta.dirname, "src/scroll-area/index.ts"),
         form: resolve(import.meta.dirname, "src/form/index.ts"),
+        calendar: resolve(import.meta.dirname, "src/calendar/index.ts"),
+        "date-picker": resolve(import.meta.dirname, "src/date-picker/index.ts"),
+        "file-drop": resolve(import.meta.dirname, "src/file-drop/index.ts"),
         toast: resolve(import.meta.dirname, "src/toast/index.ts"),
         "accessible-icon": resolve(
           import.meta.dirname,

@@ -1,5 +1,17 @@
 # Changelog
 
+Registry status before rc.4 publication (2026-10-20): `0.1.0-rc.3` is published under the `next` dist-tag. The versioned rc.4 prerelease notes follow; earlier entries retain their historical preparation-time wording.
+
+## 0.1.0-rc.4
+
+- Add Calendar, DatePicker and FileDrop source namespaces and component-specific CSS (including cascade-layer variants) in the rc.4 prerelease; these additions are not in the currently published registry rc.3.
+- Improve Calendar day contrast for outside-month and today text, and use accent-12/gray-1 for selected cell/day fill and text. Selected disabled dates share the new accent-12 fill; aria-disabled semantics, gray-a10 text/stripe, and forced-colors styling remain in force.
+
+## 0.1.0-rc.3 — source candidate, not yet published
+
+- Align the packed primitives dependency with the five-package rc.3 source suite. Existing Themes wrappers and public behavior remain unchanged; new UI families are primitive APIs styled by consumers.
+- Publication remains release-maintainer controlled; source-pinned use does not imply npm availability.
+
 ## 0.1.0-rc.2 — prepared candidate, not yet published
 
 - Require exactly `solid-js` and `@solidjs/web` `2.0.0-rc.15` as peers (was `2.0.0-rc.13`); Solid rc.15 requires Node `>=22.12.0`. Depend on `@wsagency/radix2solid-primitives` packed as exactly `0.1.0-rc.2`.

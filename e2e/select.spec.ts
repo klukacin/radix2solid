@@ -61,7 +61,9 @@ test("item aligned Select skips disabled focus, blocks Tab, selects with keyboar
   const trigger = page.getByRole("combobox", { name: "Fruit", exact: true });
   await trigger.focus();
   await page.keyboard.press("ArrowDown");
-  const list = page.getByRole("listbox");
+  const list = page
+    .getByRole("listbox")
+    .and(page.locator("[data-fruit-content]"));
   const apple = page.getByRole("option", { name: "Apple", exact: true });
   await expect(apple).toBeFocused();
   await expect(apple).toHaveAttribute("aria-selected", "true");
@@ -189,7 +191,9 @@ test("Select popper and RTL retain real geometry and scrolling controls without 
   const descendant = page.getByLabel("Select descendant", { exact: true });
   await descendant.focus();
   await page.keyboard.press("Enter");
-  await expect(page.getByRole("listbox")).toBeVisible();
+  await expect(
+    page.getByRole("listbox").filter({ has: descendant }),
+  ).toBeVisible();
   await expect(
     page.getByRole("combobox", {
       name: "Inline select",
@@ -206,10 +210,12 @@ test("Select mouse release opens without choosing the item underneath and pointe
   await page.getByLabel("Accept select requests", { exact: true }).check();
   const trigger = page.getByRole("combobox", { name: "Fruit", exact: true });
   await trigger.click();
-  await expect(page.getByRole("listbox")).toBeVisible();
+  const list = page
+    .getByRole("listbox")
+    .and(page.locator("[data-fruit-content]"));
+  await expect(list).toBeVisible();
   await expect(page.locator("#select-requests")).toHaveText("");
-  const list = page.getByRole("listbox"),
-    viewport = list.locator("[data-radix-select-viewport]");
+  const viewport = list.locator("[data-radix-select-viewport]");
   const initialHeight = (await list.boundingBox())!.height;
   await viewport.hover();
   await page.mouse.wheel(0, 200);
@@ -228,7 +234,7 @@ test("Select mouse release opens without choosing the item underneath and pointe
     initialHeight + 100,
   );
   await page.getByRole("option", { name: "Banana", exact: true }).click();
-  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await expect(list).toHaveCount(0);
   await expect(trigger).toContainText("Banana");
   await expect(page.locator('select[name="fruit"]')).toHaveValue("banana");
   await expect(page.locator("#select-form-changes")).toHaveText("1");
@@ -248,10 +254,13 @@ test("Select trusted touch and synthetic pen sequences open on click rather than
     await touch.goto(page.url());
     await touch.getByLabel("Accept select requests", { exact: true }).check();
     await touch.getByRole("combobox", { name: "Fruit", exact: true }).tap();
-    await expect(touch.getByRole("listbox")).toBeVisible();
+    const list = touch
+      .getByRole("listbox")
+      .and(touch.locator("[data-fruit-content]"));
+    await expect(list).toBeVisible();
     await expect(touch.locator("#select-requests")).toHaveText("");
     await touch.getByRole("option", { name: "Banana", exact: true }).tap();
-    await expect(touch.getByRole("listbox")).toHaveCount(0);
+    await expect(list).toHaveCount(0);
     await expect(touch.locator("#select-requests")).toHaveText("old:banana");
     await expect(touch.locator('select[name="fruit"]')).toHaveValue("banana");
   } finally {
@@ -259,16 +268,19 @@ test("Select trusted touch and synthetic pen sequences open on click rather than
   }
   await page.getByLabel("Accept select requests", { exact: true }).check();
   const trigger = page.getByRole("combobox", { name: "Fruit", exact: true });
+  const list = page
+    .getByRole("listbox")
+    .and(page.locator("[data-fruit-content]"));
   await trigger.dispatchEvent("pointerdown", { pointerType: "pen", button: 0 });
-  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await expect(list).toHaveCount(0);
   await trigger.dispatchEvent("pointerup", { pointerType: "pen", button: 0 });
   await trigger.dispatchEvent("click");
   const banana = page.getByRole("option", { name: "Banana", exact: true });
   await banana.dispatchEvent("pointerdown", { pointerType: "pen", button: 0 });
   await banana.dispatchEvent("pointerup", { pointerType: "pen", button: 0 });
-  await expect(page.getByRole("listbox")).toBeVisible();
+  await expect(list).toBeVisible();
   await banana.dispatchEvent("click");
-  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await expect(list).toHaveCount(0);
   await expect(page.locator("#select-requests")).toHaveText("old:banana");
   await expect(page.locator('select[name="fruit"]')).toHaveValue("banana");
 });
@@ -305,6 +317,8 @@ test("Select keyboard Home and End reveal viewport boundaries including padding"
   await expect.poll(() => viewport.evaluate((node) => node.scrollTop)).toBe(0);
   await page.keyboard.press("Escape");
   await expect(trigger).toBeFocused();
-  await expect(page.getByRole("listbox")).toHaveCount(0);
+  await expect(
+    page.getByRole("listbox").and(page.locator("[data-fruit-content]")),
+  ).toHaveCount(0);
   await expect(page.locator("body")).toHaveCSS("pointer-events", "auto");
 });

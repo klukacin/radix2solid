@@ -1,3 +1,4 @@
+import type { JSX } from "@solidjs/web";
 // Ported from recharts 3.8.1 src/context/legendPortalContext.tsx (commit 7a23854).
 //
 // Deviation (same as tooltipPortalContext): the context carries an
@@ -12,3 +13,9 @@ export const LegendPortalContext = createContext<Accessor<HTMLElement | null>>(
 
 export const useLegendPortal = (): Accessor<HTMLElement | null> =>
   useContext(LegendPortalContext);
+
+export type LegendOutletRenderer = () => JSX.Element;
+export const LegendOutletContext = createContext<
+  ((render: LegendOutletRenderer) => () => void) | undefined
+>(undefined);
+export const useLegendOutlet = () => useContext(LegendOutletContext);

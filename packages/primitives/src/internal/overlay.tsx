@@ -253,6 +253,10 @@ export function createOverlay(
                 ? props["aria-describedby"]
                 : root.descriptionId;
             },
+            get ["aria-modal"]() {
+              if ("aria-modal" in props) return props["aria-modal"];
+              return root.open() && root.modal() ? "true" : undefined;
+            },
             get ["data-state"]() {
               return root.open() ? "open" : "closed";
             },

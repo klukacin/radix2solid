@@ -40,9 +40,91 @@
       "repository": "https://github.com/recharts/recharts",
       "version": "3.10.1",
       "commit": "ffb918798051ef040bb7f9922d3850c9c189f39f",
-      "note": "Tracked for future review. No change from this version is claimed as ported."
+      "note": "Tracked release, not a wholesale port. The selected A1–A13 changes and separate B1/B2 guards are recorded below with individual source/verification status. The upstream theme API and unrelated type/dependency changes remain excluded."
     }
   ],
+  "selectedReview": {
+    "comparison": "https://github.com/recharts/recharts/compare/b3451050c027a23957ffa50a2665c9119df21e47...ffb918798051ef040bb7f9922d3850c9c189f39f",
+    "comparedCommits": 45,
+    "verification": "Observed local gates, not a full-CI or publication claim: Charts public Node SSR 20/20; selected browser behavior in Chromium/Firefox/WebKit SSR and CSR (server-only claim cases intentionally skip CSR); packed next-core stages passed TS7, TS5.9, distribution and tree-shaking, combined Settings/Charts Node 22/22, and Chromium core 243 passed/5 intentional skips including all charts.spec.ts cases. The composed packed run also completed hydration 1/1, resumed legacy 28/28 and full Select 42/42 on the same fixture. Full CI and publication remain pending.",
+    "solidReference": {
+      "pullRequest": "https://github.com/yumemi-thomas/solid-recharts/pull/3",
+      "base": "b1f9c6729eefb42caf96d2162ad8c71c2c5520e3",
+      "head": "f092454f625effd3826c944ab5803bd5a8bcce72",
+      "note": "Selected hunks are references only, not a wholesale import. Excludes theme exports/files, CellReader/module-level registration, the unrelated Line id spread, canary packaging, and the XAxis label:undefined measurement shortcut."
+    },
+    "unselected": [
+      {
+        "commits": ["39ef89019bd85770926837208c2997a5bf679aae"],
+        "status": "pending",
+        "reason": "CartesianGrid theme API #7525 explicitly deferred; existing CSS colors and Themes tokens retained."
+      },
+      {
+        "commits": ["9e8fa4f0053c20b883ccb9f674cd4d39174818a4"],
+        "status": "pending",
+        "reason": "Tooltip comments and labelFormatter type #7545 are outside the selected set."
+      },
+      {
+        "commits": ["14c1a2dec8542a1f644a97e3a3fbed5b81f36e01"],
+        "status": "pending",
+        "reason": "Legend type change #7560 is not selected. The adapted wrapping styles belong to #7564."
+      },
+      {
+        "commits": [
+          "100b61b1d9e8787b59b59b6ac1d991be7226c408",
+          "a74c5bdf17c07863feae4b36d8e8cfea014962ea",
+          "ffb918798051ef040bb7f9922d3850c9c189f39f"
+        ],
+        "status": "not-applicable",
+        "reason": "Version metadata only; inspected commits contain no src changes. Suite versions are managed independently."
+      },
+      {
+        "commits": ["e5f66d21763fea078d69081fa74b9ebd811cc2cc"],
+        "status": "not-applicable",
+        "reason": "Agent-skill moves with 100% similarity; no runtime src changes."
+      },
+      {
+        "commits": ["3c8f313dea0a897f43b5ddd81702420e75561f27"],
+        "status": "not-applicable",
+        "reason": "Legend alignment visual snapshots only; upstream test assets are not imported."
+      },
+      {
+        "commits": [
+          "e9795a1a5313c94431869ac1fdd33e8ce73f0ecb",
+          "fded3d1022cf3067233d7aad57081ddcb7df4969"
+        ],
+        "status": "not-applicable",
+        "reason": "Inspected src hunks change only Legend JSDoc/inline-code markup or CartesianPosition @inline; remaining paths are docs/examples/tooling."
+      },
+      {
+        "commits": [
+          "228de84c57957ed36603228749ecd2c516b6875a",
+          "0eccf437b848b599bebb702bec83b2b8c3c41fe0",
+          "cda516adf4d3dd1e479a19cfba45aa1728031c74",
+          "e45fa2f0d13d2eb864e4b06fda91c89f9e7422fc",
+          "38175dd5f53d09232006ca3d955849334abbb299",
+          "97e0c77c7ed9bee0b4776a80d146ebaa12361421",
+          "b6ba1adbd219ca8b79a7a411f2e31d6e4699a54e",
+          "1552fe08a39632ebff75882b0f765c239809fbba",
+          "48d4f2f9ded8bb65a462ad988cf94e78d9383322",
+          "98811efd0f74c3280c987662b1eddcb0b6a80f94",
+          "7a33ed6f3478876a5b720163e85e1b606e00e0cf",
+          "ea3eef3bc730bb2540f9a172a110ba389e3fcd98",
+          "38020e8d4881bf226e7c76cbe30c4bc13509ff27",
+          "3ea1d97a56dfcb3971d2561d6e7d72cdf521dac1",
+          "0776eb02a5424d6c6898794a0453408245534990",
+          "497e8df5f2b41e482f71f95374a59f1375c056e5",
+          "9764273f63037b4caaa13c88443df7adfa1ea4f7",
+          "3da7d87ae6e371b2231fc53bdde6bdb05bdd05fc",
+          "89599d0bdc09a6d028be3ceb849a344fb7baaf4c",
+          "f08972b83bae61dbd2c5d2a74f9929226d7d284a",
+          "58c321bdc2fa7c63ac7020c5550a081c1fe2f622"
+        ],
+        "status": "not-applicable",
+        "reason": "Every full returned file list was inspected: dependency metadata only, no src changes. The local runtime dependency graph and NOTICE are unchanged."
+      }
+    ]
+  },
   "dependencyNotices": {
     "localPath": "NOTICE",
     "note": "d3-scale and d3-shape are external runtime dependencies, not bundled into dist. NOTICE reproduces the LICENSE file of each package in their resolved dependency graph.",
@@ -234,6 +316,329 @@
       "reason": "A Brush panorama shares its parent's store; an Area inside the panorama now renders even when the parent chart is not an AreaChart or ComposedChart.",
       "tests": [
         "e2e/charts.spec.ts: Brush keyboard range synchronizes peer data while panorama and isolated chart keep full data"
+      ]
+    },
+    {
+      "id": "reduce-css-calc-guards",
+      "origin": "recharts",
+      "commits": [
+        "945fc2816b0a8eb824188a57ba393db5ed3c68b5",
+        "0778d4875fdb5f50bd643e494734dd2a1808116a"
+      ],
+      "pullRequests": [7610, 7620],
+      "solidPr3Hunks": null,
+      "files": ["src/util/ReduceCSSCalc.ts", "src/component/Text.tsx"],
+      "reason": "B1/B2: replacement callbacks preserve literal dollar tokens; reject expressions over 1000 characters before whitespace normalization. No new parser dependency.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "The timeout-bounded public Text SSR batch passed all 10 cases, including literal dollar replacement and pre-normalization length rejection, in the built and packed consumer gates.",
+      "tests": [
+        "tests/consumer/charts.test.ts: public Text SSR preserves literal dollars and enforces calc expression length limits"
+      ]
+    },
+    {
+      "id": "A1-controlled-brush",
+      "origin": "recharts",
+      "commits": [
+        "f2786e83fbd89862e19cb11578f4e1d638b3899c",
+        "f2c3ecb92d4cbaf48307c200f154e3e4859aa1d1"
+      ],
+      "pullRequests": [7542, 7530],
+      "solidPr3Hunks": [
+        "src/cartesian/Brush.tsx @@ -243,9 +243,16",
+        "@@ -282,6 +289,24",
+        "@@ -409,9 +434,6"
+      ],
+      "files": ["src/cartesian/Brush.tsx"],
+      "reason": "Retain controlled drag selection and unchanged controlled indices through data replacement while preserving native initialization, server guards, sync and panorama.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Public replacement, retained-drag, exact next keyboard position and unchanged opposite traveller assertions passed in all six browser projects and the packed Chromium suite. Separate chart-data selection and per-index next/previous comparison preserve the native controlled-drag exception; legacy synchronization, panorama and whole-chart disposal also passed.",
+      "tests": [
+        "e2e/charts.spec.ts: selected Charts controlled Brush retains drag and replacement indices"
+      ]
+    },
+    {
+      "id": "A2-active-bar",
+      "origin": "recharts",
+      "commits": ["2fa048ec943d9b40e404249c78d067a28ffa95cf"],
+      "pullRequests": [7547],
+      "solidPr3Hunks": [
+        "src/cartesian/Bar.tsx @@ -563,18 +563,20",
+        "@@ -583,6 +585,9",
+        "@@ -663,6 +668,7",
+        "@@ -704,6 +710,7",
+        "@@ -964,6 +971,17",
+        "@@ -1141,6 +1159,7"
+      ],
+      "files": ["src/cartesian/Bar.tsx"],
+      "reason": "Clear stale active-layer state without changing context-owned Cell overrides.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Preport active-layer capture found an inactive bar retained after another bar activated. The public active-bar leave/replacement case now passes in all six browser projects and packed Chromium; keyed Cell reorder/replacement and animation boundaries also passed.",
+      "tests": [
+        "e2e/charts.spec.ts: selected Charts active bars clear on leave and replacement"
+      ]
+    },
+    {
+      "id": "A3-sankey-accessibility",
+      "origin": "recharts",
+      "commits": ["82d2bec90c7927ea1e5ce7025fa9adca5de8aea2"],
+      "pullRequests": [7546],
+      "solidPr3Hunks": [
+        "src/chart/Sankey.tsx @@ -713,6 +713,7",
+        "@@ -727,6 +728,12",
+        "@@ -744,6 +751,7",
+        "@@ -858,10 +866,23"
+      ],
+      "files": ["src/chart/Sankey.tsx"],
+      "reason": "Forward title, desc, accessibilityLayer and explicit role/tabIndex overrides to the native root Surface.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Preport public SSR lacked role/title/description. Public Node SSR and all three browser SSR claim cases now pass accessible root attributes and preserved SVG identity; selected browser coverage and packed Chromium also passed.",
+      "tests": [
+        "tests/consumer/charts.test.ts: selected Charts SSR Sankey exposes accessible SVG title and description",
+        "e2e/charts.spec.ts: selected Charts legend-placement and accessible SVG hydrate in place before measurement"
+      ]
+    },
+    {
+      "id": "A4-legend-position",
+      "origin": "recharts",
+      "commits": ["082495ac4b05070b745089b2d82db2dc1eb8ccc8"],
+      "pullRequests": [7564],
+      "solidPr3Hunks": [
+        "src/component/Legend.tsx position/layout/settings/style hunks",
+        "src/component/DefaultLegendContent.tsx @@ -139,6 +139,7 and @@ -157,6 +158,8",
+        "src/state/legendSlice.ts position/offset hunks",
+        "src/cartesian/getCartesianPosition.ts input/result type migration",
+        "src/cartesian/cartesianPositionToCSSTranslate.ts new",
+        "src/state/selectors/selectLegendArea.ts new",
+        "src/util/ChartUtils.ts @@ -507,7 +515,25",
+        "src/index.ts CartesianPosition type only"
+      ],
+      "files": [
+        "src/component/Legend.tsx",
+        "src/component/DefaultLegendContent.tsx",
+        "src/state/legendSlice.ts",
+        "src/cartesian/getCartesianPosition.ts",
+        "src/cartesian/cartesianPositionToCSSTranslate.ts",
+        "src/cartesian/cartesianViewBoxToTrapezoid.ts",
+        "src/context/chartLayoutContext.tsx",
+        "src/component/Label.tsx",
+        "src/state/selectors/selectLegendArea.ts",
+        "src/util/ChartUtils.ts",
+        "src/index.ts",
+        "src/chart/RechartsWrapper.tsx",
+        "src/context/legendPortalContext.ts"
+      ],
+      "reason": "Position/offset and auto layout use shared Cartesian geometry. Only positioned/default-mount legends use the wrapper HTML outlet, initialized with the existing chart-local state and original Legend owner/context. Legacy/custom portals share the same body but retain their boundary. Measurement and unregistering remain native lifecycle work.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Node SSR and all three browser SSR claim cases passed. Rendered anchor geometry, initial semantic placement properties and all initial node identities are checked before measurement; outer SVG/Legend wrapper identity persists afterward. Six-project owner/context, multiple-registration, cleanup/remount, legacy placement and whole-section disposal cases passed, including packed Chromium. Legitimate reactive descendant replacement is not pinned.",
+      "tests": [
+        "tests/consumer/charts.test.ts: selected Charts SSR legend-placement",
+        "e2e/charts.spec.ts: selected Charts legend-placement and accessible SVG hydrate in place before measurement",
+        "e2e/charts.spec.ts: selected Charts Legend owners preserve legacy placement and positioned cleanup",
+        "tests/consumer/types.tsx"
+      ]
+    },
+    {
+      "id": "A5-auto-xaxis",
+      "origin": "recharts",
+      "commits": ["9d9b15d1664dea4c80b97f1fd7dfc25fac518cb1"],
+      "pullRequests": [7570],
+      "solidPr3Hunks": [
+        "src/cartesian/XAxis.tsx height/effect/ref hunks",
+        "src/cartesian/CartesianAxis.tsx @@ -275,7 +275,11",
+        "src/state/cartesianAxisSlice.ts height/history/action hunks",
+        "src/state/selectors/axisSelectors.ts @@ -1889,7 +1889,7",
+        "src/state/selectors/selectChartOffsetInternal.ts numeric fallback hunks",
+        "src/util/Constants.ts @@ -3,6 +3,7",
+        "src/util/XAxisUtils.ts new"
+      ],
+      "files": [
+        "src/cartesian/XAxis.tsx",
+        "src/cartesian/CartesianAxis.tsx",
+        "src/state/cartesianAxisSlice.ts",
+        "src/state/selectors/axisSelectors.ts",
+        "src/state/selectors/selectChartOffsetInternal.ts",
+        "src/util/Constants.ts",
+        "src/util/XAxisUtils.ts",
+        "src/component/Label.tsx",
+        "src/component/Text.tsx"
+      ],
+      "reason": "30px initial fallback; apply-phase actual tick/string-label measurement, rounded updates and bounded oscillation history. Forward actual label refs through Label/Text and rotation to default ticks. Function labels skip measurement; unsupported JSX nodes/arrays are excluded from implicit settings objects.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Public Node SSR fallback/numeric controls and six-project measured tick/string-label geometry, replacement stability and unsupported-JSX no-spurious-label checks passed. Packed Chromium and TS7/TS5.9 public declarations passed; no JSX cloning API was introduced.",
+      "tests": [
+        "tests/consumer/charts.test.ts: selected Charts SSR auto-xaxis retains the 30px server fallback",
+        "tests/consumer/charts.test.ts: selected Charts SSR numeric xaxis reserves its 30px plot height",
+        "e2e/charts.spec.ts: selected Charts measured auto-xaxis uses ticks and actual string label without oscillation",
+        "tests/consumer/types.tsx"
+      ]
+    },
+    {
+      "id": "clip-after-child-registration",
+      "origin": "local",
+      "files": ["src/container/ClipPathProvider.tsx"],
+      "reason": "The shared clip producer emits defs after ordinary children and reads fresh plotArea instead of the Show's captured initial area. Preserve the same provider/native ID; no prewalk or auto-only special case. Numeric30 now clips height260 instead of erroneous290 for 500x300 with 5px margins. SSR defs order and clip markup change, while declared tick geometry stays intact.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Public Node SSR numeric/auto clips and complete tick ladders passed. Browser root identity, unique clipping, Cell ownership, synchronization and panorama boundaries passed in cross-engine coverage and the packed Chromium suite.",
+      "tests": [
+        "tests/consumer/charts.test.ts: selected Charts SSR numeric xaxis reserves its 30px plot height",
+        "tests/consumer/charts.test.ts: axes-first bounded-domain stacked SSR emits correct values and the complete numeric tick ladder",
+        "e2e/charts.spec.ts: fixed server chart geometry hydrates in place and clip references stay unique across charts",
+        "e2e/charts.spec.ts: automatic Cartesian ticks hydrate uniquely and stay correct through resize and data replacement",
+        "e2e/charts.spec.ts: keyed Cells keep current data order, paint, custom-shape payload and one event after reorder and replacement",
+        "e2e/charts.spec.ts: Brush keyboard range synchronizes peer data while panorama and isolated chart keep full data"
+      ]
+    },
+    {
+      "id": "A6-pie-label-context",
+      "origin": "recharts",
+      "commits": ["4bb83b5b03c877c49428b13a3a39f229ee856dfc"],
+      "pullRequests": [7458],
+      "solidPr3Hunks": [
+        "src/polar/Pie.tsx polar context adaptation only; CellReader hunks rejected"
+      ],
+      "files": ["src/polar/Pie.tsx"],
+      "reason": "Wrap existing owner-local child resolution in the computed Pie polar label context; keep Cell registration unchanged.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Public computed percentage-radii child Label geometry passed Node SSR and all six browser projects, including packed Chromium. All five server Cell consumers and browser keyed Cell reorder/replacement tests passed with existing ownership retained.",
+      "tests": [
+        "tests/consumer/charts.test.ts: selected Charts SSR Pie children receive computed percentage radii",
+        "e2e/charts.spec.ts: selected Charts rendered Pie Label Area and bar geometry matches selected contracts",
+        "tests/consumer/charts.test.ts: all five Cell consumers apply ordered overrides to their actual server marks"
+      ]
+    },
+    {
+      "id": "A7-null-stack-area",
+      "origin": "recharts",
+      "commits": ["9817ae52fa440105d77bdec1f8393bcb893733e4"],
+      "pullRequests": [7566],
+      "solidPr3Hunks": [
+        "src/cartesian/Area.tsx @@ -165,6 +165,7, @@ -177,6 +178,7, @@ -200,8 +202,15",
+        "src/state/selectors/areaSelectors.ts stack key selection hunks"
+      ],
+      "files": [
+        "src/cartesian/Area.tsx",
+        "src/state/selectors/areaSelectors.ts"
+      ],
+      "reason": "Detect categories where all stack keys are null before connecting points. Reuse the selected numeric stack group once instead of recomputing it for its data and keys; preserve panorama behavior.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "The preport curve retained the all-null category. All selected rendered Area paths now pass Node SSR and six-project browser checks, including packed Chromium; the existing Brush panorama case also passed.",
+      "tests": [
+        "tests/consumer/charts.test.ts: selected Charts SSR stacked connectNulls skips the all-null category",
+        "e2e/charts.spec.ts: selected Charts rendered Pie Label Area and bar geometry matches selected contracts",
+        "e2e/charts.spec.ts: Brush keyboard range synchronizes peer data while panorama and isolated chart keep full data"
+      ]
+    },
+    {
+      "id": "A8-tooltip-index-fallback",
+      "origin": "recharts",
+      "commits": ["a5d7737d8965702dc14e590658c20bda6ccfb9af"],
+      "pullRequests": [7573],
+      "solidPr3Hunks": [
+        "src/state/selectors/combiners/combineTooltipPayload.ts @@ -157,6 +157,9"
+      ],
+      "files": ["src/state/selectors/combiners/combineTooltipPayload.ts"],
+      "reason": "When the label search returns nullish, reuse the existing payload searcher with activeIndex.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Preport native-provider capture showed the actual NonExistent label and uv20 but omitted pv200. The same public series-data/index-fallback assertions now pass all six browser projects and packed Chromium.",
+      "tests": [
+        "e2e/charts.spec.ts: selected Charts tooltip uses missing-label index fallback"
+      ]
+    },
+    {
+      "id": "A9-floating-tick-bands",
+      "origin": "recharts",
+      "commits": ["2ea9ca02e12867076405595c010343adb1ccca3b"],
+      "pullRequests": [7556],
+      "solidPr3Hunks": ["src/util/ChartUtils.ts @@ -429,13 +430,20"],
+      "files": ["src/util/ChartUtils.ts"],
+      "reason": "Compute the maximum ordered tick gap, then the minimum gap above maxGap*1e-4, without a temporary gap array. All existing band-size callers share the correction.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Preport public SSR bar width was0.0001 instead of10. All five width10 assertions now pass Node SSR, six-project browser geometry and packed Chromium; complete server tick-ladder coverage remains green.",
+      "tests": [
+        "tests/consumer/charts.test.ts: selected Charts SSR numeric floating gaps and clamped bars preserve widths and gaps",
+        "e2e/charts.spec.ts: selected Charts rendered Pie Label Area and bar geometry matches selected contracts"
+      ]
+    },
+    {
+      "id": "A10-polar-wrap",
+      "origin": "recharts",
+      "commits": ["553e77b3b3ab71457c417795c41285fba37b1608"],
+      "pullRequests": [7550],
+      "solidPr3Hunks": [
+        "src/util/getActiveCoordinate.ts @@ -122,6 +122,13, @@ -153,11 +160,10, @@ -165,7 +171,7"
+      ],
+      "files": ["src/util/getActiveCoordinate.ts"],
+      "reason": "Test full-circle angular intervals modulo one turn in both directions, preserving inclusive/exclusive interval ends and the Cartesian path.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Valid public coordinate RED used the identical86..446 scene against verified rc.2 tgz SHA f0f686f867fc44f0487248eca89e39a982036388f420843bdcf8c267090bc48f: label a passed through index clamping, but the actual anchor was(0,0), angle135 instead of356. Current public Tooltip coordinates, all eight original labels/angles and radius within the per-axis quantization bound passed all six browser projects and packed Chromium. This is a demonstrated port, not contained behavior or a private-helper-only test.",
+      "tests": [
+        "e2e/charts.spec.ts: selected Charts polar tooltip selects the wrapping sector"
+      ]
+    },
+    {
+      "id": "A11-custom-label-position",
+      "origin": "recharts",
+      "commits": ["ca62d1c38d17ab9182fdf78c81cfac3b2b92324c"],
+      "pullRequests": [7549],
+      "solidPr3Hunks": ["src/component/Label.tsx @@ -389,7 +389,34"],
+      "files": ["src/component/Label.tsx"],
+      "reason": "Pass computed Cartesian/polar x/y before explicit props plus viewBox, excluding computed anchors. Explicit props keep precedence for nested Labels; curved radial labels retain their path handling.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Public Node SSR and six-project browser custom Label cases pass computed coordinates, explicit coordinate/anchor precedence and nested-label behavior; packed Chromium and public declarations also passed. No computed anchors are injected.",
+      "tests": [
+        "tests/consumer/charts.test.ts: selected Charts SSR custom Label computes coordinates without overriding explicit props",
+        "e2e/charts.spec.ts: selected Charts rendered Pie Label Area and bar geometry matches selected contracts"
+      ]
+    },
+    {
+      "id": "A12-stable-rendered-ticks",
+      "origin": "recharts",
+      "commits": ["ccdd02a7609bd36d641d34287e5b35b363b2de90"],
+      "pullRequests": [7565],
+      "solidPr3Hunks": [
+        "src/cartesian/RenderedTicksReporter.tsx @@ -11,6 +11,13, @@ -19,6 +26,9, @@ -33,7 +43,16"
+      ],
+      "files": ["src/cartesian/RenderedTicksReporter.tsx"],
+      "reason": "Compare the public tick fields and axis identity before dispatch; unregister the previous identity when it changes and on disposal. Keep valid geometry changes and the existing apply-phase boundary. The sole reporter caller path owns the guard; the slice remains unchanged.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Source comparison established no pre-existing equality guard. The existing public automatic-ticks case now passes geometry, resize, data replacement and diagnostics in all six browser projects and packed Chromium; no permanent store-write counter or private helper API was added.",
+      "tests": [
+        "e2e/charts.spec.ts: automatic Cartesian ticks hydrate uniquely and stay correct through resize and data replacement"
+      ]
+    },
+    {
+      "id": "A13-clamped-bar-gap",
+      "origin": "recharts",
+      "commits": ["411b6f2e6233e617704b3bfb45ebfce16285f0d3"],
+      "pullRequests": [7582],
+      "solidPr3Hunks": [
+        "src/state/selectors/combiners/combineAllBarPositions.ts @@ -87,7 +87,7"
+      ],
+      "files": [
+        "src/state/selectors/combiners/combineAllBarPositions.ts",
+        "src/cartesian/Bar.tsx"
+      ],
+      "reason": "Advance paired-bar positions by their clamped size plus configured gap; defer the initial Bar render condition until ordinary sibling registrations exist, preserving native ownership.",
+      "status": "ported",
+      "sourceState": "adapted",
+      "evidence": "Preport paired bars had gap84 instead of7; native initial singleton registration also exposed gap-6 before deferred Bar rendering. Public Node SSR and all six browser projects now preserve width20 and configured gap7, including packed Chromium. The expected geometry was not repinned.",
+      "tests": [
+        "tests/consumer/charts.test.ts: selected Charts SSR numeric floating gaps and clamped bars preserve widths and gaps",
+        "e2e/charts.spec.ts: selected Charts clamped paired bars preserve the configured gap"
       ]
     }
   ],

@@ -1,8 +1,16 @@
 import assert from "node:assert/strict";
-import { readFile, readdir, mkdir, writeFile } from "node:fs/promises";
+import {
+  readFile,
+  readdir,
+  mkdir,
+  writeFile,
+  copyFile,
+} from "node:fs/promises";
 import { resolve } from "node:path";
 
-const root = resolve(import.meta.dirname, "..");
+const iconsRoot = resolve(import.meta.dirname, "..");
+// Optional package root (relative to cwd); omitted, it regenerates this package.
+const root = resolve(process.argv[2] ?? iconsRoot);
 const names: Record<string, string> = JSON.parse(
   await readFile(resolve(root, "icons.json"), "utf8"),
 );
@@ -23,6 +31,11 @@ assert.equal(
   "Icon names must form a bijection with assets",
 );
 await mkdir(resolve(root, "src"), { recursive: true });
+// Other packages get byte copies of this package's helpers, so each package stays self-contained.
+if (root !== iconsRoot)
+  for (const file of ["types.ts", "title.ts"])
+    await copyFile(resolve(iconsRoot, "src", file), resolve(root, "src", file));
+let viewBox: string | undefined;
 
 for (const [name, asset] of entries) {
   assert.match(name, /^[A-Z][A-Za-z0-9]*Icon$/);
@@ -30,7 +43,17 @@ for (const [name, asset] of entries) {
   const svg = await readFile(resolve(root, "icons", asset), "utf8");
   const match = /^<svg\b([^>]*)>([\s\S]*)<\/svg>\s*$/.exec(svg);
   assert.ok(match, `Invalid SVG: ${asset}`);
-  assert.match(match[1], /\bviewBox="0 0 15 15"/);
+  const assetViewBox = /\bviewBox="([^"]+)"/.exec(match[1])?.[1];
+  assert.ok(
+    assetViewBox === "0 0 15 15" || assetViewBox === "0 0 24 24",
+    `Unsupported viewBox in ${asset}: ${assetViewBox}`,
+  );
+  viewBox ??= assetViewBox;
+  assert.equal(
+    assetViewBox,
+    viewBox,
+    `Every icon in one package must share one grid: ${asset}`,
+  );
   // ponytail: trusted quoted SVGs and mask-only IDs; add an XML parser if asset syntax expands.
   assert.ok(
     !/<!--|<\?|&|[{}]/.test(match[2]),
@@ -60,7 +83,7 @@ for (const [name, asset] of entries) {
     `export function ${name}(props: IconProps): Element {\n` +
     (ids.length ? `  const maskId = createUniqueId();\n` : "") +
     `  const svgProps = omit(props, 'children', 'title', 'size');\n` +
-    `  return <svg width={props.size ?? 15} height={props.size ?? 15} viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg"\n` +
+    `  return <svg width={props.size ?? 15} height={props.size ?? 15} viewBox="${viewBox}" fill="none" xmlns="http://www.w3.org/2000/svg"\n` +
     `    role={props.title || props['aria-label'] || props['aria-labelledby'] ? 'img' : undefined}\n` +
     `    aria-hidden={props.title || props['aria-label'] || props['aria-labelledby'] ? undefined : 'true'}\n` +
     `    {...svgProps}>\n` +

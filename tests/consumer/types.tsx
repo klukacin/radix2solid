@@ -1,6 +1,12 @@
 import type { JSX } from "@solidjs/web";
 import * as Charts from "@wsagency/radix2solid-charts";
 import { CheckIcon, type IconProps } from "@wsagency/radix2solid-icons";
+import {
+  FolderIcon,
+  FolderOpenIcon,
+  type IconProps as ExtraIconProps,
+} from "@wsagency/radix2solid-icons-extra";
+import DeepFolderIcon from "@wsagency/radix2solid-icons-extra/FolderIcon";
 import GitHubLogoIcon, {
   GitHubLogoIcon as NamedGitHubLogoIcon,
 } from "@wsagency/radix2solid-icons/GitHubLogoIcon";
@@ -34,6 +40,12 @@ import {
   Toolbar,
   Tooltip,
   VisuallyHidden,
+} from "@wsagency/radix2solid-primitives";
+import {
+  Tree,
+  Combobox,
+  Command,
+  Splitter,
 } from "@wsagency/radix2solid-primitives";
 import { Root as AccessibleIconRoot } from "@wsagency/radix2solid-primitives/accessible-icon";
 import {
@@ -78,6 +90,8 @@ import {
   createCollapsibleScope,
   type CollapsibleProps,
 } from "@wsagency/radix2solid-primitives/collapsible";
+import * as ComboboxParts from "@wsagency/radix2solid-primitives/combobox";
+import * as CommandParts from "@wsagency/radix2solid-primitives/command";
 import * as ContextParts from "@wsagency/radix2solid-primitives/context-menu";
 import {
   Root as DialogRoot,
@@ -113,6 +127,7 @@ import {
 } from "@wsagency/radix2solid-primitives/radio-group";
 import * as SelectParts from "@wsagency/radix2solid-primitives/select";
 import { Root as SeparatorRoot } from "@wsagency/radix2solid-primitives/separator";
+import * as SplitterParts from "@wsagency/radix2solid-primitives/splitter";
 import {
   Root as SwitchRoot,
   createSwitchScope,
@@ -158,6 +173,370 @@ import {
   type TooltipContentProps,
   type TooltipArrowProps,
 } from "@wsagency/radix2solid-primitives/tooltip";
+import * as TreeParts from "@wsagency/radix2solid-primitives/tree";
+
+const treeProps: TreeParts.TreeProps = {
+  value: null,
+  expandedValues: ["branch"] as readonly string[],
+  onValueChange: (value) => {
+    const accepted: string | null = value;
+    void accepted;
+  },
+  onExpandedValuesChange: (values) => {
+    const accepted: readonly string[] = values;
+    void accepted;
+  },
+};
+export const nextTreeConsumer = (
+  <Tree.Root
+    {...treeProps}
+    aria-label="Typed tree"
+  >
+    <Tree.Item
+      value="branch"
+      textValue="Branch"
+      hasChildren
+      aria-level={1}
+      aria-posinset={1}
+      aria-setsize={-1}
+    >
+      <Tree.ItemText>Branch</Tree.ItemText>
+      <Tree.ItemIndicator>Selected</Tree.ItemIndicator>
+      <Tree.ExpandTrigger aria-label="Expand branch" />
+      <Tree.ItemGroup forceMount>
+        <Tree.Item
+          value="leaf"
+          textValue="Leaf"
+          asChild
+          onActivate={(event) => event.preventDefault()}
+        >
+          {(target) =>
+            target("a", {
+              href: "#leaf",
+              ref: (node) => {
+                node.href = "#leaf";
+              },
+              children: <Tree.ItemText>Leaf</Tree.ItemText>,
+            })
+          }
+        </Tree.Item>
+      </Tree.ItemGroup>
+    </Tree.Item>
+  </Tree.Root>
+);
+export const treeParts = [
+  TreeParts.Root,
+  TreeParts.Item,
+  TreeParts.ItemText,
+  TreeParts.ItemIndicator,
+  TreeParts.ItemGroup,
+  TreeParts.ExpandTrigger,
+  TreeParts.createTreeScope,
+];
+const extraProps: ExtraIconProps = {
+  size: 24,
+  title: "Folder",
+  color: "tomato",
+  width: 32,
+};
+export const extraIconConsumer = (
+  <>
+    <FolderIcon
+      {...extraProps}
+      ref={(node) => {
+        const svg: SVGSVGElement = node;
+        void svg;
+      }}
+    />
+    <FolderOpenIcon />
+    <DeepFolderIcon />
+  </>
+);
+// @ts-expect-error Extra icon geometry is fixed; children are not accepted.
+export const invalidExtraIcon = <FolderIcon>replacement</FolderIcon>;
+// @ts-expect-error Tree does not have a multiple selection mode.
+export const invalidTreeMode = <Tree.Root selectionMode="multiple" />;
+// @ts-expect-error Tree has no checked-state alias.
+export const invalidTreeProp = (
+  <Tree.Item
+    value="leaf"
+    textValue="Leaf"
+    checked
+  />
+);
+
+const choiceItems: readonly ComboboxParts.ComboboxItem[] = [
+  { value: "one", label: "One" },
+];
+export const typedChoice = (
+  <Combobox.Root
+    items={choiceItems}
+    value={null}
+    query=""
+    filter={false}
+    name="choice"
+    form="external"
+  >
+    <Combobox.Input asChild>
+      {(target) =>
+        target("input", {
+          ref: (node) => {
+            node.select();
+          },
+          "aria-label": "Choice",
+        })
+      }
+    </Combobox.Input>
+    <Combobox.Trigger asChild>
+      {(target) => target("button", { children: "Open" })}
+    </Combobox.Trigger>
+    <Combobox.Clear asChild>
+      {(target) => target("button", { children: "Clear" })}
+    </Combobox.Clear>
+    <Combobox.Portal
+      container={null}
+      forceMount
+    >
+      <Combobox.Content
+        forceMount
+        side="bottom"
+        onEscapeKeyDown={(event) => event.preventDefault()}
+      >
+        <Combobox.List>
+          <Combobox.Group>
+            <Combobox.Label>Choices</Combobox.Label>
+            <Combobox.Item
+              value="one"
+              asChild
+            >
+              {(target) =>
+                target("button", {
+                  children: (
+                    <>
+                      <Combobox.ItemText />
+                      <Combobox.ItemIndicator>Selected</Combobox.ItemIndicator>
+                    </>
+                  ),
+                })
+              }
+            </Combobox.Item>
+          </Combobox.Group>
+        </Combobox.List>
+        <Combobox.Empty>No matches</Combobox.Empty>
+      </Combobox.Content>
+    </Combobox.Portal>
+  </Combobox.Root>
+);
+export const filteredChoice = (
+  <ComboboxParts.Root
+    items={choiceItems}
+    filter={(item, query) => item.label.endsWith(query)}
+  />
+);
+export const typedCommand = (
+  <Command.Root
+    search=""
+    onSearchChange={(search) => {
+      const text: string = search;
+      void text;
+    }}
+    loop={false}
+  >
+    <Command.Input ref={(node) => node.focus()} />
+    <Command.List>
+      <Command.Group>
+        <Command.Label>Actions</Command.Label>
+        <Command.Item
+          value="run"
+          textValue="Run"
+          onSelect={(event) => event.preventDefault()}
+          asChild
+        >
+          {(target) =>
+            target("a", {
+              href: "#run",
+              ref: (node) => {
+                node.href = "#run";
+              },
+              children: "Run",
+            })
+          }
+        </Command.Item>
+      </Command.Group>
+    </Command.List>
+    <Command.Empty>No actions</Command.Empty>
+  </Command.Root>
+);
+export const typedSplitter = (
+  <Splitter.Root
+    unit="px"
+    defaultSize={200}
+    onSizeChange={(size) => {
+      const px: number = size;
+      void px;
+    }}
+    onSizeCommit={(size) => {
+      const accepted: number = size;
+      void accepted;
+    }}
+  >
+    <Splitter.Panel
+      side="primary"
+      minSize={100}
+      maxSize={400}
+      collapsible
+      collapsedSize={20}
+    >
+      Primary
+    </Splitter.Panel>
+    <Splitter.Handle
+      aria-label="Resize panels"
+      asChild
+    >
+      {(target) =>
+        target("div", {
+          ref: (node) => {
+            node.focus();
+          },
+        })
+      }
+    </Splitter.Handle>
+    <Splitter.Panel
+      side="secondary"
+      minSize={100}
+    >
+      Secondary
+    </Splitter.Panel>
+  </Splitter.Root>
+);
+export const percentageSplitter = (
+  <SplitterParts.Root
+    unit="%"
+    defaultSize={40}
+    orientation="vertical"
+    collapsed={false}
+    onCollapsedChange={(collapsed) => {
+      const accepted: boolean = collapsed;
+      void accepted;
+    }}
+  />
+);
+export const nextParts = [
+  ComboboxParts.Root,
+  ComboboxParts.Input,
+  ComboboxParts.Trigger,
+  ComboboxParts.Portal,
+  ComboboxParts.Content,
+  ComboboxParts.List,
+  ComboboxParts.Item,
+  ComboboxParts.ItemText,
+  ComboboxParts.ItemIndicator,
+  ComboboxParts.Group,
+  ComboboxParts.Label,
+  ComboboxParts.Empty,
+  ComboboxParts.Clear,
+  ComboboxParts.createComboboxScope,
+  CommandParts.Root,
+  CommandParts.Input,
+  CommandParts.List,
+  CommandParts.Group,
+  CommandParts.Label,
+  CommandParts.Item,
+  CommandParts.Empty,
+  CommandParts.createCommandScope,
+  SplitterParts.Root,
+  SplitterParts.Panel,
+  SplitterParts.Handle,
+  SplitterParts.createSplitterScope,
+];
+export type NewFamilyProps = [
+  ComboboxParts.ComboboxProps,
+  ComboboxParts.ComboboxInputProps,
+  ComboboxParts.ComboboxTriggerProps,
+  ComboboxParts.ComboboxPortalProps,
+  ComboboxParts.ComboboxContentProps,
+  ComboboxParts.ComboboxListProps,
+  ComboboxParts.ComboboxItemProps,
+  ComboboxParts.ComboboxItemTextProps,
+  ComboboxParts.ComboboxItemIndicatorProps,
+  ComboboxParts.ComboboxGroupProps,
+  ComboboxParts.ComboboxLabelProps,
+  ComboboxParts.ComboboxEmptyProps,
+  ComboboxParts.ComboboxClearProps,
+  CommandParts.CommandProps,
+  CommandParts.CommandInputProps,
+  CommandParts.CommandListProps,
+  CommandParts.CommandGroupProps,
+  CommandParts.CommandLabelProps,
+  CommandParts.CommandItemProps,
+  CommandParts.CommandEmptyProps,
+  TreeParts.TreeProps,
+  TreeParts.TreeItemProps,
+  TreeParts.TreeItemTextProps,
+  TreeParts.TreeItemIndicatorProps,
+  TreeParts.TreeItemGroupProps,
+  TreeParts.TreeExpandTriggerProps,
+  SplitterParts.SplitterProps,
+  SplitterParts.SplitterPanelProps,
+  SplitterParts.SplitterHandleProps,
+];
+// @ts-expect-error Canonical data is required.
+export const noChoiceData = <Combobox.Root />;
+// @ts-expect-error A row requires a string key.
+export const noChoiceKey = <Combobox.Item />;
+// @ts-expect-error Choice keys are strings.
+export const numericChoiceKey = <Combobox.Item value={1} />;
+// @ts-expect-error Root owns Input value.
+export const inputValue = <Combobox.Input value="text" />;
+// @ts-expect-error Root owns Input defaultValue.
+export const inputDefault = <Combobox.Input defaultValue="text" />;
+// @ts-expect-error Root owns Input name.
+export const inputName = <Combobox.Input name="choice" />;
+// @ts-expect-error Root owns Input form association.
+export const inputForm = <Combobox.Input form="external" />;
+// @ts-expect-error Query is text.
+export const numericQuery = (
+  <Combobox.Root
+    items={choiceItems}
+    query={1}
+  />
+);
+// @ts-expect-error Search is text.
+export const numericSearch = <Command.Root search={1} />;
+// @ts-expect-error Command selection is a cancellable Event.
+export const invalidCommandAction = (
+  <Command.Item
+    value="run"
+    textValue="Run"
+    onSelect={(value: string) => {
+      void value;
+    }}
+  />
+);
+// @ts-expect-error Command requires a key.
+export const missingCommandKey = <Command.Item textValue="Run" />;
+// @ts-expect-error Command requires explicit textValue.
+export const missingCommandText = <Command.Item value="run" />;
+// @ts-expect-error Command has no selected value.
+export const commandValue = <Command.Root value="run" />;
+// @ts-expect-error Command has no default selected value.
+export const commandDefault = <Command.Root defaultValue="run" />;
+// @ts-expect-error Command has no selected-value callback.
+export const commandChange = <Command.Root onValueChange={() => {}} />;
+// @ts-expect-error Command is not a form control.
+export const commandName = <Command.Root name="command" />;
+// @ts-expect-error Command has no form association.
+export const commandForm = <Command.Root form="external" />;
+// @ts-expect-error Command has no popup state.
+export const commandOpen = <Command.Root open />;
+// @ts-expect-error Command has no readOnly state.
+export const commandReadonly = <Command.Root readOnly />;
+// @ts-expect-error Splitter supports only percent or pixels.
+export const invalidSplitterUnit = <Splitter.Root unit="rem" />;
+// @ts-expect-error Splitter panel side is required.
+export const missingSplitterSide = <Splitter.Panel />;
+// @ts-expect-error No N-pane/snap API.
+export const invalidSplitterSnap = <Splitter.Root snapPoints={[10, 20]} />;
 
 function CustomTarget(
   props: JSX.AnchorHTMLAttributes<HTMLAnchorElement> & { token: string },
@@ -2321,11 +2700,22 @@ export const nativeIcons = (
   </>
 );
 
+import {
+  Calendar as PrimitiveCalendar,
+  DatePicker as PrimitiveDatePicker,
+  FileDrop as PrimitiveFileDrop,
+} from "@wsagency/radix2solid-primitives";
+import * as PrimitiveCalendarParts from "@wsagency/radix2solid-primitives/calendar";
+import * as PrimitiveDatePickerParts from "@wsagency/radix2solid-primitives/date-picker";
+import * as PrimitiveFileDropParts from "@wsagency/radix2solid-primitives/file-drop";
 import * as Themes from "@wsagency/radix2solid-themes";
+import * as ThemedCalendarParts from "@wsagency/radix2solid-themes/components/calendar";
 import {
   Root as ThemedCalloutRoot,
   type RootProps as ThemedCalloutRootProps,
 } from "@wsagency/radix2solid-themes/components/callout";
+import * as ThemedDatePickerParts from "@wsagency/radix2solid-themes/components/date-picker";
+import * as ThemedFileDropParts from "@wsagency/radix2solid-themes/components/file-drop";
 import { extractProps as extractThemeProps } from "@wsagency/radix2solid-themes/helpers";
 import {
   buttonPropDefs as themedButtonProps,
@@ -2509,6 +2899,8 @@ export const nativeInteractiveThemes = (
   </Themes.Theme>
 );
 
+const chartLegendPosition: Charts.CartesianPosition = "insideTopRight";
+const chartLegendCoordinates: Charts.CartesianPosition = { x: "25%", y: "75%" };
 export const nativeCharts = (
   <Charts.ResponsiveContainer
     width="100%"
@@ -2530,6 +2922,7 @@ export const nativeCharts = (
         dataKey="name"
         scale="band"
         interval={0}
+        height="auto"
       />
       <Charts.YAxis
         domain={[0, 50]}
@@ -2559,7 +2952,14 @@ export const nativeCharts = (
           </span>
         )}
       />
-      <Charts.Legend />
+      <Charts.Legend
+        position={chartLegendPosition}
+        offset={10}
+      />
+      <Charts.Legend
+        position={chartLegendCoordinates}
+        offset={5}
+      />
       <Charts.Brush
         onChange={(range) => {
           const start: number | undefined = range.startIndex;
@@ -2579,4 +2979,324 @@ export const invalidFixedChart = (
 export const invalidTreemapUpdateAnimation = (
   // @ts-expect-error Treemap does not implement a separate update-animation toggle.
   <Charts.Treemap isUpdateAnimationActive />
+);
+export const nativeSankey = (
+  <Charts.Sankey
+    width={500}
+    height={300}
+    accessibilityLayer
+    title="Typed flow"
+    desc="Ten units from source to target"
+    data={{
+      nodes: [{ name: "Source" }, { name: "Target" }],
+      links: [{ source: 0, target: 1, value: 10 }],
+    }}
+  />
+);
+// @ts-expect-error Legend positions use the public CartesianPosition union.
+export const invalidLegendPosition = <Charts.Legend position="unknown" />;
+const familyDate: PrimitiveCalendarParts.DateValue = "2026-10-18";
+const familyCalendarProps: PrimitiveCalendarParts.CalendarProps = {
+  today: familyDate,
+};
+const familyDatePickerProps: PrimitiveDatePickerParts.DatePickerProps = {
+  today: familyDate,
+  name: "appointmentDate",
+};
+const familyFileDropProps: PrimitiveFileDropParts.FileDropProps = {
+  name: "attachments",
+  value: [],
+};
+export const themedFamilyParts = [
+  PrimitiveCalendar.Root,
+  PrimitiveCalendar.Grid,
+  PrimitiveCalendar.Day,
+  PrimitiveCalendar.createCalendarScope,
+  PrimitiveDatePicker.Root,
+  PrimitiveDatePicker.Trigger,
+  PrimitiveDatePicker.Value,
+  PrimitiveDatePicker.Clear,
+  PrimitiveDatePicker.FormControl,
+  PrimitiveDatePicker.createDatePickerScope,
+  PrimitiveFileDrop.Root,
+  PrimitiveFileDrop.Input,
+  PrimitiveFileDrop.Trigger,
+  PrimitiveFileDrop.createFileDropScope,
+  ThemedCalendarParts.Root,
+  ThemedCalendarParts.Grid,
+  ThemedCalendarParts.Day,
+  ThemedCalendarParts.createCalendarScope,
+  ThemedDatePickerParts.Root,
+  ThemedDatePickerParts.Value,
+  ThemedDatePickerParts.Clear,
+  ThemedDatePickerParts.FormControl,
+  ThemedDatePickerParts.createDatePickerScope,
+  ThemedFileDropParts.Root,
+  ThemedFileDropParts.Input,
+  ThemedFileDropParts.Trigger,
+  ThemedFileDropParts.createFileDropScope,
+];
+void familyCalendarProps;
+void familyDatePickerProps;
+void familyFileDropProps;
+
+export const nativePrimitiveDatePicker = (
+  <FormRoot>
+    <FormParts.Field name="primitive-appointmentDate">
+      <PrimitiveDatePicker.Root
+        name="primitive-appointmentDate"
+        today={familyDate}
+        required
+        onValueChange={(requested) => {
+          const accepted: PrimitiveCalendarParts.DateValue | null = requested;
+          void accepted;
+        }}
+      >
+        <PrimitiveDatePicker.Trigger aria-label="Primitive appointment date">
+          <PrimitiveDatePicker.Value placeholder="Choose a date" />
+        </PrimitiveDatePicker.Trigger>
+        <PrimitiveDatePicker.FormControl
+          id="primitive-appointmentDate"
+          ref={(node) => {
+            const input: HTMLInputElement = node;
+            void input;
+          }}
+        />
+        <PrimitiveDatePicker.Clear asChild>
+          {(target) =>
+            target(CustomTarget, {
+              token: "primitive-clear-date",
+              href: "#primitive-clear-date",
+              children: "Clear date",
+            })
+          }
+        </PrimitiveDatePicker.Clear>
+      </PrimitiveDatePicker.Root>
+    </FormParts.Field>
+  </FormRoot>
+);
+
+export const nativeStyledFamilies = (
+  <Themes.Theme
+    accentColor="indigo"
+    appearance="light"
+  >
+    <Themes.Calendar.Root
+      id="typed-calendar"
+      today={familyDate}
+      value={familyDate}
+      size={{ md: "3" }}
+      variant="classic"
+    >
+      <Themes.Calendar.Header>
+        <Themes.Calendar.PrevTrigger aria-label="Previous month" />
+        <Themes.Calendar.Heading />
+        <Themes.Calendar.NextTrigger aria-label="Next month" />
+      </Themes.Calendar.Header>
+    </Themes.Calendar.Root>
+    <FormParts.Root>
+      <FormParts.Field name="appointmentDate">
+        <FormParts.Label for="typed-date-picker">
+          Appointment date
+        </FormParts.Label>
+        <Themes.DatePicker.Root
+          id="typed-date-picker-root"
+          name="appointmentDate"
+          today={familyDate}
+          size={{ md: "3" }}
+          variant="soft"
+          required
+          onValueChange={(requested) => {
+            const accepted: PrimitiveCalendarParts.DateValue | null = requested;
+            void accepted;
+          }}
+        >
+          <Themes.DatePicker.Trigger aria-label="Appointment date">
+            <Themes.DatePicker.Value placeholder="Choose a date" />
+          </Themes.DatePicker.Trigger>
+          <FormParts.Control
+            name="appointmentDate"
+            asChild
+          >
+            {(target) =>
+              target(Themes.DatePicker.FormControl, {
+                id: "typed-date-picker",
+                ref: (node) => {
+                  const input: HTMLInputElement = node;
+                  void input;
+                },
+              })
+            }
+          </FormParts.Control>
+          <Themes.DatePicker.Clear asChild>
+            {(target) =>
+              target(CustomTarget, {
+                token: "clear-date",
+                href: "#clear-date",
+                children: "Clear date",
+              })
+            }
+          </Themes.DatePicker.Clear>
+          <Themes.DatePicker.Portal>
+            <Themes.DatePicker.Content aria-label="Appointment date">
+              <Themes.DatePicker.Title>
+                Appointment date
+              </Themes.DatePicker.Title>
+              <Themes.DatePicker.Calendar />
+            </Themes.DatePicker.Content>
+          </Themes.DatePicker.Portal>
+        </Themes.DatePicker.Root>
+      </FormParts.Field>
+    </FormParts.Root>
+    <Themes.FileDrop.Root
+      name="attachments"
+      accept=".txt"
+      required
+      value={[]}
+      size="2"
+      variant="outline"
+      onValueChange={(files) => {
+        const accepted: readonly File[] = files;
+        void accepted;
+      }}
+    >
+      <Themes.FileDrop.Input
+        ref={(node) => {
+          const input: HTMLInputElement = node;
+          void input;
+        }}
+      />
+      <Themes.FileDrop.Trigger>Browse files</Themes.FileDrop.Trigger>
+    </Themes.FileDrop.Root>
+    {/* @ts-expect-error Calendar variants are only surface, classic, or soft. */}
+    <Themes.Calendar.Root
+      today={familyDate}
+      variant="outline"
+    />
+    {/* @ts-expect-error DatePicker variants are only surface, classic, or soft. */}
+    <Themes.DatePicker.Root
+      today={familyDate}
+      variant="outline"
+    />
+    {/* @ts-expect-error FileDrop does not support readOnly. */}
+    <Themes.FileDrop.Root readOnly />
+    {/* @ts-expect-error The real FileDrop input also excludes readOnly. */}
+    <Themes.FileDrop.Input readOnly />
+  </Themes.Theme>
+);
+const c5DateObject = new Date("2026-10-18T00:00:00.000Z");
+const c5Timestamp = Date.parse("2026-10-18T00:00:00.000Z");
+const c5DateRange = ["2026-10-18", "2026-10-19"] as const;
+
+// @ts-expect-error Calendar values are canonical date-only strings, not Date objects.
+export const invalidPrimitiveCalendarDateObject = (
+  <PrimitiveCalendarParts.Root
+    today={familyDate}
+    value={c5DateObject}
+  />
+);
+// @ts-expect-error Calendar values are not epoch timestamps.
+export const invalidPrimitiveCalendarTimestamp = (
+  <PrimitiveCalendarParts.Root
+    today={familyDate}
+    value={c5Timestamp}
+  />
+);
+// @ts-expect-error Calendar selects one date, not a range.
+export const invalidPrimitiveCalendarRange = (
+  <PrimitiveCalendarParts.Root
+    today={familyDate}
+    value={c5DateRange}
+  />
+);
+// @ts-expect-error DatePicker values are canonical date-only strings, not Date objects.
+export const invalidPrimitiveDatePickerDateObject = (
+  <PrimitiveDatePickerParts.Root
+    today={familyDate}
+    value={c5DateObject}
+  />
+);
+// @ts-expect-error DatePicker values are not epoch timestamps.
+export const invalidPrimitiveDatePickerTimestamp = (
+  <PrimitiveDatePickerParts.Root
+    today={familyDate}
+    value={c5Timestamp}
+  />
+);
+// @ts-expect-error DatePicker selects one date, not a range.
+export const invalidPrimitiveDatePickerRange = (
+  <PrimitiveDatePickerParts.Root
+    today={familyDate}
+    value={c5DateRange}
+  />
+);
+// @ts-expect-error DatePicker does not expose editable text entry.
+export const invalidPrimitiveDatePickerEditable = (
+  <PrimitiveDatePickerParts.Root
+    today={familyDate}
+    editable
+  />
+);
+// @ts-expect-error DatePicker does not expose a custom date parser.
+export const invalidPrimitiveDatePickerParser = (
+  <PrimitiveDatePickerParts.Root
+    today={familyDate}
+    parseDate={(text: string) => text}
+  />
+);
+// @ts-expect-error The themed Calendar also accepts date-only strings, not Date objects.
+export const invalidThemedCalendarDateObject = (
+  <ThemedCalendarParts.Root
+    today={familyDate}
+    value={c5DateObject}
+  />
+);
+// @ts-expect-error The themed Calendar does not accept epoch timestamps.
+export const invalidThemedCalendarTimestamp = (
+  <ThemedCalendarParts.Root
+    today={familyDate}
+    value={c5Timestamp}
+  />
+);
+// @ts-expect-error The themed Calendar selects one date, not a range.
+export const invalidThemedCalendarRange = (
+  <ThemedCalendarParts.Root
+    today={familyDate}
+    value={c5DateRange}
+  />
+);
+// @ts-expect-error The themed DatePicker also accepts date-only strings, not Date objects.
+export const invalidThemedDatePickerDateObject = (
+  <ThemedDatePickerParts.Root
+    today={familyDate}
+    value={c5DateObject}
+  />
+);
+// @ts-expect-error The themed DatePicker does not accept epoch timestamps.
+export const invalidThemedDatePickerTimestamp = (
+  <ThemedDatePickerParts.Root
+    today={familyDate}
+    value={c5Timestamp}
+  />
+);
+// @ts-expect-error The themed DatePicker selects one date, not a range.
+export const invalidThemedDatePickerRange = (
+  <ThemedDatePickerParts.Root
+    today={familyDate}
+    value={c5DateRange}
+  />
+);
+// @ts-expect-error The themed DatePicker does not expose editable text entry.
+export const invalidThemedDatePickerEditable = (
+  <ThemedDatePickerParts.Root
+    today={familyDate}
+    editable
+  />
+);
+// @ts-expect-error The themed DatePicker does not expose a custom date parser.
+export const invalidThemedDatePickerParser = (
+  <ThemedDatePickerParts.Root
+    today={familyDate}
+    parseDate={(text: string) => text}
+  />
 );

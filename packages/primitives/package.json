@@ -1,6 +1,6 @@
 {
   "name": "@wsagency/radix2solid-primitives",
-  "version": "0.1.0-rc.2",
+  "version": "0.1.0-rc.4",
   "private": false,
   "homepage": "https://github.com/wsagency/radix2solid/tree/main/packages/primitives#readme",
   "bugs": {
@@ -106,6 +106,26 @@
       "browser": "./dist/client/select.js",
       "default": "./dist/server/select.js"
     },
+    "./combobox": {
+      "types": "./dist/types/combobox/index.d.ts",
+      "browser": "./dist/client/combobox.js",
+      "default": "./dist/server/combobox.js"
+    },
+    "./command": {
+      "types": "./dist/types/command/index.d.ts",
+      "browser": "./dist/client/command.js",
+      "default": "./dist/server/command.js"
+    },
+    "./tree": {
+      "types": "./dist/types/tree/index.d.ts",
+      "browser": "./dist/client/tree.js",
+      "default": "./dist/server/tree.js"
+    },
+    "./splitter": {
+      "types": "./dist/types/splitter/index.d.ts",
+      "browser": "./dist/client/splitter.js",
+      "default": "./dist/server/splitter.js"
+    },
     "./password-toggle-field": {
       "types": "./dist/types/password-toggle-field/index.d.ts",
       "browser": "./dist/client/password-toggle-field.js",
@@ -130,6 +150,21 @@
       "types": "./dist/types/form/index.d.ts",
       "browser": "./dist/client/form.js",
       "default": "./dist/server/form.js"
+    },
+    "./calendar": {
+      "types": "./dist/types/calendar/index.d.ts",
+      "browser": "./dist/client/calendar.js",
+      "default": "./dist/server/calendar.js"
+    },
+    "./date-picker": {
+      "types": "./dist/types/date-picker/index.d.ts",
+      "browser": "./dist/client/date-picker.js",
+      "default": "./dist/server/date-picker.js"
+    },
+    "./file-drop": {
+      "types": "./dist/types/file-drop/index.d.ts",
+      "browser": "./dist/client/file-drop.js",
+      "default": "./dist/server/file-drop.js"
     },
     "./toast": {
       "types": "./dist/types/toast/index.d.ts",

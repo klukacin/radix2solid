@@ -14,5 +14,5 @@ Before you report a task as done:
 
 - Lint: Oxlint with `eslint-plugin-solid` (`v2-strict` preset), configured in `oxlint.config.ts`. Warnings fail the run.
 - Format: oxfmt, configured in `.oxfmtrc.json`.
-- Generated icon sources (`packages/icons/src/*Icon.tsx`, `packages/icons/src/index.ts`) come from `packages/icons/scripts/generate.ts`. Change the generator, then run `pnpm --filter @wsagency/radix2solid-icons generate`.
+- Generated icon sources (`packages/icons/src/*Icon.tsx`, `packages/icons/src/index.ts`, and the same files under `packages/icons-extra/src`) come from `packages/icons/scripts/generate.ts`. Change the generator, then run `pnpm --filter @wsagency/radix2solid-icons generate` and `pnpm --filter @wsagency/radix2solid-icons-extra generate`.
 - OMP picks up the `oxlint` and `oxfmt` language servers from `.omp/lsp.json`.

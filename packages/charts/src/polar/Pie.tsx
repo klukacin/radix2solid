@@ -44,9 +44,13 @@ import { matchAppend, type AnimationMatchByProp } from "../animation/matchBy";
 import type { MutableRef } from "../animation/useAnimationStartSnapshot";
 import { type CellProps, createCellReader } from "../component/Cell";
 import type { Formatter } from "../component/DefaultTooltipContent";
+import { PolarLabelContextProvider } from "../component/Label";
 import { Text } from "../component/Text";
 import { Layer } from "../container/Layer";
-import { usePolarChartLayout } from "../context/chartLayoutContext";
+import {
+  useOffsetInternal,
+  usePolarChartLayout,
+} from "../context/chartLayoutContext";
 import {
   useMouseClickItemDispatch,
   useMouseEnterItemDispatch,
@@ -58,6 +62,7 @@ import { GraphicalItemId } from "../state/graphicalItemsSlice";
 import { useAppSelector, useAppStore } from "../state/hooks";
 import { registerInStore } from "../state/registerInStore";
 import {
+  selectDisplayedData,
   selectPieSectors,
   selectPieLegend,
 } from "../state/selectors/pieSelectors";
@@ -190,7 +195,10 @@ const getOuterRadius = (
 };
 
 const parseCoordinateOfPie = (
-  pieSettings: PieSettings,
+  pieSettings: Pick<
+    PieSettings,
+    "cx" | "cy" | "innerRadius" | "outerRadius" | "maxRadius"
+  >,
   offset: ChartOffsetInternal,
   dataPoint: unknown,
 ): PieCoordinate => {
@@ -737,6 +745,25 @@ export function Pie<
   const sectors = useAppSelector((state) =>
     selectPieSectors(state, id, cells()),
   );
+  const chartOffset = useOffsetInternal();
+  const firstDataPoint = useAppSelector(
+    (state) => selectDisplayedData(state, id, cells())?.[0],
+  );
+  const childCoordinates = createMemo(
+    () =>
+      sectors()?.[0] ??
+      parseCoordinateOfPie(
+        {
+          cx: merged.cx,
+          cy: merged.cy,
+          innerRadius: merged.innerRadius,
+          outerRadius: merged.outerRadius,
+          maxRadius: merged.maxRadius,
+        },
+        chartOffset(),
+        firstDataPoint(),
+      ),
+  );
 
   // Layer takes a single class string (user-class forwarding parity with clsx).
   const layerClass = (): string =>
@@ -923,7 +950,19 @@ export function Pie<
   // `zIndex` prop relayers the whole pie into its portal. Following Bar's template,
   // the ZIndexLayer lives INSIDE the gate <Show> (never wrapping it) so an empty/
   // hidden pie mounts NO portal — the `fallback` renders the inline empty root Layer.
-  const renderedChildren = resolveChildren(() => <>{props.children}</>);
+  const renderedChildren = resolveChildren(() => (
+    <PolarLabelContextProvider
+      cx={childCoordinates().cx}
+      cy={childCoordinates().cy}
+      innerRadius={childCoordinates().innerRadius}
+      outerRadius={childCoordinates().outerRadius}
+      startAngle={merged.startAngle}
+      endAngle={merged.endAngle}
+      clockWise={false}
+    >
+      {props.children}
+    </PolarLabelContextProvider>
+  ));
 
   return (
     <>

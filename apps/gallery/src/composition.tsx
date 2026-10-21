@@ -15,14 +15,20 @@ import {
 
 import { Advanced } from "./advanced.js";
 import { Assets } from "./assets.js";
+import { CalendarExamples } from "./calendar.js";
 import { Charts } from "./charts.js";
 import { Controls } from "./controls.js";
+import { DatePickerExamples } from "./date-picker.js";
+import { FileDropExamples } from "./file-drop.js";
+import { Inputs } from "./inputs.js";
 import { Layers, IndependentLayers } from "./layers.js";
 import { Menus } from "./menus.js";
 import { Selects } from "./select.js";
+import { Splitters } from "./splitter.js";
 import { ThemeExtensions } from "./theme-extensions.js";
 import { ThemeInteractions } from "./theme-interactions.js";
 import { Themes } from "./themes.js";
+import { Trees } from "./tree.js";
 
 function CustomLink(props: JSX.AnchorHTMLAttributes<HTMLAnchorElement>) {
   return (
@@ -205,7 +211,9 @@ function RefComposition(): Element {
   );
 }
 
-export function Composition(): Element {
+export function Composition(props: {
+  initiallyOpenDatePicker: boolean;
+}): Element {
   const [parent, accept] = createSignal(false);
   const [requests, setRequests] = createSignal<string[]>([]);
   const [callback, replace] = createSignal<(value: boolean) => void>(
@@ -514,7 +522,15 @@ export function Composition(): Element {
       <Controls />
       <Menus />
       <Selects />
+      <Inputs />
+      <Trees />
+      <Splitters />
       <Advanced />
+      <CalendarExamples />
+      <DatePickerExamples
+        initiallyOpenDatePicker={props.initiallyOpenDatePicker}
+      />
+      <FileDropExamples />
       <Assets />
       <Themes />
       <ThemeInteractions />

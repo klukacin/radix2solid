@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { readFile, realpath } from "node:fs/promises";
 import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
@@ -11,6 +12,8 @@ import {
   PanelLeftIcon,
   PanelRightIcon,
 } from "@wsagency/radix2solid-icons";
+import { FolderIcon, FolderOpenIcon } from "@wsagency/radix2solid-icons-extra";
+import DeepFolderIcon from "@wsagency/radix2solid-icons-extra/FolderIcon";
 import GitHubLogoIcon from "@wsagency/radix2solid-icons/GitHubLogoIcon";
 import {
   AccessibleIcon,
@@ -60,7 +63,7 @@ import {
 import ts from "typescript5";
 
 test("packed packages resolve one physical native runtime from every package origin and Themes shares primitives", async () => {
-  const names = ["primitives", "themes", "icons", "charts"];
+  const names = ["primitives", "themes", "icons", "icons-extra", "charts"];
   const origins = await Promise.all(
     names.map(async (name) =>
       dirname(
@@ -121,6 +124,52 @@ test("packed server entry imports and renders pressed state without a DOM", () =
     /<button[^>]*aria-pressed="true"[^>]*>Packed state<\/button>/,
   );
   assert.match(html, /type="button"/);
+});
+
+test("packed Splitter development SSR renders public parts without server signal writes", () => {
+  const childSource = String.raw`
+    import { createComponent } from 'solid-js';
+    import { renderToString } from '@solidjs/web';
+    import * as Splitter from '@wsagency/radix2solid-primitives/splitter';
+
+    const html = renderToString(() => createComponent(Splitter.Root, {
+      id: 'development-splitter', unit: 'px', defaultSize: 400,
+      get children() { return [
+        createComponent(Splitter.Panel, {
+          side: 'primary', id: 'development-primary', minSize: 100, maxSize: 800,
+          children: 'Primary workspace',
+        }),
+        createComponent(Splitter.Handle, { 'aria-label': 'Development workspace' }),
+        createComponent(Splitter.Panel, {
+          side: 'secondary', minSize: 300, maxSize: 700, children: 'Secondary workspace',
+        }),
+      ]; },
+    }));
+    process.stdout.write(html);
+  `;
+  const child = spawnSync(
+    process.execPath,
+    ["--conditions=development", "--input-type=module", "--eval", childSource],
+    {
+      cwd: import.meta.dirname,
+      timeout: 10000,
+      encoding: "utf8",
+    },
+  );
+  assert.equal(
+    child.status,
+    0,
+    `Splitter SSR child failed: ${child.error?.message ?? child.signal ?? child.status}\n${child.stderr}`,
+  );
+  assert.doesNotMatch(child.stdout + child.stderr, /\[SERVER_WRITE\]/);
+  assert.match(child.stdout, /id="development-splitter"/);
+  assert.match(child.stdout, /id="development-primary"/);
+  assert.match(child.stdout, /Primary workspace/);
+  assert.match(child.stdout, /Secondary workspace/);
+  assert.match(child.stdout, /role="separator"/);
+  assert.match(child.stdout, /aria-label="Development workspace"/);
+  assert.match(child.stdout, /aria-controls="development-primary"/);
+  assert.match(child.stdout, /aria-valuenow="400"/);
 });
 
 test("packed Slot merges accessible descriptions and serializes its only target on the server", () => {
@@ -1659,6 +1708,46 @@ test("packed Toast keeps default-open notifications client-only while serializin
   assert.doesNotMatch(html, /Client notification|<li\b/);
 });
 
+test("packed extra icons retain independent artwork, public deep identity and raw SVGs", async () => {
+  assert.equal(DeepFolderIcon, FolderIcon);
+  const map: Record<string, string> = JSON.parse(
+    await readFile(new URL("./icons-extra.json", import.meta.url), "utf8"),
+  );
+  assert.deepEqual(Object.keys(map).sort(), ["FolderIcon", "FolderOpenIcon"]);
+  for (const [name, Icon] of [
+    ["FolderIcon", FolderIcon],
+    ["FolderOpenIcon", FolderOpenIcon],
+  ] as const) {
+    const raw = await readFile(
+      fileURLToPath(
+        import.meta.resolve(
+          `@wsagency/radix2solid-icons-extra/icons/${map[name]}`,
+        ),
+      ),
+      "utf8",
+    );
+    assert.match(raw, /viewBox="0 0 24 24"/);
+    const html = renderToString(() =>
+      createComponent(Icon, {
+        title: name,
+        size: 30,
+        width: 28,
+        color: "tomato",
+      }),
+    );
+    assert.match(html, /viewBox="0 0 24 24"/);
+    assert.match(html, /width="28"/);
+    assert.match(html, /height="30"/);
+    assert.match(html, /role="img"/);
+    assert.match(html, new RegExp(`<title[^>]*>${name}</title>`));
+    for (const path of raw.matchAll(/\bd="([^"]+)"/g))
+      assert.ok(
+        html.includes(`d="${path[1]}"`),
+        `${name}: original path geometry`,
+      );
+  }
+});
+
 test("packed icons render named native SVG and isolate mask references without a document", () => {
   const html = renderToString(
     () => [
@@ -1775,4 +1864,115 @@ test("packed Themes server preserves frozen responsive defaults, nested gray inh
   assert.match(html, /Original content/);
   assert.match(html, /aria-valuenow="0"/);
   assert.match(html, /aria-valuemax="80"/);
+});
+
+test("packed Themes Calendar, DatePicker and FileDrop use public native parts on the server", () => {
+  assert.equal(typeof document, "undefined");
+  const html = renderToString(
+    () =>
+      createComponent(Themes.Theme, {
+        accentColor: "indigo",
+        get children() {
+          return [
+            createComponent(Themes.Calendar.Root, {
+              id: "packed-themed-calendar",
+              today: "2026-10-18",
+              value: "2026-10-18",
+              variant: "classic",
+              get children() {
+                return createComponent(Themes.Calendar.Header, {
+                  get children() {
+                    return createComponent(Themes.Calendar.Heading, {});
+                  },
+                });
+              },
+            }),
+            createComponent(Form.Root, {
+              id: "packed-themed-date-form",
+              get children() {
+                return createComponent(Form.Field, {
+                  name: "appointmentDate",
+                  get children() {
+                    return [
+                      createComponent(Form.Label, {
+                        for: "packed-themed-date-input",
+                        children: "Appointment date",
+                      }),
+                      createComponent(Themes.DatePicker.Root, {
+                        name: "appointmentDate",
+                        required: true,
+                        today: "2026-10-18",
+                        variant: "soft",
+                        get children() {
+                          return [
+                            createComponent(Themes.DatePicker.Trigger, {
+                              "aria-label": "Appointment date",
+                              children: createComponent(
+                                Themes.DatePicker.Value,
+                                { placeholder: "Choose a date" },
+                              ),
+                            }),
+                            createComponent(Form.Control, {
+                              name: "appointmentDate",
+                              asChild: true,
+                              children: (target) =>
+                                target(Themes.DatePicker.FormControl, {
+                                  id: "packed-themed-date-input",
+                                }),
+                            }),
+                            createComponent(Themes.DatePicker.Clear, {
+                              children: "Clear date",
+                            }),
+                          ];
+                        },
+                      }),
+                    ];
+                  },
+                });
+              },
+            }),
+            createComponent(Themes.DatePicker.Root, {
+              name: "rootOnlyDate",
+              today: "2026-10-18",
+              get children() {
+                return createComponent(Themes.DatePicker.Trigger, {
+                  "aria-label": "Root-only date",
+                  get children() {
+                    return createComponent(Themes.DatePicker.Value, {});
+                  },
+                });
+              },
+            }),
+            createComponent(Themes.FileDrop.Root, {
+              id: "packed-themed-file-drop",
+              name: "attachments",
+              accept: ".txt",
+              required: true,
+              variant: "outline",
+              get children() {
+                return [
+                  createComponent(Themes.FileDrop.Input, {
+                    id: "packed-themed-file-input",
+                  }),
+                  createComponent(Themes.FileDrop.Trigger, {
+                    children: "Browse files",
+                  }),
+                ];
+              },
+            }),
+          ];
+        },
+      }),
+    { renderId: "themed-families-packed-" },
+  );
+  const dateInputs = [...html.matchAll(/<input\b[^>]*type="date"[^>]*>/g)].map(
+    (match) => match[0],
+  );
+  assert.equal(dateInputs.length, 1, html);
+  assert.match(dateInputs[0], /\bname="appointmentDate"/);
+  assert.match(dateInputs[0], /id="packed-themed-date-input"/);
+  assert.match(dateInputs[0], /\brequired(?:=""|(?=\s|\/?>))/);
+  const fileInput = html.match(/<input\b[^>]*type="file"[^>]*>/)?.[0];
+  assert.ok(fileInput, html);
+  assert.match(fileInput, /\bname="attachments"/);
 });

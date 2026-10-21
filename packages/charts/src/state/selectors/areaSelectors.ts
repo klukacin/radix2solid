@@ -1,13 +1,13 @@
 import { computeArea, ComputedArea } from "../../cartesian/Area";
 import { selectChartLayout } from "../../context/chartLayoutContext";
 import { getBandSizeOfAxis, isCategoricalAxis } from "../../util/ChartUtils";
+import { isNotNil } from "../../util/DataUtils";
 import { AllStackGroups, StackDataPoint } from "../../util/stacks/stackTypes";
 import { ChartData } from "../chartDataSlice";
 import { GraphicalItemId } from "../graphicalItemsSlice";
 // Ported from recharts 3.8.1 src/state/selectors/areaSelectors.ts (commit 7a23854).
 // Solid-native plain selectors (no reselect). Stacked areas are wired:
-// `selectGraphicalItemStackedData` reads this area's stack series off the numeric
-// axis' stack groups, and computeArea turns it into a per-point baseLine.
+// The area's numeric-axis stack group supplies both its series and all stack keys.
 import { RechartsRootState } from "../store";
 import { AreaSettings } from "../types/AreaSettings";
 import {
@@ -78,23 +78,6 @@ const selectAreaStackGroups = (
   );
 };
 
-// This area's stack series as plain [start, end] tuples (or undefined when the
-// area isn't stacked), matching recharts' selectGraphicalItemStackedData.
-export const selectGraphicalItemStackedData = (
-  state: RechartsRootState,
-  id: GraphicalItemId,
-  isPanorama: boolean,
-): ReadonlyArray<StackDataPoint> | undefined => {
-  const found = combineStackedData(
-    selectAreaStackGroups(state, id, isPanorama),
-    selectSynchronisedAreaSettings(state, id),
-  );
-  if (found == null) {
-    return undefined;
-  }
-  return found.map((item): StackDataPoint => [item[0], item[1]]);
-};
-
 export const selectArea = (
   state: RechartsRootState,
   id: GraphicalItemId,
@@ -130,7 +113,16 @@ export const selectArea = (
   const bandSize = selectBandSize(state, id, isPanorama);
   const areaSettings = selectSynchronisedAreaSettings(state, id);
   const chartBaseValue = selectChartBaseValue(state);
-  const stackedData = selectGraphicalItemStackedData(state, id, isPanorama);
+  const stackGroups = selectAreaStackGroups(state, id, isPanorama);
+  const stackedData = combineStackedData(stackGroups, areaSettings)?.map(
+    (item): StackDataPoint => [item[0], item[1]],
+  );
+  const stackDataKeys =
+    areaSettings?.stackId == null
+      ? undefined
+      : stackGroups?.[areaSettings.stackId]?.graphicalItems
+          .map((item) => item.dataKey)
+          .filter(isNotNil);
 
   if (
     areaSettings == null ||
@@ -170,5 +162,6 @@ export const selectArea = (
     dataStartIndex,
     chartBaseValue,
     bandSize,
+    stackDataKeys,
   });
 };
