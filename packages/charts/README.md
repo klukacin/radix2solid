@@ -1,6 +1,6 @@
 # Native Solid 2 Charts
 
-Native fork, not an official Recharts or solid-recharts product. This README describes prerelease `@wsagency/radix2solid-charts@0.1.0-rc.4`; the Charts API is unchanged from rc.3. Install the exact version with `pnpm add -E @wsagency/radix2solid-charts@0.1.0-rc.4`. Releases use the npm `next` dist-tag while Solid is prerelease; source-checkout packing is an optional development alternative.
+Native fork, not an official Recharts or solid-recharts product. This README describes prerelease `@wsagency/radix2solid-charts@0.1.0-rc.4`; the Charts API is unchanged from rc.3. Install the exact version with `pnpm add -E @wsagency/radix2solid-charts@0.1.0-rc.4`. This remains a Solid `2.0.0-rc.15` prerelease. The approved one-time `latest` target for the existing rc.4 publication is `0.1.0-rc.4`. npm dist-tags are mutable: `latest` selects unqualified install resolution, not semver stability. The `-E` command above remains pinned to this exact prerelease regardless of tag changes. Future prerelease publications continue to use `next`; source-checkout packing is an optional development alternative.
 
 Charts is a source copy of [solid-recharts](https://github.com/yumemi-thomas/solid-recharts) `2.0.0-beta.1`, a Solid port of the [Recharts](https://github.com/recharts/recharts) `3.9.2` component model, adapted to Solid `2.0.0-rc.15` and to server rendering. See `UPSTREAM.md` for the exact commits and every local change.
 
