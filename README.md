@@ -55,6 +55,7 @@ The WS Agency name and logo are brand artwork excluded from the MIT license; see
 ## Contributing
 
 Report problems in [issues](https://github.com/wsagency/radix2solid/issues) and propose changes in [pull requests](https://github.com/wsagency/radix2solid/pulls). Credit follows the actual commit author (GitHub lists authors of commits on the default branch whose email is linked to their account). Add a `Co-authored-by: Name <email>` trailer only for a real person who contributed to that commit, with the email they want used. Collaborator access is a repository permission, not authorship credit.
+Write all new project-authored prose, comments, and instructions in English; preserve localized test/demo data and original upstream/license text.
 
 ## Local development
 

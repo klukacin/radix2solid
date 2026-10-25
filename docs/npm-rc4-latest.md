@@ -1,16 +1,16 @@
-# RC.4 na npm `latest`: upute za DevOps
+# RC.4 on npm `latest`: DevOps instructions
 
-## Status i opseg
+## Status and scope
 
-Ovo su upute za odobrenu jednokratnu promjenu npm dist-taga na **već objavljenim** verzijama `0.1.0-rc.4`; ne tvrde da je promjena izvršena. Prema korisnikovoj potvrdi, DevOps je već objavio svih pet paketa. Tag `v0.1.0-rc.4` i izvorni commit `4ff4954be95bab5db9004f9a09c744f780f38929` ostaju nepromijenjeni. Ne pokretati novi build, `npm publish`, Git tag/push ni provenance/OIDC provjeru; OIDC uspjeh nije potvrđen.
+These instructions cover the approved one-time npm dist-tag change for the **already published** `0.1.0-rc.4` versions; they do not claim that the change has been performed. Per the user's confirmation, DevOps has already published all five packages. Tag `v0.1.0-rc.4` and source commit `4ff4954be95bab5db9004f9a09c744f780f38929` remain unchanged. Do not run a new build, `npm publish`, Git tag/push, or provenance/OIDC check; OIDC success has not been confirmed.
 
-`0.1.0-rc.4` ostaje prerelease i koristi Solid `2.0.0-rc.15`. npm dist-tag `latest` određuje što dobiva **nepinned** instalacija; ne mijenja semver status i ne znači stable/GA izdanje. Za ovaj prerelease odobreno je jednokratno postaviti `latest` na rc.4. Budući prerelease publish workflow i `publishConfig` ostaju na `next` ([workflow](../.github/workflows/publish.yml)); paketi se ne objavljuju ponovno.
+`0.1.0-rc.4` remains a prerelease and uses Solid `2.0.0-rc.15`. The npm dist-tag `latest` determines what an **unpinned** installation resolves to; it does not change semver status or make the release stable/GA. For this prerelease, a one-time change setting `latest` to rc.4 is approved. The future prerelease publishing workflow and `publishConfig` remain on `next` ([workflow](../.github/workflows/publish.yml)); do not republish the packages.
 
-## Prije promjene
+## Before changing tags
 
-1. Radi ovlašteni DevOps operater u privatnoj shell sesiji. Prije **svih** npm naredbi (prijava, preflight, promjena tagova, provjera i povrat) pokreni `cd /tmp` ili drugi poznati direktorij izvan svakog Git repozitorija te ostani ondje; tako se projektni `.npmrc` neće učitati. Koristi postojeću odobrenu npm autentikaciju ako je dostupna; ako nije, izvršavaj cijeli postupak u istoj shell sesiji s privremenim npm userconfigom izvan repozitorija. Nikad ne ispisivati/catati userconfig, pokretati `npm config list`, uključivati `set -x` ili zapisivati tokene/2FA podatke u log.
+1. An authorized DevOps operator must work in a private shell session. Before **all** npm commands (login, preflight, tag changes, verification, and rollback), run `cd /tmp` or move to another known directory outside every Git repository and remain there; this prevents the project `.npmrc` from loading. Use existing approved npm authentication if available; otherwise, run the entire procedure in the same shell session with a temporary npm userconfig outside the repository. Never print or `cat` the userconfig, run `npm config list`, enable `set -x`, or write tokens/2FA codes to logs.
 
-   Ako nema postojeće odobrene npm autentikacije i za ovaj postupak treba privremena prijava, koristi ovaj blok; u suprotnom ga preskoči i postojeću konfiguraciju ostavi netaknutom:
+   If no existing approved npm authentication is available and a temporary login is needed for this procedure, use this block; otherwise, skip it and leave the existing configuration untouched:
 
    ```bash
    umask 077
@@ -32,7 +32,7 @@ Ovo su upute za odobrenu jednokratnu promjenu npm dist-taga na **već objavljeni
    TEMP_NPM_LOGIN=1
    ```
 
-2. Neposredno prije izmjene zabilježiti **trenutačne** `latest` i `next` tagove za svih pet paketa u privatne operativne bilješke. Upotrijebiti eksplicitan javni registry:
+2. Immediately before making changes, record the **current** `latest` and `next` tags for all five packages in private operational notes. Use the explicit public registry:
 
    ```bash
    npm dist-tag ls @wsagency/radix2solid-primitives --registry=https://registry.npmjs.org/
@@ -42,11 +42,11 @@ Ovo su upute za odobrenu jednokratnu promjenu npm dist-taga na **već objavljeni
    npm dist-tag ls @wsagency/radix2solid-charts --registry=https://registry.npmjs.org/
    ```
 
-3. Posljednje stanje koje je korisnik prijavio **povijesno je, nije trenutačna provjera**: `next=0.1.0-rc.4` za svih pet; `latest` je bio `rc.1` za Primitives, Icons i Themes, `rc.3` za Icons Extra te `rc.2` za Charts. Ako je bilo koji trenutačni `next` drukčiji od rc.4, nedostaje ili pokazuje noviju verziju, **stani bez izmjena** i potvrdi stanje s vlasnikom. Za `latest`, ako je već rc.4, zabilježi i preskoči taj paket; inače, ako odstupa od povijesne vrijednosti, nedostaje ili je neočekivan, stani i potvrdi stanje prije bilo kakve izmjene.
+3. The last state reported by the user is **historical, not a current check**: `next=0.1.0-rc.4` for all five packages; `latest` was `rc.1` for Primitives, Icons, and Themes, `rc.3` for Icons Extra, and `rc.2` for Charts. If any current `next` differs from rc.4, is missing, or points to a newer version, **stop without changes** and confirm with the owner. For `latest`, if it is already rc.4, record and skip that package; otherwise, if it differs from the historical value, is missing, or is unexpected, stop and confirm the current state before making any change.
 
-## Jednokratna promjena
+## One-time change
 
-Svaki poziv mijenja jedan paket; operacija nije atomska. Pokrenuti ih pojedinačno i stati na prvoj grešci:
+Each call changes one package; the operation is not atomic. Run the commands individually and stop at the first error:
 
 ```bash
 npm dist-tag add @wsagency/radix2solid-primitives@0.1.0-rc.4 latest --registry=https://registry.npmjs.org/
@@ -56,11 +56,12 @@ npm dist-tag add @wsagency/radix2solid-themes@0.1.0-rc.4 latest --registry=https
 npm dist-tag add @wsagency/radix2solid-charts@0.1.0-rc.4 latest --registry=https://registry.npmjs.org/
 ```
 
-## Provjera i povrat
+## Verification and rollback
 
-Nakon svih poziva ponovno izvršiti pet naredbi `npm dist-tag ls` iznad. Za svaki paket potvrditi `latest=0.1.0-rc.4` i `next` jednak zabilježenoj vrijednosti prije promjene (očekivano rc.4). Zabilježiti samo tagove i ishod, ne vjerodajnice.
+After all calls, rerun the five `npm dist-tag ls` commands above. For each package, confirm `latest=0.1.0-rc.4` and that `next` equals the value recorded before the change (expected: rc.4). Record only tags and outcomes, not credentials.
 
-Ako naredba zakaže ili se stanje djelomično promijeni, **stani** i usporedi rezultate svih pet paketa s prije-snimkom. Vraćaj samo paket za koji je potvrđeno da ga je ova operacija promijenila s postojeće početne `latest` vrijednosti na rc.4. Ako je `latest` već bio rc.4 ili je trenutačna vrijednost već zabilježena početna verzija, preskoči paket. Neposredno prije svakog povrata ponovno provjeri tag i nastavi samo ako je trenutačni `latest` još `0.1.0-rc.4`; ako nedostaje, ima drugu vrijednost ili promjena nije dokazivo nastala ovom operacijom, ne mijenjaj ga i eskaliraj vlasniku. Početni `latest` koji nedostaje mora prekinuti preflight, pa nema `rm` povrata. Za dopušten povrat upotrijebi zabilježenu postojeću početnu verziju: `npm dist-tag add <ime-paketa>@<zabilježena-verzija> latest --registry=https://registry.npmjs.org/`. Nakon ručnog povrata provjeri svih pet paketa.
-Za privremenu prijavu kreiranu ovim blokom, prije zatvaranja sesije pokreni `npm logout --registry=https://registry.npmjs.org/`, postavi `TEMP_NPM_LOGIN=0`, ukloni samo taj userconfig naredbom `rm -f "$NPM_CONFIG_USERCONFIG"` i isključi EXIT trap naredbom `trap - EXIT`. Ako sesija završi prije ručnog čišćenja, trap se odjavljuje samo kada `TEMP_NPM_LOGIN=1` i uklanja samo taj privremeni userconfig. Ako je korištena postojeća autentikacija ili userconfig, nemoj pokretati privremeni blok, odjavljivati se niti brisati tu konfiguraciju.
+If a command fails or the state changes only partially, **stop** and compare the results for all five packages with the snapshot. Roll back only a package confirmed to have been changed by this operation from an existing initial `latest` value to rc.4. If `latest` was already rc.4 or the current value is already the recorded initial version, skip that package. Immediately before each rollback, recheck the tag and proceed only if current `latest` is still `0.1.0-rc.4`; if it is missing, has another value, or the change cannot be proven to have been made by this operation, do not change it and escalate to the owner. An initially missing `latest` must fail preflight, so there is no `rm` rollback. For an allowed rollback, use the recorded existing initial version: `npm dist-tag add <package-name>@<recorded-version> latest --registry=https://registry.npmjs.org/`. After manual rollback, check all five packages.
 
-Ovo je isključivo dist-tag promjena postojećih prerelease verzija; ne mijenja pakete, verzije, `next`, workflow, Git tag ni OIDC provenance. Za točne consumer instalacije i API kontekst pogledaj [root README](../README.md) i README-e pet paketa.
+For a temporary login created by this block, before ending the session run `npm logout --registry=https://registry.npmjs.org/`, set `TEMP_NPM_LOGIN=0`, remove only that userconfig with `rm -f "$NPM_CONFIG_USERCONFIG"`, and disable the EXIT trap with `trap - EXIT`. If the session ends before manual cleanup, the trap logs out only when `TEMP_NPM_LOGIN=1` and removes only that temporary userconfig. If existing authentication or a userconfig was used, do not run the temporary block, log out, or delete that configuration.
+
+This is only a dist-tag change for existing prerelease versions; it does not change packages, versions, `next`, the workflow, the Git tag, or OIDC provenance. For exact consumer installs and API context, see the [root README](../README.md) and the five package READMEs.
