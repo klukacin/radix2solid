@@ -1,6 +1,12 @@
 # Changelog
 
-Registry status before rc.4 publication (2026-10-20): `0.1.0-rc.3` is published under the `next` dist-tag. The versioned rc.4 prerelease notes follow; earlier entries retain their historical preparation-time wording.
+Registry status before rc.5 publication (2026-10-26): `0.1.0-rc.4` is published under the `next` dist-tag. The versioned rc.5 prerelease notes follow; earlier entries retain their historical preparation-time wording.
+
+## 0.1.0-rc.5
+
+- Fix setup-time reads and timer ownership by untracking them from reactive computations; use `createMemo` for stable Combobox and Command input IDs.
+- Render Splitter `Frame` through `resolveHost()` so its host element follows the native host-resolution path, and disable spellchecking on the one-time-password input.
+- Add oxlint/oxfmt checks; no public API change.
 
 ## 0.1.0-rc.4
 
