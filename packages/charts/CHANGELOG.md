@@ -1,6 +1,11 @@
 # Changelog
 
-Registry status before rc.4 publication (2026-10-20): `0.1.0-rc.3` is published under the `next` dist-tag. The versioned rc.4 prerelease notes follow; earlier entries retain their historical preparation-time wording.
+Registry status before rc.5 publication (2026-10-26): `0.1.0-rc.4` is published under the `next` dist-tag. The versioned rc.5 prerelease notes follow; earlier entries retain their historical preparation-time wording.
+
+## 0.1.0-rc.5
+
+- Correct chart label positioning and Pie layout, and stabilize reactive state-hook reads by moving setup-time reads outside tracked computations.
+- Add oxlint/oxfmt checks; no public API change.
 
 ## 0.1.0-rc.4
 

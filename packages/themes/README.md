@@ -1,6 +1,6 @@
 # Native Solid 2 Themes
 
-Native fork, not an official Radix product. This README describes prerelease `@wsagency/radix2solid-themes@0.1.0-rc.4`, which introduces the Calendar, DatePicker and FileDrop Themes families. Install the exact version with `pnpm add -E @wsagency/radix2solid-themes@0.1.0-rc.4`. Releases use the npm `next` dist-tag while Solid is prerelease. Combobox, Command, Tree and Splitter remain native primitive APIs, not Themes exports; source-checkout packing is an optional development alternative.
+Native fork, not an official Radix product. This README describes prerelease `@wsagency/radix2solid-themes@0.1.0-rc.5`, including the Calendar, DatePicker and FileDrop Themes families introduced in rc.4. Install with `pnpm add -E @wsagency/radix2solid-themes@0.1.0-rc.5`. Releases use the npm `next` dist-tag while Solid is prerelease. Combobox, Command, Tree and Splitter remain native primitive APIs, not Themes exports; source-checkout packing is an optional development alternative.
 
 Solid `2.0.0-rc.15` and `@solidjs/web` `2.0.0-rc.15` are peers; they require Node `>=22.12.0`. Browser export conditions select native client ESM; the default selects native server ESM. Declarations are shared. No React runtime, React types or element-cloning compatibility layer.
 CSS imports use the application's bundler declarations, e.g. `vite/client` with Vite; TypeScript alone does not define stylesheet modules.
@@ -153,7 +153,7 @@ Compound component subpaths expose their upstream short parts and Props, not acc
 
 `postcss-breakpoints` and `postcss-whitespace` support both ESM imports and CommonJS requires, including explicit `.js`/`.cjs` subpaths. Breakpoint assets resolve relative to the installed plugin, not caller cwd. The original import/nesting/breakpoint/custom-media/selector-combination/empty-rule/whitespace/autoprefixer processing order is retained. `postcss` is an optional peer (`^8.5.9`): install it (`pnpm add -D postcss@^8.5.9`) only if you use these plugins.
 
-The rc.4 packed Themes manifest resolves `@wsagency/radix2solid-primitives` to exactly `0.1.0-rc.4`. In a source workspace, the manifest remains `workspace:*`; for local source-checkout tarballs only, override Themes' transitive Primitives dependency to the same packed primitives file used by the direct dependency. The repository's independent consumer runner pins content-addressed tarballs, not workspace source aliases. Published rc.2 remains untouched.
+The rc.5 packed Themes manifest resolves `@wsagency/radix2solid-primitives` to exactly `0.1.0-rc.5`. In a source workspace, the manifest remains `workspace:*`; for local source-checkout tarballs only, override Themes' transitive Primitives dependency to the same packed primitives file used by the direct dependency. The repository's independent consumer runner pins content-addressed tarballs, not workspace source aliases. Published rc.2 remains untouched.
 
 ## Attribution
 

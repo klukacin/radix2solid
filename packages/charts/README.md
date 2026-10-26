@@ -1,6 +1,6 @@
 # Native Solid 2 Charts
 
-Native fork, not an official Recharts or solid-recharts product. This README describes prerelease `@wsagency/radix2solid-charts@0.1.0-rc.4`; the Charts API is unchanged from rc.3. Install the exact version with `pnpm add -E @wsagency/radix2solid-charts@0.1.0-rc.4`. Releases use the npm `next` dist-tag while Solid is prerelease; source-checkout packing is an optional development alternative.
+Native fork, not an official Recharts or solid-recharts product. This README describes prerelease `@wsagency/radix2solid-charts@0.1.0-rc.5`; rc.5 corrects label/Pie behavior and reactive state-hook reads without changing the public API. Install with `pnpm add -E @wsagency/radix2solid-charts@0.1.0-rc.5`. Releases use the npm `next` dist-tag while Solid is prerelease; source-checkout packing is an optional development alternative.
 
 Charts is a source copy of [solid-recharts](https://github.com/yumemi-thomas/solid-recharts) `2.0.0-beta.1`, a Solid port of the [Recharts](https://github.com/recharts/recharts) `3.9.2` component model, adapted to Solid `2.0.0-rc.15` and to server rendering. See `UPSTREAM.md` for the exact commits and every local change.
 
@@ -32,7 +32,7 @@ If your pnpm configuration sets `minimumReleaseAge`, also add exact-version `min
 In the application, install the tarball with the exact Solid peers and the matching toolchain:
 
 ```sh
-pnpm add ./vendor/wsagency-radix2solid-charts-0.1.0-rc.4.tgz solid-js@2.0.0-rc.15 @solidjs/web@2.0.0-rc.15
+pnpm add ./vendor/wsagency-radix2solid-charts-0.1.0-rc.5.tgz solid-js@2.0.0-rc.15 @solidjs/web@2.0.0-rc.15
 pnpm add -D vite@8.3.3 @solidjs/vite-plugin@3.0.0-next.50 typescript@7.0.2
 ```
 
