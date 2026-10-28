@@ -7,6 +7,8 @@ Registry status before rc.5 publication (2026-10-26): `0.1.0-rc.4` is published 
 - The source tree targets Solid rc.19 and Vite plugin next.52; package version `0.1.0-rc.5` remains a separate unpublished local candidate. This note does not change the rc.5 release record or establish npm availability.
 - Dialog and Popover scope creators retain their specific literal `scopeName` types; scope namespaces and runtime behavior are unchanged.
 - Restore DatePicker state immediately after the native form-reset default action, before reactive `value` bindings can reapply stale bridge state.
+- Keep required Checkbox validation native: route actual focus from the aria-hidden input to the visible checkbox unless its consumer redirects focus; leave invalid defaults uncanceled and `checkValidity()` focusless.
+- Emit one synthetic bubbling `input` before `change` only when a Checkbox user change is accepted in the same reactive update; delayed controlled updates stay change-only rather than risk treating later programmatic updates as user input.
 
 
 ## 0.1.0-rc.5

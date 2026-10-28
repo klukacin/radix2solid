@@ -61,10 +61,11 @@ export function createFormControl<T extends CheckedState>(
   };
 }
 
-/** Native inputs own submission/validation; only a user change forwards a click. */
+/** The interaction marker applies only to its immediate reactive state update. */
 export function createFormInput<T extends CheckedState>(
   state: FormControlState<T>,
   requestReset = true,
+  dispatchInput = false,
 ) {
   const [size, setSize] = createSignal({ width: "0px", height: "0px" });
   if (!isServer) {
@@ -93,6 +94,10 @@ export function createFormInput<T extends CheckedState>(
           if (userChange)
             input.dispatchEvent(
               new view.Event("click", { bubbles: state.bubbles() }),
+            );
+          if (userChange && dispatchInput)
+            input.dispatchEvent(
+              new view.Event("input", { bubbles: state.bubbles() }),
             );
           input.dispatchEvent(
             new view.Event("change", {

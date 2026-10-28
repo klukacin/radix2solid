@@ -11,7 +11,7 @@ import {
 } from "solid-js";
 
 import { createContextScope, type Scope } from "../internal/context.js";
-import { composeEventHandlers } from "../internal/events.js";
+import { callEventHandler, composeEventHandlers } from "../internal/events.js";
 import {
   createFormControl,
   createFormInput,
@@ -242,7 +242,11 @@ export function CheckboxBubbleInput(props: CheckboxBubbleInputProps): Element {
     "CheckboxBubbleInput",
     untrack(() => props.__scopeCheckbox),
   );
-  const size = createFormInput(context);
+  const size = createFormInput(
+    context,
+    true,
+    true, // Checkbox user changes notify native input listeners.
+  );
   const style = createMemo(() => {
     const base = {
       position: "absolute",
@@ -282,6 +286,12 @@ export function CheckboxBubbleInput(props: CheckboxBubbleInputProps): Element {
     },
     omit(props, "__scopeCheckbox"),
     {
+      onFocus: (event: FocusEvent) => {
+        callEventHandler(props.onFocus, event);
+        const target = event.currentTarget as HTMLInputElement;
+        if (target.ownerDocument.activeElement === target)
+          context.control()?.focus();
+      },
       get ref() {
         return composeRefs(props.ref, context.inputRef);
       },

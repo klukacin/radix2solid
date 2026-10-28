@@ -925,6 +925,44 @@ export function Advanced(): Element {
         <output id="themed-confirmations">
           {themedConfirmations().join(",")}
         </output>
+        <form id="checkbox-invalid-order-form">
+          <Checkbox.Root
+            aria-label="First required confirmation"
+            name="first"
+            value="first"
+            required
+          />
+          <input aria-label="Middle required text" name="middle" required />
+          <Checkbox.Root
+            aria-label="Last required confirmation"
+            name="last"
+            value="last"
+            required
+          />
+          <button id="checkbox-invalid-order-submit" type="submit">
+            Submit ordered confirmations
+          </button>
+        </form>
+        <section aria-label="Checkbox focus routing">
+          <Checkbox.unstable_Provider name="focus-consumer" required>
+            <Checkbox.unstable_Trigger aria-label="Focus consumer checkbox" />
+            <Checkbox.unstable_BubbleInput
+              onFocus={() =>
+                document
+                  .querySelector<HTMLButtonElement>(
+                    "#checkbox-focus-consumer-target",
+                  )
+                  ?.focus()
+              }
+            />
+          </Checkbox.unstable_Provider>
+          <button id="checkbox-focus-consumer-target" type="button">
+            Consumer focus destination
+          </button>
+          <Checkbox.unstable_Provider name="focus-no-control" required>
+            <Checkbox.unstable_BubbleInput />
+          </Checkbox.unstable_Provider>
+        </section>
       </section>
       <NotificationScenarios />
     </section>

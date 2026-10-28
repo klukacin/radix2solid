@@ -1350,14 +1350,47 @@ test("required delete confirmation blocks unchecked submit and serializes checke
     const form = page.locator(`#${kind}-confirm-form`);
     const checkbox = form.getByRole("checkbox");
     const output = page.locator(`#${kind}-confirmations`);
+    const input = form.locator('input[name="confirm"]');
+    await input.evaluate((node) => {
+      const trace: { type: string; bubbles: boolean; trusted: boolean }[] = [];
+      for (const type of ["click", "input", "change"]) {
+        node.addEventListener(type, (event) => {
+          trace.push({
+            type,
+            bubbles: event.bubbles,
+            trusted: event.isTrusted,
+          });
+          node.setAttribute("data-event-trace", JSON.stringify(trace));
+        });
+      }
+    });
+    await form.evaluate((node) => {
+      node.addEventListener("input", (event) => {
+        const input = event.target as HTMLInputElement;
+        if (input.name === "confirm") {
+          node.setAttribute(
+            "data-form-input-event",
+            `${input.name}:${event.bubbles}:${event.isTrusted}`,
+          );
+        }
+      });
+    });
     await page
       .getByRole("button", { name: `Submit ${kind} confirmation`, exact: true })
       .click();
     await expect(output).toHaveText("");
+    await checkbox.click();
+    expect(JSON.parse((await input.getAttribute("data-event-trace")) ?? "[]")).toEqual([
+      { type: "click", bubbles: true, trusted: false },
+      { type: "input", bubbles: true, trusted: false },
+      { type: "change", bubbles: true, trusted: false },
+    ]);
+    expect(await form.getAttribute("data-form-input-event")).toBe(
+      "confirm:true:false",
+    );
     expect(
       await form.evaluate((node) => (node as HTMLFormElement).checkValidity()),
-    ).toBe(false);
-    await checkbox.click();
+    ).toBe(true);
     await page
       .getByRole("button", { name: `Submit ${kind} confirmation`, exact: true })
       .click();
@@ -1381,4 +1414,536 @@ test("required delete confirmation blocks unchecked submit and serializes checke
       ]),
     ).toEqual([]);
   }
+});
+
+test("required Checkbox validation routes native focus to the visible control", async ({
+  page,
+}) => {
+  const form = page.locator("#primitive-confirm-form");
+  const checkbox = form.getByRole("checkbox", {
+    name: "Primitive delete confirmation",
+    exact: true,
+  });
+  const input = form.locator('input[name="confirm"]');
+  const submit = form.getByRole("button", {
+    name: "Submit primitive confirmation",
+    exact: true,
+  });
+  const output = page.locator("#primitive-confirmations");
+
+  await submit.focus();
+  await page.keyboard.press("Enter");
+  await expect(output).toHaveText("");
+  expect(
+    await form.evaluate((node) => (node as HTMLFormElement).checkValidity()),
+  ).toBe(false);
+  const invalidFocus = {
+    trigger: await checkbox.evaluate((node) => document.activeElement === node),
+    input: await input.evaluate((node) => document.activeElement === node),
+  };
+
+  await page.keyboard.press("Space");
+  const afterSpace = {
+    visibleChecked: await checkbox.getAttribute("aria-checked"),
+    nativeChecked: await input.isChecked(),
+  };
+  await submit.focus();
+  await page.keyboard.press("Enter");
+  await expect(output).toHaveText("delete");
+  expect(
+    await form.evaluate((node) => [
+      ...new FormData(node as HTMLFormElement).entries(),
+    ]),
+  ).toEqual([["confirm", "delete"]]);
+  expect(afterSpace).toEqual({ visibleChecked: "true", nativeChecked: true });
+  expect(invalidFocus).toEqual({ trigger: true, input: false });
+});
+
+test("native Checkbox checkValidity preserves focus and invalid event defaults", async ({
+  page,
+}) => {
+  const form = page.locator("#checkbox-invalid-order-form");
+  const submit = page.locator("#checkbox-invalid-order-submit");
+  await submit.focus();
+  const result = await form.evaluate((node) => {
+    const form = node as HTMLFormElement;
+    const invalids: { name: string; event: Event }[] = [];
+    for (const control of Array.from(form.elements)) {
+      if (control instanceof HTMLInputElement) {
+        control.addEventListener(
+          "invalid",
+          (event) => invalids.push({ name: control.name, event }),
+          true,
+        );
+      }
+    }
+    const valid = form.checkValidity();
+    const active = document.activeElement as HTMLElement | null;
+    return {
+      valid,
+      active: active?.id || active?.getAttribute("aria-label") || active?.tagName,
+      invalids: invalids.map(({ name, event }) => ({
+        name,
+        defaultPrevented: event.defaultPrevented,
+      })),
+    };
+  });
+  expect(result).toEqual({
+    valid: false,
+    active: "checkbox-invalid-order-submit",
+    invalids: [
+      { name: "first", defaultPrevented: false },
+      { name: "middle", defaultPrevented: false },
+      { name: "last", defaultPrevented: false },
+    ],
+  });
+});
+
+test("native Checkbox reportValidity preserves first focus and validation message", async ({
+  page,
+}) => {
+  const form = page.locator("#checkbox-invalid-order-form");
+  const first = form.getByRole("checkbox", {
+    name: "First required confirmation",
+    exact: true,
+  });
+  const result = await form.evaluate((node) => {
+    const form = node as HTMLFormElement;
+    const invalids: { name: string; event: Event }[] = [];
+    for (const control of Array.from(form.elements)) {
+      if (control instanceof HTMLInputElement) {
+        control.addEventListener(
+          "invalid",
+          (event) => invalids.push({ name: control.name, event }),
+          true,
+        );
+      }
+    }
+    const valid = form.reportValidity();
+    const active = document.activeElement as HTMLElement | null;
+    const firstInput = form.elements.namedItem("first") as HTMLInputElement;
+    const firstTrigger = form.querySelector<HTMLElement>(
+      '[role="checkbox"][aria-label="First required confirmation"]',
+    );
+    return {
+      valid,
+      active: active?.id || active?.getAttribute("aria-label") || active?.tagName,
+      invalids: invalids.map(({ name, event }) => ({
+        name,
+        defaultPrevented: event.defaultPrevented,
+      })),
+      validationMessage: firstInput.validationMessage.length > 0,
+      hiddenInput: firstInput.getAttribute("aria-hidden"),
+      trigger: {
+        required: firstTrigger?.getAttribute("aria-required"),
+        invalid: firstTrigger?.getAttribute("aria-invalid") ?? null,
+        description: firstTrigger?.getAttribute("aria-describedby"),
+      },
+    };
+  });
+  expect(result).toEqual({
+    valid: false,
+    active: "First required confirmation",
+    invalids: [
+      { name: "first", defaultPrevented: false },
+      { name: "middle", defaultPrevented: false },
+      { name: "last", defaultPrevented: false },
+    ],
+    validationMessage: true,
+    hiddenInput: "true",
+    trigger: { required: "true", invalid: null, description: null },
+  });
+  await expect(first).toBeFocused();
+});
+
+test("caller onInvalid cancellation retains caller-selected Checkbox form focus", async ({
+  page,
+}) => {
+  const form = page.locator("#primitive-confirm-form");
+  const submit = form.getByRole("button", {
+    name: "Submit primitive confirmation",
+    exact: true,
+  });
+  await submit.focus();
+  const result = await form.evaluate((node) => {
+    const form = node as HTMLFormElement;
+    let invalidEvent: Event | undefined;
+    form.addEventListener(
+      "invalid",
+      (event) => {
+        if (
+          event.target instanceof HTMLInputElement &&
+          event.target.name === "confirm"
+        ) {
+          invalidEvent = event;
+          event.preventDefault();
+          form.querySelector<HTMLButtonElement>("button[type=submit]")?.focus();
+        }
+      },
+      true,
+    );
+    const valid = form.reportValidity();
+    const active = document.activeElement as HTMLElement | null;
+    return {
+      valid,
+      defaultPrevented: invalidEvent?.defaultPrevented,
+      active:
+        active?.id ||
+        active?.getAttribute("aria-label") ||
+        active?.textContent?.trim() ||
+        active?.tagName,
+    };
+  });
+  expect(result).toEqual({
+    valid: false,
+    defaultPrevented: true,
+    active: "Submit primitive confirmation",
+  });
+  await expect(submit).toBeFocused();
+});
+
+
+test("Checkbox bridge emits input for user changes accepted in the same update", async ({
+  page,
+}) => {
+  const form = page.locator("#native-controls-form");
+  const controlled = page.getByRole("checkbox", {
+    name: "Controlled checkbox",
+    exact: true,
+  });
+  const mixed = page.getByRole("checkbox", {
+    name: "Mixed checkbox",
+    exact: true,
+  });
+  await form.evaluate((node) => {
+    const events: {
+      type: string;
+      name: string;
+      targetTag: string;
+      bubbles: boolean;
+      trusted: boolean;
+    }[] = [];
+    for (const type of ["click", "input", "change"]) {
+      node.addEventListener(type, (event) => {
+        if (!(event.target instanceof HTMLInputElement)) return;
+        events.push({
+          type,
+          name: event.target.name,
+          targetTag: event.target.tagName,
+          bubbles: event.bubbles,
+          trusted: event.isTrusted,
+        });
+        node.setAttribute("data-checkbox-events", JSON.stringify(events));
+      });
+    }
+  });
+  const events = async () =>
+    JSON.parse((await form.getAttribute("data-checkbox-events")) ?? "[]");
+
+  await controlled.click();
+  expect(await events()).toEqual([]);
+
+  await mixed.click();
+  expect(await events()).toEqual([
+    {
+      type: "click",
+      name: "mixed",
+      targetTag: "INPUT",
+      bubbles: true,
+      trusted: false,
+    },
+    {
+      type: "input",
+      name: "mixed",
+      targetTag: "INPUT",
+      bubbles: true,
+      trusted: false,
+    },
+    {
+      type: "change",
+      name: "mixed",
+      targetTag: "INPUT",
+      bubbles: true,
+      trusted: false,
+    },
+  ]);
+
+  await page.getByRole("button", { name: "Set checked programmatically" }).click();
+  expect(await events()).toEqual([
+    {
+      type: "click",
+      name: "mixed",
+      targetTag: "INPUT",
+      bubbles: true,
+      trusted: false,
+    },
+    {
+      type: "input",
+      name: "mixed",
+      targetTag: "INPUT",
+      bubbles: true,
+      trusted: false,
+    },
+    {
+      type: "change",
+      name: "mixed",
+      targetTag: "INPUT",
+      bubbles: true,
+      trusted: false,
+    },
+    {
+      type: "change",
+      name: "checked",
+      targetTag: "INPUT",
+      bubbles: true,
+      trusted: false,
+    },
+  ]);
+
+  await page.getByRole("button", { name: "Reset native controls" }).click();
+  await expect(mixed).toHaveAttribute("aria-checked", "mixed");
+  expect(await events()).toEqual([
+    {
+      type: "click",
+      name: "mixed",
+      targetTag: "INPUT",
+      bubbles: true,
+      trusted: false,
+    },
+    {
+      type: "input",
+      name: "mixed",
+      targetTag: "INPUT",
+      bubbles: true,
+      trusted: false,
+    },
+    {
+      type: "change",
+      name: "mixed",
+      targetTag: "INPUT",
+      bubbles: true,
+      trusted: false,
+    },
+    {
+      type: "change",
+      name: "checked",
+      targetTag: "INPUT",
+      bubbles: true,
+      trusted: false,
+    },
+    {
+      type: "change",
+      name: "mixed",
+      targetTag: "INPUT",
+      bubbles: true,
+      trusted: false,
+    },
+  ]);
+});
+
+
+test("Checkbox native notifications preserve stopped event bubbling", async ({
+  page,
+}) => {
+  await page.getByRole("button", { name: "Accept checked changes" }).click();
+  await page.getByRole("button", { name: "Stop checked propagation" }).click();
+  const form = page.locator("#native-controls-form");
+  const checkbox = page.getByRole("checkbox", {
+    name: "Controlled checkbox",
+    exact: true,
+  });
+  const input = form.locator('input[name="checked"]');
+  await input.evaluate((node) => {
+    const events: { type: string; bubbles: boolean; trusted: boolean }[] = [];
+    for (const type of ["click", "input", "change"]) {
+      node.addEventListener(type, (event) => {
+        events.push({
+          type,
+          bubbles: event.bubbles,
+          trusted: event.isTrusted,
+        });
+        node.setAttribute("data-checkbox-events", JSON.stringify(events));
+      });
+    }
+  });
+  await form.evaluate((node) => {
+    node.setAttribute("data-form-checkbox-events", "[]");
+    const events: string[] = [];
+    for (const type of ["click", "input", "change"]) {
+      node.addEventListener(type, (event) => {
+        if (event.target !== node.querySelector('input[name="checked"]')) return;
+        events.push(`${type}:${event.bubbles}:${event.isTrusted}`);
+        node.setAttribute("data-form-checkbox-events", JSON.stringify(events));
+      });
+    }
+  });
+
+  await checkbox.click();
+  await expect(checkbox).toHaveAttribute("aria-checked", "true");
+  expect(
+    JSON.parse((await input.getAttribute("data-checkbox-events")) ?? "[]"),
+  ).toEqual([
+    { type: "click", bubbles: false, trusted: false },
+    { type: "input", bubbles: false, trusted: false },
+    { type: "change", bubbles: false, trusted: false },
+  ]);
+  expect(await form.getAttribute("data-form-checkbox-events")).toBe("[]");
+});
+test("Checkbox native focus honors consumer focus and missing control refs", async ({
+  page,
+}) => {
+  const consumerInput = page.locator('input[name="focus-consumer"]');
+  const consumerTarget = page.locator("#checkbox-focus-consumer-target");
+  await consumerInput.focus();
+  await expect(consumerTarget).toBeFocused();
+
+  const inputWithoutControl = page.locator('input[name="focus-no-control"]');
+  await inputWithoutControl.focus();
+  expect(
+    await inputWithoutControl.evaluate((node) => document.activeElement === node),
+  ).toBe(true);
+});
+test("iframe Portal Checkbox restores native validity after invalid and mouse toggles", async ({
+  page,
+}) => {
+  const frame = page.frameLocator("#checkbox-test-frame");
+  const checkbox = frame.getByRole("checkbox", {
+    name: "Iframe required checkbox",
+    exact: true,
+  });
+  const submit = frame.getByRole("button", {
+    name: "Submit iframe checkbox",
+    exact: true,
+  });
+  const form = frame.locator("#iframe-checkbox-form");
+  const input = frame.locator('input[name="iframe-required"]');
+
+  await submit.click();
+  expect(
+    await form.evaluate((node) => (node as HTMLFormElement).checkValidity()),
+  ).toBe(false);
+  await expect(frame.locator("#iframe-checkbox-submits")).toHaveText("0");
+  // Keep the browser's post-invalid focus result; exercise the real visible mouse path.
+  await checkbox.click();
+  await expect(checkbox).toHaveAttribute("aria-checked", "true");
+  await expect(input).toBeChecked();
+  await expect
+    .poll(() =>
+      form.evaluate((node) => (node as HTMLFormElement).checkValidity()),
+    )
+    .toBe(true);
+  await submit.click();
+  await expect(frame.locator("#iframe-checkbox-submits")).toHaveText("1");
+});
+test("iframe-created Checkbox input routes focus across realms", async ({
+  page,
+}) => {
+  const frame = page.frameLocator("#checkbox-test-frame");
+  const checkbox = frame.getByRole("checkbox", {
+    name: "Iframe cross-realm checkbox",
+    exact: true,
+  });
+  const form = frame.locator("#iframe-cross-realm-form");
+  const input = frame.locator('input[name="iframe-cross-realm"]');
+  expect(
+    await form.evaluate((node) => (node as HTMLFormElement).checkValidity()),
+  ).toBe(false);
+  expect(
+    await input.evaluate((node) => {
+      const parent = window.parent as unknown as {
+        HTMLInputElement: typeof HTMLInputElement;
+      };
+      return [
+        node.ownerDocument.defaultView === window,
+        node instanceof window.HTMLInputElement,
+        node instanceof parent.HTMLInputElement,
+      ];
+    }),
+  ).toEqual([true, true, false]);
+  await input.focus();
+  await expect(checkbox).toBeFocused();
+  await expect(input).not.toBeFocused();
+});
+
+
+test("delayed controlled Checkbox submits after invalid form attempt and mouse toggle", async ({
+  page,
+}) => {
+  const frame = page.frameLocator("#checkbox-test-frame");
+  const checkbox = frame.getByRole("checkbox", {
+    name: "Delayed iframe checkbox",
+    exact: true,
+  });
+  const submit = frame.getByRole("button", {
+    name: "Submit delayed iframe checkbox",
+    exact: true,
+  });
+  const input = frame.locator('input[name="delayed-iframe"]');
+  const form = frame.locator("#async-iframe-checkbox-form");
+  await form.evaluate((node) => {
+    const events: { type: string; bubbles: boolean; trusted: boolean }[] = [];
+    for (const type of ["input", "change"]) {
+      node.addEventListener(type, (event) => {
+        if (event.target !== node.querySelector('input[name="delayed-iframe"]'))
+          return;
+        events.push({
+          type,
+          bubbles: event.bubbles,
+          trusted: event.isTrusted,
+        });
+        node.setAttribute("data-native-events", JSON.stringify(events));
+      });
+    }
+    node.addEventListener("submit", (event) => {
+      node.setAttribute(
+        "data-native-submit-trusted",
+        String(event.isTrusted),
+      );
+    });
+  });
+
+  await submit.click();
+  expect(
+    await form.evaluate((node) => (node as HTMLFormElement).checkValidity()),
+  ).toBe(false);
+  await expect(frame.locator("#async-iframe-checkbox-submits")).toHaveText("0");
+  await checkbox.click();
+  await expect(checkbox).toHaveAttribute("aria-checked", "true");
+  await expect(input).toBeChecked();
+  await expect
+    .poll(() =>
+      form.evaluate((node) => (node as HTMLFormElement).checkValidity()),
+    )
+    .toBe(true);
+  await submit.click();
+  await expect(frame.locator("#async-iframe-checkbox-submits")).toHaveText("1");
+  await expect(form).toHaveAttribute("data-native-submit-trusted", "true");
+  await expect
+    .poll(async () =>
+      JSON.parse((await form.getAttribute("data-native-events")) ?? "[]"),
+    )
+    .toEqual([{ type: "change", bubbles: true, trusted: false }]);
+
+  await page
+    .getByRole("button", {
+      name: "Clear delayed checkbox programmatically",
+      exact: true,
+    })
+    .click();
+  await page
+    .getByRole("button", {
+      name: "Set delayed checkbox programmatically",
+      exact: true,
+    })
+    .click();
+  await expect(checkbox).toHaveAttribute("aria-checked", "true");
+  await expect
+    .poll(async () =>
+      JSON.parse((await form.getAttribute("data-native-events")) ?? "[]"),
+    )
+    .toEqual([
+      { type: "change", bubbles: true, trusted: false },
+      { type: "change", bubbles: true, trusted: false },
+      { type: "change", bubbles: true, trusted: false },
+    ]);
 });

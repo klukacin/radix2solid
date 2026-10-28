@@ -17,6 +17,7 @@ import {
   ToggleGroup,
   Toolbar,
 } from "@wsagency/radix2solid-primitives";
+import { Portal, type ComponentProps } from "@solidjs/web";
 import { createSignal, For, Show, type Element } from "solid-js";
 
 const avatarSource =
@@ -80,6 +81,48 @@ export function Controls(): Element {
   const [formChanges, setFormChanges] = createSignal<string[]>([]);
   const [formClicks, setFormClicks] = createSignal(0);
   const [cancelReset, setCancelReset] = createSignal(false);
+  const [iframeBody, setIframeBody] = createSignal<HTMLElement>();
+  const [iframeSubmits, setIframeSubmits] = createSignal(0);
+  const [asyncIframeChecked, setAsyncIframeChecked] =
+    createSignal<boolean>(false);
+  const [asyncIframeSubmits, setAsyncIframeSubmits] = createSignal(0);
+  const createIframeInput = (
+    props: ComponentProps<"input">,
+  ): HTMLInputElement => {
+    const frameDocument = iframeBody()?.ownerDocument;
+    if (!frameDocument) throw new Error("Checkbox iframe is not mounted.");
+    const input = frameDocument.createElement("input");
+    const {
+      ref,
+      style,
+      onFocus,
+      onInvalid,
+      form,
+      "aria-hidden": ariaHidden,
+      ...attributes
+    } = props;
+    Object.assign(input, attributes);
+    if (form) input.setAttribute("form", form);
+    if (ariaHidden !== undefined)
+      input.setAttribute("aria-hidden", String(ariaHidden));
+    if (style && typeof style === "object") Object.assign(input.style, style);
+    const listen = (type: string, handler: unknown) => {
+      if (typeof handler === "function")
+        input.addEventListener(type, handler as EventListener);
+      else if (Array.isArray(handler) && typeof handler[0] === "function")
+        input.addEventListener(type, (event) =>
+          (handler[0] as (data: unknown, event: Event) => void)(
+            handler[1],
+            event,
+          ),
+        );
+    };
+    listen("focus", onFocus);
+    listen("invalid", onInvalid);
+    // This frame-realm probe covers focus routing only, not Checkbox state sync.
+    void ref;
+    return input;
+  };
   const [radioValue, setRadioValue] = createSignal<string | null>("one");
   const [radioAccept, setRadioAccept] = createSignal(false);
   const [radioHorizontal, setRadioHorizontal] = createSignal(false);
@@ -630,6 +673,86 @@ export function Controls(): Element {
       <output id="checked-events">{formEvents().join(",")}</output>
       <output id="form-changes">{formChanges().join(",")}</output>
       <output id="form-clicks">{formClicks()}</output>
+      <iframe
+        id="checkbox-test-frame"
+        title="Checkbox test frame"
+        ref={(node) => {
+          const updateIframeBody = () =>
+            setIframeBody(node.contentDocument?.body ?? undefined);
+          updateIframeBody();
+          node.addEventListener("load", updateIframeBody, { once: true });
+        }}
+      />
+      <Show when={iframeBody()}>
+        {(body) => (
+          <Portal mount={body()}>
+            <form
+              id="iframe-checkbox-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                setIframeSubmits((previous) => previous + 1);
+              }}
+            >
+              <Label.Root for="iframe-required-checkbox">
+                Iframe required checkbox
+              </Label.Root>
+              <Checkbox.Root
+                id="iframe-required-checkbox"
+                name="iframe-required"
+                form="iframe-checkbox-form"
+                required
+              />
+              <button type="submit">Submit iframe checkbox</button>
+              <output id="iframe-checkbox-submits">{iframeSubmits()}</output>
+            </form>
+            <form id="iframe-cross-realm-form">
+              <Checkbox.unstable_Provider
+                name="iframe-cross-realm"
+                form="iframe-cross-realm-form"
+                required
+              >
+                <Checkbox.unstable_Trigger
+                  aria-label="Iframe cross-realm checkbox"
+                />
+                <Checkbox.unstable_BubbleInput asChild>
+                  {(target) => target(createIframeInput, {})}
+                </Checkbox.unstable_BubbleInput>
+              </Checkbox.unstable_Provider>
+            </form>
+            <form
+              id="async-iframe-checkbox-form"
+              onSubmit={(event) => {
+                event.preventDefault();
+                setAsyncIframeSubmits((previous) => previous + 1);
+              }}
+            >
+              <Checkbox.Root
+                aria-label="Delayed iframe checkbox"
+                name="delayed-iframe"
+                form="async-iframe-checkbox-form"
+                required
+                checked={asyncIframeChecked()}
+                onCheckedChange={(checked) => {
+                  setTimeout(
+                    () => setAsyncIframeChecked(checked === true),
+                    30,
+                  );
+                }}
+              />
+              <button type="submit">Submit delayed iframe checkbox</button>
+              <output id="async-iframe-checkbox-submits">
+                {asyncIframeSubmits()}
+              </output>
+            </form>
+          </Portal>
+        )}
+      </Show>
+      <button onClick={() => setAsyncIframeChecked(false)}>
+        Clear delayed checkbox programmatically
+      </button>
+      <button onClick={() => setAsyncIframeChecked(true)}>
+        Set delayed checkbox programmatically
+      </button>
       <form
         id="radio-main"
         onReset={(event) => {
