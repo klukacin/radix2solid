@@ -78,8 +78,8 @@ const callbacks = [
 ] as const;
 
 /** Both compounds share lifecycle and ownership; only positioning and modal defaults differ. */
-export function createOverlay(
-  name: "Dialog" | "Popover",
+export function createOverlay<Name extends "Dialog" | "Popover">(
+  name: Name,
   defaultModal: boolean,
 ) {
   const positioned = name === "Popover";

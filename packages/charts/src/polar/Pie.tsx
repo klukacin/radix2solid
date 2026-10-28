@@ -146,10 +146,17 @@ export type PieSectorShapeProps = PieSectorDataItem &
     tabIndex: number;
     "data-recharts-item-index": number;
     "data-recharts-item-id": string;
+    /** Extra fields from raw rows, including object-valued data-* properties. */
+    [key: `data-${string}`]: unknown;
   };
 
 /** The type of the Pie `shape` / `activeShape` / `inactiveShape` props (recharts parity name). */
 export type PieShape = ActiveShape<PieSectorShapeProps, SVGPathElement>;
+// Private type boundary: shape callbacks retain arbitrary row data-* values.
+// Sector filters attribute names and forwards retained values unchanged.
+const defaultPieShapeRenderer = Sector as (
+  props: PieSectorShapeProps,
+) => JSX.Element;
 
 /** Props a Pie label render-function / element receives (sector + computed text anchor + endpoint). */
 export type PieLabelRenderProps = PieSectorDataItem & {
@@ -1091,7 +1098,7 @@ export function Pie<
                           >
                             <Shape<PieSectorShapeProps, SVGPathElement>
                               option={sectorOption() ?? merged.shape}
-                              DefaultShape={Sector}
+                              DefaultShape={defaultPieShapeRenderer}
                               shapeProps={shapeProps()}
                             />
                           </Layer>

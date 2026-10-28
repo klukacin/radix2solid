@@ -475,12 +475,13 @@ export function svgPropertiesNoEvents(
  * Use when BUILDING a component-input/payload record (props fed to <Dot> /
  * <Rectangle> or handed to `shape`/`activeDot` render functions): the camel
  * keys are the public vocabulary, and the consuming component applies the
- * DOM rename itself.
+ * DOM rename itself. The generic result records that this function only removes
+ * keys and otherwise preserves key/value types.
  */
-export function svgPropertiesNoEventsKeepCase(
-  obj: Record<string, unknown>,
-): Record<string, unknown> {
-  const result: Record<string, unknown> = {};
+export function svgPropertiesNoEventsKeepCase<
+  T extends Record<string, unknown>,
+>(obj: T): Partial<T> {
+  const result: Partial<T> = {};
   for (const key in obj) {
     if (
       Object.prototype.hasOwnProperty.call(obj, key) &&

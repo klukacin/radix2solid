@@ -46,7 +46,7 @@
     "d3-shape": "3.2.0"
   },
   "peerDependencies": {
-    "@solidjs/web": "2.0.0-rc.15",
-    "solid-js": "2.0.0-rc.15"
+    "@solidjs/web": "2.0.0-rc.19",
+    "solid-js": "2.0.0-rc.19"
   }
 }

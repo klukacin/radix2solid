@@ -1,14 +1,16 @@
 # Native Solid 2 Charts
 
-Native fork, not an official Recharts or solid-recharts product. This README describes prerelease `@wsagency/radix2solid-charts@0.1.0-rc.5`; rc.5 corrects label/Pie behavior and reactive state-hook reads without changing the public API. Install with `pnpm add -E @wsagency/radix2solid-charts@0.1.0-rc.5`. Releases use the npm `next` dist-tag while Solid is prerelease; source-checkout packing is an optional development alternative.
+Native fork, not an official Recharts or solid-recharts product. This README describes the local source candidate `@wsagency/radix2solid-charts@0.1.0-rc.5`, which is unpublished and unavailable from the npm registry; no registry install command is provided. rc.5 corrects label/Pie behavior and reactive state-hook reads without changing the public API. For local testing, build and pack from this checkout. The rc.5 package candidate remains distinct from the rc.19 toolchain compatibility target.
 
-Charts is a source copy of [solid-recharts](https://github.com/yumemi-thomas/solid-recharts) `2.0.0-beta.1`, a Solid port of the [Recharts](https://github.com/recharts/recharts) `3.9.2` component model, adapted to Solid `2.0.0-rc.15` and to server rendering. See `UPSTREAM.md` for the exact commits and every local change.
+Charts is a source copy of [solid-recharts](https://github.com/yumemi-thomas/solid-recharts) `2.0.0-beta.1`, a Solid port of the [Recharts](https://github.com/recharts/recharts) `3.9.2` component model, adapted to Solid `2.0.0-rc.19` and to server rendering. See `UPSTREAM.md` for the exact commits and every local change.
+Known Solid rc.19 limitation: if a reactive proxy object is passed directly as a chart row's `data-*` value and a default SVG shape renders it, native `Element.setAttribute` string coercion can produce a `STRICT_READ_UNTRACKED` warning. Custom shape callbacks receive the original row value. This candidate preserves native DOM conversion behavior and does not suppress that warning or claim the case is fixed.
 
-Solid `2.0.0-rc.15` and `@solidjs/web` `2.0.0-rc.15` are peers; `solid-js` rc.15 declares Node `>=22.12.0`. This repository's checks run on Node 24; a server-rendering smoke test of the packed tarballs also passes on Node 22.12.0. Browser export conditions select native client ESM; the default selects native server ESM. Declarations are shared. `d3-scale` and `d3-shape` are ordinary dependencies, installed with the package and not bundled into it. No React, Redux or Recharts runtime.
+
+Solid `2.0.0-rc.19` and `@solidjs/web` `2.0.0-rc.19` are peers; Solid's upstream runtime metadata declares a Node `>=22.12.0` floor. The rc.19 candidate's packed server-render smoke was run on Node 24.22.0; Node 22.12.0 has not been tested against this candidate. Browser export conditions select native client ESM; the default selects native server ESM. Declarations are shared. `d3-scale` and `d3-shape` are ordinary dependencies, installed with the package and not bundled into it. No React, Redux or Recharts runtime.
 
 ## Optional source-checkout development
 
-Charts has no dependency on the other Radix2Solid packages. To build and pack from a source checkout, use Node 24.21.0 and pnpm 11.5.0 as in the root README:
+Charts has no dependency on the other Radix2Solid packages. The root checkout recommends Node 24.21.0 and pnpm 11.5.0; Node 24.22.0 was also tested for the rc.19 candidate, and both Node versions satisfy the repository's `>=24 <25` engine range:
 
 ```sh
 pnpm install --frozen-lockfile
@@ -20,11 +22,11 @@ First pin the whole Solid tuple in the application's `pnpm-workspace.yaml`, so n
 
 ```yaml
 overrides:
-  solid-js: 2.0.0-rc.15
-  "@solidjs/web": 2.0.0-rc.15
-  "@solidjs/signals": 2.0.0-rc.15
-  "@solidjs/compiler": 2.0.0-rc.15
-  "@solidjs/babel-plugin": 2.0.0-rc.15
+  solid-js: 2.0.0-rc.19
+  "@solidjs/web": 2.0.0-rc.19
+  "@solidjs/signals": 2.0.0-rc.19
+  "@solidjs/compiler": 2.0.0-rc.19
+  "@solidjs/babel-plugin": 2.0.0-rc.19
 ```
 
 If your pnpm configuration sets `minimumReleaseAge`, also add exact-version `minimumReleaseAgeExclude` entries for these releases until they age, as this repository's `pnpm-workspace.yaml` does. Configure both before the first install.
@@ -32,8 +34,8 @@ If your pnpm configuration sets `minimumReleaseAge`, also add exact-version `min
 In the application, install the tarball with the exact Solid peers and the matching toolchain:
 
 ```sh
-pnpm add ./vendor/wsagency-radix2solid-charts-0.1.0-rc.5.tgz solid-js@2.0.0-rc.15 @solidjs/web@2.0.0-rc.15
-pnpm add -D vite@8.3.3 @solidjs/vite-plugin@3.0.0-next.50 typescript@7.0.2
+pnpm add ./vendor/wsagency-radix2solid-charts-0.1.0-rc.5.tgz solid-js@2.0.0-rc.19 @solidjs/web@2.0.0-rc.19
+pnpm add -D vite@8.3.3 @solidjs/vite-plugin@3.0.0-next.52 typescript@7.0.2
 ```
 
 Use `@solidjs/vite-plugin` with `solid({ ssr: true })` for server rendering, and keep one Solid runtime with `resolve: { dedupe: ['solid-js', '@solidjs/web', '@solidjs/signals'] }`. In `tsconfig.json` set `"jsx": "preserve"`, `"jsxImportSource": "@solidjs/web"` and `"moduleResolution": "Bundler"`. The declarations are emitted by TypeScript 7.0.2. This repository's packed consumer checks also compile them with the TypeScript 5.9.3 compiler API, for tools that still load TypeScript 5. `pnpm test:consumer` (in this repository) exercises this packed-tarball path in an independent install.

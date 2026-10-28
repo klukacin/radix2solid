@@ -8,12 +8,15 @@ import {
 } from "solid-js";
 
 export type Scope = Record<string, Context<any>[]> | undefined;
-export type CreateScope = (() => (
+export type CreateScope<Name extends string = string> = (() => (
   override?: Scope,
-) => Record<string, Scope>) & { scopeName: string };
+) => Record<`__scope${string}`, Scope> &
+  Record<`__scope${Name}`, Scope>) & {
+  scopeName: Name;
+};
 
-export function createContextScope(
-  name: string,
+export function createContextScope<Name extends string>(
+  name: Name,
   dependencies: CreateScope[] = [],
 ) {
   const defaults: unknown[] = [];
@@ -41,7 +44,7 @@ export function createContextScope(
     }
     return [Provider, useScopedContext] as const;
   }
-  const createScope: CreateScope = Object.assign(
+  const createScope: CreateScope<Name> = Object.assign(
     () => {
       const contexts = defaults.map((value) => createContext(value));
       const dependencyScopes = dependencies.map((create) => ({
@@ -55,7 +58,11 @@ export function createContextScope(
             scope,
             dependency.use(override)[`__scope${dependency.name}`],
           );
-        return { [`__scope${name}`]: scope };
+        return { [`__scope${name}`]: scope } as Record<
+          `__scope${string}`,
+          Scope
+        > &
+          Record<`__scope${Name}`, Scope>;
       };
     },
     { scopeName: name },

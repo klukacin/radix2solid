@@ -264,7 +264,7 @@
     "@floating-ui/dom": "1.8.0"
   },
   "peerDependencies": {
-    "@solidjs/web": "2.0.0-rc.15",
-    "solid-js": "2.0.0-rc.15"
+    "@solidjs/web": "2.0.0-rc.19",
+    "solid-js": "2.0.0-rc.19"
   }
 }

@@ -89,7 +89,7 @@ import {
   RadialBarSectorProps,
 } from "../util/RadialBarUtils";
 import type { StackSeries } from "../util/stacks/stackTypes";
-import { svgPropertiesNoEventsFromUnknown } from "../util/svgPropertiesNoEvents";
+import { svgPropertiesNoEventsFromUnknownKeepCase } from "../util/svgPropertiesNoEvents";
 import {
   ActiveShape,
   AnimationDuration,
@@ -299,12 +299,12 @@ function RadialBarBackground(props: {
       : undefined;
   // SVG presentation props from the background prop, minus `class` (composed below).
   const backgroundProps = (): Record<string, unknown> => {
-    const all = svgPropertiesNoEventsFromUnknown(props.background) ?? {};
+    const all = svgPropertiesNoEventsFromUnknownKeepCase(props.background) ?? {};
     const { class: _bgClass, ...rest } = all;
     return rest;
   };
   const backgroundClass = (): string | undefined => {
-    const all = svgPropertiesNoEventsFromUnknown(props.background);
+    const all = svgPropertiesNoEventsFromUnknownKeepCase(props.background);
     return typeof all?.class === "string" ? all.class : undefined;
   };
 

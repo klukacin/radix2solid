@@ -1,6 +1,5 @@
 import type { JSX } from "@solidjs/web";
 import { Dynamic } from "@solidjs/web";
-
 // Ported from recharts 3.8.1 src/util/ActiveShapeUtils.tsx (commit 7a23854).
 //
 // `<Shape>` renders a user-defined shape option in several forms: a function
@@ -50,9 +49,10 @@ export function Shape<
   PropsType extends object,
   ElementType extends SVGElement = SVGElement,
 >(props: ShapeProps<PropsType, ElementType>): JSX.Element {
+  const DefaultShape = props.DefaultShape;
   const renderShape = (): JSX.Element => {
     const option = props.option;
-    if (option === props.DefaultShape) {
+    if (option === DefaultShape) {
       return (
         <Dynamic
           component={props.DefaultShape}

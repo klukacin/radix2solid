@@ -10,11 +10,8 @@ The five packages keep their native API under the `@wsagency` npm scope:
 - `@wsagency/radix2solid-themes` — all native Themes families, themed portals, ThemePanel, responsive styling, custom accents, percentage scaling, per-component and cascade-layer CSS: [`packages/themes/README.md`](packages/themes/README.md)
 - `@wsagency/radix2solid-charts` — SVG charts that read Themes tokens, with `d3-scale` and `d3-shape` as external dependencies: [`packages/charts`](packages/charts)
 
-This README describes prerelease `0.1.0-rc.5` for all five packages. Releases use the npm `next` dist-tag while Solid is prerelease. Calendar, DatePicker and FileDrop are introduced in rc.4 in Primitives and Themes; these new APIs are absent from rc.3. Install the five packages at the exact prerelease version:
+This README describes the five packages' local source candidate `0.1.0-rc.5`, which is unpublished and unavailable from the npm registry. The compatibility target in this branch is Solid rc.19 with Vite plugin next.52; that does not turn rc.5 into a published rc.19 release. The published rc.4 packages use the npm `next` dist-tag while Solid is prerelease. Calendar, DatePicker and FileDrop are introduced in rc.4 in Primitives and Themes; these new APIs are absent from rc.3. Do not install rc.5 from npm; use the source-checkout workflow below for local testing.
 
-```sh
-pnpm add -E @wsagency/radix2solid-primitives@0.1.0-rc.5 @wsagency/radix2solid-icons@0.1.0-rc.5 @wsagency/radix2solid-icons-extra@0.1.0-rc.5 @wsagency/radix2solid-themes@0.1.0-rc.5 @wsagency/radix2solid-charts@0.1.0-rc.5
-```
 
 ```sh
 # From the reviewed source checkout, with pinned Node 24 and pnpm 11:
@@ -24,7 +21,7 @@ pnpm --dir packages/primitives pack
 pnpm --dir packages/icons-extra pack
 ```
 
-Source-checkout packing is an optional development alternative; when using it, override Themes' primitives dependency to the same primitives tarball. Source-pinned website deployment remains independent of npm publication. The five packages share version `0.1.0-rc.5`.
+For a source-pinned consumer, pack each package locally; when using Themes, override its Primitives dependency to the same Primitives tarball. Source-pinned website deployment remains independent of npm publication. The five source manifests retain `0.1.0-rc.5` as the separate unpublished local candidate.
 
 Calendar, DatePicker and FileDrop are new project extensions, not official Radix components or ports. They are introduced in the rc.4 prerelease and absent from rc.3. For source-checkout development, build and pack Primitives; if using Themes, pack it from the same checkout and resolve its transitive Primitives dependency to the **same physical Primitives tarball**:
 
@@ -33,9 +30,9 @@ pnpm --dir packages/primitives pack
 pnpm --dir packages/themes pack
 ```
 
-These source-checkout packs are optional development artifacts; versioned npm installs use the rc.5 package versions above.
+These source-checkout packs are optional local development artifacts. Public npm installs should use the published rc.4 packages (the `next` dist-tag) until a later package release is published; rc.5 remains local-only.
 
-Consumers need Node `>=22.12.0` (required by Solid rc.15). If you use the Themes PostCSS plugins, also install `postcss@^8.5.9`; it is an optional peer.
+Consumers need Node `>=22.12.0` (required by Solid rc.19). If you use the Themes PostCSS plugins, also install `postcss@^8.5.9`; it is an optional peer.
 
 The documentation website lives in the separate repository [`wsagency/radix2solid-web`](https://github.com/wsagency/radix2solid-web), which builds against a pinned commit of this repository.
 
@@ -73,7 +70,7 @@ Gallery: `http://127.0.0.1:4147/` for SSR/hydration, `/csr` for fresh client ren
 
 ## Native distribution and release gates
 
-Exact current pins: `solid-js`, `@solidjs/web`, `@solidjs/signals`, `@solidjs/compiler` and `@solidjs/babel-plugin` **2.0.0-rc.15**; `@solidjs/vite-plugin` **3.0.0-next.50**; Vite **8.3.3**; TypeScript **7.0.2** for type checks and declaration emit, with `typescript5` (TypeScript **5.9.3**) for the consumer checks that use the compiler API; Playwright **1.64.0**; Radix Colors **3.0.0**. The runtime/compiler/Babel versions are pinned through workspace overrides. The workspace keeps pnpm's 24-hour `minimumReleaseAge` and excepts only these exact rc.15/next.50 releases until they age. This is an RC port, not a Solid-stable compatibility promise.
+Exact current toolchain pins: `solid-js`, `@solidjs/web`, `@solidjs/signals`, `@solidjs/compiler` and `@solidjs/babel-plugin` **2.0.0-rc.19**; `@solidjs/vite-plugin` **3.0.0-next.52**; Vite **8.3.3**; TypeScript **7.0.2** for type checks and declaration emit, with `typescript5` (TypeScript **5.9.3**) for the consumer checks that use the compiler API; Playwright **1.64.0**; Radix Colors **3.0.0**. The runtime/compiler/Babel versions are pinned through workspace overrides. The workspace keeps pnpm's 24-hour `minimumReleaseAge` and exact-version exceptions for this rc.19/next.52 tuple until it ages. Source package version `0.1.0-rc.5` remains a separate, unpublished local candidate; these compatibility pins do not announce a package release.
 
 `pnpm test:unit` runs the slider, splitter, calendar and file-drop unit tests. `pnpm test` runs those tests, the complete packed `pnpm test:consumer` suite and the full development Playwright suite; `pnpm check` runs `pnpm lint`, `pnpm format:check`, the build and typecheck before that complete test contract. CI runs the complete modes independently: `pnpm check:packed` lints, checks formatting, builds, typechecks, runs all four unit-test files and the unscoped all-package packed consumer checks; `pnpm check:dev` lints, checks formatting, builds, typechecks, runs those same unit tests and the full six-project Playwright suite, preserving existing skips. Both local `test` and `check:dev` use the shared `test:dev` command with empty `GALLERY_PACKED` and `GALLERY_PRODUCTION` values. `tests/consumer/coverage-manifest.json` maps public declarations/parts to retained family checks. Packed validation covers public declaration and runtime availability, CSS/plugin/SVG resolution and real selective-import bundle inspection. Family checks are not certification of every exported symbol or of actual assistive-technology speech.
 

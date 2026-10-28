@@ -6,11 +6,11 @@ managePackageManagerVersions: false
 strictPeerDependencies: true
 
 overrides:
-  solid-js: 2.0.0-rc.15
-  "@solidjs/web": 2.0.0-rc.15
-  "@solidjs/signals": 2.0.0-rc.15
-  "@solidjs/compiler": 2.0.0-rc.15
-  "@solidjs/babel-plugin": 2.0.0-rc.15
+  solid-js: 2.0.0-rc.19
+  "@solidjs/web": 2.0.0-rc.19
+  "@solidjs/signals": 2.0.0-rc.19
+  "@solidjs/compiler": 2.0.0-rc.19
+  "@solidjs/babel-plugin": 2.0.0-rc.19
 
 peerDependencyRules:
   allowedVersions:
@@ -19,23 +19,22 @@ peerDependencyRules:
     "@typescript-eslint/typescript-estree>typescript": "7"
     "@typescript-eslint/utils>typescript": "7"
 
-# The global 24h minimumReleaseAge stays. Exact-version exceptions only: the explicitly requested
-# Solid 2.0.0-rc.15 tuple (published 2026-10-13T19:07-19:08Z) and its matching plugin next.50
-# (19:55Z). Keep them through this candidate; remove once aged and a frozen install proves the
-# same versions resolve without them.
+# The global 24h minimumReleaseAge stays. Exact-version exceptions only: the rc.19 Solid tuple
+# and compiler platform packages, plus the matching Vite plugin next.52. Remove once aged and a
+# frozen install proves the same versions resolve without them.
 minimumReleaseAgeExclude:
   - "@playwright/test@1.64.0"
   - playwright-core@1.64.0
   - playwright@1.64.0
-  - solid-js@2.0.0-rc.15
-  - "@solidjs/web@2.0.0-rc.15"
-  - "@solidjs/signals@2.0.0-rc.15"
-  - "@solidjs/compiler@2.0.0-rc.15"
-  - "@solidjs/compiler-darwin-arm64@2.0.0-rc.15"
-  - "@solidjs/compiler-darwin-x64@2.0.0-rc.15"
-  - "@solidjs/compiler-linux-arm64-gnu@2.0.0-rc.15"
-  - "@solidjs/compiler-linux-x64-gnu@2.0.0-rc.15"
-  - "@solidjs/compiler-wasm32-wasi@2.0.0-rc.15"
-  - "@solidjs/compiler-win32-x64-msvc@2.0.0-rc.15"
-  - "@solidjs/babel-plugin@2.0.0-rc.15"
-  - "@solidjs/vite-plugin@3.0.0-next.50"
+  - solid-js@2.0.0-rc.19
+  - "@solidjs/web@2.0.0-rc.19"
+  - "@solidjs/signals@2.0.0-rc.19"
+  - "@solidjs/compiler@2.0.0-rc.19"
+  - "@solidjs/compiler-darwin-arm64@2.0.0-rc.19"
+  - "@solidjs/compiler-darwin-x64@2.0.0-rc.19"
+  - "@solidjs/compiler-linux-arm64-gnu@2.0.0-rc.19"
+  - "@solidjs/compiler-linux-x64-gnu@2.0.0-rc.19"
+  - "@solidjs/compiler-wasm32-wasi@2.0.0-rc.19"
+  - "@solidjs/compiler-win32-x64-msvc@2.0.0-rc.19"
+  - "@solidjs/babel-plugin@2.0.0-rc.19"
+  - "@solidjs/vite-plugin@3.0.0-next.52"

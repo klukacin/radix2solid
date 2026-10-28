@@ -23,6 +23,7 @@ import {
   CartesianGrid,
   Brush,
   Cell,
+  Rectangle,
   ErrorBar,
 } from "@wsagency/radix2solid-charts";
 import { Global } from "@wsagency/radix2solid-charts";
@@ -396,6 +397,117 @@ test("all five Cell consumers apply ordered overrides to their actual server mar
     }
   }
 });
+test("Bar, Pie, and Funnel preserve object-valued row data attributes in shapes", () => {
+  const probe = { nested: true };
+  const rows = [
+    {
+      name: "Probe",
+      value: 10,
+      "data-chart-probe": probe,
+      "data-chart-label": "retained",
+    },
+  ];
+  let barProbe: unknown;
+  let pieProbe: unknown;
+  let funnelProbe: unknown;
+  const renderBar = (shape?: Parameters<typeof Bar>[0]["shape"]) =>
+    renderToString(() =>
+      createComponent(BarChart, {
+        width: 500,
+        height: 300,
+        data: rows,
+        get children() {
+          return [
+            createComponent(XAxis, { dataKey: "name" }),
+            createComponent(YAxis, {}),
+            createComponent(Bar, {
+              dataKey: "value",
+              isAnimationActive: false,
+              shape,
+            }),
+          ];
+        },
+      }),
+    );
+  const renderPie = (shape?: Parameters<typeof Pie>[0]["shape"]) =>
+    renderToString(() =>
+      createComponent(PieChart, {
+        width: 500,
+        height: 300,
+        data: rows,
+        get children() {
+          return createComponent(Pie, {
+            dataKey: "value",
+            isAnimationActive: false,
+            shape,
+          });
+        },
+      }),
+    );
+  const renderFunnel = (shape?: Parameters<typeof Funnel>[0]["shape"]) =>
+    renderToString(() =>
+      createComponent(FunnelChart, {
+        width: 500,
+        height: 300,
+        data: rows,
+        get children() {
+          return createComponent(Funnel, {
+            dataKey: "value",
+            isAnimationActive: false,
+            shape,
+          });
+        },
+      }),
+    );
+
+  const barCustomHtml = renderBar((props) => {
+    barProbe = props["data-chart-probe"];
+    return createComponent(Rectangle, {
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+      "data-custom-shape": "bar",
+    });
+  });
+  const pieCustomHtml = renderPie((props) => {
+    pieProbe = props["data-chart-probe"];
+    return createComponent(Rectangle, {
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+      "data-custom-shape": "pie",
+    });
+  });
+  const funnelCustomHtml = renderFunnel((props) => {
+    funnelProbe = props["data-chart-probe"];
+    return createComponent(Rectangle, {
+      x: 0,
+      y: 0,
+      width: 1,
+      height: 1,
+      "data-custom-shape": "funnel",
+    });
+  });
+  for (const [name, html, value] of [
+    ["Bar", barCustomHtml, barProbe],
+    ["Pie", pieCustomHtml, pieProbe],
+    ["Funnel", funnelCustomHtml, funnelProbe],
+  ] as const) {
+    assert.ok(html.includes(`data-custom-shape="${name.toLowerCase()}"`), name);
+    assert.equal(value, probe, `${name} receives the original row object`);
+  }
+
+  for (const [name, html] of [
+    ["Bar", renderBar()],
+    ["Pie", renderPie()],
+    ["Funnel", renderFunnel()],
+  ] as const) {
+    assert.match(html, /data-chart-probe="\[object Object\]"/, name);
+    assert.match(html, /data-chart-label="retained"/, name);
+  }
+});
 
 test("axes-first bounded-domain stacked SSR emits correct values and the complete numeric tick ladder", () => {
   const html = renderToString(() =>
@@ -705,6 +817,36 @@ test("selected Charts SSR stacked connectNulls skips the all-null category", () 
     assert.ok(d);
     assert.match(d, /^M5,/);
     assert.equal((d.match(/[MLCQ]/g) ?? []).length, 2, d);
+  }
+});
+
+test("Area dots retain strokeWidth from component props", () => {
+  const html = renderToString(() =>
+    createComponent(AreaChart, {
+      width: 100,
+      height: 50,
+      data: [
+        { name: "Page A", value: 10 },
+        { name: "Page B", value: 20 },
+      ],
+      get children() {
+        return createComponent(Area, {
+          dataKey: "value",
+          dot: true,
+          isAnimationActive: false,
+          strokeWidth: 4,
+        });
+      },
+    }),
+  );
+  const dots = [
+    ...html.matchAll(
+      /<circle\b[^>]*class="[^"]*recharts-area-dot[^"]*"[^>]*>/g,
+    ),
+  ];
+  assert.equal(dots.length, 2);
+  for (const [dot] of dots) {
+    assert.match(dot, /\sstroke-width="4"/);
   }
 });
 

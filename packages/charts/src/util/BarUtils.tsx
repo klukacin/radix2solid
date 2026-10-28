@@ -11,7 +11,11 @@ import { Shape } from "./ActiveShapeUtils";
 import { isNullish, isNumber } from "./DataUtils";
 import { ActiveShape, DataKey } from "./types";
 
-export const defaultBarShape = Rectangle;
+// Private type boundary: callbacks retain arbitrary row data-* values.
+// Rectangle filters attribute names and forwards retained values unchanged.
+export const defaultBarShape = Rectangle as (
+  props: BarShapeProps,
+) => JSX.Element;
 
 /** Background shape props omit `value`/`tooltipPosition` (recharts BarBackground L499). */
 export type BarRectangleProps = Omit<
@@ -41,7 +45,7 @@ export function BarRectangle(props: BarRectangleProps): JSX.Element {
     ...forwardedProps,
   }));
   return (
-    <Shape<BarRectangleShapeProps, SVGPathElement>
+    <Shape<BarShapeProps, SVGPathElement>
       option={props.option}
       DefaultShape={defaultBarShape}
       shapeProps={shapeProps()}

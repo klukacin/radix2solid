@@ -74,7 +74,7 @@ import {
   isNullish,
   isNumOrStr,
 } from "../util/DataUtils";
-import { svgPropertiesNoEventsFromUnknown } from "../util/svgPropertiesNoEvents";
+import { svgPropertiesNoEventsFromUnknownKeepCase } from "../util/svgPropertiesNoEvents";
 import {
   AnimationDuration,
   CartesianLayout,
@@ -622,7 +622,7 @@ export const Scatter = (props: ScatterProps): JSX.Element => {
     }
     const customLineProps =
       typeof line === "object"
-        ? (svgPropertiesNoEventsFromUnknown(line) ?? undefined)
+        ? (svgPropertiesNoEventsFromUnknownKeepCase(line) ?? undefined)
         : undefined;
     // `name` renders on the path (recharts spreads the scatter's name onto the
     // line) but isn't in the typed SVG path attributes — widen the local.

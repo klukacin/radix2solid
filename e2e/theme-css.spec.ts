@@ -666,6 +666,19 @@ test("date picker nested Theme portal constraints", async ({ page }, info) => {
   await trigger.click();
   await expect(content).toBeVisible();
   await expect(contentDay).toBeFocused();
+  await expect(content).toBeInViewport({ ratio: 1 });
+  await expect
+    .poll(async () => {
+      const box = await content.boundingBox();
+      return (
+        box !== null &&
+        box.x >= 0 &&
+        box.x + box.width <= 320 &&
+        box.y >= 0 &&
+        box.y + box.height <= 360
+      );
+    })
+    .toBe(true);
   const narrowPopup = await content.boundingBox();
   expect(narrowPopup).not.toBeNull();
   expect(narrowPopup!.x).toBeGreaterThanOrEqual(0);

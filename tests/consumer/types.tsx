@@ -602,6 +602,8 @@ export const consumer = (
 
 const dialogScope = createDialogScope()();
 const popoverScope = createPopoverScope()();
+export const dialogScopeNameContract: "Dialog" = createDialogScope.scopeName;
+export const popoverScopeNameContract: "Popover" = createPopoverScope.scopeName;
 export const layers = (
   <Direction.Provider dir="rtl">
     <DialogRoot
@@ -3298,5 +3300,59 @@ export const invalidThemedDatePickerParser = (
     today={familyDate}
     // @ts-expect-error The themed DatePicker does not expose a custom date parser.
     parseDate={(text: string) => text}
+  />
+);
+
+type Equal<X, Y> =
+  (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2
+    ? (<T>() => T extends Y ? 1 : 2) extends <T>() => T extends X ? 1 : 2
+      ? true
+      : false
+    : false;
+type Expect<T extends true> = T;
+
+export type BarShapeDataAttributeIsUnknown = Expect<
+  Equal<Charts.BarShapeProps["data-chart-probe"], unknown>
+>;
+export type PieShapeDataAttributeIsUnknown = Expect<
+  Equal<Charts.PieSectorShapeProps["data-chart-probe"], unknown>
+>;
+
+export const barShapeDataAttributeContract = (
+  props: Charts.BarShapeProps,
+): JSX.Element => {
+  const value = props["data-chart-probe"];
+  const nested =
+    typeof value === "object" &&
+    value !== null &&
+    "nested" in value &&
+    value.nested === true;
+  return <path data-chart-nested={nested} data-chart-index={props.index} />;
+};
+
+export const pieShapeDataAttributeContract = (
+  props: Charts.PieSectorShapeProps,
+): JSX.Element => {
+  const value = props["data-chart-probe"];
+  const nested =
+    typeof value === "object" &&
+    value !== null &&
+    "nested" in value &&
+    value.nested === true;
+  return <path data-chart-nested={nested} data-chart-index={props.index} />;
+};
+
+export const funnelShapeDataAttributeContract = (): JSX.Element => (
+  <Charts.Funnel
+    dataKey="value"
+    shape={(props) => {
+      const value = props["data-chart-probe"];
+      const nested =
+        typeof value === "object" &&
+        value !== null &&
+        "nested" in value &&
+        value.nested === true;
+      return <path data-chart-nested={nested} />;
+    }}
   />
 );

@@ -1645,3 +1645,88 @@ test("selected Charts legend-placement and accessible SVG hydrate in place befor
     .toBeGreaterThan(initialLabelWidth);
   expect(errors).toEqual([]);
 });
+test("CSR shape callbacks preserve object-valued chart row data and update geometry", async ({
+  page,
+}, info) => {
+  test.skip(
+    !info.project.name.endsWith("csr"),
+    "This regression is CSR-specific.",
+  );
+  await page.goto("/csr");
+  // Vite transforms this test TSX in-browser; Node cannot import it statically.
+  await page.evaluate(async (moduleUrl) => {
+    const fixture: unknown = await import(moduleUrl);
+    if (
+      fixture &&
+      typeof fixture === "object" &&
+      "mountChartShapeDataAttrs" in fixture &&
+      typeof fixture.mountChartShapeDataAttrs === "function"
+    ) {
+      fixture.mountChartShapeDataAttrs(document.body);
+    }
+  }, "/src/test-chart-shape-data-attrs.tsx");
+
+  const initialGeometry = new Map<string, string>();
+  for (const family of ["bar", "pie", "funnel"]) {
+    await expect(
+      page.locator(
+        `#chart-shape-data-attrs-${family}-custom [data-shape-probe="true"]`,
+      ),
+    ).toHaveCount(1);
+    const initialMark = page.locator(
+      `#chart-shape-data-attrs-${family}-default path[data-chart-label="retained"]`,
+    );
+    await expect(initialMark).toHaveCount(1);
+    await expect(initialMark).toHaveAttribute(
+      "data-chart-probe",
+      "[object Object]",
+    );
+    expect(await initialMark.getAttribute("value")).toBeNull();
+    const initialD = await initialMark.getAttribute("d");
+    if (!initialD) throw new Error(`${family} initial mark has no geometry.`);
+    initialGeometry.set(family, initialD);
+  }
+  const coercionHint = await page.evaluate(async (moduleUrl) => {
+    const fixture: unknown = await import(moduleUrl);
+    if (
+      !fixture ||
+      typeof fixture !== "object" ||
+      !("getDataAttributeCoercionHint" in fixture) ||
+      typeof fixture.getDataAttributeCoercionHint !== "function"
+    ) {
+      throw new Error("Data attribute coercion hint is unavailable.");
+    }
+    return fixture.getDataAttributeCoercionHint();
+  }, "/src/test-chart-shape-data-attrs.tsx");
+  expect(coercionHint).toBe("string");
+  await page.evaluate(async (moduleUrl) => {
+    const fixture: unknown = await import(moduleUrl);
+    if (
+      !fixture ||
+      typeof fixture !== "object" ||
+      !("updateChartShapeDataAttrs" in fixture) ||
+      typeof fixture.updateChartShapeDataAttrs !== "function"
+    ) {
+      throw new Error("Chart shape fixture update function is unavailable.");
+    }
+    fixture.updateChartShapeDataAttrs();
+  }, "/src/test-chart-shape-data-attrs.tsx");
+  for (const family of ["bar", "pie", "funnel"]) {
+    await expect(
+      page.locator(
+        `#chart-shape-data-attrs-${family}-custom [data-shape-probe="false"]`,
+      ),
+    ).toHaveCount(1);
+    const updatedMark = page.locator(
+      `#chart-shape-data-attrs-${family}-default path[data-chart-label="updated"]`,
+    );
+    await expect(updatedMark).toHaveCount(1);
+    await expect(updatedMark).toHaveAttribute(
+      "data-chart-probe",
+      "[object Object]",
+    );
+    const updatedD = await updatedMark.getAttribute("d");
+    if (!updatedD) throw new Error(`${family} updated mark has no geometry.`);
+    expect(updatedD).not.toBe(initialGeometry.get(family));
+  }
+});

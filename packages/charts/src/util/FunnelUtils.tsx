@@ -19,6 +19,14 @@ export const defaultFunnelShape = Trapezoid;
 
 type FunnelTrapezoidShapeProps = FunnelTrapezoidItem &
   ShapeAnimationProps & { isActive: boolean };
+// Intentional private type boundary: Funnel shape callbacks retain arbitrary
+// row values, including object-valued data-* attributes. Solid's JSX type permits
+// only primitive data-* values, but Trapezoid's existing renderer filters keys
+// only and forwards values unchanged. Do not narrow public row/callback data
+// or normalize it.
+const defaultFunnelShapeRenderer = Trapezoid as (
+  props: FunnelTrapezoidShapeProps,
+) => JSX.Element;
 
 export type FunnelTrapezoidProps = {
   option: ActiveShape<FunnelTrapezoidShapeProps, SVGPathElement> | undefined;
@@ -32,7 +40,7 @@ export function FunnelTrapezoid(props: FunnelTrapezoidProps): JSX.Element {
   return (
     <Shape<FunnelTrapezoidShapeProps, SVGPathElement>
       option={props.option}
-      DefaultShape={defaultFunnelShape}
+      DefaultShape={defaultFunnelShapeRenderer}
       shapeProps={shapeProps()}
     />
   );

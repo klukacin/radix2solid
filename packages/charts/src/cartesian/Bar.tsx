@@ -82,7 +82,7 @@ import { noop } from "../util/DataUtils";
 import { interpolate, isNan, isNotNil, mathSign } from "../util/DataUtils";
 import type { StackSeries } from "../util/stacks/stackTypes";
 import { svgPropertiesAndEventsFromUnknown } from "../util/svgPropertiesAndEvents";
-import { svgPropertiesNoEventsFromUnknown } from "../util/svgPropertiesNoEvents";
+import { svgPropertiesNoEventsFromUnknownKeepCase } from "../util/svgPropertiesNoEvents";
 import {
   AnimationDuration,
   CartesianLayout,
@@ -160,6 +160,8 @@ export type BarShapeProps = Omit<
     index: number;
     /** Fired when the bar's CSS enter/exit transition ends (set during animation). */
     onTransitionEnd?: () => void;
+    /** Extra fields from raw rows, including object-valued data-* properties. */
+    [key: `data-${string}`]: unknown;
   };
 
 type BarPointerEvent = MouseEvent | TouchEvent;
@@ -463,7 +465,7 @@ function BarBackground(props: {
     // array stays stable across hover and only the active flag updates.
     const dataKey = props.dataKey;
     const backgroundProps =
-      svgPropertiesNoEventsFromUnknown(backgroundFromProps);
+      svgPropertiesNoEventsFromUnknownKeepCase(backgroundFromProps);
     const backgroundEventProps = svgPropertiesAndEventsFromUnknown({
       onMouseOver: props.onMouseOver,
       onMouseOut: props.onMouseOut,

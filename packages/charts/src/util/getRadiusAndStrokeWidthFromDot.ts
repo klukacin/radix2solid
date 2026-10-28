@@ -1,4 +1,4 @@
-import { svgPropertiesNoEventsFromUnknown } from "./svgPropertiesNoEvents";
+import { svgPropertiesNoEventsFromUnknownKeepCase } from "./svgPropertiesNoEvents";
 // Ported from recharts 3.8.1 src/util/getRadiusAndStrokeWidthFromDot.tsx (commit 7a23854).
 // No JSX → `.ts`.
 import { ActiveDotType, DotType } from "./types";
@@ -7,14 +7,12 @@ export function getRadiusAndStrokeWidthFromDot(dot: ActiveDotType | DotType): {
   r: number;
   strokeWidth: number;
 } {
-  const props = svgPropertiesNoEventsFromUnknown(dot);
+  const props = svgPropertiesNoEventsFromUnknownKeepCase(dot);
   const defaultR = 3;
   const defaultStrokeWidth = 2;
   if (props != null) {
-    // `svgPropertiesNoEvents` now renames camelCase keys to SVG attribute names,
-    // so `strokeWidth` arrives as `stroke-width` (`r` is unchanged).
     const r = props.r;
-    const strokeWidth = props["stroke-width"];
+    const strokeWidth = props.strokeWidth;
     let realR = Number(r);
     let realStrokeWidth = Number(strokeWidth);
     if (Number.isNaN(realR) || realR < 0) {

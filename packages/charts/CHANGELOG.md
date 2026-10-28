@@ -2,6 +2,12 @@
 
 Registry status before rc.5 publication (2026-10-26): `0.1.0-rc.4` is published under the `next` dist-tag. The versioned rc.5 prerelease notes follow; earlier entries retain their historical preparation-time wording.
 
+## Local compatibility note — 2026-10-28 (unpublished; not a package release)
+
+- The source tree targets Solid rc.19 and Vite plugin next.52; package version `0.1.0-rc.5` remains a separate unpublished local candidate. This note does not change the rc.5 release record or establish npm availability.
+- Bar and Pie shape callbacks type forwarded raw `data-*` row values as `unknown`; custom callbacks receive the original values, while default SVG elements rely on native DOM attribute string conversion. Known Solid rc.19 limitation: rendering reactive proxy objects directly as chart `data-*` values can emit `STRICT_READ_UNTRACKED` during `Element.setAttribute` coercion; this candidate does not suppress or fix that warning.
+
+
 ## 0.1.0-rc.5
 
 - Correct chart label positioning and Pie layout, and stabilize reactive state-hook reads by moving setup-time reads outside tracked computations.

@@ -65,7 +65,8 @@ const [createDatePickerContext, makeDatePickerScope] = createContextScope(
 );
 const [DatePickerProvider, useDatePicker] =
   createDatePickerContext<DatePickerContext>("DatePicker");
-export const createDatePickerScope: CreateScope = makeDatePickerScope;
+export const createDatePickerScope: CreateScope<"DatePicker"> =
+  makeDatePickerScope;
 
 type DatePickerCalendarState = CalendarState & {
   dir(): "ltr" | "rtl";
@@ -1027,21 +1028,17 @@ export function DatePickerFormControl(
         if (!element) return;
         const document = element.ownerDocument;
         let current = true;
-        const timers = new Set<number>();
         const reset = (event: Event) => {
           if (event.target !== element.form) return;
-          const timer = document.defaultView!.setTimeout(() => {
-            timers.delete(timer);
+          queueMicrotask(() => {
             if (!current || !alive || event.defaultPrevented) return;
             context.resetTo(initialValue ?? null);
-          }, 0);
-          timers.add(timer);
+          });
         };
         document.addEventListener("reset", reset);
         return () => {
           current = false;
           document.removeEventListener("reset", reset);
-          for (const timer of timers) document.defaultView!.clearTimeout(timer);
         };
       },
       { transparent: true },

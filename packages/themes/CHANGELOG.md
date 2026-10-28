@@ -2,6 +2,11 @@
 
 Registry status before rc.5 publication (2026-10-26): `0.1.0-rc.4` is published under the `next` dist-tag. The versioned rc.5 prerelease notes follow; earlier entries retain their historical preparation-time wording.
 
+## Local compatibility note — 2026-10-28 (unpublished; not a package release)
+
+- The source tree targets Solid rc.19 and Vite plugin next.52; package version `0.1.0-rc.5` remains a separate unpublished local candidate. This note does not change the rc.5 release record or establish npm availability.
+
+
 ## 0.1.0-rc.5
 
 - Fix the `build-css.js` import quote so the CSS build script is lint-clean; no Themes runtime or public API change.

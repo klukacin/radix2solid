@@ -12,7 +12,7 @@ import type { Accessor } from "solid-js";
 import { Layer } from "../container/Layer";
 import { getValueByDataKey } from "../util/ChartUtils";
 import { isNullish, isNumOrStr } from "../util/DataUtils";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
+import { svgPropertiesAndEventsKeepCase } from "../util/svgPropertiesAndEvents";
 // Ported from recharts 3.8.1 src/component/LabelList.tsx (commit 7a23854).
 //
 // CARTESIAN path: renders one <Label> per data point from a context that the
@@ -219,7 +219,7 @@ export function LabelList(props: Props): JSX.Element {
           <For each={list()}>
             {(entry, index) => (
               <Label
-                {...svgPropertiesAndEvents({ ...entry })}
+                {...svgPropertiesAndEventsKeepCase({ ...entry })}
                 {...others}
                 id={isNullish(props.id) ? undefined : `${props.id}-${index()}`}
                 {...(props.fill != null || entry.fill != null

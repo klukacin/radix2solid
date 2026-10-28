@@ -955,6 +955,20 @@ test("date picker external reset lifecycle", async ({ page }, info) =>
         ...new FormData(node as HTMLFormElement).entries(),
       ]),
     ).toEqual([]);
+    const externalForm = scene.locator("#external-date-form");
+    await scene
+      .getByRole("button", { name: "Set date programmatically", exact: true })
+      .click();
+    await expect(bridge).toHaveValue("2026-10-20");
+    await externalForm.evaluate((node) =>
+      (node as HTMLFormElement).reset(),
+    );
+    await expect(bridge).toHaveValue("2026-10-18");
+    expect(
+      await externalForm.evaluate((node) => [
+        ...new FormData(node as HTMLFormElement).entries(),
+      ]),
+    ).toEqual([["appointment", "2026-10-18"]]);
 
     await scene
       .getByRole("button", { name: "Unmount DatePicker", exact: true })
@@ -986,7 +1000,7 @@ test("date picker external reset lifecycle", async ({ page }, info) =>
       page.getByRole("dialog", { name: "Resettable date", exact: true }),
     ).toBeHidden();
     await expect(scene.getByLabel("Native event trace")).toHaveText(
-      "input:2026-10-19:true,change:2026-10-19:true,change:2026-10-20:false",
+      "input:2026-10-19:true,change:2026-10-19:true,change:2026-10-20:false,change:2026-10-20:false",
     );
   }));
 test("date picker controlled reset refusal preserves accepted projection", async ({

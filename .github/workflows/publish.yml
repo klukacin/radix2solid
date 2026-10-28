@@ -50,8 +50,8 @@ jobs:
             assert.equal(pkg.publishConfig.access, 'public');
             assert.equal(pkg.publishConfig.tag, 'next');
             assert.equal(pkg.repository.url, 'git+https://github.com/wsagency/radix2solid.git');
-            assert.equal(pkg.peerDependencies['solid-js'], '2.0.0-rc.15');
-            assert.equal(pkg.peerDependencies['@solidjs/web'], '2.0.0-rc.15');
+            assert.equal(pkg.peerDependencies['solid-js'], '2.0.0-rc.19');
+            assert.equal(pkg.peerDependencies['@solidjs/web'], '2.0.0-rc.19');
             if (name === 'themes') assert.equal(pkg.dependencies['@wsagency/radix2solid-primitives'], 'workspace:*');
             assert(!JSON.stringify(pkg).includes('@radix-solid/'), `${name}: old scope`);
           }

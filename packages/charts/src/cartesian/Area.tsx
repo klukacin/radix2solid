@@ -76,8 +76,8 @@ import { noop } from "../util/DataUtils";
 import { interpolate, isNan, isNullish, isNumber } from "../util/DataUtils";
 import { getRadiusAndStrokeWidthFromDot } from "../util/getRadiusAndStrokeWidthFromDot";
 import { StackDataPoint } from "../util/stacks/stackTypes";
-import { svgPropertiesAndEvents } from "../util/svgPropertiesAndEvents";
-import { svgPropertiesNoEvents } from "../util/svgPropertiesNoEvents";
+import { svgPropertiesAndEventsKeepCase } from "../util/svgPropertiesAndEvents";
+import { svgPropertiesNoEventsKeepCase } from "../util/svgPropertiesNoEvents";
 import type { ActiveShape, TrapezoidViewBox } from "../util/types";
 import {
   ActiveDotType,
@@ -686,7 +686,7 @@ export const Area = (props: AreaProps): JSX.Element => {
     isAnimating: boolean,
     isEntrance: boolean,
   ): JSX.Element => {
-    const propsWithEvents = svgPropertiesAndEvents({ ...props });
+    const propsWithEvents = svgPropertiesAndEventsKeepCase({ ...props });
     const curveProps: AreaRevealShapeProps = {
       ...propsWithEvents,
       id,
@@ -723,7 +723,7 @@ export const Area = (props: AreaProps): JSX.Element => {
           dataKey={merged.dataKey}
           needClip={needClip()}
           clipPathId={id}
-          baseProps={svgPropertiesNoEvents({
+          baseProps={svgPropertiesNoEventsKeepCase({
             stroke: merged.stroke,
             strokeWidth: merged.strokeWidth,
             fill: merged.fill,

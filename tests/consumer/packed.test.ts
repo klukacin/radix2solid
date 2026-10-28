@@ -463,7 +463,11 @@ for (const [name, compound, role] of [
 ] as const) {
   test(`packed ${name} Content links Root title/description IDs by default and honors explicit ARIA key presence`, () => {
     const render = (
-      props: Record<string, unknown>,
+      props: {
+        "aria-label"?: string | false | undefined;
+        "aria-labelledby"?: string | undefined;
+        "aria-describedby"?: string | undefined;
+      },
       parts: Array<"title" | "description">,
     ) => {
       const html = renderToString(
@@ -534,7 +538,7 @@ for (const [name, compound, role] of [
       linked.content,
       new RegExp(`aria-describedby="${descriptionId}"`),
     );
-    for (const label of [undefined, null, "", "   "]) {
+    for (const label of [undefined, false, "", "   "] as const) {
       const fallback = render({ "aria-label": label }, [
         "title",
         "description",
