@@ -4,8 +4,9 @@ Registry status before rc.5 publication (2026-10-26): `0.1.0-rc.4` is published 
 
 ## 0.1.0-rc.5
 
-- Correct chart label positioning and Pie layout, and stabilize reactive state-hook reads by moving setup-time reads outside tracked computations.
-- Add oxlint/oxfmt checks; no public API change.
+- Correct chart Label positioning and Pie layout, and move setup-time state-hook reads outside tracked computations.
+- Widen the public `TextProps.class` and `LayerProps.class` types from `string` to native `JSX.ClassValue`; exported component/type names remain unchanged.
+- Add oxlint/oxfmt checks.
 
 ## 0.1.0-rc.4
 

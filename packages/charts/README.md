@@ -1,6 +1,6 @@
 # Native Solid 2 Charts
 
-Native fork, not an official Recharts or solid-recharts product. This README describes prerelease `@wsagency/radix2solid-charts@0.1.0-rc.5`; rc.5 corrects label/Pie behavior and reactive state-hook reads without changing the public API. Install with `pnpm add -E @wsagency/radix2solid-charts@0.1.0-rc.5`. Releases use the npm `next` dist-tag while Solid is prerelease; source-checkout packing is an optional development alternative.
+Native fork, not an official Recharts or solid-recharts product. This README describes prerelease `@wsagency/radix2solid-charts@0.1.0-rc.5`; rc.5 corrects Label/Pie behavior and reactive state-hook reads, and widens the public `TextProps.class` and `LayerProps.class` types to native `JSX.ClassValue` (from `string`) without changing exported names. Install with `pnpm add -E @wsagency/radix2solid-charts@0.1.0-rc.5`. Releases use the npm `next` dist-tag while Solid is prerelease; source-checkout packing is an optional development alternative.
 
 Charts is a source copy of [solid-recharts](https://github.com/yumemi-thomas/solid-recharts) `2.0.0-beta.1`, a Solid port of the [Recharts](https://github.com/recharts/recharts) `3.9.2` component model, adapted to Solid `2.0.0-rc.15` and to server rendering. See `UPSTREAM.md` for the exact commits and every local change.
 
