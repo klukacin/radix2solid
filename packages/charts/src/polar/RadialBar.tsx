@@ -299,7 +299,8 @@ function RadialBarBackground(props: {
       : undefined;
   // SVG presentation props from the background prop, minus `class` (composed below).
   const backgroundProps = (): Record<string, unknown> => {
-    const all = svgPropertiesNoEventsFromUnknownKeepCase(props.background) ?? {};
+    const all =
+      svgPropertiesNoEventsFromUnknownKeepCase(props.background) ?? {};
     const { class: _bgClass, ...rest } = all;
     return rest;
   };

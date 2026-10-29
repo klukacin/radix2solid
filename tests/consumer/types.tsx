@@ -3318,29 +3318,29 @@ export type PieShapeDataAttributeIsUnknown = Expect<
   Equal<Charts.PieSectorShapeProps["data-chart-probe"], unknown>
 >;
 
+const hasNestedShapeData = (value: unknown): boolean =>
+  typeof value === "object" &&
+  value !== null &&
+  "nested" in value &&
+  value.nested === true;
+
 export const barShapeDataAttributeContract = (
   props: Charts.BarShapeProps,
-): JSX.Element => {
-  const value = props["data-chart-probe"];
-  const nested =
-    typeof value === "object" &&
-    value !== null &&
-    "nested" in value &&
-    value.nested === true;
-  return <path data-chart-nested={nested} data-chart-index={props.index} />;
-};
+): JSX.Element => (
+  <path
+    data-chart-nested={hasNestedShapeData(props["data-chart-probe"])}
+    data-chart-index={props.index}
+  />
+);
 
 export const pieShapeDataAttributeContract = (
   props: Charts.PieSectorShapeProps,
-): JSX.Element => {
-  const value = props["data-chart-probe"];
-  const nested =
-    typeof value === "object" &&
-    value !== null &&
-    "nested" in value &&
-    value.nested === true;
-  return <path data-chart-nested={nested} data-chart-index={props.index} />;
-};
+): JSX.Element => (
+  <path
+    data-chart-nested={hasNestedShapeData(props["data-chart-probe"])}
+    data-chart-index={props.index}
+  />
+);
 
 export const funnelShapeDataAttributeContract = (): JSX.Element => (
   <Charts.Funnel

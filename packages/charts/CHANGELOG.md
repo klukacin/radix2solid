@@ -6,6 +6,7 @@ Registry status before rc.5 publication (2026-10-26): `0.1.0-rc.4` is published 
 
 - The source tree targets Solid rc.19 and Vite plugin next.52; package version `0.1.0-rc.5` remains a separate unpublished local candidate. This note does not change the rc.5 release record or establish npm availability.
 - Bar and Pie shape callbacks type forwarded raw `data-*` row values as `unknown`; custom callbacks receive the original values, while default SVG elements use native DOM attribute string conversion.
+- Keep default-shape selection in the tracked render path so changes to DefaultShape are not captured at setup.
 - Verified Solid rc.19 limitation, scoped to reactive proxy objects used directly as chart `data-*` values: native `Element.setAttribute` coercion can emit `STRICT_READ_UNTRACKED`; because the conversion runs in untracked apply, reactive reads used by it do not subscribe the DOM update, and the attribute can remain stale after source changes. This does not imply raw chart data or other object-valued callback payloads are broken. For DOM attributes, compute and pass a string or primitive reactively before the chart boundary, keep needed custom objects under ordinary non-`data-*` keys, and make initial SSR/CSR strings agree for hydration. Custom callbacks retain original row objects; this candidate does not filter the warning or change the renderer.
 
 ## 0.1.0-rc.5

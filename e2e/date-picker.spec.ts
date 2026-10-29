@@ -960,9 +960,7 @@ test("date picker external reset lifecycle", async ({ page }, info) =>
       .getByRole("button", { name: "Set date programmatically", exact: true })
       .click();
     await expect(bridge).toHaveValue("2026-10-20");
-    await externalForm.evaluate((node) =>
-      (node as HTMLFormElement).reset(),
-    );
+    await externalForm.evaluate((node) => (node as HTMLFormElement).reset());
     await expect(bridge).toHaveValue("2026-10-18");
     expect(
       await externalForm.evaluate((node) => [

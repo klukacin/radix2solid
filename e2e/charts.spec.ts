@@ -1652,19 +1652,8 @@ test("CSR shape callbacks preserve object-valued chart row data and update geome
     !info.project.name.endsWith("csr"),
     "This regression is CSR-specific.",
   );
-  await page.goto("/csr");
-  // Vite transforms this test TSX in-browser; Node cannot import it statically.
-  await page.evaluate(async (moduleUrl) => {
-    const fixture: unknown = await import(moduleUrl);
-    if (
-      fixture &&
-      typeof fixture === "object" &&
-      "mountChartShapeDataAttrs" in fixture &&
-      typeof fixture.mountChartShapeDataAttrs === "function"
-    ) {
-      fixture.mountChartShapeDataAttrs(document.body);
-    }
-  }, "/src/test-chart-shape-data-attrs.tsx");
+  await page.goto("/csr?fixture=chart-shape-data-attrs");
+  await expect(page.locator("#chart-shape-data-attrs")).toHaveCount(1);
 
   const initialGeometry = new Map<string, string>();
   for (const family of ["bar", "pie", "funnel"]) {
@@ -1686,31 +1675,10 @@ test("CSR shape callbacks preserve object-valued chart row data and update geome
     if (!initialD) throw new Error(`${family} initial mark has no geometry.`);
     initialGeometry.set(family, initialD);
   }
-  const coercionHint = await page.evaluate(async (moduleUrl) => {
-    const fixture: unknown = await import(moduleUrl);
-    if (
-      !fixture ||
-      typeof fixture !== "object" ||
-      !("getDataAttributeCoercionHint" in fixture) ||
-      typeof fixture.getDataAttributeCoercionHint !== "function"
-    ) {
-      throw new Error("Data attribute coercion hint is unavailable.");
-    }
-    return fixture.getDataAttributeCoercionHint();
-  }, "/src/test-chart-shape-data-attrs.tsx");
-  expect(coercionHint).toBe("string");
-  await page.evaluate(async (moduleUrl) => {
-    const fixture: unknown = await import(moduleUrl);
-    if (
-      !fixture ||
-      typeof fixture !== "object" ||
-      !("updateChartShapeDataAttrs" in fixture) ||
-      typeof fixture.updateChartShapeDataAttrs !== "function"
-    ) {
-      throw new Error("Chart shape fixture update function is unavailable.");
-    }
-    fixture.updateChartShapeDataAttrs();
-  }, "/src/test-chart-shape-data-attrs.tsx");
+  await expect(
+    page.locator("#chart-shape-data-attrs-coercion-hint"),
+  ).toHaveText("string");
+  await page.locator("#chart-shape-data-attrs-update").click();
   for (const family of ["bar", "pie", "funnel"]) {
     await expect(
       page.locator(

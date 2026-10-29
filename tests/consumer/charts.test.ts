@@ -460,36 +460,42 @@ test("Bar, Pie, and Funnel preserve object-valued row data attributes in shapes"
       }),
     );
 
-  const barCustomHtml = renderBar((props) => {
-    barProbe = props["data-chart-probe"];
-    return createComponent(Rectangle, {
+  const barCustomHtml = renderBar((props) =>
+    createComponent(Rectangle, {
       x: 0,
       y: 0,
       width: 1,
       height: 1,
-      "data-custom-shape": "bar",
-    });
-  });
-  const pieCustomHtml = renderPie((props) => {
-    pieProbe = props["data-chart-probe"];
-    return createComponent(Rectangle, {
+      get ["data-custom-shape"]() {
+        barProbe = props["data-chart-probe"];
+        return "bar";
+      },
+    }),
+  );
+  const pieCustomHtml = renderPie((props) =>
+    createComponent(Rectangle, {
       x: 0,
       y: 0,
       width: 1,
       height: 1,
-      "data-custom-shape": "pie",
-    });
-  });
-  const funnelCustomHtml = renderFunnel((props) => {
-    funnelProbe = props["data-chart-probe"];
-    return createComponent(Rectangle, {
+      get ["data-custom-shape"]() {
+        pieProbe = props["data-chart-probe"];
+        return "pie";
+      },
+    }),
+  );
+  const funnelCustomHtml = renderFunnel((props) =>
+    createComponent(Rectangle, {
       x: 0,
       y: 0,
       width: 1,
       height: 1,
-      "data-custom-shape": "funnel",
-    });
-  });
+      get ["data-custom-shape"]() {
+        funnelProbe = props["data-chart-probe"];
+        return "funnel";
+      },
+    }),
+  );
   for (const [name, html, value] of [
     ["Bar", barCustomHtml, barProbe],
     ["Pie", pieCustomHtml, pieProbe],

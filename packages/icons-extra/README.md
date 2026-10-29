@@ -4,7 +4,6 @@
 
 This README describes the unpublished local source candidate `@wsagency/radix2solid-icons-extra@0.1.0-rc.5`; it is not available from npm, so no registry install command is provided. For local testing, build and pack from this checkout. This candidate version remains distinct from the rc.19 toolchain compatibility target.
 
-
 For source-checkout development, packing a local tarball is an optional alternative.
 
 ## Exports

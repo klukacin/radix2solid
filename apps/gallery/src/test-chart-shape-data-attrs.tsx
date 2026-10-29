@@ -1,4 +1,3 @@
-import { createSignal } from "solid-js";
 import { render } from "@solidjs/web";
 import {
   Bar,
@@ -10,6 +9,7 @@ import {
   XAxis,
   YAxis,
 } from "@wsagency/radix2solid-charts";
+import { createSignal } from "solid-js";
 
 type ProbeValue = {
   nested: boolean;
@@ -70,10 +70,6 @@ const updatedDefaultRows: DefaultRow[] = [
   },
   { name: "Reference", value: 20 },
 ];
-let updateRows: (() => void) | undefined;
-export function getDataAttributeCoercionHint(): string | undefined {
-  return lastDataAttributeHint;
-}
 
 function probeState(value: unknown): "true" | "false" | "missing" {
   if (typeof value !== "object" || value === null || !("nested" in value)) {
@@ -85,15 +81,32 @@ function probeState(value: unknown): "true" | "false" | "missing" {
 export function mountChartShapeDataAttrs(target: HTMLElement): () => void {
   const [rows, setRows] = createSignal(initialRows);
   const [defaultRows, setDefaultRows] = createSignal(initialDefaultRows);
-  updateRows = () => {
+  const updateRows = () => {
     setRows(updatedRows);
     setDefaultRows(updatedDefaultRows);
   };
-  return render(
+  const dispose = render(
     () => (
-      <div id="chart-shape-data-attrs" aria-hidden="true">
+      <div
+        id="chart-shape-data-attrs"
+        aria-hidden="true"
+      >
+        <output id="chart-shape-data-attrs-coercion-hint">
+          {lastDataAttributeHint ?? ""}
+        </output>
+        <button
+          id="chart-shape-data-attrs-update"
+          type="button"
+          onClick={updateRows}
+        >
+          Update
+        </button>
         <div id="chart-shape-data-attrs-bar-custom">
-          <BarChart width={180} height={140} data={rows()}>
+          <BarChart
+            width={180}
+            height={140}
+            data={rows()}
+          >
             <XAxis dataKey="name" />
             <YAxis />
             <Bar
@@ -108,14 +121,25 @@ export function mountChartShapeDataAttrs(target: HTMLElement): () => void {
           </BarChart>
         </div>
         <div id="chart-shape-data-attrs-bar-default">
-          <BarChart width={180} height={140} data={defaultRows()}>
+          <BarChart
+            width={180}
+            height={140}
+            data={defaultRows()}
+          >
             <XAxis dataKey="name" />
             <YAxis />
-            <Bar dataKey="value" isAnimationActive={false} />
+            <Bar
+              dataKey="value"
+              isAnimationActive={false}
+            />
           </BarChart>
         </div>
         <div id="chart-shape-data-attrs-pie-custom">
-          <PieChart width={180} height={140} data={rows()}>
+          <PieChart
+            width={180}
+            height={140}
+            data={rows()}
+          >
             <Pie
               dataKey="value"
               isAnimationActive={false}
@@ -128,12 +152,23 @@ export function mountChartShapeDataAttrs(target: HTMLElement): () => void {
           </PieChart>
         </div>
         <div id="chart-shape-data-attrs-pie-default">
-          <PieChart width={180} height={140} data={defaultRows()}>
-            <Pie dataKey="value" isAnimationActive={false} />
+          <PieChart
+            width={180}
+            height={140}
+            data={defaultRows()}
+          >
+            <Pie
+              dataKey="value"
+              isAnimationActive={false}
+            />
           </PieChart>
         </div>
         <div id="chart-shape-data-attrs-funnel-custom">
-          <FunnelChart width={180} height={140} data={rows()}>
+          <FunnelChart
+            width={180}
+            height={140}
+            data={rows()}
+          >
             <Funnel
               dataKey="value"
               isAnimationActive={false}
@@ -146,18 +181,28 @@ export function mountChartShapeDataAttrs(target: HTMLElement): () => void {
           </FunnelChart>
         </div>
         <div id="chart-shape-data-attrs-funnel-default">
-          <FunnelChart width={180} height={140} data={defaultRows()}>
-            <Funnel dataKey="value" isAnimationActive={false} />
+          <FunnelChart
+            width={180}
+            height={140}
+            data={defaultRows()}
+          >
+            <Funnel
+              dataKey="value"
+              isAnimationActive={false}
+            />
           </FunnelChart>
         </div>
       </div>
     ),
     target,
   );
-}
-export function updateChartShapeDataAttrs(): void {
-  if (!updateRows) {
-    throw new Error("Chart shape fixture is not mounted.");
+  const coercionHint = target.querySelector(
+    "#chart-shape-data-attrs-coercion-hint",
+  );
+  if (!coercionHint) {
+    dispose();
+    throw new Error("Chart shape fixture did not render its coercion hint.");
   }
-  updateRows();
+  coercionHint.textContent = lastDataAttributeHint ?? "";
+  return dispose;
 }

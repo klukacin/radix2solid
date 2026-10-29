@@ -10,8 +10,7 @@ import {
 export type Scope = Record<string, Context<any>[]> | undefined;
 export type CreateScope<Name extends string = string> = (() => (
   override?: Scope,
-) => Record<`__scope${string}`, Scope> &
-  Record<`__scope${Name}`, Scope>) & {
+) => Record<`__scope${string}`, Scope> & Record<`__scope${Name}`, Scope>) & {
   scopeName: Name;
 };
 

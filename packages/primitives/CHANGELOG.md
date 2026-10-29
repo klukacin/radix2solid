@@ -10,7 +10,6 @@ Registry status before rc.5 publication (2026-10-26): `0.1.0-rc.4` is published 
 - Keep required Checkbox validation native: route actual focus from the aria-hidden input to the visible checkbox unless its consumer redirects focus; leave invalid defaults uncanceled and `checkValidity()` focusless.
 - Emit one synthetic bubbling `input` before `change` only when a Checkbox user change is accepted in the same reactive update; delayed controlled updates stay change-only rather than risk treating later programmatic updates as user input.
 
-
 ## 0.1.0-rc.5
 
 - Fix setup-time reads and timer ownership by untracking them from reactive computations; use `createMemo` for stable Combobox and Command input IDs.

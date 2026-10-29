@@ -24,3 +24,14 @@ if (document.documentElement.dataset.renderMode === "csr") {
   );
   hydrate(() => <SecondRoot />, second, { renderId: "b-" });
 }
+const search = window.location.search;
+if (
+  search &&
+  new URLSearchParams(search).get("fixture") === "chart-shape-data-attrs"
+) {
+  void import("./test-chart-shape-data-attrs.js").then(
+    ({ mountChartShapeDataAttrs }) => {
+      mountChartShapeDataAttrs(document.body);
+    },
+  );
+}

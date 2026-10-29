@@ -12,7 +12,6 @@ The five packages keep their native API under the `@wsagency` npm scope:
 
 This README describes the five packages' local source candidate `0.1.0-rc.5`, which is unpublished and unavailable from the npm registry. The compatibility target in this branch is Solid rc.19 with Vite plugin next.52; that does not turn rc.5 into a published rc.19 release. The published rc.4 packages use the npm `next` dist-tag while Solid is prerelease. Calendar, DatePicker and FileDrop are introduced in rc.4 in Primitives and Themes; these new APIs are absent from rc.3. Do not install rc.5 from npm; use the source-checkout workflow below for local testing.
 
-
 ```sh
 # From the reviewed source checkout, with pinned Node 24 and pnpm 11:
 pnpm install --frozen-lockfile

@@ -1380,7 +1380,9 @@ test("required delete confirmation blocks unchecked submit and serializes checke
       .click();
     await expect(output).toHaveText("");
     await checkbox.click();
-    expect(JSON.parse((await input.getAttribute("data-event-trace")) ?? "[]")).toEqual([
+    expect(
+      JSON.parse((await input.getAttribute("data-event-trace")) ?? "[]"),
+    ).toEqual([
       { type: "click", bubbles: true, trusted: false },
       { type: "input", bubbles: true, trusted: false },
       { type: "change", bubbles: true, trusted: false },
@@ -1481,7 +1483,8 @@ test("native Checkbox checkValidity preserves focus and invalid event defaults",
     const active = document.activeElement as HTMLElement | null;
     return {
       valid,
-      active: active?.id || active?.getAttribute("aria-label") || active?.tagName,
+      active:
+        active?.id || active?.getAttribute("aria-label") || active?.tagName,
       invalids: invalids.map(({ name, event }) => ({
         name,
         defaultPrevented: event.defaultPrevented,
@@ -1527,7 +1530,8 @@ test("native Checkbox reportValidity preserves first focus and validation messag
     );
     return {
       valid,
-      active: active?.id || active?.getAttribute("aria-label") || active?.tagName,
+      active:
+        active?.id || active?.getAttribute("aria-label") || active?.tagName,
       invalids: invalids.map(({ name, event }) => ({
         name,
         defaultPrevented: event.defaultPrevented,
@@ -1602,7 +1606,6 @@ test("caller onInvalid cancellation retains caller-selected Checkbox form focus"
   await expect(submit).toBeFocused();
 });
 
-
 test("Checkbox bridge emits input for user changes accepted in the same update", async ({
   page,
 }) => {
@@ -1668,7 +1671,9 @@ test("Checkbox bridge emits input for user changes accepted in the same update",
     },
   ]);
 
-  await page.getByRole("button", { name: "Set checked programmatically" }).click();
+  await page
+    .getByRole("button", { name: "Set checked programmatically" })
+    .click();
   expect(await events()).toEqual([
     {
       type: "click",
@@ -1741,7 +1746,6 @@ test("Checkbox bridge emits input for user changes accepted in the same update",
   ]);
 });
 
-
 test("Checkbox native notifications preserve stopped event bubbling", async ({
   page,
 }) => {
@@ -1771,7 +1775,8 @@ test("Checkbox native notifications preserve stopped event bubbling", async ({
     const events: string[] = [];
     for (const type of ["click", "input", "change"]) {
       node.addEventListener(type, (event) => {
-        if (event.target !== node.querySelector('input[name="checked"]')) return;
+        if (event.target !== node.querySelector('input[name="checked"]'))
+          return;
         events.push(`${type}:${event.bubbles}:${event.isTrusted}`);
         node.setAttribute("data-form-checkbox-events", JSON.stringify(events));
       });
@@ -1800,7 +1805,9 @@ test("Checkbox native focus honors consumer focus and missing control refs", asy
   const inputWithoutControl = page.locator('input[name="focus-no-control"]');
   await inputWithoutControl.focus();
   expect(
-    await inputWithoutControl.evaluate((node) => document.activeElement === node),
+    await inputWithoutControl.evaluate(
+      (node) => document.activeElement === node,
+    ),
   ).toBe(true);
 });
 test("iframe Portal Checkbox restores native validity after invalid and mouse toggles", async ({
@@ -1835,7 +1842,7 @@ test("iframe Portal Checkbox restores native validity after invalid and mouse to
   await submit.click();
   await expect(frame.locator("#iframe-checkbox-submits")).toHaveText("1");
 });
-test("iframe-created Checkbox input routes focus across realms", async ({
+test("iframe-created Checkbox input forwards reactive props and routes focus across realms", async ({
   page,
 }) => {
   const frame = page.frameLocator("#checkbox-test-frame");
@@ -1860,11 +1867,20 @@ test("iframe-created Checkbox input routes focus across realms", async ({
       ];
     }),
   ).toEqual([true, true, false]);
+  await frame
+    .getByRole("button", {
+      name: "Make iframe cross-realm checkbox optional",
+      exact: true,
+    })
+    .click();
+  await expect(input).not.toHaveAttribute("required");
+  expect(
+    await form.evaluate((node) => (node as HTMLFormElement).checkValidity()),
+  ).toBe(true);
   await input.focus();
   await expect(checkbox).toBeFocused();
   await expect(input).not.toBeFocused();
 });
-
 
 test("delayed controlled Checkbox submits after invalid form attempt and mouse toggle", async ({
   page,
@@ -1895,10 +1911,7 @@ test("delayed controlled Checkbox submits after invalid form attempt and mouse t
       });
     }
     node.addEventListener("submit", (event) => {
-      node.setAttribute(
-        "data-native-submit-trusted",
-        String(event.isTrusted),
-      );
+      node.setAttribute("data-native-submit-trusted", String(event.isTrusted));
     });
   });
 
